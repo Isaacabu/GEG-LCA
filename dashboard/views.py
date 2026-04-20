@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -165,7 +164,6 @@ def calculate(request):
 
         return JsonResponse({
             "ok": True,
-
             "north_loss": round(north_loss, 2),
             "south_loss": round(south_loss, 2),
             "east_loss": round(east_loss, 2),
@@ -241,7 +239,6 @@ def calculate_system(request):
         if errors:
             return JsonResponse({"ok": False, "errors": errors}, status=400)
 
-        # Faktoren
         primary_factors = {
             "gas": 1.1,
             "heatpump": 1.8,
@@ -271,7 +268,6 @@ def calculate_system(request):
         specific_end_energy = total_end_energy / bgf
         specific_primary_energy = primary_energy / bgf
 
-        # einfache Bewertung
         if specific_primary_energy <= 60:
             system_label = "Sehr effizient"
             system_color = "green"
@@ -305,26 +301,3 @@ def calculate_system(request):
             "ok": False,
             "errors": [f"Unerwarteter Fehler: {str(e)}"]
         }, status=500)
-=======
-from django.shortcuts import render
-from django.http import JsonResponse
-import json
-
-def index(request):
-    return render(request, 'dashboard/index.html')
-
-
-def calculate(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-
-        area = float(data.get('area', 0))
-        u_value = float(data.get('u_value', 0))
-
-        heat_loss = area * u_value
-
-        return JsonResponse({
-            'heat_loss': heat_loss
-        })
-        
->>>>>>> 60c4f5d9d2418ec8b81cc3bb4796449a779cf8a0
