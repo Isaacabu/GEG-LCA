@@ -18,4 +18,4 @@ def calculate(request):
         return JsonResponse({
             'heat_loss': heat_loss
         })
-        })
+        
