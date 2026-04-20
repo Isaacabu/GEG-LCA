@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import index, calculate_heat_loss
+from . import views
 
 urlpatterns = [
-    path("", index),
-    path("calculate/", calculate_heat_loss),
+    path('', views.index),
+    path('calculate/', views.calculate),
 ]
