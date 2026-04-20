@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UR Bau – Professionelle Energiebilanzierung</title>
+
+<style>
+:root {
+    --bg: #f3f3f3;
+    --surface: #ffffff;
+    --surface-2: #f7f7f7;
+    --line: #dddddd;
+
+    --text: #171717;
+    --muted: #5f5f5f;
+
+    --green-dark: #3f6f46;
+    --green-mid: #55835b;
+    --green-light: #eaf5ec;
+
+    --yellow: #d8b46b;
+    --yellow-dark: #6a5426;
+
+    --danger-bg: #fff1ef;
+    --danger-border: #efc1bb;
+    --danger-text: #8d3d31;
+
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+    --radius-xl: 22px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+body {
+    min-height: 100vh;
+}
+
+.page {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 28px 24px 40px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+
+.title-block h1 {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.15;
+    font-weight: 800;
+    color: #1f2b1f;
+    letter-spacing: -0.02em;
+}
+
+.title-block p {
+    margin: 10px 0 0;
+    max-width: 760px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: none;
+    border-radius: 12px;
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+    font-family: inherit;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-yellow {
+    background: #e2c27d;
+    color: #493914;
+}
+
+.btn-green {
+    background: #5f8f65;
+    color: white;
+}
+
+.btn-primary {
+    background: var(--green-dark);
+    color: white;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 18px 0 18px;
+}
+
+.tabs button {
+    border: 1px solid var(--line);
+    background: #efefef;
+    color: #2d2d2d;
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.tabs button.active {
+    background: var(--green-mid);
+    color: white;
+    border-color: var(--green-mid);
+}
+
+.tab {
+    display: none;
+}
+
+.tab.active {
+    display: block;
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid #e6e6e6;
+    border-radius: var(--radius-xl);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.section-title {
+    margin: 0 0 16px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1f2b1f;
+    letter-spacing: -0.01em;
+}
+
+.section-divider {
+    height: 1px;
+    background: #e6e6e6;
+    margin: 10px 0 18px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid #e2e2e2;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.card h3 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #232323;
+    letter-spacing: -0.01em;
+}
+
+.field {
+    margin-bottom: 12px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #3d3d3d;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    border: 1px solid #dddddd;
+    background: #f1f1f1;
+    color: #151515;
+    border-radius: 12px;
+    padding: 12px 13px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: #9fbc9f;
+    background: #f8fff8;
+}
+
+.note {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 8px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-box {
+    background: #f6f6f6;
+    border: 1px solid #e3e3e3;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.stat-box .label {
+    color: #666;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.stat-box .value {
+    color: #1c1c1c;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.result-row {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.result-chip {
+    border-radius: 14px;
+    padding: 14px;
+    background: linear-gradient(180deg, #4f7f56, #426e49);
+    border: 1px solid #4a7350;
+    color: white;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.result-chip .small {
+    display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,0.82);
+    margin-bottom: 6px;
+}
+
+.result-chip strong {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.placeholder {
+    background: #fbfbfb;
+    border: 1px dashed #d9d9d9;
+    border-radius: 18px;
+    padding: 20px;
+    min-height: 150px;
+}
+
+.placeholder h3 {
+    margin-top: 0;
+    color: #202020;
+}
+
+.placeholder p {
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+.footer-note {
+    margin-top: 18px;
+    color: #5f5f5f;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.alert-box {
+    display: none;
+    margin-bottom: 18px;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.alert-box.error {
+    display: block;
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
+    box-shadow: 0 6px 18px rgba(141, 61, 49, 0.08);
+}
+
+.alert-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.alert-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.alert-list li {
+    margin: 4px 0;
+}
+
+.rating-box {
+    margin-top: 10px;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #dedede;
+    display: none;
+    background: #f9f9f9;
+}
+
+.rating-box.green {
+    display: block;
+    background: #edf8ef;
+    border-color: #bad8be;
+}
+
+.rating-box.yellow {
+    display: block;
+    background: #fff7e8;
+    border-color: #e6d19d;
+}
+
+.rating-box.red {
+    display: block;
+    background: #fff0ed;
+    border-color: #e6b5ad;
+}
+
+.rating-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: #1d1d1d;
+}
+
+.rating-text {
+    color: #3b3b3b;
+    line-height: 1.45;
+}
+
+.big-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.summary-box {
+    background: #fafafa;
+    border: 1px solid #e2e2e2;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.summary-box .label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.summary-box .value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e1e1e;
+}
+
+@media (max-width: 1100px) {
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .result-row,
+    .stats,
+    .big-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+    <div class="topbar">
+        <div class="title-block">
+            <h1>UR Bau – Professionelle Energiebilanzierung</h1>
+            <p>Exakte energetische Bewertung nach GEG mit strukturierter Projektlogik aus Gebäudedaten, Gebäudehülle, Photovoltaik und Energiebilanz.</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-yellow">Expertenmodus</button>
+            <button class="btn btn-green">Projekt speichern</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="active" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
+        <button onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
+        <button onclick="showTab('anlage', this)">⚙️ Anlagentechnik</button>
+        <button onclick="showTab('pv', this)">☀️ Photovoltaik</button>
+        <button onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
+    </div>
+
+    <div id="daten" class="tab active">
+        <div class="panel">
+            <h2 class="section-title">Gebäudedaten</h2>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Grunddaten</h3>
+                    <div class="field">
+                        <label>Projektname</label>
+                        <input value="UR Bau Projekt">
+                    </div>
+                    <div class="field">
+                        <label>Standort</label>
+                        <select>
+                            <option>Augsburg (Bayern)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Gebäudetyp</label>
+                        <select>
+                            <option>Bürogebäude</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Projektart</label>
+                        <select>
+                            <option>Neubau</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Gebäudegeometrie</h3>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Länge Nord/Süd (m)</label>
+                            <input value="12">
+                        </div>
+                        <div class="field">
+                            <label>Breite Ost/West (m)</label>
+                            <input value="10">
+                        </div>
+                        <div class="field">
+                            <label>Anzahl Geschosse</label>
+                            <input value="3">
+                        </div>
+                        <div class="field">
+                            <label>Geschosshöhe (m)</label>
+                            <input value="3.5">
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Gesamthöhe</div>
+                            <div class="value">10.5 m</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Brutto-Rauminhalt</div>
+                            <div class="value">1260 m³</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">BGF</div>
+                            <div class="value">360 m²</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Hüllfläche A</div>
+                            <div class="value">702 m²</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Klimadaten und Randbedingungen</h3>
+                    <div class="grid-3">
+                        <div class="field">
+                            <label>Klimaregion</label>
+                            <select>
+                                <option>Region 3 (Süddeutschland)</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Höhenlage (m ü. NN)</label>
+                            <input value="500">
+                        </div>
+                        <div class="field">
+                            <label>Raum-Soll-Temperatur (°C)</label>
+                            <input value="20">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>BGF für spezifische Kennwerte (m²)</label>
+                        <input id="bgf" type="number" value="360">
+                    </div>
+
+                    <div class="field">
+                        <label>Gradstunden/Jahr (Kh/a)</label>
+                        <input id="gradstunden" type="number" value="78000">
+                    </div>
+
+                    <div class="note">
+                        Vereinfachtes Modell: Jahres-Heizwärmebedarf ≈ H × Gradstunden / 1000.
+                        H ist hier der Transmissionswärmeverlustkoeffizient in W/K.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Nutzung und Personen</h3>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Personendichte (m²/Person)</label>
+                            <input value="20">
+                        </div>
+                        <div class="field">
+                            <label>Betriebsstunden/Jahr</label>
+                            <input value="2500">
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Anzahl Personen</div>
+                            <div class="value">15</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Vollbenutzungsstunden/Jahr</div>
+                            <div class="value">2500</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="huelle" class="tab">
+        <div class="panel">
+            <h2 class="section-title">Gebäudehülle</h2>
+            <div class="section-divider"></div>
+
+            <div id="errorBox" class="alert-box"></div>
+
+            <div class="card">
+                <h3>Außenwände – Wärmeverlustkoeffizient nach Orientierung</h3>
+
+                <div class="grid-4">
+                    <div>
+                        <div class="field">
+                            <label>Nord Fläche (m²)</label>
+                            <input id="north_area" type="number" value="80">
+                        </div>
+                        <div class="field">
+                            <label>Nord U-Wert (W/m²K)</label>
+                            <input id="north_u" type="number" step="0.01" value="0.28">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="field">
+                            <label>Süd Fläche (m²)</label>
+                            <input id="south_area" type="number" value="80">
+                        </div>
+                        <div class="field">
+                            <label>Süd U-Wert (W/m²K)</label>
+                            <input id="south_u" type="number" step="0.01" value="0.28">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="field">
+                            <label>Ost Fläche (m²)</label>
+                            <input id="east_area" type="number" value="60">
+                        </div>
+                        <div class="field">
+                            <label>Ost U-Wert (W/m²K)</label>
+                            <input id="east_u" type="number" step="0.01" value="0.30">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="field">
+                            <label>West Fläche (m²)</label>
+                            <input id="west_area" type="number" value="60">
+                        </div>
+                        <div class="field">
+                            <label>West U-Wert (W/m²K)</label>
+                            <input id="west_u" type="number" step="0.01" value="0.30">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
+
+                <div class="result-row">
+                    <div class="result-chip">
+                        <span class="small">Nord (W/K)</span>
+                        <strong id="north_result">—</strong>
+                    </div>
+                    <div class="result-chip">
+                        <span class="small">Süd (W/K)</span>
+                        <strong id="south_result">—</strong>
+                    </div>
+                    <div class="result-chip">
+                        <span class="small">Ost (W/K)</span>
+                        <strong id="east_result">—</strong>
+                    </div>
+                    <div class="result-chip">
+                        <span class="small">West (W/K)</span>
+                        <strong id="west_result">—</strong>
+                    </div>
+                    <div class="result-chip">
+                        <span class="small">Wände gesamt (W/K)</span>
+                        <strong id="wall_total_result">—</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <div class="card">
+                    <h3>Dach und Boden</h3>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Dachfläche (m²)</label>
+                            <input id="roof_area" type="number" value="120">
+                        </div>
+                        <div class="field">
+                            <label>Dach U-Wert (W/m²K)</label>
+                            <input id="roof_u" type="number" step="0.01" value="0.20">
+                        </div>
+                        <div class="field">
+                            <label>Bodenfläche (m²)</label>
+                            <input id="floor_area" type="number" value="120">
+                        </div>
+                        <div class="field">
+                            <label>Boden U-Wert (W/m²K)</label>
+                            <input id="floor_u" type="number" step="0.01" value="0.25">
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Dach (W/K)</div>
+                            <div class="value" id="roof_result">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Boden (W/K)</div>
+                            <div class="value" id="floor_result">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Fenster & transparente Bauteile</h3>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Fenster Nord (m²)</label>
+                            <input id="window_north_area" type="number" value="8">
+                        </div>
+                        <div class="field">
+                            <label>Fenster Süd (m²)</label>
+                            <input id="window_south_area" type="number" value="12">
+                        </div>
+                        <div class="field">
+                            <label>Fenster Ost (m²)</label>
+                            <input id="window_east_area" type="number" value="6">
+                        </div>
+                        <div class="field">
+                            <label>Fenster West (m²)</label>
+                            <input id="window_west_area" type="number" value="6">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Fenster U-Wert (W/m²K)</label>
+                        <input id="window_u" type="number" step="0.01" value="1.10">
+                    </div>
+
+                    <div class="field">
+                        <label>g-Wert (0 bis 1)</label>
+                        <input id="g_value" type="number" step="0.01" value="0.55">
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Fenster gesamt (W/K)</div>
+                            <div class="value" id="window_total_result">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Gebäudehülle gesamt (W/K)</div>
+                            <div class="value" id="envelope_total_result">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <div class="card">
+                    <h3>Vereinfachte Jahreskennwerte</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Solarer Gewinn (kWh/a)</div>
+                            <div class="value" id="solar_gain_result">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Heizwärmebedarf brutto (kWh/a)</div>
+                            <div class="value" id="annual_heat_result">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Heizwärmebedarf netto (kWh/a)</div>
+                            <div class="value" id="adjusted_heat_result">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Spezifisch (kWh/m²a)</div>
+                            <div class="value" id="specific_heat_result">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Ampelbewertung</h3>
+                    <div id="ratingBox" class="rating-box">
+                        <div id="ratingTitle" class="rating-title">—</div>
+                        <div id="ratingText" class="rating-text">—</div>
+                    </div>
+                    <div class="note">
+                        Vereinfachte Demo-Bewertung:
+                        grün ≤ 40 kWh/m²a, gelb ≤ 80 kWh/m²a, rot > 80 kWh/m²a.
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Stufe 2 umfasst jetzt Validierung, eindeutige Einheiten, Wärmeverlustkoeffizienten (W/K),
+                einen vereinfachten Jahres-Heizwärmebedarf (kWh/a), spezifische Kennwerte (kWh/m²a)
+                und ein Ampelsystem zur Einordnung.
+            </div>
+        </div>
+    </div>
+
+    <div id="anlage" class="tab">
+        <div class="panel">
+            <h2 class="section-title">Anlagentechnik</h2>
+            <div id="systemErrorBox" class="alert-box"></div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Systemauswahl</h3>
+
+                    <div class="field">
+                        <label>Heizsystem</label>
+                        <select id="heating_system" onchange="applySystemDefaults()">
+                            <option value="gas">Gas-Brennwert</option>
+                            <option value="heatpump">Wärmepumpe</option>
+                            <option value="district">Fernwärme</option>
+                            <option value="pellet">Pellet</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Wirkungsgrad η</label>
+                        <input id="efficiency" type="number" step="0.01" value="0.90">
+                    </div>
+
+                    <div class="field">
+                        <label>COP (nur für Wärmepumpe relevant)</label>
+                        <input id="cop" type="number" step="0.1" value="3.5">
+                    </div>
+
+                    <div class="field">
+                        <label>Warmwasserbedarf (kWh/a)</label>
+                        <input id="hotwater_demand" type="number" value="3000">
+                    </div>
+
+                    <div class="field">
+                        <label>Hilfsstrom / Anlagenstrom (kWh/a)</label>
+                        <input id="auxiliary_electricity" type="number" value="1200">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
+
+                    <div class="note">
+                        Grundlage ist der zuvor berechnete Heizwärmebedarf netto aus der Gebäudehülle.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Ergebnisse Anlagentechnik</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Heizung Endenergie (kWh/a)</div>
+                            <div class="value" id="system_heating_end">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Warmwasser Endenergie (kWh/a)</div>
+                            <div class="value" id="system_hotwater_end">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Hilfsstrom (kWh/a)</div>
+                            <div class="value" id="system_aux">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Endenergie gesamt (kWh/a)</div>
+                            <div class="value" id="system_total_end">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Primärenergie (kWh/a)</div>
+                            <div class="value" id="system_primary">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">CO₂-Emissionen (kg/a)</div>
+                            <div class="value" id="system_co2">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Spezifische Endenergie (kWh/m²a)</div>
+                            <div class="value" id="system_spec_end">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Spezifische Primärenergie (kWh/m²a)</div>
+                            <div class="value" id="system_spec_primary">—</div>
+                        </div>
+                    </div>
+
+                    <div id="systemRatingBox" class="rating-box">
+                        <div id="systemRatingTitle" class="rating-title">—</div>
+                        <div id="systemRatingText" class="rating-text">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Das Anlagentechnik-Modul wandelt den Heizwärmebedarf netto in Endenergie, Primärenergie und CO₂ um.
+                Dadurch entsteht der nächste echte Systemschritt nach der Gebäudehülle.
+            </div>
+        </div>
+    </div>
+
+    <div id="pv" class="tab">
+        <div class="panel">
+            <h2 class="section-title">Photovoltaik</h2>
+            <div class="placeholder">
+                <h3>PV-System / PV-Flächen / PV-Ergebnisse</h3>
+                <p>Struktur vorbereitet auf Basis eures Miroboards.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="bilanz" class="tab">
+        <div class="panel">
+            <h2 class="section-title">Energiebilanz</h2>
+            <div class="big-summary">
+                <div class="summary-box">
+                    <div class="label">Heizwärmebedarf netto</div>
+                    <div class="value" id="bilanz_heat">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Spezifischer Bedarf</div>
+                    <div class="value" id="bilanz_specific">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Transmissionskoeffizient H</div>
+                    <div class="value" id="bilanz_h">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Ampelstatus</div>
+                    <div class="value" id="bilanz_rating">—</div>
+                </div>
+            </div>
+
+            <div class="big-summary" style="margin-top:14px;">
+                <div class="summary-box">
+                    <div class="label">Endenergie gesamt</div>
+                    <div class="value" id="bilanz_system_end">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Primärenergie</div>
+                    <div class="value" id="bilanz_system_primary">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">CO₂-Emissionen</div>
+                    <div class="value" id="bilanz_system_co2">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Systembewertung</div>
+                    <div class="value" id="bilanz_system_rating">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showTab(id, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function showErrors(errors) {
+    const errorBox = document.getElementById('errorBox');
+    errorBox.className = 'alert-box error';
+    const listItems = errors.map(error => `<li>${error}</li>`).join('');
+    errorBox.innerHTML = `
+        <span class="alert-title">Bitte Eingaben prüfen</span>
+        <ul class="alert-list">${listItems}</ul>
+    `;
+}
+
+function hideErrors() {
+    const errorBox = document.getElementById('errorBox');
+    errorBox.className = 'alert-box';
+    errorBox.innerHTML = '';
+}
+
+function showSystemErrors(errors) {
+    const errorBox = document.getElementById('systemErrorBox');
+    errorBox.className = 'alert-box error';
+    const listItems = errors.map(error => `<li>${error}</li>`).join('');
+    errorBox.innerHTML = `
+        <span class="alert-title">Bitte Systemeingaben prüfen</span>
+        <ul class="alert-list">${listItems}</ul>
+    `;
+}
+
+function hideSystemErrors() {
+    const errorBox = document.getElementById('systemErrorBox');
+    errorBox.className = 'alert-box';
+    errorBox.innerHTML = '';
+}
+
+function updateRating(color, label, message) {
+    const ratingBox = document.getElementById('ratingBox');
+    ratingBox.className = 'rating-box ' + color;
+    document.getElementById('ratingTitle').innerText = label;
+    document.getElementById('ratingText').innerText = message;
+}
+
+function updateSystemRating(color, label, message) {
+    const ratingBox = document.getElementById('systemRatingBox');
+    ratingBox.className = 'rating-box ' + color;
+    document.getElementById('systemRatingTitle').innerText = label;
+    document.getElementById('systemRatingText').innerText = message;
+}
+
+function applySystemDefaults() {
+    const system = document.getElementById('heating_system').value;
+    const efficiency = document.getElementById('efficiency');
+    const cop = document.getElementById('cop');
+
+    if (system === 'gas') {
+        efficiency.value = 0.90;
+        cop.value = 3.5;
+    } else if (system === 'heatpump') {
+        efficiency.value = 1.00;
+        cop.value = 3.5;
+    } else if (system === 'district') {
+        efficiency.value = 1.00;
+        cop.value = 3.5;
+    } else if (system === 'pellet') {
+        efficiency.value = 0.85;
+        cop.value = 3.5;
+    }
+}
+
+function calculateEnvelope() {
+    hideErrors();
+
+    fetch('/calculate/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            bgf: document.getElementById('bgf').value,
+            gradstunden: document.getElementById('gradstunden').value,
+
+            north_area: document.getElementById('north_area').value,
+            north_u: document.getElementById('north_u').value,
+            south_area: document.getElementById('south_area').value,
+            south_u: document.getElementById('south_u').value,
+            east_area: document.getElementById('east_area').value,
+            east_u: document.getElementById('east_u').value,
+            west_area: document.getElementById('west_area').value,
+            west_u: document.getElementById('west_u').value,
+
+            roof_area: document.getElementById('roof_area').value,
+            roof_u: document.getElementById('roof_u').value,
+            floor_area: document.getElementById('floor_area').value,
+            floor_u: document.getElementById('floor_u').value,
+
+            window_north_area: document.getElementById('window_north_area').value,
+            window_south_area: document.getElementById('window_south_area').value,
+            window_east_area: document.getElementById('window_east_area').value,
+            window_west_area: document.getElementById('window_west_area').value,
+            window_u: document.getElementById('window_u').value,
+            g_value: document.getElementById('g_value').value
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        document.getElementById('north_result').innerText = data.north_loss + ' W/K';
+        document.getElementById('south_result').innerText = data.south_loss + ' W/K';
+        document.getElementById('east_result').innerText = data.east_loss + ' W/K';
+        document.getElementById('west_result').innerText = data.west_loss + ' W/K';
+        document.getElementById('wall_total_result').innerText = data.wall_total + ' W/K';
+
+        document.getElementById('roof_result').innerText = data.roof_loss + ' W/K';
+        document.getElementById('floor_result').innerText = data.floor_loss + ' W/K';
+
+        document.getElementById('window_total_result').innerText = data.window_total + ' W/K';
+        document.getElementById('envelope_total_result').innerText = data.envelope_total + ' W/K';
+
+        document.getElementById('solar_gain_result').innerText = data.solar_gain_kwh + ' kWh/a';
+        document.getElementById('annual_heat_result').innerText = data.annual_heat_demand_kwh + ' kWh/a';
+        document.getElementById('adjusted_heat_result').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
+        document.getElementById('specific_heat_result').innerText = data.specific_heat_demand + ' kWh/m²a';
+
+        updateRating(data.rating_color, data.rating_label, data.rating_message);
+
+        document.getElementById('bilanz_heat').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
+        document.getElementById('bilanz_specific').innerText = data.specific_heat_demand + ' kWh/m²a';
+        document.getElementById('bilanz_h').innerText = data.envelope_total + ' W/K';
+        document.getElementById('bilanz_rating').innerText = data.rating_label;
+    })
+    .catch(err => {
+        if (err.errors) {
+            showErrors(err.errors);
+        } else {
+            showErrors(['Unbekannter Fehler bei der Berechnung.']);
+        }
+    });
+}
+
+function calculateSystem() {
+    hideSystemErrors();
+
+    const heatDemandText = document.getElementById('adjusted_heat_result').innerText;
+    const heatDemandNet = parseFloat(
+        heatDemandText.replace('kWh/a', '').replace(',', '.').trim()
+    );
+
+    if (isNaN(heatDemandNet)) {
+        showSystemErrors(['Bitte zuerst die Gebäudehülle auswerten, damit ein Heizwärmebedarf netto vorliegt.']);
+        return;
+    }
+
+    fetch('/calculate-system/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            heat_demand_net: heatDemandNet,
+            bgf: document.getElementById('bgf').value,
+            heating_system: document.getElementById('heating_system').value,
+            efficiency: document.getElementById('efficiency').value,
+            cop: document.getElementById('cop').value,
+            hotwater_demand: document.getElementById('hotwater_demand').value,
+            auxiliary_electricity: document.getElementById('auxiliary_electricity').value
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        document.getElementById('system_heating_end').innerText = data.heating_end_energy + ' kWh/a';
+        document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
+        document.getElementById('system_aux').innerText = data.auxiliary_electricity + ' kWh/a';
+        document.getElementById('system_total_end').innerText = data.total_end_energy + ' kWh/a';
+        document.getElementById('system_primary').innerText = data.primary_energy + ' kWh/a';
+        document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
+        document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m²a';
+        document.getElementById('system_spec_primary').innerText = data.specific_primary_energy + ' kWh/m²a';
+
+        updateSystemRating(data.system_color, data.system_label, data.system_message);
+
+        document.getElementById('bilanz_system_end').innerText = data.total_end_energy + ' kWh/a';
+        document.getElementById('bilanz_system_primary').innerText = data.primary_energy + ' kWh/a';
+        document.getElementById('bilanz_system_co2').innerText = data.co2_emissions + ' kg/a';
+        document.getElementById('bilanz_system_rating').innerText = data.system_label;
+    })
+    .catch(err => {
+        if (err.errors) {
+            showSystemErrors(err.errors);
+        } else {
+            showSystemErrors(['Unbekannter Fehler bei der Systemberechnung.']);
+        }
+    });
+}
+
+window.addEventListener('load', function () {
+    applySystemDefaults();
+    calculateEnvelope();
+});
+</script>
+
+</body>
+</html>
