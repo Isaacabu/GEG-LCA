@@ -543,11 +543,44 @@ body {
         /* Topbar wird vertical */
     }
 }
+
+/* ============================================================
+   PREVIEW TABELLE STYLING
+   ============================================================ */
+#previewTable {
+    margin-top: 18px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+#previewTable thead tr {
+    background: #f0f0f0;
+    border-bottom: 2px solid #ddd;
+}
+
+#previewTable th {
+    padding: 10px;
+    text-align: left;
+    font-weight: 700;
+}
+
+#previewTable td {
+    padding: 10px;
+    border-bottom: 1px solid #e6e6e6;
+    word-break: break-word;
+}
+
+#previewTable tbody tr:nth-child(even) {
+    background-color: #fafafa;
+    /* Streifen */
+}
 </style>
 </head>
 <body>
 
 <div class="page">
+
     <!-- ============================================================
          TOPBAR (Kopfzeile mit Titel und Action-Buttons)
          ============================================================ -->
@@ -591,13 +624,39 @@ body {
             <h2 class="section-title">Gebäudedaten</h2>
 
             <div class="grid-2">
+                <!-- =============== NEUE CARD: GEBÄUDE AUS CSV AUSWÄHLEN =============== -->
+                <div class="card">
+                    <h3>📋 Gebäude aus Datenbank</h3>
+                    
+                    <!-- Dropdown mit Gebäuden (wird mit JavaScript gefüllt) -->
+                    <div class="field">
+                        <label>Gebäude auswählen:</label>
+                        <select id="buildingSelect" onchange="selectBuilding()">
+                            <option value="">-- Gebäude wählen --</option>
+                            <!-- Wird automatisch gefüllt -->
+                        </select>
+                    </div>
+
+                    <!-- Info Box mit Gebäude-Details (versteckt bis Auswahl) -->
+                    <div id="buildingInfo" class="note" style="margin-top: 12px; display: none;">
+                        <strong>Name:</strong> <span id="buildingName">—</span><br>
+                        <strong>Konformität:</strong> <span id="buildingConformity">—</span><br>
+                        <strong>Registrierungsnummer:</strong> <span id="buildingRegNumber">—</span>
+                    </div>
+
+                    <!-- Status Anzeige -->
+                    <div id="loadStatus" class="note" style="margin-top: 12px; color: #666;">
+                        Lädt Gebäudedaten...
+                    </div>
+                </div>
+
                 <!-- =============== CARD 1: GRUNDDATEN =============== -->
                 <div class="card">
                     <h3>Grunddaten</h3>
                     <!-- Projektname-Feld -->
                     <div class="field">
                         <label>Projektname</label>
-                        <input value="UR Bau Projekt">
+                        <input id="projectName" value="UR Bau Projekt">
                     </div>
                     <!-- Standort-Dropdown -->
                     <div class="field">
@@ -1195,6 +1254,23 @@ body {
      ============================================================ -->
 <script>
 /* ============================================================
+   EINGEBETTETE CSV-DATEN
+   Diese Daten sind direkt im HTML eingebettet - keine externe Datei nötig!
+   Spalten: Name (F), Konformität (G), Registrierungsnummer (P)
+   ============================================================ */
+const CSV_DATA = `Name;Konformität;Registrierungsnummer
+Müller Bürogebäude;Ja;BW_12345
+Schmidt Wohnhaus;Nein;BW_12346
+Weber Industriehalle;Ja;BW_12347
+Bauer Lagerkomplex;Ja;BW_12348
+Fischer Schulgebäude;Nein;BW_12349
+Müller Bürogebäude;Ja;BW_12345
+Schneider Verwaltungsgebäude;Ja;BW_12350`;
+
+let allBuildings = [];
+let dedupedBuildings = [];
+
+/* ============================================================
    TAB-WECHSEL FUNKTION
    Wechselt zwischen verschiedenen Tabs und setzt active-Klasse
    ============================================================ */
@@ -1208,6 +1284,155 @@ function showTab(id, btn) {
     document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
     /* Setze active auf den geklickten Button */
     btn.classList.add('active');
+}
+
+/* ============================================================
+   CSV BEIM PAGE LOAD LADEN
+   Wird automatisch ausgeführt wenn Seite geladen
+   ============================================================ */
+window.addEventListener('load', function() {
+    loadAndParseCSV();
+    applySystemDefaults();
+});
+
+/* ============================================================
+   CSV PARSEN UND GEBÄUDE LADEN
+   ============================================================ */
+function loadAndParseCSV() {
+    try {
+        /* Trenne CSV in Zeilen */
+        const lines = CSV_DATA.split('\n');
+        
+        if (lines.length < 2) {
+            document.getElementById('loadStatus').innerText = '❌ CSV-Daten fehlen';
+            return;
+        }
+
+        /* Kopfzeile parsen - finde Spalten-Indizes */
+        const headers = lines[0].split(';').map(h => h.trim());
+        const nameIndex = headers.indexOf('Name');
+        const conformityIndex = headers.indexOf('Konformität');
+        const regNumberIndex = headers.indexOf('Registrierungsnummer');
+
+        allBuildings = [];
+
+        /* Gehe durch jede Zeile */
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue; /* Leere Zeilen überspringen */
+
+            /* Trenne Werte durch Semicolon */
+            const values = lines[i].split(';').map(v => v.trim());
+            
+            /* Extrahiere die 3 wichtigen Spalten */
+            const building = {
+                name: values[nameIndex] || '',
+                conformity: values[conformityIndex] || '—',
+                registrationNumber: values[regNumberIndex] || '',
+                rowNumber: i /* Für Deduplizierung */
+            };
+
+            /* Nur hinzufügen wenn Name und Registrierungsnummer vorhanden */
+            if (building.name && building.registrationNumber) {
+                allBuildings.push(building);
+            }
+        }
+
+        /* Deduplizierung: Nur neueste Registrierungsnummer behalten */
+        dedupedBuildings = deduplicateByRegistrationNumber(allBuildings);
+
+        /* Fülle Dropdown mit Gebäuden */
+        populateBuildingSelect(dedupedBuildings);
+
+        /* Zeige erfolgreiches Laden */
+        document.getElementById('loadStatus').innerText = 
+            `✅ ${dedupedBuildings.length} Gebäude geladen (${allBuildings.length - dedupedBuildings.length} Duplikate entfernt)`;
+        document.getElementById('loadStatus').style.color = '#3f6f46';
+
+    } catch (error) {
+        /* Fehlerbehandlung */
+        document.getElementById('loadStatus').innerText = 
+            `❌ Fehler beim Laden: ${error.message}`;
+        document.getElementById('loadStatus').style.color = '#8d3d31';
+    }
+}
+
+/* ============================================================
+   DEDUPLIZIERUNG NACH REGISTRIERUNGSNUMMER
+   Behält nur die neueste Zeile pro Registrierungsnummer
+   ============================================================ */
+function deduplicateByRegistrationNumber(data) {
+    const uniqueMap = {};
+
+    /* Gehe durch alle Daten */
+    for (const entry of data) {
+        const regNum = entry.registrationNumber;
+        
+        /* Wenn noch nicht gesehen ODER aktuelle Zeile ist neuerer = überschreibe */
+        if (!uniqueMap[regNum] || entry.rowNumber > uniqueMap[regNum].rowNumber) {
+            uniqueMap[regNum] = entry;
+        }
+    }
+
+    /* Konvertiere zu Array und sortiere nach Registrierungsnummer */
+    return Object.values(uniqueMap).sort((a, b) => 
+        a.registrationNumber.localeCompare(b.registrationNumber)
+    );
+}
+
+/* ============================================================
+   DROPDOWN MIT GEBÄUDEN FÜLLEN
+   Zeigt "Name (Registrierungsnummer)" im Dropdown
+   ============================================================ */
+function populateBuildingSelect(buildings) {
+    const select = document.getElementById('buildingSelect');
+    
+    buildings.forEach((building, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        /* Zeige Name + ID im Dropdown */
+        option.text = `${building.name} (${building.registrationNumber})`;
+        select.appendChild(option);
+    });
+}
+
+/* ============================================================
+   GEBÄUDE AUSWÄHLEN
+   Wird aufgerufen wenn Benutzer ein Gebäude aus Dropdown wählt
+   ============================================================ */
+function selectBuilding() {
+    const select = document.getElementById('buildingSelect');
+    const selectedIndex = select.value;
+
+    /* Wenn nichts ausgewählt, verstecke Info */
+    if (selectedIndex === '') {
+        document.getElementById('buildingInfo').style.display = 'none';
+        return;
+    }
+
+    /* Hole ausgewähltes Gebäude */
+    const building = dedupedBuildings[selectedIndex];
+
+    /* Zeige Gebäude-Info in der Box */
+    document.getElementById('buildingName').innerText = building.name;
+    document.getElementById('buildingConformity').innerText = building.conformity;
+    document.getElementById('buildingRegNumber').innerText = building.registrationNumber;
+    document.getElementById('buildingInfo').style.display = 'block';
+
+    /* Lade Gebäude in Formulare */
+    loadBuildingToForm(building);
+}
+
+/* ============================================================
+   GEBÄUDE IN FORMULAR LADEN
+   ============================================================ */
+function loadBuildingToForm(building) {
+    /* Setze Projektname */
+    const projectNameInput = document.getElementById('projectName');
+    if (projectNameInput) {
+        projectNameInput.value = building.name;
+    }
+
+    console.log(`✅ Gebäude geladen: ${building.name}`);
 }
 
 /* ============================================================
@@ -1265,10 +1490,6 @@ function hideSystemErrors() {
 /* ============================================================
    RATING AKTUALISIEREN (Gebäudehülle)
    Setzt Farbe, Titel und Text der Ampelbewertung
-   Parameter:
-   - color: 'green', 'yellow' oder 'red'
-   - label: Bewertungs-Titel
-   - message: Ausführliche Beschreibung
    ============================================================ */
 function updateRating(color, label, message) {
     const ratingBox = document.getElementById('ratingBox');
@@ -1474,17 +1695,6 @@ function calculateSystem() {
         }
     });
 }
-
-/* ============================================================
-   BEIM LADEN DER SEITE AUSFÜHREN
-   onload = wird automatisch ausgeführt wenn Seite geladen
-   ============================================================ */
-window.addEventListener('load', function () {
-    /* Setze Standardwerte für das Heizsystem */
-    applySystemDefaults();
-    /* Führe erste Berechnung durch */
-    calculateEnvelope();
-});
 </script>
 
 </body>
