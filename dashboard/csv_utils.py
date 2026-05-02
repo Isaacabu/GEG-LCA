@@ -60,15 +60,25 @@ def read_csv_rows(filename: str) -> List[Dict[str, str]]:
     if not csv_path.exists():
         raise FileNotFoundError(f"Datei nicht gefunden: {csv_path}")
 
-    with csv_path.open("r", encoding="utf-8-sig", newline="") as csvfile:
-        sample = csvfile.read(4096)
-        csvfile.seek(0)
-        delimiter = detect_delimiter(sample)
-        reader = csv.DictReader(csvfile, delimiter=delimiter)
-        return [
-            {key.strip(): (value or "").strip() for key, value in row.items()}
-            for row in reader
-        ]
+    raw = csv_path.read_bytes()
+    text = None
+    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            text = raw.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+
+    if text is None:
+        raise UnicodeDecodeError("csv", b"", 0, 1, f"Keine unterstützte Kodierung für {csv_path.name}")
+
+    sample = text[:4096]
+    delimiter = detect_delimiter(sample)
+    reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
+    return [
+        {key.strip(): (value or "").strip() for key, value in row.items()}
+        for row in reader
+    ]
 
 
 def extract_material_data(row: Dict[str, str]) -> Optional[Dict[str, Optional[object]]]:

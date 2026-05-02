@@ -1,89 +1,64 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<!-- META-INFORMATIONEN -->
 <meta charset="UTF-8">
-<!-- UTF-8 ermöglicht deutsche Umlaute und Sonderzeichen -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Responsive Design: Passt sich auf Mobilgeräten an -->
 <title>UR Bau – Professionelle Energiebilanzierung</title>
 
 <style>
-/* ============================================================
-   CSS-VARIABLEN (ROOT-VARIABLEN)
-   Diese Farben und Abstände werden überall in der App verwendet
-   ============================================================ */
 :root {
-    --bg: #f3f3f3;           /* Haupthintergrundfarbe - helles Grau */
-    --surface: #ffffff;       /* Karten und Panels - Weiß */
-    --surface-2: #f7f7f7;    /* Sekundärer Hintergrund */
-    --line: #dddddd;         /* Trennlinien und Borders */
+    --bg: #f3f3f3;
+    --surface: #ffffff;
+    --surface-2: #f7f7f7;
+    --line: #dddddd;
 
-    --text: #171717;         /* Haupttextfarbe - sehr dunkel */
-    --muted: #5f5f5f;        /* Sekundärer Text - Grau */
+    --text: #171717;
+    --muted: #5f5f5f;
 
-    --green-dark: #3f6f46;   /* Dunkelgrün für Buttons */
-    --green-mid: #55835b;    /* Mittelgrün für aktive Tabs */
-    --green-light: #eaf5ec;  /* Hellgrün für Hintergründe */
+    --green-dark: #3f6f46;
+    --green-mid: #55835b;
+    --green-light: #eaf5ec;
 
-    --yellow: #d8b46b;       /* Gelb für spezielle Buttons */
-    --yellow-dark: #6a5426;  /* Dunkelgelb für Text */
+    --yellow: #d8b46b;
+    --yellow-dark: #6a5426;
 
-    --danger-bg: #fff1ef;    /* Rot-Hintergrund für Fehler */
-    --danger-border: #efc1bb;/* Rote Border für Fehler */
-    --danger-text: #8d3d31;  /* Roter Text für Fehler */
+    --danger-bg: #fff1ef;
+    --danger-border: #efc1bb;
+    --danger-text: #8d3d31;
 
-    --shadow: 0 10px 30px rgba(0,0,0,0.08); /* Schatten für Tiefenwirkung */
-    --radius-xl: 22px;       /* Große Eckenradien */
-    --radius-lg: 16px;       /* Mittlere Eckenradien */
-    --radius-md: 12px;       /* Kleine Eckenradien */
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+    --radius-xl: 22px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
 }
 
-/* ============================================================
-   GLOBALE STILE
-   ============================================================ */
 * {
     box-sizing: border-box;
-    /* Padding und Border werden in die Breite/Höhe eingerechnet */
 }
 
 html, body {
     margin: 0;
     padding: 0;
     font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-    /* Moderne Sans-Serif Schriftarten in Prioritätsreihenfolge */
     background: var(--bg);
     color: var(--text);
 }
 
 body {
-    min-height: 100vh; /* Mindesthöhe = kompletter Bildschirm */
+    min-height: 100vh;
 }
 
-/* ============================================================
-   PAGE-CONTAINER (Hauptbereich)
-   ============================================================ */
 .page {
     max-width: 1250px;
-    /* Maximale Breite zur besseren Lesbarkeit */
     margin: 0 auto;
-    /* Zentriert horizontal */
     padding: 28px 24px 40px;
-    /* Innenabstand: oben 28px, links/rechts 24px, unten 40px */
 }
 
-/* ============================================================
-   TOPBAR (Kopfzeile mit Titel und Buttons)
-   ============================================================ */
 .topbar {
     display: flex;
-    /* Flexbox für horizontale Anordnung */
     justify-content: space-between;
-    /* Links Titel, rechts Buttons */
     align-items: flex-start;
-    /* Oben ausrichten */
     gap: 24px;
-    /* Abstand zwischen Elementen */
     margin-bottom: 16px;
 }
 
@@ -91,12 +66,9 @@ body {
     margin: 0;
     font-size: 32px;
     line-height: 1.15;
-    /* Zeilenhöhe für bessere Lesbarkeit */
     font-weight: 800;
-    /* Sehr fett */
     color: #1f2b1f;
     letter-spacing: -0.02em;
-    /* Zeichenabstand - eng */
 }
 
 .title-block p {
@@ -107,14 +79,10 @@ body {
     line-height: 1.45;
 }
 
-/* ============================================================
-   ACTION-BUTTONS (Buttons in der Topbar)
-   ============================================================ */
 .actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
-    /* Bei Platzmangel in nächste Zeile springen */
 }
 
 .btn {
@@ -124,15 +92,12 @@ body {
     font-size: 13px;
     font-weight: 700;
     cursor: pointer;
-    /* Mauszeiger ändert sich zu Zeiger */
     transition: 0.2s ease;
-    /* Sanfte Animation bei Zustandsänderung */
     font-family: inherit;
 }
 
 .btn:hover {
     transform: translateY(-1px);
-    /* Button nach oben animieren beim Hovern */
 }
 
 .btn-yellow {
@@ -150,9 +115,6 @@ body {
     color: white;
 }
 
-/* ============================================================
-   TAB-NAVIGATION
-   ============================================================ */
 .tabs {
     display: flex;
     gap: 10px;
@@ -173,40 +135,27 @@ body {
 }
 
 .tabs button.active {
-    /* Active-Klasse = aktuell ausgewählter Tab */
     background: var(--green-mid);
     color: white;
     border-color: var(--green-mid);
 }
 
-/* ============================================================
-   TAB-INHALTE (Show/Hide Toggle)
-   ============================================================ */
 .tab {
     display: none;
-    /* Standardmäßig alle Tabs verstecken */
 }
 
 .tab.active {
     display: block;
-    /* Nur der aktive Tab wird angezeigt */
 }
 
-/* ============================================================
-   PANEL (Weiße Karten-Container)
-   ============================================================ */
 .panel {
     background: var(--surface);
     border: 1px solid #e6e6e6;
     border-radius: var(--radius-xl);
     padding: 20px;
     box-shadow: var(--shadow);
-    /* Subtiler Schatten für 3D-Effekt */
 }
 
-/* ============================================================
-   SECTION-TITLE (Große Überschriften in Panels)
-   ============================================================ */
 .section-title {
     margin: 0 0 16px;
     font-size: 24px;
@@ -219,36 +168,26 @@ body {
     height: 1px;
     background: #e6e6e6;
     margin: 10px 0 18px;
-    /* Horizontale Trennlinie */
 }
 
-/* ============================================================
-   GRID-SYSTEME (Responsive Layouts)
-   ============================================================ */
 .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* 2 gleich breite Spalten */
     gap: 16px;
 }
 
 .grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    /* 3 gleich breite Spalten */
     gap: 16px;
 }
 
 .grid-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    /* 4 gleich breite Spalten */
     gap: 16px;
 }
 
-/* ============================================================
-   CARD (Einzelne Input-Container)
-   ============================================================ */
 .card {
     background: var(--surface);
     border: 1px solid #e2e2e2;
@@ -264,75 +203,8 @@ body {
     letter-spacing: -0.01em;
 }
 
-.alert-box {
-    display: none;
-    margin-bottom: 18px;
-    border-radius: 14px;
-    padding: 16px;
-    border: 1px solid transparent;
-    background: #fff4f0;
-    color: #8d3d31;
-}
-
-.alert-box.error {
-    display: block;
-    border-color: #efc1bb;
-}
-
-.alert-title {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.alert-list {
-    margin: 0;
-    padding-left: 18px;
-}
-
-/* ============================================================
-   FORM-FIELD (Input-Felder mit Label)
-   ============================================================ */
 .field {
     margin-bottom: 12px;
-}
-
-.materials-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-}
-
-.materials-table tr.clickable {
-    cursor: pointer;
-}
-
-.materials-table tr.clickable:hover {
-    background: rgba(0, 116, 217, 0.08);
-}
-
-.materials-table tr.selected {
-    background: rgba(0, 116, 217, 0.16);
-}
-
-.materials-table th,
-.materials-table td {
-    padding: 10px 12px;
-    border: 1px solid #e6e6e6;
-    text-align: left;
-    font-size: 13px;
-}
-
-.materials-table th {
-    background: #f9faf9;
-    color: #3f4a3f;
-    font-weight: 700;
-}
-
-.materials-empty {
-    margin-top: 12px;
-    color: var(--muted);
-    font-size: 13px;
 }
 
 .field label {
@@ -346,7 +218,6 @@ body {
 .field input,
 .field select {
     width: 100%;
-    /* Fullt die Containerbreite */
     border: 1px solid #dddddd;
     background: #f1f1f1;
     color: #151515;
@@ -354,30 +225,34 @@ body {
     padding: 12px 13px;
     font-size: 14px;
     outline: none;
-    /* Entfernt den blauen Focus-Ring */
     font-family: inherit;
 }
 
 .field input:focus,
 .field select:focus {
-    /* Styling bei Fokus (Klick ins Feld) */
     border-color: #9fbc9f;
-    /* Grüne Border */
     background: #f8fff8;
-    /* Heller grüner Hintergrund */
+}
+
+.value-display {
+    width: 100%;
+    border: 1px solid #dddddd;
+    background: #f1f1f1;
+    color: #151515;
+    border-radius: 12px;
+    padding: 12px 13px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
 }
 
 .note {
-    /* Kleine Hinweistexte */
     color: var(--muted);
     font-size: 12px;
     line-height: 1.45;
     margin-top: 8px;
 }
 
-/* ============================================================
-   STAT-BOXES (Kleine Statistik-Karten)
-   ============================================================ */
 .stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -403,29 +278,22 @@ body {
     font-weight: 800;
 }
 
-/* ============================================================
-   RESULT-ROW & RESULT-CHIP (Berechnungsergebnisse)
-   ============================================================ */
 .result-row {
     margin-top: 16px;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    /* 5 Spalten für 5 Ergebnisse */
     gap: 12px;
 }
 
 .result-chip {
-    /* Grüne Karten zur Anzeige von Berechnungen */
     border-radius: 14px;
     padding: 14px;
     background: linear-gradient(180deg, #4f7f56, #426e49);
-    /* Farbverlauf von oben nach unten */
     border: 1px solid #4a7350;
     color: white;
     min-height: 78px;
     display: flex;
     flex-direction: column;
-    /* Text vertical anordnen */
     justify-content: center;
 }
 
@@ -433,7 +301,6 @@ body {
     display: block;
     font-size: 12px;
     color: rgba(255,255,255,0.82);
-    /* Halbtransparentes Weiß */
     margin-bottom: 6px;
 }
 
@@ -442,13 +309,9 @@ body {
     font-weight: 800;
 }
 
-/* ============================================================
-   PLACEHOLDER (Leere/Zukünftige Bereiche)
-   ============================================================ */
 .placeholder {
     background: #fbfbfb;
     border: 1px dashed #d9d9d9;
-    /* Gestrichelte Border */
     border-radius: 18px;
     padding: 20px;
     min-height: 150px;
@@ -465,9 +328,6 @@ body {
     margin-bottom: 0;
 }
 
-/* ============================================================
-   FOOTER-NOTE (Kleine Beschreibungen)
-   ============================================================ */
 .footer-note {
     margin-top: 18px;
     color: #5f5f5f;
@@ -475,12 +335,8 @@ body {
     line-height: 1.5;
 }
 
-/* ============================================================
-   ALERT/ERROR-BOX (Fehlerbenachrichtigungen)
-   ============================================================ */
 .alert-box {
     display: none;
-    /* Standardmäßig versteckt */
     margin-bottom: 18px;
     border-radius: 16px;
     padding: 16px 18px;
@@ -490,7 +346,6 @@ body {
 
 .alert-box.error {
     display: block;
-    /* Wird sichtbar wenn "error"-Klasse hinzugefügt */
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
     color: var(--danger-text);
@@ -513,36 +368,29 @@ body {
     margin: 4px 0;
 }
 
-/* ============================================================
-   RATING-BOX (Ampel-System für Bewertung)
-   ============================================================ */
 .rating-box {
     margin-top: 10px;
     border-radius: 16px;
     padding: 16px;
     border: 1px solid #dedede;
     display: none;
-    /* Standardmäßig versteckt */
     background: #f9f9f9;
 }
 
 .rating-box.green {
     display: block;
-    /* Wird sichtbar bei grüner Bewertung */
     background: #edf8ef;
     border-color: #bad8be;
 }
 
 .rating-box.yellow {
     display: block;
-    /* Gelbe Bewertung */
     background: #fff7e8;
     border-color: #e6d19d;
 }
 
 .rating-box.red {
     display: block;
-    /* Rote Bewertung */
     background: #fff0ed;
     border-color: #e6b5ad;
 }
@@ -559,9 +407,6 @@ body {
     line-height: 1.45;
 }
 
-/* ============================================================
-   BIG-SUMMARY (Zusammenfassung mit 4 Boxen)
-   ============================================================ */
 .big-summary {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -587,11 +432,7 @@ body {
     color: #1e1e1e;
 }
 
-/* ============================================================
-   RESPONSIVE DESIGN (Mobil-Anpassungen)
-   ============================================================ */
 @media (max-width: 1100px) {
-    /* Bei Bildschirmen kleiner als 1100px */
     .grid-2,
     .grid-3,
     .grid-4,
@@ -599,45 +440,11 @@ body {
     .stats,
     .big-summary {
         grid-template-columns: 1fr;
-        /* Alle Grids werden zu 1 Spalte (Stapeleffekt) */
     }
 
     .topbar {
         flex-direction: column;
-        /* Topbar wird vertical */
     }
-}
-
-/* ============================================================
-   PREVIEW TABELLE STYLING
-   ============================================================ */
-#previewTable {
-    margin-top: 18px;
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-}
-
-#previewTable thead tr {
-    background: #f0f0f0;
-    border-bottom: 2px solid #ddd;
-}
-
-#previewTable th {
-    padding: 10px;
-    text-align: left;
-    font-weight: 700;
-}
-
-#previewTable td {
-    padding: 10px;
-    border-bottom: 1px solid #e6e6e6;
-    word-break: break-word;
-}
-
-#previewTable tbody tr:nth-child(even) {
-    background-color: #fafafa;
-    /* Streifen */
 }
 </style>
 </head>
@@ -645,158 +452,96 @@ body {
 
 <div class="page">
 
-    <!-- ============================================================
-         TOPBAR (Kopfzeile mit Titel und Action-Buttons)
-         ============================================================ -->
     <div class="topbar">
         <div class="title-block">
-            <!-- Haupttitel der Anwendung -->
             <h1>UR Bau – Professionelle Energiebilanzierung</h1>
-            <!-- Untertitel mit Beschreibung -->
             <p>Exakte energetische Bewertung nach GEG mit strukturierter Projektlogik aus Gebäudedaten, Gebäudehülle, Photovoltaik und Energiebilanz.</p>
         </div>
 
-        <!-- Action-Buttons rechts oben -->
         <div class="actions">
-            <!-- Button für Expertenmodus (funktioniert noch nicht) -->
-            <button class="btn btn-yellow">Expertenmodus</button>
-            <!-- Button zum Speichern des Projekts (funktioniert noch nicht) -->
-            <button class="btn btn-green">Projekt speichern</button>
+            <button id="expertBtn" class="btn btn-yellow" onclick="toggleExpertMode()">Expertenmodus</button>
+            <button id="saveProjectBtn" class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
         </div>
     </div>
 
-    <!-- ============================================================
-         TAB-NAVIGATION (5 Hauptbereiche)
-         ============================================================ -->
     <div class="tabs">
-        <!-- Jeder Button hat: onclick="showTab(ID, this)"
-             ID = welcher Tab angezeigt wird
-             this = aktuelle Button-Element -->
         <button class="active" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
         <button onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
+        <button onclick="showTab('bautechnik', this)">🔨 Bautechnik</button>
         <button onclick="showTab('anlage', this)">⚙️ Anlagentechnik</button>
         <button onclick="showTab('pv', this)">☀️ Photovoltaik</button>
         <button onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
     </div>
 
-    <!-- ============================================================
-         TAB 1: GEBÄUDEDATEN
-         ============================================================ -->
     <div id="daten" class="tab active">
-        <!-- active = wird standardmäßig angezeigt -->
         <div class="panel">
             <h2 class="section-title">Gebäudedaten</h2>
 
             <div class="grid-2">
-                <!-- =============== NEUE CARD: GEBÄUDE AUS CSV AUSWÄHLEN =============== -->
-                <div class="card">
-                    <h3>📋 Gebäude aus Datenbank</h3>
-                    
-                    <!-- Dropdown mit Gebäuden (wird mit JavaScript gefüllt) -->
-                    <div class="field">
-                        <label>Gebäude auswählen:</label>
-                        <select id="buildingSelect" onchange="selectBuilding()">
-                            <option value="">-- Gebäude wählen --</option>
-                            <!-- Wird automatisch gefüllt -->
-                        </select>
-                    </div>
-
-                    <!-- Info Box mit Gebäude-Details (versteckt bis Auswahl) -->
-                    <div id="buildingInfo" class="note" style="margin-top: 12px; display: none;">
-                        <strong>Name:</strong> <span id="buildingName">—</span><br>
-                        <strong>Konformität:</strong> <span id="buildingConformity">—</span><br>
-                        <strong>Registrierungsnummer:</strong> <span id="buildingRegNumber">—</span>
-                    </div>
-
-                    <!-- Status Anzeige -->
-                    <div id="loadStatus" class="note" style="margin-top: 12px; color: #666;">
-                        Lädt Gebäudedaten...
-                    </div>
-                </div>
-
-                <!-- =============== CARD 1: GRUNDDATEN =============== -->
                 <div class="card">
                     <h3>Grunddaten</h3>
-                    <!-- Projektname-Feld -->
                     <div class="field">
                         <label>Projektname</label>
-                        <input id="projectName" value="UR Bau Projekt">
+                        <input id="project_name" value="UR Bau Projekt">
                     </div>
-                    <!-- Standort-Dropdown -->
                     <div class="field">
                         <label>Standort</label>
-                        <select>
+                        <select id="project_location">
                             <option>Augsburg (Bayern)</option>
                         </select>
                     </div>
-                    <!-- Gebäudetyp-Dropdown -->
                     <div class="field">
                         <label>Gebäudetyp</label>
-                        <select>
-                            <option>Bürogebäude</option>
-                        </select>
-                    </div>
-                    <!-- Projektart-Dropdown -->
-                    <div class="field">
-                        <label>Projektart</label>
-                        <select>
-                            <option>Neubau</option>
+                        <select id="building_type">
+                            <option value="wohngebaeude">Wohngebäude</option>
+                            <option value="nicht_wohngebaeude">Nicht Wohngebäude</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- =============== CARD 2: GEBÄUDEGEOMETRIE =============== -->
                 <div class="card">
                     <h3>Gebäudegeometrie</h3>
-                    <!-- 2x2 Gitter für Abmessungen -->
                     <div class="grid-2">
                         <div class="field">
                             <label>Länge Nord/Süd (m)</label>
-                            <input value="12">
+                            <input id="building_length" type="number" min="0" step="0.1" value="12" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
                             <label>Breite Ost/West (m)</label>
-                            <input value="10">
+                            <input id="building_width" type="number" min="0" step="0.1" value="10" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
                             <label>Anzahl Geschosse</label>
-                            <input value="3">
+                            <input id="building_floors" type="number" min="0" step="1" value="3" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
                             <label>Geschosshöhe (m)</label>
-                            <input value="3.5">
+                            <input id="building_floor_height" type="number" min="0" step="0.1" value="3.5" oninput="updateGeometryStats()">
                         </div>
                     </div>
 
-                    <!-- Berechnete Statistiken (automatisch gefüllt) -->
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Gesamthöhe</div>
-                            <div class="value">10.5 m</div>
-                            <!-- 3.5 m/Geschoß × 3 Geschosse = 10.5 m -->
+                            <div class="value" id="geometry_total_height">10.5 m</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Brutto-Rauminhalt</div>
-                            <div class="value">1260 m³</div>
-                            <!-- 12 × 10 × 10.5 = 1260 m³ -->
+                            <div class="value" id="geometry_volume">1260 m³</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">BGF</div>
-                            <div class="value">360 m²</div>
-                            <!-- Brutto-Geschossfläche: 12 × 10 × 3 = 360 m² -->
+                            <div class="value" id="geometry_bgf">360 m²</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Hüllfläche A</div>
-                            <div class="value">702 m²</div>
-                            <!-- Gesamtoberfläche des Gebäudes -->
+                            <div class="value" id="geometry_envelope_area">702 m²</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- =============== CARD 3: KLIMADATEN =============== -->
                 <div class="card">
                     <h3>Klimadaten und Randbedingungen</h3>
-                    <!-- 3-spaltig für Klima-Parameter -->
                     <div class="grid-3">
                         <div class="field">
                             <label>Klimaregion</label>
@@ -814,31 +559,24 @@ body {
                         </div>
                     </div>
 
-                    <!-- BGF für spezifische Kennwerte (wichtig für Berechnung) -->
                     <div class="field">
                         <label>BGF für spezifische Kennwerte (m²)</label>
                         <input id="bgf" type="number" value="360">
-                        <!-- id="bgf" wird in JavaScript referenziert -->
                     </div>
 
-                    <!-- Gradstunden pro Jahr (wichtig für Heizwärmebedarf) -->
                     <div class="field">
                         <label>Gradstunden/Jahr (Kh/a)</label>
                         <input id="gradstunden" type="number" value="78000">
-                        <!-- id="gradstunden" wird in JavaScript referenziert -->
                     </div>
 
-                    <!-- Hinweistext zur Berechnung -->
                     <div class="note">
                         Vereinfachtes Modell: Jahres-Heizwärmebedarf ≈ H × Gradstunden / 1000.
                         H ist hier der Transmissionswärmeverlustkoeffizient in W/K.
                     </div>
                 </div>
 
-                <!-- =============== CARD 4: NUTZUNG UND PERSONEN =============== -->
                 <div class="card">
                     <h3>Nutzung und Personen</h3>
-                    <!-- 2 Eingabefelder -->
                     <div class="grid-2">
                         <div class="field">
                             <label>Personendichte (m²/Person)</label>
@@ -850,12 +588,10 @@ body {
                         </div>
                     </div>
 
-                    <!-- Berechnete Werte -->
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Anzahl Personen</div>
                             <div class="value">15</div>
-                            <!-- 360 m² / 20 m²/Person = 15 Personen -->
                         </div>
                         <div class="stat-box">
                             <div class="label">Vollbenutzungsstunden/Jahr</div>
@@ -867,121 +603,56 @@ body {
         </div>
     </div>
 
-    <!-- ============================================================
-         TAB 2: GEBÄUDEHÜLLE
-         ============================================================ -->
     <div id="huelle" class="tab">
-        <!-- Nicht aktiv, wird mit JavaScript eingeblendet -->
         <div class="panel">
             <h2 class="section-title">Gebäudehülle</h2>
             <div class="section-divider"></div>
 
-            <!-- Fehler-Box (wird mit JavaScript gefüllt wenn Fehler auftreten) -->
             <div id="errorBox" class="alert-box"></div>
 
-            <!-- =============== AUSSENWÄNDE NACH HIMMELSRICHTUNG =============== -->
             <div class="card">
-                <h3>Ökobaudat Materialdaten</h3>
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Material auswählen</label>
-                        <select id="material_select" onchange="applySelectedMaterial()">
-                            <option value="">Neues Material eingeben</option>
-                            {% for material in materials %}
-                                <option value="{{ material.id }}"
-                                    data-u="{{ material.u_value|default_if_none:'' }}"
-                                    data-name="{{ material.name|escapejs }}"
-                                    data-producer="{{ material.producer|escapejs }}"
-                                    data-category="{{ material.category|escapejs }}"
-                                    data-co2="{{ material.embodied_co2|default_if_none:'' }}"
-                                    data-notes="{{ material.notes|escapejs }}">
-                                    {{ material.name }}{% if material.producer %} – {{ material.producer }}{% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Komponente wählen</label>
-                        <select id="material_component">
-                            <option value="north_u">Nord U-Wert</option>
-                            <option value="south_u">Süd U-Wert</option>
-                            <option value="east_u">Ost U-Wert</option>
-                            <option value="west_u">West U-Wert</option>
-                            <option value="roof_u">Dach U-Wert</option>
-                            <option value="floor_u">Boden U-Wert</option>
-                            <option value="window_u">Fenster U-Wert</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid-2" style="margin-top: 14px;">
-                    <div class="field">
-                        <label>Ökobaudat-CSV wählen</label>
-                        <select id="material_csv_file">
-                            <option value="">Keine Datei ausgewählt</option>
-                            {% for filename in data_files %}
-                                <option value="{{ filename }}">{{ filename }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field" style="align-self: end;">
-                        <button class="btn btn-primary" onclick="importMaterialCsv()" type="button">CSV importieren</button>
-                    </div>
-                </div>
-                <button class="btn btn-green" onclick="applyMaterialToComponent()" type="button">U-Wert auf gewählte Komponente übernehmen</button>
-                <div class="note" id="materialMessage">Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.</div>
+                <h3>Außenwände – Materialauswahl nach Orientierung</h3>
+                <p class="note" style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
+                    Wand-Flächen werden automatisch aus den Gebäudedaten berechnet. Wählen Sie das Material für jede Orientierung.
+                </p>
+                <p class="note" style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
+                    Wenn ÖKOBAUDAT keinen direkten U-Wert liefert, wird der Wert im Backend aus hinterlegter Lambda-Annahme und Dicke berechnet.
+                </p>
 
-                <div class="field">
-                    <label>Materialname</label>
-                    <input id="material_name" type="text" placeholder="Materialname">
-                </div>
-                <div class="field">
-                    <label>Hersteller / Produzent</label>
-                    <input id="material_producer" type="text" placeholder="Hersteller">
-                </div>
-                <div class="field">
-                    <label>Kategorie</label>
-                    <input id="material_category" type="text" placeholder="z. B. Dämmstoff, Holz, Baustoff">
-                </div>
-                <div class="grid-3">
-                    <div class="field">
-                        <label>U-Wert (W/m²K)</label>
-                        <input id="material_u" type="number" step="0.01" placeholder="0.20">
-                    </div>
-                    <div class="field">
-                        <label>CO₂-Wert (kg CO₂e/m³)</label>
-                        <input id="material_co2" type="number" step="0.1" placeholder="z. B. 12.3">
-                    </div>
-                    <div class="field">
-                        <label>Bemerkungen</label>
-                        <input id="material_notes" type="text" placeholder="z. B. Ökobaudat-Beschreibung">
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="saveMaterial(); return false;" type="button">Material speichern</button>
-
-                <div class="materials-panel" style="margin-top: 18px;">
-                    <h3>Importierte Ökobaudat-Materialien</h3>
-                    <div id="materialsListContainer">
-                        <div class="materials-empty">Lade Materialdaten…</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Außenwände – Wärmeverlustkoeffizient nach Orientierung</h3>
-
-                <!-- 4-spaltig für die 4 Himmelsrichtungen (Nord, Süd, Ost, West) -->
                 <div class="grid-4">
                     <!-- NORD -->
                     <div>
                         <div class="field">
                             <label>Nord Fläche (m²)</label>
-                            <input id="north_area" type="number" value="80">
-                            <!-- id wird in JavaScript referenziert -->
+                            <div class="value-display" id="north_area_display">—</div>
                         </div>
                         <div class="field">
-                            <label>Nord U-Wert (W/m²K)</label>
-                            <!-- step="0.01" erlaubt 0.01er Schritte beim Hochfahren -->
-                            <input id="north_u" type="number" step="0.01" value="0.28">
+                            <label>Nord Wandmaterial</label>
+                            <select id="north_material" onchange="updateWallMaterial('north')">
+                                <option value="">-- Wählen --</option>
+                                <option value="custom">-- Custom (manuell) --</option>
+                            </select>
+                        </div>
+                        <div class="field" id="north_thickness_field" style="display:none;">
+                            <label>Nord Dicke (mm)</label>
+                            <input id="north_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('north')">
+                        </div>
+                        <div class="field" id="north_u_manual_field" style="display:none;">
+                            <label>Nord U-Wert (W/m²K) – manuell</label>
+                            <input id="north_u_manual" type="number" step="0.01" placeholder="z.B. 0.28" onchange="updateWallManualU('north')">
+                        </div>
+                        <div class="field">
+                            <label>Berechneter U-Wert</label>
+                            <div class="value-display" id="north_u_display">—</div>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input type="checkbox" id="north_plaster_check" onchange="updateWallPlaster('north')">
+                                Putz vorhanden
+                            </label>
+                            <select id="north_plaster" onchange="updateWallPlaster('north')" style="margin-top: 5px;" disabled>
+                                <option value="">-- Putzart --</option>
+                            </select>
                         </div>
                     </div>
 
@@ -989,11 +660,35 @@ body {
                     <div>
                         <div class="field">
                             <label>Süd Fläche (m²)</label>
-                            <input id="south_area" type="number" value="80">
+                            <div class="value-display" id="south_area_display">—</div>
                         </div>
                         <div class="field">
-                            <label>Süd U-Wert (W/m²K)</label>
-                            <input id="south_u" type="number" step="0.01" value="0.28">
+                            <label>Süd Wandmaterial</label>
+                            <select id="south_material" onchange="updateWallMaterial('south')">
+                                <option value="">-- Wählen --</option>
+                                <option value="custom">-- Custom (manuell) --</option>
+                            </select>
+                        </div>
+                        <div class="field" id="south_thickness_field" style="display:none;">
+                            <label>Süd Dicke (mm)</label>
+                            <input id="south_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('south')">
+                        </div>
+                        <div class="field" id="south_u_manual_field" style="display:none;">
+                            <label>Süd U-Wert (W/m²K) – manuell</label>
+                            <input id="south_u_manual" type="number" step="0.01" placeholder="z.B. 0.28" onchange="updateWallManualU('south')">
+                        </div>
+                        <div class="field">
+                            <label>Berechneter U-Wert</label>
+                            <div class="value-display" id="south_u_display">—</div>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input type="checkbox" id="south_plaster_check" onchange="updateWallPlaster('south')">
+                                Putz vorhanden
+                            </label>
+                            <select id="south_plaster" onchange="updateWallPlaster('south')" style="margin-top: 5px;" disabled>
+                                <option value="">-- Putzart --</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1001,11 +696,35 @@ body {
                     <div>
                         <div class="field">
                             <label>Ost Fläche (m²)</label>
-                            <input id="east_area" type="number" value="60">
+                            <div class="value-display" id="east_area_display">—</div>
                         </div>
                         <div class="field">
-                            <label>Ost U-Wert (W/m²K)</label>
-                            <input id="east_u" type="number" step="0.01" value="0.30">
+                            <label>Ost Wandmaterial</label>
+                            <select id="east_material" onchange="updateWallMaterial('east')">
+                                <option value="">-- Wählen --</option>
+                                <option value="custom">-- Custom (manuell) --</option>
+                            </select>
+                        </div>
+                        <div class="field" id="east_thickness_field" style="display:none;">
+                            <label>Ost Dicke (mm)</label>
+                            <input id="east_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('east')">
+                        </div>
+                        <div class="field" id="east_u_manual_field" style="display:none;">
+                            <label>Ost U-Wert (W/m²K) – manuell</label>
+                            <input id="east_u_manual" type="number" step="0.01" placeholder="z.B. 0.30" onchange="updateWallManualU('east')">
+                        </div>
+                        <div class="field">
+                            <label>Berechneter U-Wert</label>
+                            <div class="value-display" id="east_u_display">—</div>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input type="checkbox" id="east_plaster_check" onchange="updateWallPlaster('east')">
+                                Putz vorhanden
+                            </label>
+                            <select id="east_plaster" onchange="updateWallPlaster('east')" style="margin-top: 5px;" disabled>
+                                <option value="">-- Putzart --</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1013,44 +732,58 @@ body {
                     <div>
                         <div class="field">
                             <label>West Fläche (m²)</label>
-                            <input id="west_area" type="number" value="60">
+                            <div class="value-display" id="west_area_display">—</div>
                         </div>
                         <div class="field">
-                            <label>West U-Wert (W/m²K)</label>
-                            <input id="west_u" type="number" step="0.01" value="0.30">
+                            <label>West Wandmaterial</label>
+                            <select id="west_material" onchange="updateWallMaterial('west')">
+                                <option value="">-- Wählen --</option>
+                                <option value="custom">-- Custom (manuell) --</option>
+                            </select>
+                        </div>
+                        <div class="field" id="west_thickness_field" style="display:none;">
+                            <label>West Dicke (mm)</label>
+                            <input id="west_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('west')">
+                        </div>
+                        <div class="field" id="west_u_manual_field" style="display:none;">
+                            <label>West U-Wert (W/m²K) – manuell</label>
+                            <input id="west_u_manual" type="number" step="0.01" placeholder="z.B. 0.30" onchange="updateWallManualU('west')">
+                        </div>
+                        <div class="field">
+                            <label>Berechneter U-Wert</label>
+                            <div class="value-display" id="west_u_display">—</div>
+                        </div>
+                        <div class="field">
+                            <label>
+                                <input type="checkbox" id="west_plaster_check" onchange="updateWallPlaster('west')">
+                                Putz vorhanden
+                            </label>
+                            <select id="west_plaster" onchange="updateWallPlaster('west')" style="margin-top: 5px;" disabled>
+                                <option value="">-- Putzart --</option>
+                            </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Haupt-Button zur Berechnung der Gebäudehülle -->
-                <!-- onclick="calculateEnvelope()" ruft JavaScript-Funktion auf -->
                 <button class="btn btn-primary" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
 
-                <!-- =============== ERGEBNISSE DER WÄRMEVERLUSTE =============== -->
-                <!-- 5 Chips für die 5 Berechnungsergebnisse -->
                 <div class="result-row">
-                    <!-- Chip 1: Nord-Wärmeverlust -->
                     <div class="result-chip">
                         <span class="small">Nord (W/K)</span>
                         <strong id="north_result">—</strong>
-                        <!-- — wird durch Berechnungsergebnis ersetzt -->
                     </div>
-                    <!-- Chip 2: Süd-Wärmeverlust -->
                     <div class="result-chip">
                         <span class="small">Süd (W/K)</span>
                         <strong id="south_result">—</strong>
                     </div>
-                    <!-- Chip 3: Ost-Wärmeverlust -->
                     <div class="result-chip">
                         <span class="small">Ost (W/K)</span>
                         <strong id="east_result">—</strong>
                     </div>
-                    <!-- Chip 4: West-Wärmeverlust -->
                     <div class="result-chip">
                         <span class="small">West (W/K)</span>
                         <strong id="west_result">—</strong>
                     </div>
-                    <!-- Chip 5: Gesamt-Wärmeverlust aller Wände -->
                     <div class="result-chip">
                         <span class="small">Wände gesamt (W/K)</span>
                         <strong id="wall_total_result">—</strong>
@@ -1058,53 +791,101 @@ body {
                 </div>
             </div>
 
-            <!-- =============== DACH UND BODEN + FENSTER =============== -->
             <div class="grid-2" style="margin-top:18px;">
-                <!-- LINKE SEITE: DACH UND BODEN -->
                 <div class="card">
-                    <h3>Dach und Boden</h3>
+                    <h3>Dach – Materialauswahl</h3>
+                    <p style="font-size:13px;color:#666;margin-top:0;margin-bottom:15px;">Dachfläche wird automatisch aus den Gebäudedaten berechnet.</p>
 
-                    <div class="grid-2">
-                        <!-- Dachfläche -->
-                        <div class="field">
-                            <label>Dachfläche (m²)</label>
-                            <input id="roof_area" type="number" value="120">
-                        </div>
-                        <!-- Dach U-Wert -->
-                        <div class="field">
-                            <label>Dach U-Wert (W/m²K)</label>
-                            <input id="roof_u" type="number" step="0.01" value="0.20">
-                        </div>
-                        <!-- Bodenfläche -->
-                        <div class="field">
-                            <label>Bodenfläche (m²)</label>
-                            <input id="floor_area" type="number" value="120">
-                        </div>
-                        <!-- Boden U-Wert -->
-                        <div class="field">
-                            <label>Boden U-Wert (W/m²K)</label>
-                            <input id="floor_u" type="number" step="0.01" value="0.25">
-                        </div>
+                    <div class="field">
+                        <label>Dachfläche (m²)</label>
+                        <div class="value-display" id="roof_area_display">—</div>
                     </div>
 
-                    <!-- Ergebnisse Dach und Boden -->
+                    <div class="field">
+                        <label>Dachtyp</label>
+                        <select id="roof_type" onchange="updateRoofType()">
+                            <option value="">-- Wählen --</option>
+                            <option value="steildach">Steildach</option>
+                            <option value="flachdach">Flachdach</option>
+                        </select>
+                    </div>
+
+                    <div class="field" id="roof_material_field" style="display:none;">
+                        <label>Dachmaterial</label>
+                        <select id="roof_material" onchange="updateRoofMaterial()">
+                            <option value="">-- Wählen --</option>
+                        </select>
+                    </div>
+
+                    <div class="field" id="roof_u_field" style="display:none;">
+                        <label>Dach U-Wert (W/m²K) – manuell</label>
+                        <input id="roof_u_manual" type="number" step="0.01" placeholder="z.B. 0.20" oninput="updateRoofManualU()">
+                    </div>
+
+                    <div class="field" id="roof_u_display_field" style="display:none;">
+                        <label>Berechneter U-Wert</label>
+                        <div class="value-display" id="roof_u_display">—</div>
+                    </div>
+
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Dach (W/K)</div>
-                            <div class="value" id="roof_result">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="label">Boden (W/K)</div>
-                            <div class="value" id="floor_result">—</div>
+                            <strong id="roof_result">—</strong>
                         </div>
                     </div>
                 </div>
 
-                <!-- RECHTE SEITE: FENSTER & TRANSPARENTE BAUTEILE -->
+                <div class="card">
+                    <h3>Boden – Materialauswahl</h3>
+                    <p style="font-size:13px;color:#666;margin-top:0;margin-bottom:15px;">Bodenfläche wird automatisch aus den Gebäudedaten berechnet.</p>
+
+                    <div class="field">
+                        <label>Bodenfläche (m²)</label>
+                        <div class="value-display" id="floor_area_display">—</div>
+                    </div>
+
+                    <div class="field">
+                        <label>Boden grenzt an</label>
+                        <select id="floor_boundary" onchange="updateFloorBoundary()">
+                            <option value="">-- Wählen --</option>
+                            <option value="erdreich">Erdreich</option>
+                            <option value="unheated">Unbeheizter Raum</option>
+                        </select>
+                    </div>
+
+                    <div class="field" id="floor_material_field" style="display:none;">
+                        <label>Bodenmaterial</label>
+                        <select id="floor_material" onchange="updateFloorMaterial()">
+                            <option value="">-- Wählen --</option>
+                        </select>
+                    </div>
+
+                    <div class="field" id="floor_unheated_temp_field" style="display:none;">
+                        <label>Temperatur unbeheizter Raum (°C)</label>
+                        <input id="floor_unheated_temp" type="number" step="0.1" value="10" oninput="updateFloorUValue()">
+                    </div>
+
+                    <div class="field" id="floor_u_field" style="display:none;">
+                        <label>Boden U-Wert (W/m²K) – manuell</label>
+                        <input id="floor_u_manual" type="number" step="0.01" placeholder="z.B. 0.25" oninput="updateFloorManualU()">
+                    </div>
+
+                    <div class="field" id="floor_u_display_field" style="display:none;">
+                        <label>Berechneter U-Wert</label>
+                        <div class="value-display" id="floor_u_display">—</div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Boden (W/K)</div>
+                            <strong id="floor_result">—</strong>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3>Fenster & transparente Bauteile</h3>
 
-                    <!-- Fensterflächen nach Himmelsrichtung -->
                     <div class="grid-2">
                         <div class="field">
                             <label>Fenster Nord (m²)</label>
@@ -1124,20 +905,16 @@ body {
                         </div>
                     </div>
 
-                    <!-- Gemeinsamer U-Wert für alle Fenster -->
                     <div class="field">
                         <label>Fenster U-Wert (W/m²K)</label>
                         <input id="window_u" type="number" step="0.01" value="1.10">
                     </div>
 
-                    <!-- g-Wert = Gesamtenergiedurchlassgrad
-                         (wie viel Wärmestrahlung eindringt) -->
                     <div class="field">
                         <label>g-Wert (0 bis 1)</label>
                         <input id="g_value" type="number" step="0.01" value="0.55">
                     </div>
 
-                    <!-- Ergebnisse Fenster -->
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Fenster gesamt (W/K)</div>
@@ -1151,28 +928,22 @@ body {
                 </div>
             </div>
 
-            <!-- =============== JAHRESKENNWERTE UND AMPELBEWERTUNG =============== -->
             <div class="grid-2" style="margin-top:18px;">
-                <!-- LINKE SEITE: VEREINFACHTE JAHRESKENNWERTE -->
                 <div class="card">
                     <h3>Vereinfachte Jahreskennwerte</h3>
                     <div class="stats">
-                        <!-- Solarer Gewinn durch Fenster -->
                         <div class="stat-box">
                             <div class="label">Solarer Gewinn (kWh/a)</div>
                             <div class="value" id="solar_gain_result">—</div>
                         </div>
-                        <!-- Heizwärmebedarf brutto (mit Solarem Gewinn) -->
                         <div class="stat-box">
                             <div class="label">Heizwärmebedarf brutto (kWh/a)</div>
                             <div class="value" id="annual_heat_result">—</div>
                         </div>
-                        <!-- Heizwärmebedarf netto (abzüglich Solarer Gewinn) -->
                         <div class="stat-box">
                             <div class="label">Heizwärmebedarf netto (kWh/a)</div>
                             <div class="value" id="adjusted_heat_result">—</div>
                         </div>
-                        <!-- Spezifischer Kennwert pro m² BGF -->
                         <div class="stat-box">
                             <div class="label">Spezifisch (kWh/m²a)</div>
                             <div class="value" id="specific_heat_result">—</div>
@@ -1180,15 +951,12 @@ body {
                     </div>
                 </div>
 
-                <!-- RECHTE SEITE: AMPELBEWERTUNG -->
                 <div class="card">
                     <h3>Ampelbewertung</h3>
-                    <!-- Diese Box wird mit JavaScript mit Farbe gefüllt -->
                     <div id="ratingBox" class="rating-box">
                         <div id="ratingTitle" class="rating-title">—</div>
                         <div id="ratingText" class="rating-text">—</div>
                     </div>
-                    <!-- Hinweis zur Bewertung -->
                     <div class="note">
                         Vereinfachte Demo-Bewertung:
                         grün ≤ 40 kWh/m²a, gelb ≤ 80 kWh/m²a, rot > 80 kWh/m²a.
@@ -1196,7 +964,6 @@ body {
                 </div>
             </div>
 
-            <!-- Footer-Information -->
             <div class="footer-note">
                 Stufe 2 umfasst jetzt Validierung, eindeutige Einheiten, Wärmeverlustkoeffizienten (W/K),
                 einen vereinfachten Jahres-Heizwärmebedarf (kWh/a), spezifische Kennwerte (kWh/m²a)
@@ -1205,24 +972,1164 @@ body {
         </div>
     </div>
 
-    <!-- ============================================================
-         TAB 3: ANLAGENTECHNIK
-         ============================================================ -->
+    <!-- BAUTECHNIK SEKTION (JS-App) -->
+<div id="bautechnik" class="tab">
+    <style>
+        .bautechnik-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: calc(100vh - 300px);
+        }
+        
+        .bautechnik-sidebar {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .bautechnik-nav-item {
+            padding: 12px 16px;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            transition: 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-nav-item:hover {
+            background: #efefef;
+        }
+        
+        .bautechnik-nav-item.active {
+            background: #e8f5e9;
+            border-left-color: var(--green-dark);
+            color: var(--green-dark);
+        }
+        
+        .bautechnik-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .bautechnik-content h2 {
+            margin-top: 0;
+            color: #1f2b1f;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .bautechnik-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        
+        .bautechnik-table thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .bautechnik-table th,
+        .bautechnik-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-table tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .bautechnik-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-form-grid.full {
+            grid-template-columns: 1fr;
+        }
+        
+        .bautechnik-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bautechnik-modal.active {
+            display: flex;
+        }
+        
+        .bautechnik-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .bautechnik-modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: #1f2b1f;
+        }
+        
+        .bautechnik-modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+        
+        .bautechnik-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .bautechnik-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            border-top-color: var(--green-dark);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .bautechnik-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .bautechnik-error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .bautechnik-success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+        
+        .btn-danger {
+            background: #d32f2f;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e68900;
+        }
+
+        .schicht-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    
+    <div class="panel" style="height: auto;">
+        <h2 class="section-title">Bautechnik</h2>
+        <div class="section-divider"></div>
+        
+        <div class="bautechnik-container">
+            <!-- SIDEBAR NAVIGATION -->
+            <div class="bautechnik-sidebar">
+                <div class="bautechnik-nav-item active" onclick="switchBautechnikSection('materialien')">
+                    📋 Materialien
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('konstruktionen')">
+                    🏗️ Konstruktionen
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('fenster')">
+                    🪟 Fenster
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('tueren')">
+                    🚪 Türen/Tore
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('sonnenschutz')">
+                    ☀️ Sonnenschutz
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('gebaeude')">
+                    🏢 Gebäude
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('bauteile')">
+                    📐 Bauteile
+                </div>
+            </div>
+            
+            <!-- CONTENT AREA -->
+            <div class="bautechnik-content">
+                <div id="materialien-section" class="bautechnik-section">
+                    <h2>Materialien</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openMaterialForm()">+ Neues Material</button>
+                    </div>
+                    <div id="materialien-list"></div>
+                </div>
+                
+                <div id="konstruktionen-section" class="bautechnik-section" style="display:none;">
+                    <h2>Konstruktionen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openKonstruktionForm()">+ Neue Konstruktion</button>
+                    </div>
+                    <div id="konstruktionen-list"></div>
+                </div>
+                
+                <div id="fenster-section" class="bautechnik-section" style="display:none;">
+                    <h2>Fenstertypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openFensterForm()">+ Neuer Fenstertyp</button>
+                    </div>
+                    <div id="fenster-list"></div>
+                </div>
+                
+                <div id="tueren-section" class="bautechnik-section" style="display:none;">
+                    <h2>Tür- & Tortypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openTürForm()">+ Neuer Türtyp</button>
+                    </div>
+                    <div id="tueren-list"></div>
+                </div>
+                
+                <div id="sonnenschutz-section" class="bautechnik-section" style="display:none;">
+                    <h2>Sonnenschutzvorrichtungen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openSonnenschutzForm()">+ Neue Vorrichtung</button>
+                    </div>
+                    <div id="sonnenschutz-list"></div>
+                </div>
+                
+                <div id="gebaeude-section" class="bautechnik-section" style="display:none;">
+                    <h2>Gebäude</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openGebäudeForm()">+ Neues Gebäude</button>
+                    </div>
+                    <div id="gebaeude-list"></div>
+                </div>
+                
+                <div id="bauteile-section" class="bautechnik-section" style="display:none;">
+                    <h2>Bauteile</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openBauteilForm()">+ Neues Bauteil</button>
+                    </div>
+                    <div id="bauteile-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Material Modal -->
+<div id="materialModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Material</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="materialName" type="text">
+            </div>
+            <div class="field">
+                <label>Rohdichte (kg/m³)</label>
+                <input id="materialRohdichte" type="number" min="0" step="10">
+            </div>
+            <div class="field">
+                <label>Wärmeleitfähigkeit λ (W/mK)</label>
+                <input id="materialLambda" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>Spez. Wärmekapazität (kJ/kgK)</label>
+                <input id="materialC" type="number" min="0" step="0.1">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveMaterial()">Speichern</button>
+            <button class="btn" onclick="closeModal('materialModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Fenster Modal -->
+<div id="fensterModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Fenstertyp</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="fensterName" type="text">
+            </div>
+            <div class="field">
+                <label>Uw-Wert (W/m²K)</label>
+                <input id="fensterUw" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>g-Wert (0-1)</label>
+                <input id="fensterG" type="number" min="0" max="1" step="0.01">
+            </div>
+            <div class="field">
+                <label>ψ-Wert Kante (W/mK)</label>
+                <input id="fensterPsi" type="number" min="0" step="0.01" value="0.06">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveFenster()">Speichern</button>
+            <button class="btn" onclick="closeModal('fensterModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Türen Modal -->
+<div id="turenModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Türtyp</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="turenName" type="text">
+            </div>
+            <div class="field">
+                <label>U-Wert (W/m²K)</label>
+                <input id="turenU" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>Luftdichtheit (m³/h·m²)</label>
+                <input id="turenLuft" type="number" min="0" step="0.1">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveTuren()">Speichern</button>
+            <button class="btn" onclick="closeModal('turenModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Sonnenschutz Modal -->
+<div id="sonnenschutzModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Sonnenschutzvorrichtung</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="sonnenschutzName" type="text">
+            </div>
+            <div class="field">
+                <label>Position</label>
+                <select id="sonnenschutzPosition">
+                    <option value="innen">Innen</option>
+                    <option value="außen">Außen</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Typ</label>
+                <select id="sonnenschutzTyp">
+                    <option value="fest">Fest</option>
+                    <option value="variabel">Variabel</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Reduktionsfaktor (0-1)</label>
+                <input id="sonnenschutzReduktion" type="number" min="0" max="1" step="0.01">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveSonnenschutz()">Speichern</button>
+            <button class="btn" onclick="closeModal('sonnenschutzModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Gebäude Modal -->
+<div id="gebaudeModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Gebäude</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="gebaudeName" type="text">
+            </div>
+            <div class="field">
+                <label>Standort</label>
+                <input id="gebaudeStandort" type="text" placeholder="z.B. Berlin">
+            </div>
+            <div class="field">
+                <label>BGF (m²)</label>
+                <input id="gebaudeBGF" type="number" min="0" step="1">
+            </div>
+            <div class="field">
+                <label>Gradstunden/Jahr (Kh/a)</label>
+                <input id="gebaudeGradstunden" type="number" min="0" step="100" value="78000">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveGebaude()">Speichern</button>
+            <button class="btn" onclick="closeModal('gebaudeModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bauteil Modal -->
+<div id="bauteilModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Bauteil</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="bauteilName" type="text">
+            </div>
+            <div class="field">
+                <label>Gebäude</label>
+                <select id="bauteilGebaude"></select>
+            </div>
+            <div class="field">
+                <label>Orientierung</label>
+                <select id="bauteilOrientierung">
+                    <option value="nord">Nord</option>
+                    <option value="süd">Süd</option>
+                    <option value="ost">Ost</option>
+                    <option value="west">West</option>
+                    <option value="horizontal">Horizontal</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Fläche (m²)</label>
+                <input id="bauteilFlaeche" type="number" min="0" step="0.1">
+            </div>
+            <div class="field">
+                <label>Konstruktion</label>
+                <select id="bauteilKonstruktion"></select>
+            </div>
+            <div class="field">
+                <label>Fenstertyp</label>
+                <select id="bauteilFenster"></select>
+            </div>
+            <div class="field">
+                <label>Fensterfläche (m²)</label>
+                <input id="bauteilFensterFlaeche" type="number" min="0" step="0.1">
+            </div>
+            <div class="field">
+                <label>Sonnenschutz</label>
+                <select id="bauteilSonnenschutz"></select>
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveBauteil()">Speichern</button>
+            <button class="btn" onclick="closeModal('bauteilModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Konstruktion Modal -->
+<div id="konstruktionModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Konstruktion</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="konstruktionName" type="text">
+            </div>
+            <div class="field">
+                <label>Typ</label>
+                <select id="konstruktionTyp">
+                    <option value="aussen_wand">Außenwand</option>
+                    <option value="dach">Dach</option>
+                    <option value="bodenplatte">Bodenplatte</option>
+                    <option value="decke">Decke</option>
+                    <option value="keller_wand">Kellerwand</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>Beschreibung</label>
+                <textarea id="konstruktionBeschreibung" style="min-height:60px;"></textarea>
+            </div>
+            <div class="field">
+                <label>R_si (m²K/W)</label>
+                <input id="konstruktionRsi" type="number" min="0" step="0.01" value="0.13">
+            </div>
+            <div class="field">
+                <label>R_se (m²K/W)</label>
+                <input id="konstruktionRse" type="number" min="0" step="0.01" value="0.04">
+            </div>
+        </div>
+        
+        <div style="margin-top:20px; padding-top:20px; border-top: 1px solid #eee;">
+            <h3 style="margin:0 0 12px 0;">Schichten</h3>
+            <div id="konstruktionSchichten" style="margin-bottom:12px;"></div>
+            <div class="bautechnik-form-grid">
+                <select id="konstruktionMaterialSelect"></select>
+                <input id="konstruktionDicke" type="number" min="10" step="10" placeholder="Dicke (mm)">
+                <button class="btn btn-primary btn-sm" onclick="addSchichtToKonstruktion()">+ Schicht</button>
+            </div>
+        </div>
+        
+        <div class="bautechnik-modal-footer" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="saveKonstruktion()">Speichern</button>
+            <button class="btn" onclick="closeModal('konstruktionModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let bautechnikState = {
+    currentSection: 'materialien',
+    materialien: [],
+    konstruktionen: [],
+    fenster: [],
+    tueren: [],
+    sonnenschutz: [],
+    gebaeude: [],
+    bauteile: [],
+    currentKonstruktionSchichten: [],
+};
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.getElementById(modalId).querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+    bautechnikState.currentKonstruktionSchichten = [];
+}
+
+function switchBautechnikSection(section) {
+    // Hide all sections
+    document.querySelectorAll('.bautechnik-section').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.bautechnik-nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById(section + '-section').style.display = 'block';
+    event.target.classList.add('active');
+    
+    bautechnikState.currentSection = section;
+    loadBautechnikData(section);
+}
+
+function loadBautechnikData(section) {
+    const listId = section + '-list';
+    const container = document.getElementById(listId);
+    container.innerHTML = '<div class="bautechnik-loading"><div class="bautechnik-spinner"></div></div>';
+    
+    let apiUrl = '';
+    switch(section) {
+        case 'materialien': apiUrl = '/api/material/'; break;
+        case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
+        case 'fenster': apiUrl = '/api/fenster-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
+        case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
+        case 'bauteile': apiUrl = '/api/bauteil/'; break;
+    }
+    
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+            bautechnikState[section] = data.results || data;
+            renderBautechnikTable(section, bautechnikState[section]);
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="bautechnik-error">Fehler beim Laden der Daten</div>';
+            console.error(err);
+        });
+}
+
+function renderBautechnikTable(section, items) {
+    const container = document.getElementById(section + '-list');
+    
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
+        return;
+    }
+    
+    let html = '<table class="bautechnik-table"><thead><tr>';
+    
+    if (section === 'materialien') {
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(m => {
+            html += `<tr>
+                <td>${m.name}</td>
+                <td>${m.rohdichte}</td>
+                <td>${m.lambda_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'fenster') {
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(f => {
+            html += `<tr>
+                <td>${f.name}</td>
+                <td>${f.u_w}</td>
+                <td>${f.g_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'tueren') {
+        html += '<th>Name</th><th>U-Wert</th><th>Luftdichtheit</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(t => {
+            html += `<tr>
+                <td>${t.name}</td>
+                <td>${t.u_value}</td>
+                <td>${t.luftdichtheit}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'sonnenschutz') {
+        html += '<th>Name</th><th>Position</th><th>Typ</th><th>Reduktion</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(s => {
+            html += `<tr>
+                <td>${s.name}</td>
+                <td>${s.position}</td>
+                <td>${s.typ}</td>
+                <td>${(s.reduktionsfaktor*100).toFixed(0)}%</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'gebaeude') {
+        html += '<th>Name</th><th>Standort</th><th>BGF</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(g => {
+            html += `<tr>
+                <td>${g.name}</td>
+                <td>${g.standort}</td>
+                <td>${g.bgf} m²</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'konstruktionen') {
+        html += '<th>Name</th><th>Typ</th><th>U-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(k => {
+            html += `<tr>
+                <td>${k.name}</td>
+                <td>${k.typ}</td>
+                <td>${(k.u_value || 0).toFixed(3)}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'bauteile') {
+        html += '<th>Name</th><th>Gebäude</th><th>Fläche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(b => {
+            const transLoss = (b.transmissionsverlust || 0).toFixed(1);
+            html += `<tr>
+                <td>${b.name}</td>
+                <td>${b.gebaeude_name || '-'}</td>
+                <td>${b.flaeche} m²</td>
+                <td>${transLoss} W/K</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">Löschen</button></td>
+            </tr>`;
+        });
+    }
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// ===== MATERIAL =====
+function openMaterialForm() {
+    document.getElementById('materialModal').classList.add('active');
+}
+
+function saveMaterial() {
+    const data = {
+        name: document.getElementById('materialName').value,
+        rohdichte: parseFloat(document.getElementById('materialRohdichte').value),
+        lambda_value: parseFloat(document.getElementById('materialLambda').value),
+        c_specific: parseFloat(document.getElementById('materialC').value) || 1.0,
+        mu_value: 1.0,
+    };
+    
+    if (!data.name || !data.rohdichte || !data.lambda_value) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+    }
+    
+    fetch('/api/material/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('materialModal');
+        loadBautechnikData('materialien');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteMaterial(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/material/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('materialien'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== FENSTER =====
+function openFensterForm() {
+    loadSelectOptions();
+    document.getElementById('fensterModal').classList.add('active');
+}
+
+function saveFenster() {
+    const data = {
+        name: document.getElementById('fensterName').value,
+        u_w: parseFloat(document.getElementById('fensterUw').value),
+        g_value: parseFloat(document.getElementById('fensterG').value),
+        psi_edge: parseFloat(document.getElementById('fensterPsi').value) || 0.06,
+    };
+    
+    if (!data.name || !data.u_w) {
+        alert('Bitte mindestens Name und Uw-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/fenster-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('fensterModal');
+        loadBautechnikData('fenster');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteFenster(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('fenster'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== TÜREN =====
+function openTürForm() {
+    document.getElementById('turenModal').classList.add('active');
+}
+
+function saveTuren() {
+    const data = {
+        name: document.getElementById('turenName').value,
+        u_value: parseFloat(document.getElementById('turenU').value),
+        luftdichtheit: parseFloat(document.getElementById('turenLuft').value) || 0,
+    };
+    
+    if (!data.name || !data.u_value) {
+        alert('Bitte mindestens Name und U-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/tür-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('turenModal');
+        loadBautechnikData('tueren');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteTuren(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/tür-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('tueren'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== SONNENSCHUTZ =====
+function openSonnenschutzForm() {
+    document.getElementById('sonnenschutzModal').classList.add('active');
+}
+
+function saveSonnenschutz() {
+    const data = {
+        name: document.getElementById('sonnenschutzName').value,
+        position: document.getElementById('sonnenschutzPosition').value,
+        typ: document.getElementById('sonnenschutzTyp').value,
+        reduktionsfaktor: parseFloat(document.getElementById('sonnenschutzReduktion').value) || 0.5,
+    };
+    
+    if (!data.name) {
+        alert('Bitte Name ausfüllen');
+        return;
+    }
+    
+    fetch('/api/sonnenschutz-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('sonnenschutzModal');
+        loadBautechnikData('sonnenschutz');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteSonnenschutz(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/sonnenschutz-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('sonnenschutz'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== GEBÄUDE =====
+function openGebäudeForm() {
+    document.getElementById('gebaudeModal').classList.add('active');
+}
+
+function saveGebaude() {
+    const data = {
+        name: document.getElementById('gebaudeName').value,
+        standort: document.getElementById('gebaudeStandort').value,
+        bgf: parseFloat(document.getElementById('gebaudeBGF').value),
+        gradstunden: parseFloat(document.getElementById('gebaudeGradstunden').value) || 78000,
+    };
+    
+    if (!data.name || !data.bgf) {
+        alert('Bitte Name und BGF ausfüllen');
+        return;
+    }
+    
+    fetch('/api/gebäude/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('gebaudeModal');
+        loadBautechnikData('gebaeude');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteGebaude(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/gebäude/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('gebaeude'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== BAUTEILE =====
+function openBauteilForm() {
+    loadSelectOptions();
+    document.getElementById('bauteilModal').classList.add('active');
+}
+
+function loadSelectOptions() {
+    // Load Gebäude options
+    fetch('/api/gebäude/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilGebaude');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(g => {
+                select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            });
+        });
+    
+    // Load Konstruktion options
+    fetch('/api/konstruktion/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilKonstruktion');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(k => {
+                select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
+            });
+        });
+    
+    // Load Fenster options
+    fetch('/api/fenster-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilFenster');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(f => {
+                select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+            });
+        });
+    
+    // Load Sonnenschutz options
+    fetch('/api/sonnenschutz-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilSonnenschutz');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        });
+}
+
+function saveBauteil() {
+    const gebaudeId = parseInt(document.getElementById('bauteilGebaude').value);
+    const konstruktionId = parseInt(document.getElementById('bauteilKonstruktion').value) || null;
+    const fensterTypeId = parseInt(document.getElementById('bauteilFenster').value) || null;
+    const sonnenschutzId = parseInt(document.getElementById('bauteilSonnenschutz').value) || null;
+    
+    const data = {
+        name: document.getElementById('bauteilName').value,
+        gebaeude: gebaudeId,
+        orientierung: document.getElementById('bauteilOrientierung').value,
+        flaeche: parseFloat(document.getElementById('bauteilFlaeche').value),
+        konstruktion: konstruktionId,
+        fenster_typ: fensterTypeId,
+        fenster_flaeche: parseFloat(document.getElementById('bauteilFensterFlaeche').value) || 0,
+        sonnenschutz: sonnenschutzId,
+    };
+    
+    if (!data.name || !data.gebaeude || !data.flaeche) {
+        alert('Bitte Name, Gebäude und Fläche ausfüllen');
+        return;
+    }
+    
+    fetch('/api/bauteil/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('bauteilModal');
+        loadBautechnikData('bauteile');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteBauteil(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/bauteil/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('bauteile'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== KONSTRUKTION =====
+function openKonstruktionForm() {
+    bautechnikState.currentKonstruktionSchichten = [];
+    loadKonstruktionSelectOptions();
+    document.getElementById('konstruktionModal').classList.add('active');
+}
+
+function loadKonstruktionSelectOptions() {
+    fetch('/api/material/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('konstruktionMaterialSelect');
+            select.innerHTML = '<option value="">-- Material wählen --</option>';
+            (d.results || d).forEach(m => {
+                select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        });
+}
+
+function addSchichtToKonstruktion() {
+    const materialId = parseInt(document.getElementById('konstruktionMaterialSelect').value);
+    const dicke = parseInt(document.getElementById('konstruktionDicke').value);
+    const materialName = document.querySelector('#konstruktionMaterialSelect option:checked').text;
+    
+    if (!materialId || !dicke) {
+        alert('Material und Dicke auswählen');
+        return;
+    }
+    
+    bautechnikState.currentKonstruktionSchichten.push({
+        material_id: materialId,
+        dicke_mm: dicke,
+        material_name: materialName
+    });
+    
+    renderKonstruktionSchichten();
+    document.getElementById('konstruktionMaterialSelect').value = '';
+    document.getElementById('konstruktionDicke').value = '';
+}
+
+function renderKonstruktionSchichten() {
+    const container = document.getElementById('konstruktionSchichten');
+    container.innerHTML = '';
+    
+    bautechnikState.currentKonstruktionSchichten.forEach((s, idx) => {
+        container.innerHTML += `
+            <div class="schicht-item">
+                <span>${idx+1}. ${s.material_name} (${s.dicke_mm}mm)</span>
+                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">✕</button>
+            </div>
+        `;
+    });
+}
+
+function removeSchichtFromKonstruktion(idx) {
+    bautechnikState.currentKonstruktionSchichten.splice(idx, 1);
+    renderKonstruktionSchichten();
+}
+
+function saveKonstruktion() {
+    const name = document.getElementById('konstruktionName').value;
+    const typ = document.getElementById('konstruktionTyp').value;
+    const beschreibung = document.getElementById('konstruktionBeschreibung').value;
+    const r_si = parseFloat(document.getElementById('konstruktionRsi').value) || 0.13;
+    const r_se = parseFloat(document.getElementById('konstruktionRse').value) || 0.04;
+    
+    if (!name || !typ) {
+        alert('Bitte Name und Typ ausfüllen');
+        return;
+    }
+    
+    const data = {
+        name: name,
+        typ: typ,
+        description: beschreibung,
+        r_si: r_si,
+        r_se: r_se,
+        schichten: bautechnikState.currentKonstruktionSchichten.map(s => s.material_id)
+    };
+    
+    fetch('/api/konstruktion/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('API Error');
+        return res.json();
+    })
+    .then(result => {
+        // Add schichten via the through model
+        addSchichtenToKonstruktion(result.id);
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function addSchichtenToKonstruktion(konstruktionId) {
+    const schichten = bautechnikState.currentKonstruktionSchichten;
+    let completed = 0;
+    
+    if (schichten.length === 0) {
+        closeModal('konstruktionModal');
+        loadBautechnikData('konstruktionen');
+        return;
+    }
+    
+    schichten.forEach((s, order) => {
+        const data = {
+            konstruktion: konstruktionId,
+            schicht: s.material_id,
+            order: order
+        };
+        
+        fetch('/api/konstruktion-schicht/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            completed++;
+            if (completed === schichten.length) {
+                closeModal('konstruktionModal');
+                loadBautechnikData('konstruktionen');
+            }
+        });
+    });
+}
+
+function deleteKonstruktion(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/konstruktion/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('konstruktionen'))
+            .catch(err => console.error(err));
+    }
+}
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('bautechnik')) {
+        loadBautechnikData('materialien');
+    }
+});
+</script>
+
     <div id="anlage" class="tab">
         <div class="panel">
             <h2 class="section-title">Anlagentechnik</h2>
-            <!-- Fehler-Box für System-Fehler -->
             <div id="systemErrorBox" class="alert-box"></div>
 
             <div class="grid-2">
-                <!-- LINKE SEITE: SYSTEMAUSWAHL -->
                 <div class="card">
                     <h3>Systemauswahl</h3>
 
-                    <!-- Heizsystem-Dropdown mit onchange-Event -->
                     <div class="field">
                         <label>Heizsystem</label>
-                        <!-- onchange="applySystemDefaults()" passt Effizienzwerte an -->
                         <select id="heating_system" onchange="applySystemDefaults()">
                             <option value="gas">Gas-Brennwert</option>
                             <option value="heatpump">Wärmepumpe</option>
@@ -1231,87 +2138,70 @@ body {
                         </select>
                     </div>
 
-                    <!-- Wirkungsgrad (0.0 bis 1.0) -->
                     <div class="field">
                         <label>Wirkungsgrad η</label>
                         <input id="efficiency" type="number" step="0.01" value="0.90">
                     </div>
 
-                    <!-- COP = Coefficient of Performance (nur für Wärmepumpen relevant) -->
                     <div class="field">
                         <label>COP (nur für Wärmepumpe relevant)</label>
                         <input id="cop" type="number" step="0.1" value="3.5">
                     </div>
 
-                    <!-- Warmwasserbedarf pro Jahr -->
                     <div class="field">
                         <label>Warmwasserbedarf (kWh/a)</label>
                         <input id="hotwater_demand" type="number" value="3000">
                     </div>
 
-                    <!-- Hilfsstrom (Pumpen, Regelung, etc.) -->
                     <div class="field">
                         <label>Hilfsstrom / Anlagenstrom (kWh/a)</label>
                         <input id="auxiliary_electricity" type="number" value="1200">
                     </div>
 
-                    <!-- Button zur Berechnung des Systems -->
                     <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
 
-                    <!-- Hinweis -->
                     <div class="note">
                         Grundlage ist der zuvor berechnete Heizwärmebedarf netto aus der Gebäudehülle.
                     </div>
                 </div>
 
-                <!-- RECHTE SEITE: ERGEBNISSE ANLAGENTECHNIK -->
                 <div class="card">
                     <h3>Ergebnisse Anlagentechnik</h3>
-                    <!-- 8 Statistik-Boxen mit Ergebnissen -->
                     <div class="stats">
-                        <!-- Heizung Endenergie -->
                         <div class="stat-box">
                             <div class="label">Heizung Endenergie (kWh/a)</div>
                             <div class="value" id="system_heating_end">—</div>
                         </div>
-                        <!-- Warmwasser Endenergie -->
                         <div class="stat-box">
                             <div class="label">Warmwasser Endenergie (kWh/a)</div>
                             <div class="value" id="system_hotwater_end">—</div>
                         </div>
-                        <!-- Hilfsstrom -->
                         <div class="stat-box">
                             <div class="label">Hilfsstrom (kWh/a)</div>
                             <div class="value" id="system_aux">—</div>
                         </div>
-                        <!-- Gesamtendenergie -->
                         <div class="stat-box">
                             <div class="label">Endenergie gesamt (kWh/a)</div>
                             <div class="value" id="system_total_end">—</div>
                         </div>
-                        <!-- Primärenergie (mit Umwandlungsfaktoren) -->
                         <div class="stat-box">
                             <div class="label">Primärenergie (kWh/a)</div>
                             <div class="value" id="system_primary">—</div>
                         </div>
-                        <!-- CO₂-Emissionen -->
                         <div class="stat-box">
                             <div class="label">CO₂-Emissionen (kg/a)</div>
                             <div class="value" id="system_co2">—</div>
                         </div>
-                        <!-- Spezifische Endenergie pro m² -->
                         <div class="stat-box">
                             <div class="label">Spezifische Endenergie (kWh/m²a)</div>
                             <div class="value" id="system_spec_end">—</div>
                         </div>
-                        <!-- Spezifische Primärenergie pro m² -->
                         <div class="stat-box">
                             <div class="label">Spezifische Primärenergie (kWh/m²a)</div>
                             <div class="value" id="system_spec_primary">—</div>
                         </div>
                     </div>
 
-                    <!-- Ampelbewertung für das System -->
                     <div id="systemRatingBox" class="rating-box">
                         <div id="systemRatingTitle" class="rating-title">—</div>
                         <div id="systemRatingText" class="rating-text">—</div>
@@ -1319,7 +2209,6 @@ body {
                 </div>
             </div>
 
-            <!-- Footer-Information -->
             <div class="footer-note">
                 Das Anlagentechnik-Modul wandelt den Heizwärmebedarf netto in Endenergie, Primärenergie und CO₂ um.
                 Dadurch entsteht der nächste echte Systemschritt nach der Gebäudehülle.
@@ -1327,296 +2216,763 @@ body {
         </div>
     </div>
 
-    <!-- ============================================================
-         TAB 4: PHOTOVOLTAIK (Noch nicht implementiert)
-         ============================================================ -->
     <div id="pv" class="tab">
         <div class="panel">
             <h2 class="section-title">Photovoltaik</h2>
-            <!-- Placeholder für zukünftige PV-Implementierung -->
-            <div class="placeholder">
-                <h3>PV-System / PV-Flächen / PV-Ergebnisse</h3>
-                <p>Struktur vorbereitet auf Basis eures Miroboards.</p>
+            <div class="section-divider"></div>
+
+            <div id="pvErrorBox" class="alert-box"></div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3>PV-Eingaben</h3>
+
+                    <div class="field">
+                        <label>Anlagengröße (kWp)</label>
+                        <input id="pv_kwp" type="number" step="0.1" value="8">
+                    </div>
+
+                    <div class="field">
+                        <label>Spezifischer Ertrag (kWh/kWp·a)</label>
+                        <input id="pv_specific_yield" type="number" step="1" value="950">
+                    </div>
+
+                    <div class="field">
+                        <label>Eigenverbrauchsquote (0 bis 1)</label>
+                        <input id="pv_self_rate" type="number" step="0.01" value="0.30">
+                    </div>
+
+                    <div class="field">
+                        <label>Strompreis (€/kWh)</label>
+                        <input id="pv_electricity_price" type="number" step="0.01" value="0.35">
+                    </div>
+
+                    <div class="field">
+                        <label>Einspeisevergütung (€/kWh)</label>
+                        <input id="pv_feed_in_tariff" type="number" step="0.01" value="0.08">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="calculatePV()">PV auswerten</button>
+
+                    <div class="note">
+                        Ergebnis „PV‑Eigenverbrauch (kWh/a)" wird in der Energiebilanz als Abzug beim Strombezug verwendet.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>PV-Ergebnisse</h3>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Jahresertrag</div>
+                            <div class="value" id="pv_annual_yield">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">PV‑Eigenverbrauch</div>
+                            <div class="value" id="pv_self_kwh">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Einspeisung</div>
+                            <div class="value" id="pv_feed_in_kwh">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Ersparnis + Vergütung</div>
+                            <div class="value" id="pv_total_benefit">—</div>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Hinweis: Das ist ein MVP. Batteriespeicher, Degradation, Eigenverbrauchsmodell, Lastprofile usw. folgen später.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-         TAB 5: ENERGIEBILANZ (Zusammenfassung aller Ergebnisse)
-         ============================================================ -->
     <div id="bilanz" class="tab">
         <div class="panel">
             <h2 class="section-title">Energiebilanz</h2>
-            <!-- Erste Zusammenfassungs-Reihe: Gebäudehülle-Kennwerte -->
             <div class="big-summary">
-                <!-- Heizwärmebedarf netto aus Gebäudehülle -->
                 <div class="summary-box">
                     <div class="label">Heizwärmebedarf netto</div>
                     <div class="value" id="bilanz_heat">—</div>
                 </div>
-                <!-- Spezifischer Bedarf pro m² -->
                 <div class="summary-box">
                     <div class="label">Spezifischer Bedarf</div>
                     <div class="value" id="bilanz_specific">—</div>
                 </div>
-                <!-- Transmissionskoeffizient H in W/K -->
                 <div class="summary-box">
                     <div class="label">Transmissionskoeffizient H</div>
                     <div class="value" id="bilanz_h">—</div>
                 </div>
-                <!-- Ampel-Status der Gebäudehülle -->
                 <div class="summary-box">
                     <div class="label">Ampelstatus</div>
                     <div class="value" id="bilanz_rating">—</div>
                 </div>
             </div>
 
-            <!-- Zweite Zusammenfassungs-Reihe: Anlagentechnik-Kennwerte -->
             <div class="big-summary" style="margin-top:14px;">
-                <!-- Gesamtendenergie aus Anlagentechnik -->
                 <div class="summary-box">
                     <div class="label">Endenergie gesamt</div>
                     <div class="value" id="bilanz_system_end">—</div>
                 </div>
-                <!-- Primärenergie (mit Umwandlungsfaktoren) -->
                 <div class="summary-box">
                     <div class="label">Primärenergie</div>
                     <div class="value" id="bilanz_system_primary">—</div>
                 </div>
-                <!-- CO₂-Emissionen -->
                 <div class="summary-box">
                     <div class="label">CO₂-Emissionen</div>
                     <div class="value" id="bilanz_system_co2">—</div>
                 </div>
-                <!-- Ampel-Status des Systems -->
                 <div class="summary-box">
                     <div class="label">Systembewertung</div>
                     <div class="value" id="bilanz_system_rating">—</div>
                 </div>
             </div>
+
+            <div class="big-summary" style="margin-top:14px;">
+                <div class="summary-box">
+                    <div class="label">PV‑Eigenverbrauch</div>
+                    <div class="value" id="bilanz_pv_self">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Strom brutto (Hilfs+Haushalt)</div>
+                    <div class="value" id="bilanz_el_gross">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">Netto‑Strombezug</div>
+                    <div class="value" id="bilanz_el_net">—</div>
+                </div>
+                <div class="summary-box">
+                    <div class="label">CO₂ Strom (kg/a)</div>
+                    <div class="value" id="bilanz_el_co2">—</div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                <button class="btn btn-primary" onclick="calculateBalance()">Energiebilanz aktualisieren</button>
+            </div>
         </div>
     </div>
 
-</div>
 
-<!-- ============================================================
-     JAVASCRIPT - Funktionen für Interaktivität
-     ============================================================ -->
+
+
+
+
+
+
+<!-- Bautechnik modals removed per user request -->
+
 <script>
-/* ============================================================
-   EINGEBETTETE CSV-DATEN
-   Diese Daten sind direkt im HTML eingebettet - keine externe Datei nötig!
-   Spalten: Name (F), Konformität (G), Registrierungsnummer (P)
-   ============================================================ */
-const CSV_DATA = `Name;Konformität;Registrierungsnummer
-Müller Bürogebäude;Ja;BW_12345
-Schmidt Wohnhaus;Nein;BW_12346
-Weber Industriehalle;Ja;BW_12347
-Bauer Lagerkomplex;Ja;BW_12348
-Fischer Schulgebäude;Nein;BW_12349
-Müller Bürogebäude;Ja;BW_12345
-Schneider Verwaltungsgebäude;Ja;BW_12350`;
+let bautechnikState = {
+    currentSection: 'materialien',
+    materialien: [],
+    konstruktionen: [],
+    fenster: [],
+    tueren: [],
+    sonnenschutz: [],
+    gebaeude: [],
+    bauteile: [],
+    currentKonstruktionSchichten: [],
+};
 
-let allBuildings = [];
-let dedupedBuildings = [];
-
-/* ============================================================
-   TAB-WECHSEL FUNKTION
-   Wechselt zwischen verschiedenen Tabs und setzt active-Klasse
-   ============================================================ */
-function showTab(id, btn) {
-    /* Verstecke alle Tabs */
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    /* Zeige den geklickten Tab */
-    document.getElementById(id).classList.add('active');
-
-    /* Entferne active von allen Tab-Buttons */
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-    /* Setze active auf den geklickten Button */
-    btn.classList.add('active');
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.getElementById(modalId).querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+    bautechnikState.currentKonstruktionSchichten = [];
 }
 
-/* ============================================================
-   CSV BEIM PAGE LOAD LADEN
-   Wird automatisch ausgeführt wenn Seite geladen
-   ============================================================ */
-window.addEventListener('load', function() {
-    loadAndParseCSV();
-    applySystemDefaults();
-});
-
-/* ============================================================
-   CSV PARSEN UND GEBÄUDE LADEN
-   ============================================================ */
-function loadAndParseCSV() {
-    try {
-        /* Trenne CSV in Zeilen */
-        const lines = CSV_DATA.split('\n');
-        
-        if (lines.length < 2) {
-            document.getElementById('loadStatus').innerText = '❌ CSV-Daten fehlen';
-            return;
-        }
-
-        /* Kopfzeile parsen - finde Spalten-Indizes */
-        const headers = lines[0].split(';').map(h => h.trim());
-        const nameIndex = headers.indexOf('Name');
-        const conformityIndex = headers.indexOf('Konformität');
-        const regNumberIndex = headers.indexOf('Registrierungsnummer');
-
-        allBuildings = [];
-
-        /* Gehe durch jede Zeile */
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue; /* Leere Zeilen überspringen */
-
-            /* Trenne Werte durch Semicolon */
-            const values = lines[i].split(';').map(v => v.trim());
-            
-            /* Extrahiere die 3 wichtigen Spalten */
-            const building = {
-                name: values[nameIndex] || '',
-                conformity: values[conformityIndex] || '—',
-                registrationNumber: values[regNumberIndex] || '',
-                rowNumber: i /* Für Deduplizierung */
-            };
-
-            /* Nur hinzufügen wenn Name und Registrierungsnummer vorhanden */
-            if (building.name && building.registrationNumber) {
-                allBuildings.push(building);
-            }
-        }
-
-        /* Deduplizierung: Nur neueste Registrierungsnummer behalten */
-        dedupedBuildings = deduplicateByRegistrationNumber(allBuildings);
-
-        /* Fülle Dropdown mit Gebäuden */
-        populateBuildingSelect(dedupedBuildings);
-
-        /* Zeige erfolgreiches Laden */
-        document.getElementById('loadStatus').innerText = 
-            `✅ ${dedupedBuildings.length} Gebäude geladen (${allBuildings.length - dedupedBuildings.length} Duplikate entfernt)`;
-        document.getElementById('loadStatus').style.color = '#3f6f46';
-
-    } catch (error) {
-        /* Fehlerbehandlung */
-        document.getElementById('loadStatus').innerText = 
-            `❌ Fehler beim Laden: ${error.message}`;
-        document.getElementById('loadStatus').style.color = '#8d3d31';
-    }
-}
-
-/* ============================================================
-   DEDUPLIZIERUNG NACH REGISTRIERUNGSNUMMER
-   Behält nur die neueste Zeile pro Registrierungsnummer
-   ============================================================ */
-function deduplicateByRegistrationNumber(data) {
-    const uniqueMap = {};
-
-    /* Gehe durch alle Daten */
-    for (const entry of data) {
-        const regNum = entry.registrationNumber;
-        
-        /* Wenn noch nicht gesehen ODER aktuelle Zeile ist neuerer = überschreibe */
-        if (!uniqueMap[regNum] || entry.rowNumber > uniqueMap[regNum].rowNumber) {
-            uniqueMap[regNum] = entry;
-        }
-    }
-
-    /* Konvertiere zu Array und sortiere nach Registrierungsnummer */
-    return Object.values(uniqueMap).sort((a, b) => 
-        a.registrationNumber.localeCompare(b.registrationNumber)
-    );
-}
-
-/* ============================================================
-   DROPDOWN MIT GEBÄUDEN FÜLLEN
-   Zeigt "Name (Registrierungsnummer)" im Dropdown
-   ============================================================ */
-function populateBuildingSelect(buildings) {
-    const select = document.getElementById('buildingSelect');
+function switchBautechnikSection(section) {
+    // Hide all sections
+    document.querySelectorAll('.bautechnik-section').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.bautechnik-nav-item').forEach(el => el.classList.remove('active'));
     
-    buildings.forEach((building, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        /* Zeige Name + ID im Dropdown */
-        option.text = `${building.name} (${building.registrationNumber})`;
-        select.appendChild(option);
+    // Show selected
+    document.getElementById(section + '-section').style.display = 'block';
+    event.target.classList.add('active');
+    
+    bautechnikState.currentSection = section;
+    loadBautechnikData(section);
+}
+
+function loadBautechnikData(section) {
+    const listId = section + '-list';
+    const container = document.getElementById(listId);
+    container.innerHTML = '<div class="bautechnik-loading"><div class="bautechnik-spinner"></div></div>';
+    
+    let apiUrl = '';
+    switch(section) {
+        case 'materialien': apiUrl = '/api/material/'; break;
+        case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
+        case 'fenster': apiUrl = '/api/fenster-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
+        case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
+        case 'bauteile': apiUrl = '/api/bauteil/'; break;
+    }
+    
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+            bautechnikState[section] = data.results || data;
+            renderBautechnikTable(section, bautechnikState[section]);
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="bautechnik-error">Fehler beim Laden der Daten</div>';
+            console.error(err);
+        });
+}
+
+function renderBautechnikTable(section, items) {
+    const container = document.getElementById(section + '-list');
+    
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
+        return;
+    }
+    
+    let html = '<table class="bautechnik-table"><thead><tr>';
+    
+    if (section === 'materialien') {
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(m => {
+            html += `<tr>
+                <td>${m.name}</td>
+                <td>${m.rohdichte}</td>
+                <td>${m.lambda_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'fenster') {
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(f => {
+            html += `<tr>
+                <td>${f.name}</td>
+                <td>${f.u_w}</td>
+                <td>${f.g_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'tueren') {
+        html += '<th>Name</th><th>U-Wert</th><th>Luftdichtheit</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(t => {
+            html += `<tr>
+                <td>${t.name}</td>
+                <td>${t.u_value}</td>
+                <td>${t.luftdichtheit}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'sonnenschutz') {
+        html += '<th>Name</th><th>Position</th><th>Typ</th><th>Reduktion</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(s => {
+            html += `<tr>
+                <td>${s.name}</td>
+                <td>${s.position}</td>
+                <td>${s.typ}</td>
+                <td>${(s.reduktionsfaktor*100).toFixed(0)}%</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'gebaeude') {
+        html += '<th>Name</th><th>Standort</th><th>BGF</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(g => {
+            html += `<tr>
+                <td>${g.name}</td>
+                <td>${g.standort}</td>
+                <td>${g.bgf} m²</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'konstruktionen') {
+        html += '<th>Name</th><th>Typ</th><th>U-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(k => {
+            html += `<tr>
+                <td>${k.name}</td>
+                <td>${k.typ}</td>
+                <td>${(k.u_value || 0).toFixed(3)}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'bauteile') {
+        html += '<th>Name</th><th>Gebäude</th><th>Fläche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(b => {
+            const transLoss = (b.transmissionsverlust || 0).toFixed(1);
+            html += `<tr>
+                <td>${b.name}</td>
+                <td>${b.gebaeude_name || '-'}</td>
+                <td>${b.flaeche} m²</td>
+                <td>${transLoss} W/K</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">Löschen</button></td>
+            </tr>`;
+        });
+    }
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// ===== MATERIAL =====
+function openMaterialForm() {
+    document.getElementById('materialModal').classList.add('active');
+}
+
+function saveMaterial() {
+    const data = {
+        name: document.getElementById('materialName').value,
+        rohdichte: parseFloat(document.getElementById('materialRohdichte').value),
+        lambda_value: parseFloat(document.getElementById('materialLambda').value),
+        c_specific: parseFloat(document.getElementById('materialC').value) || 1.0,
+        mu_value: 1.0,
+    };
+    
+    if (!data.name || !data.rohdichte || !data.lambda_value) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+    }
+    
+    fetch('/api/material/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('materialModal');
+        loadBautechnikData('materialien');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteMaterial(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/material/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('materialien'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== FENSTER =====
+function openFensterForm() {
+    loadSelectOptions();
+    document.getElementById('fensterModal').classList.add('active');
+}
+
+function saveFenster() {
+    const data = {
+        name: document.getElementById('fensterName').value,
+        u_w: parseFloat(document.getElementById('fensterUw').value),
+        g_value: parseFloat(document.getElementById('fensterG').value),
+        psi_edge: parseFloat(document.getElementById('fensterPsi').value) || 0.06,
+    };
+    
+    if (!data.name || !data.u_w) {
+        alert('Bitte mindestens Name und Uw-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/fenster-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('fensterModal');
+        loadBautechnikData('fenster');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteFenster(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('fenster'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== TÜREN =====
+function openTürForm() {
+    document.getElementById('turenModal').classList.add('active');
+}
+
+function saveTuren() {
+    const data = {
+        name: document.getElementById('turenName').value,
+        u_value: parseFloat(document.getElementById('turenU').value),
+        luftdichtheit: parseFloat(document.getElementById('turenLuft').value) || 0,
+    };
+    
+    if (!data.name || !data.u_value) {
+        alert('Bitte mindestens Name und U-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/tür-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('turenModal');
+        loadBautechnikData('tueren');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteTuren(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/tür-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('tueren'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== SONNENSCHUTZ =====
+function openSonnenschutzForm() {
+    document.getElementById('sonnenschutzModal').classList.add('active');
+}
+
+function saveSonnenschutz() {
+    const data = {
+        name: document.getElementById('sonnenschutzName').value,
+        position: document.getElementById('sonnenschutzPosition').value,
+        typ: document.getElementById('sonnenschutzTyp').value,
+        reduktionsfaktor: parseFloat(document.getElementById('sonnenschutzReduktion').value) || 0.5,
+    };
+    
+    if (!data.name) {
+        alert('Bitte Name ausfüllen');
+        return;
+    }
+    
+    fetch('/api/sonnenschutz-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('sonnenschutzModal');
+        loadBautechnikData('sonnenschutz');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteSonnenschutz(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/sonnenschutz-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('sonnenschutz'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== GEBÄUDE =====
+function openGebäudeForm() {
+    document.getElementById('gebaudeModal').classList.add('active');
+}
+
+function saveGebaude() {
+    const data = {
+        name: document.getElementById('gebaudeName').value,
+        standort: document.getElementById('gebaudeStandort').value,
+        bgf: parseFloat(document.getElementById('gebaudeBGF').value),
+        gradstunden: parseFloat(document.getElementById('gebaudeGradstunden').value) || 78000,
+    };
+    
+    if (!data.name || !data.bgf) {
+        alert('Bitte Name und BGF ausfüllen');
+        return;
+    }
+    
+    fetch('/api/gebäude/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('gebaudeModal');
+        loadBautechnikData('gebaeude');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteGebaude(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/gebäude/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('gebaeude'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== BAUTEILE =====
+function openBauteilForm() {
+    loadSelectOptions();
+    document.getElementById('bauteilModal').classList.add('active');
+}
+
+function loadSelectOptions() {
+    // Load Gebäude options
+    fetch('/api/gebäude/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilGebaude');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(g => {
+                select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            });
+        });
+    
+    // Load Konstruktion options
+    fetch('/api/konstruktion/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilKonstruktion');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(k => {
+                select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
+            });
+        });
+    
+    // Load Fenster options
+    fetch('/api/fenster-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilFenster');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(f => {
+                select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+            });
+        });
+    
+    // Load Sonnenschutz options
+    fetch('/api/sonnenschutz-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilSonnenschutz');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        });
+}
+
+function saveBauteil() {
+    const gebaudeId = parseInt(document.getElementById('bauteilGebaude').value);
+    const konstruktionId = parseInt(document.getElementById('bauteilKonstruktion').value) || null;
+    const fensterTypeId = parseInt(document.getElementById('bauteilFenster').value) || null;
+    const sonnenschutzId = parseInt(document.getElementById('bauteilSonnenschutz').value) || null;
+    
+    const data = {
+        name: document.getElementById('bauteilName').value,
+        gebaeude: gebaudeId,
+        orientierung: document.getElementById('bauteilOrientierung').value,
+        flaeche: parseFloat(document.getElementById('bauteilFlaeche').value),
+        konstruktion: konstruktionId,
+        fenster_typ: fensterTypeId,
+        fenster_flaeche: parseFloat(document.getElementById('bauteilFensterFlaeche').value) || 0,
+        sonnenschutz: sonnenschutzId,
+    };
+    
+    if (!data.name || !data.gebaeude || !data.flaeche) {
+        alert('Bitte Name, Gebäude und Fläche ausfüllen');
+        return;
+    }
+    
+    fetch('/api/bauteil/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('bauteilModal');
+        loadBautechnikData('bauteile');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteBauteil(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/bauteil/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('bauteile'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== KONSTRUKTION =====
+function openKonstruktionForm() {
+    bautechnikState.currentKonstruktionSchichten = [];
+    loadKonstruktionSelectOptions();
+    document.getElementById('konstruktionModal').classList.add('active');
+}
+
+function loadKonstruktionSelectOptions() {
+    fetch('/api/material/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('konstruktionMaterialSelect');
+            select.innerHTML = '<option value="">-- Material wählen --</option>';
+            (d.results || d).forEach(m => {
+                select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        });
+}
+
+function addSchichtToKonstruktion() {
+    const materialId = parseInt(document.getElementById('konstruktionMaterialSelect').value);
+    const dicke = parseInt(document.getElementById('konstruktionDicke').value);
+    const materialName = document.querySelector('#konstruktionMaterialSelect option:checked').text;
+    
+    if (!materialId || !dicke) {
+        alert('Material und Dicke auswählen');
+        return;
+    }
+    
+    bautechnikState.currentKonstruktionSchichten.push({
+        material_id: materialId,
+        dicke_mm: dicke,
+        material_name: materialName
+    });
+    
+    renderKonstruktionSchichten();
+    document.getElementById('konstruktionMaterialSelect').value = '';
+    document.getElementById('konstruktionDicke').value = '';
+}
+
+function renderKonstruktionSchichten() {
+    const container = document.getElementById('konstruktionSchichten');
+    container.innerHTML = '';
+    
+    bautechnikState.currentKonstruktionSchichten.forEach((s, idx) => {
+        container.innerHTML += `
+            <div class="schicht-item">
+                <span>${idx+1}. ${s.material_name} (${s.dicke_mm}mm)</span>
+                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">✕</button>
+            </div>
+        `;
     });
 }
 
-/* ============================================================
-   GEBÄUDE AUSWÄHLEN
-   Wird aufgerufen wenn Benutzer ein Gebäude aus Dropdown wählt
-   ============================================================ */
-function selectBuilding() {
-    const select = document.getElementById('buildingSelect');
-    const selectedIndex = select.value;
+function removeSchichtFromKonstruktion(idx) {
+    bautechnikState.currentKonstruktionSchichten.splice(idx, 1);
+    renderKonstruktionSchichten();
+}
 
-    /* Wenn nichts ausgewählt, verstecke Info */
-    if (selectedIndex === '') {
-        document.getElementById('buildingInfo').style.display = 'none';
+function saveKonstruktion() {
+    const name = document.getElementById('konstruktionName').value;
+    const typ = document.getElementById('konstruktionTyp').value;
+    const beschreibung = document.getElementById('konstruktionBeschreibung').value;
+    const r_si = parseFloat(document.getElementById('konstruktionRsi').value) || 0.13;
+    const r_se = parseFloat(document.getElementById('konstruktionRse').value) || 0.04;
+    
+    if (!name || !typ) {
+        alert('Bitte Name und Typ ausfüllen');
         return;
     }
-
-    /* Hole ausgewähltes Gebäude */
-    const building = dedupedBuildings[selectedIndex];
-
-    /* Zeige Gebäude-Info in der Box */
-    document.getElementById('buildingName').innerText = building.name;
-    document.getElementById('buildingConformity').innerText = building.conformity;
-    document.getElementById('buildingRegNumber').innerText = building.registrationNumber;
-    document.getElementById('buildingInfo').style.display = 'block';
-
-    /* Lade Gebäude in Formulare */
-    loadBuildingToForm(building);
+    
+    const data = {
+        name: name,
+        typ: typ,
+        description: beschreibung,
+        r_si: r_si,
+        r_se: r_se,
+        schichten: bautechnikState.currentKonstruktionSchichten.map(s => s.material_id)
+    };
+    
+    fetch('/api/konstruktion/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('API Error');
+        return res.json();
+    })
+    .then(result => {
+        // Add schichten via the through model
+        addSchichtenToKonstruktion(result.id);
+    })
+    .catch(err => alert('Fehler: ' + err));
 }
 
-/* ============================================================
-   GEBÄUDE IN FORMULAR LADEN
-   ============================================================ */
-function loadBuildingToForm(building) {
-    /* Setze Projektname */
-    const projectNameInput = document.getElementById('projectName');
-    if (projectNameInput) {
-        projectNameInput.value = building.name;
+function addSchichtenToKonstruktion(konstruktionId) {
+    const schichten = bautechnikState.currentKonstruktionSchichten;
+    let completed = 0;
+    
+    schichten.forEach((s, order) => {
+        const data = {
+            konstruktion: konstruktionId,
+            schicht: s.material_id,
+            order: order
+        };
+        
+        fetch('/api/konstruktion-schicht/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            completed++;
+            if (completed === schichten.length) {
+                closeModal('konstruktionModal');
+                loadBautechnikData('konstruktionen');
+            }
+        });
+    });
+}
+
+function deleteKonstruktion(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/konstruktion/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('konstruktionen'))
+            .catch(err => console.error(err));
     }
-
-    console.log(`✅ Gebäude geladen: ${building.name}`);
 }
 
-/* ============================================================
-   FEHLER ANZEIGEN (Gebäudehülle)
-   Zeigt Fehler-Box mit Liste von Validierungsfehlern an
-   ============================================================ */
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('bautechnik')) {
+        loadBautechnikData('materialien');
+    }
+});
+</script>
+
+
+</div>
+
+<script>
+function showTab(id, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// Helper: open Gebäudehülle and show Bautechnik subsection
+// Bautechnik helper removed per user request
+
 function showErrors(errors) {
     const errorBox = document.getElementById('errorBox');
-    /* Setze error-Klasse zum Anzeigen der Box */
     errorBox.className = 'alert-box error';
-    /* Konvertiere Array von Fehlern zu HTML-Liste */
     const listItems = errors.map(error => `<li>${error}</li>`).join('');
-    /* Fülle die Fehler-Box mit HTML */
     errorBox.innerHTML = `
         <span class="alert-title">Bitte Eingaben prüfen</span>
         <ul class="alert-list">${listItems}</ul>
     `;
 }
 
-/* ============================================================
-   FEHLER VERSTECKEN (Gebäudehülle)
-   Versteckt die Fehler-Box
-   ============================================================ */
 function hideErrors() {
     const errorBox = document.getElementById('errorBox');
-    /* Entferne error-Klasse zum Verstecken */
     errorBox.className = 'alert-box';
     errorBox.innerHTML = '';
 }
 
-/* ============================================================
-   SYSTEM-FEHLER ANZEIGEN
-   Zeigt Fehler-Box für Anlagentechnik-Validierung
-   ============================================================ */
 function showSystemErrors(errors) {
     const errorBox = document.getElementById('systemErrorBox');
     errorBox.className = 'alert-box error';
@@ -1627,33 +2983,19 @@ function showSystemErrors(errors) {
     `;
 }
 
-/* ============================================================
-   SYSTEM-FEHLER VERSTECKEN
-   Versteckt die System-Fehler-Box
-   ============================================================ */
 function hideSystemErrors() {
     const errorBox = document.getElementById('systemErrorBox');
     errorBox.className = 'alert-box';
     errorBox.innerHTML = '';
 }
 
-/* ============================================================
-   RATING AKTUALISIEREN (Gebäudehülle)
-   Setzt Farbe, Titel und Text der Ampelbewertung
-   ============================================================ */
 function updateRating(color, label, message) {
     const ratingBox = document.getElementById('ratingBox');
-    /* Setze neue Farbe (entfernt alte und setzt neue Klasse) */
     ratingBox.className = 'rating-box ' + color;
-    /* Aktualisiere Titel und Text */
     document.getElementById('ratingTitle').innerText = label;
     document.getElementById('ratingText').innerText = message;
 }
 
-/* ============================================================
-   SYSTEM-RATING AKTUALISIEREN
-   Setzt Farbe, Titel und Text der Anlagentechnik-Bewertung
-   ============================================================ */
 function updateSystemRating(color, label, message) {
     const ratingBox = document.getElementById('systemRatingBox');
     ratingBox.className = 'rating-box ' + color;
@@ -1661,282 +3003,759 @@ function updateSystemRating(color, label, message) {
     document.getElementById('systemRatingText').innerText = message;
 }
 
-function applySelectedMaterial() {
-    const option = document.getElementById('material_select').selectedOptions[0];
-    if (!option || !option.value) {
-        document.getElementById('material_name').value = '';
-        document.getElementById('material_producer').value = '';
-        document.getElementById('material_category').value = '';
-        document.getElementById('material_u').value = '';
-        document.getElementById('material_co2').value = '';
-        document.getElementById('material_notes').value = '';
-        document.getElementById('materialMessage').innerText = 'Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.';
-        return;
-    }
-
-    document.getElementById('material_name').value = option.dataset.name || '';
-    document.getElementById('material_producer').value = option.dataset.producer || '';
-    document.getElementById('material_category').value = option.dataset.category || '';
-    document.getElementById('material_u').value = option.dataset.u || '';
-    document.getElementById('material_co2').value = option.dataset.co2 || '';
-    document.getElementById('material_notes').value = option.dataset.notes || '';
-    document.getElementById('materialMessage').innerText = 'Materialdaten geladen. Klicke auf "U-Wert übernehmen", um die Komponente zu bestücken.';
-}
-
-function applyMaterialToComponent() {
-    const uValue = document.getElementById('material_u').value;
-    const target = document.getElementById('material_component').value;
-    if (!uValue) {
-        document.getElementById('materialMessage').innerText = 'Bitte erst einen U-Wert im Materialformular eingeben oder ein Material auswählen.';
-        return;
-    }
-    document.getElementById(target).value = uValue;
-    document.getElementById('materialMessage').innerText = `U-Wert ${uValue} W/m²K auf ${document.getElementById('material_component').selectedOptions[0].text} angewendet.`;
-}
-
-function saveMaterial() {
-    const payload = {
-        name: document.getElementById('material_name').value,
-        producer: document.getElementById('material_producer').value,
-        category: document.getElementById('material_category').value,
-        u_value: document.getElementById('material_u').value,
-        embodied_co2: document.getElementById('material_co2').value,
-        notes: document.getElementById('material_notes').value,
-    };
-
-    fetch('/materials/create/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(async res => {
-        const data = await res.json();
-        if (!res.ok) throw data;
-        return data;
-    })
-    .then(data => {
-        const select = document.getElementById('material_select');
-        const option = document.createElement('option');
-        option.value = data.material.id;
-        option.dataset.u = data.material.u_value || '';
-        option.dataset.name = data.material.name || '';
-        option.dataset.producer = data.material.producer || '';
-        option.dataset.category = data.material.category || '';
-        option.dataset.co2 = data.material.embodied_co2 || '';
-        option.dataset.notes = data.material.notes || '';
-        option.text = data.material.name + (data.material.producer ? ' – ' + data.material.producer : '');
-        select.appendChild(option);
-        select.value = data.material.id;
-        applySelectedMaterial();
-        document.getElementById('materialMessage').innerText = 'Material gespeichert und ausgewählt.';
-        loadMaterials();
-    })
-    .catch(err => {
-        const message = (err.errors && err.errors.join(' ')) || 'Material konnte nicht gespeichert werden.';
-        document.getElementById('materialMessage').innerText = message;
-    });
-}
-
-function importMaterialCsv() {
-    const filename = document.getElementById('material_csv_file').value;
-    if (!filename) {
-        document.getElementById('materialMessage').innerText = 'Bitte eine CSV-Datei aus dashboard/data auswählen.';
-        return;
-    }
-
-    fetch('/materials/import/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename })
-    })
-    .then(async res => {
-        const data = await res.json();
-        if (!res.ok) throw data;
-        return data;
-    })
-    .then(data => {
-        document.getElementById('materialMessage').innerText = `Import abgeschlossen: ${data.result.imported} neue Materialien, ${data.result.updated} aktualisiert, ${data.result.skipped} übersprungen.`;
-        loadMaterials();
-    })
-    .catch(err => {
-        const message = (err.errors && err.errors.join(' ')) || 'CSV-Import fehlgeschlagen.';
-        document.getElementById('materialMessage').innerText = message;
-    });
-}
-
-function escapeHtml(value) {
-    return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-let selectedMaterialRow = null;
-
-function updateSelectedMaterialRow(row) {
-    if (selectedMaterialRow) {
-        selectedMaterialRow.classList.remove('selected');
-    }
-    selectedMaterialRow = row;
-    if (selectedMaterialRow) {
-        selectedMaterialRow.classList.add('selected');
+// Expertenmodus umschalten und Projekt speichern (Frontend-Integration)
+window.isExpertMode = false;
+function toggleExpertMode() {
+    window.isExpertMode = !window.isExpertMode;
+    document.body.classList.toggle('expert', window.isExpertMode);
+    const btn = document.getElementById('expertBtn');
+    if (window.isExpertMode) {
+        btn.innerText = 'Expertenmodus (AN)';
+        btn.classList.add('active');
+    } else {
+        btn.innerText = 'Expertenmodus';
+        btn.classList.remove('active');
     }
 }
 
-function selectMaterialFromRow(row) {
-    const material = row.dataset;
-    const select = document.getElementById('material_select');
-    let option = select.querySelector(`option[value="${material.id}"]`);
+async function saveProject() {
+    const name = document.getElementById('project_name').value || 'Projekt';
+    const standort = document.getElementById('project_location').value || '';
+    const bgf = parseFloat(document.getElementById('bgf').value) || 0;
+    const gradstunden = parseFloat(document.getElementById('gradstunden').value) || 78000;
 
-    if (!option) {
-        option = document.createElement('option');
-        option.value = material.id;
-        option.dataset.u = material.uValue || '';
-        option.dataset.name = material.name || '';
-        option.dataset.producer = material.producer || '';
-        option.dataset.category = material.category || '';
-        option.dataset.co2 = material.embodiedCo2 || '';
-        option.dataset.notes = material.notes || '';
-        option.text = `${material.name || ''}${material.producer ? ' – ' + material.producer : ''}`;
-        select.appendChild(option);
-    }
-
-    select.value = material.id;
-    applySelectedMaterial();
-    updateSelectedMaterialRow(row);
-
-    const uValue = document.getElementById('material_u').value;
-    const component = document.getElementById('material_component').value;
-    if (uValue && component) {
-        applyMaterialToComponent();
-    } else if (uValue) {
-        document.getElementById('materialMessage').innerText = `Material ${material.name} ausgewählt. Klicke auf "U-Wert übernehmen" oder wähle eine Fläche, um den U-Wert zu übertragen.`;
-    }
-}
-
-function buildMaterialsTable(items) {
-    if (!items.length) {
-        return '<div class="materials-empty">Keine importierten Materialien vorhanden.</div>';
-    }
-
-    const rows = items.map(mat => {
-        const name = escapeHtml(mat.name);
-        const producer = escapeHtml(mat.producer);
-        const category = escapeHtml(mat.category);
-        const uValue = mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : '-';
-        const co2 = mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : '-';
-        const notes = escapeHtml(mat.notes);
-
-        return `
-            <tr class="clickable" data-id="${mat.id}"
-                data-name="${name}"
-                data-producer="${producer}"
-                data-category="${category}"
-                data-u-value="${mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : ''}"
-                data-embodied-co2="${mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : ''}"
-                data-notes="${notes}"
-                onclick="selectMaterialFromRow(this)">
-                <td>${name}</td>
-                <td>${producer || '-'}</td>
-                <td>${category || '-'}</td>
-                <td>${uValue}</td>
-                <td>${co2}</td>
-                <td>${notes || '-'}</td>
-            </tr>
-        `;
-    }).join('');
-
-    return `
-        <table class="materials-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Produzent</th>
-                    <th>Kategorie</th>
-                    <th>U-Wert</th>
-                    <th>CO₂</th>
-                    <th>Bemerkungen</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `;
-}
-
-function loadMaterials() {
-    fetch('/materials/list/')
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok) throw data;
-            return data;
-        })
-        .then(data => {
-            document.getElementById('materialsListContainer').innerHTML = buildMaterialsTable(data.materials);
-        })
-        .catch(() => {
-            document.getElementById('materialsListContainer').innerHTML = '<div class="materials-empty">Materialliste konnte nicht geladen werden.</div>';
+    // Create Gebäude
+    try {
+        const res = await fetch('/api/gebäude/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, standort, bgf, gradstunden })
         });
+        if (!res.ok) throw new Error('Fehler beim Anlegen des Gebäudes');
+        const geb = await res.json();
+
+        // Prepare bauteile (Wände + Dach + Boden)
+        const parts = [
+            { name: 'Außenwand Nord', orientierung: 'nord', flaeche: parseFloat(document.getElementById('north_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_north_area').value) || 0 },
+            { name: 'Außenwand Süd', orientierung: 'süd', flaeche: parseFloat(document.getElementById('south_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_south_area').value) || 0 },
+            { name: 'Außenwand Ost', orientierung: 'ost', flaeche: parseFloat(document.getElementById('east_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_east_area').value) || 0 },
+            { name: 'Außenwand West', orientierung: 'west', flaeche: parseFloat(document.getElementById('west_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_west_area').value) || 0 },
+            { name: 'Dach', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('roof_area').value) || 0, fenster_fläche: 0 },
+            { name: 'Boden', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('floor_area').value) || 0, fenster_fläche: 0 }
+        ];
+
+        // Post bauteile sequentially
+        for (const p of parts) {
+            if (!p.flaeche || p.flaeche <= 0) continue;
+            const body = {
+                name: p.name,
+                gebaeude: geb.id,
+                orientierung: p.orientierung,
+                flaeche: p.flaeche,
+                konstruktion: null,
+                fenster_typ: null,
+                fenster_fläche: p.fenster_fläche || 0,
+                sonnenschutz: null
+            };
+            await fetch('/api/bauteil/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        }
+
+        // Visual feedback
+        const saveBtn = document.getElementById('saveProjectBtn');
+        saveBtn.innerText = 'Projekt gespeichert ✓';
+        setTimeout(() => saveBtn.innerText = 'Projekt speichern', 3000);
+    } catch (err) {
+        alert('Fehler beim Speichern des Projekts: ' + (err.message || err));
+        console.error(err);
+    }
 }
 
-/* ============================================================
-   SYSTEM-DEFAULTS ANPASSEN
-   Passt Effizienzwerte basierend auf Heizystem an
-   ============================================================ */
 function applySystemDefaults() {
     const system = document.getElementById('heating_system').value;
-    /* Hole Eingabefelder */
     const efficiency = document.getElementById('efficiency');
     const cop = document.getElementById('cop');
 
-    /* Setze Standardwerte basierend auf System */
     if (system === 'gas') {
-        efficiency.value = 0.90;  /* Gas-Brennwert: 90% Effizienz */
+        efficiency.value = 0.90;
         cop.value = 3.5;
     } else if (system === 'heatpump') {
-        efficiency.value = 1.00;  /* Wärmepumpe: 100% Effizienz */
-        cop.value = 3.5;          /* COP = 3.5 */
+        efficiency.value = 1.00;
+        cop.value = 3.5;
     } else if (system === 'district') {
-        efficiency.value = 1.00;  /* Fernwärme: 100% Effizienz */
+        efficiency.value = 1.00;
         cop.value = 3.5;
     } else if (system === 'pellet') {
-        efficiency.value = 0.85;  /* Pellet: 85% Effizienz */
+        efficiency.value = 0.85;
         cop.value = 3.5;
     }
 }
 
-/* ============================================================
-   GEBÄUDEHÜLLE BERECHNEN
-   Sendet Daten an Backend, berechnet Wärmeverluste
-   und aktualisiert alle Ergebnisse
-   ============================================================ */
-function calculateEnvelope() {
-    /* Verstecke alte Fehler */
+function updateGeometryStats() {
+    const length = parseFloat(document.getElementById('building_length').value) || 0;
+    const width = parseFloat(document.getElementById('building_width').value) || 0;
+    const floors = parseFloat(document.getElementById('building_floors').value) || 0;
+    const floorHeight = parseFloat(document.getElementById('building_floor_height').value) || 0;
+
+    const totalHeight = floors * floorHeight;
+    const bgf = length * width * floors;
+    const volume = bgf * floorHeight;
+    const envelopeArea = (2 * (length + width) * totalHeight) + (2 * length * width);
+
+    document.getElementById('geometry_total_height').innerText = `${totalHeight.toFixed(1)} m`;
+    document.getElementById('geometry_volume').innerText = `${volume.toFixed(0)} m³`;
+    document.getElementById('geometry_bgf').innerText = `${bgf.toFixed(0)} m²`;
+    document.getElementById('geometry_envelope_area').innerText = `${envelopeArea.toFixed(0)} m²`;
+    document.getElementById('bgf').value = bgf.toFixed(0);
+
+    // Automatische Berechnung der Wand-Flächen nach Orientierung
+    const northArea = length * totalHeight;  // Länge × Höhe
+    const southArea = length * totalHeight;  // Länge × Höhe
+    const eastArea = width * totalHeight;    // Breite × Höhe
+    const westArea = width * totalHeight;    // Breite × Höhe
+
+    document.getElementById('north_area_display').innerText = `${northArea.toFixed(1)} m²`;
+    document.getElementById('south_area_display').innerText = `${southArea.toFixed(1)} m²`;
+    document.getElementById('east_area_display').innerText = `${eastArea.toFixed(1)} m²`;
+    document.getElementById('west_area_display').innerText = `${westArea.toFixed(1)} m²`;
+
+    // Automatische Berechnung der Dach- und Bodenflächen
+    const roofArea = bgf;   // Grundfläche = Dachfläche
+    const floorArea = bgf;  // Grundfläche = Bodenfläche
+
+    document.getElementById('roof_area_display').innerText = `${roofArea.toFixed(1)} m²`;
+    document.getElementById('floor_area_display').innerText = `${floorArea.toFixed(1)} m²`;
+
+    // Speichere die Werte global für calculateEnvelope
+    window.wallAreas = {
+        north: northArea,
+        south: southArea,
+        east: eastArea,
+        west: westArea,
+        roof: roofArea,
+        floor: floorArea
+    };
+}
+
+// ===== ÖKOBAUDAT MATERIAL-INTEGRATION =====
+
+// Global storage für Material- und Putz-Daten
+window.materialPresets = {};  // Map von Material-ID zu vollständigen Daten
+window.wallMaterialData = {
+    north: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null },
+    south: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null },
+    east: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null },
+    west: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null }
+};
+window.roofMaterialData = { type: null, materialId: null, material: null, manualU: null, calculatedU: null };
+window.floorMaterialData = { boundary: null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: null };
+
+// Populate Material-Dropdowns von ÖKOBAUDAT API - NUR BELIEBTE MATERIALIEN
+async function populateWallMaterials() {
+    try {
+        // Lade populäre Wandmaterialien
+        const wallResponse = await fetch('/api/ekobaudat-material/popular_walls/');
+        if (!wallResponse.ok) throw new Error('Wall materials API Error');
+        const wallData = await wallResponse.json();
+        
+        // Lade die echten Materialien-Details für die IDs
+        const popularmaterialIds = wallData.map(m => m.id);
+        
+        // Speichere Materials als Lookup
+        window.materialPresets = {};
+        for (const preset of wallData) {
+            const matResponse = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+            if (matResponse.ok) {
+                const matData = await matResponse.json();
+                window.materialPresets[preset.id] = {
+                    ...preset,
+                    ...matData  // Merge mit echten ÖKOBAUDAT-Daten
+                };
+            }
+        }
+
+        // Fülle alle Dropdowns mit einfachen Namen
+        const orientations = ['north', 'south', 'east', 'west'];
+        orientations.forEach(orientation => {
+            const select = document.getElementById(`${orientation}_material`);
+            if (select) {
+                select.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
+                wallData.forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.id;
+                    option.textContent = preset.simple_name;  // Einfacher Name!
+                    option.dataset.presetId = preset.id;
+                    select.appendChild(option);
+                });
+            }
+        });
+
+        // Populate Putz/Coating Dropdowns
+        populatePlasterMaterials();
+    } catch (err) {
+        console.error('Fehler beim Laden der Materialien:', err);
+    }
+}
+
+async function populatePlasterMaterials() {
+    try {
+        const response = await fetch('/api/ekobaudat-material/popular_plaster/');
+        if (!response.ok) throw new Error('Plaster materials API Error');
+        const plasterData = await response.json();
+
+        // Lade die echten Materialien-Details
+        for (const preset of plasterData) {
+            const matResponse = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+            if (matResponse.ok) {
+                const matData = await matResponse.json();
+                window.materialPresets[preset.id] = {
+                    ...preset,
+                    ...matData
+                };
+            }
+        }
+
+        const orientations = ['north', 'south', 'east', 'west'];
+        orientations.forEach(orientation => {
+            const select = document.getElementById(`${orientation}_plaster`);
+            if (select) {
+                select.innerHTML = '<option value="">-- Keine --</option>';
+                plasterData.forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.id;
+                    option.textContent = preset.simple_name;  // Einfacher Name!
+                    option.dataset.presetId = preset.id;
+                    select.appendChild(option);
+                });
+            }
+        });
+    } catch (err) {
+        console.error('Fehler beim Laden der Putzstoffe:', err);
+    }
+}
+
+// Update U-Wert wenn Material ausgewählt wird
+function updateWallMaterial(orientation) {
+    const select = document.getElementById(`${orientation}_material`);
+    const thicknessField = document.getElementById(`${orientation}_thickness_field`);
+    const manualUField = document.getElementById(`${orientation}_u_manual_field`);
+    
+    if (!select || !select.value) {
+        document.getElementById(`${orientation}_u_display`).innerText = '—';
+        window.wallMaterialData[orientation].materialId = null;
+        window.wallMaterialData[orientation].material = null;
+        window.wallMaterialData[orientation].thicknessMm = null;
+        window.wallMaterialData[orientation].defaultThicknessMm = null;
+        window.wallMaterialData[orientation].calculatedU = null;
+        if (thicknessField) {
+            thicknessField.style.display = 'none';
+        }
+        if (manualUField) {
+            manualUField.style.display = 'none';
+        }
+        return;
+    }
+
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
+    if (select.value === 'custom') {
+        window.wallMaterialData[orientation].materialId = null;
+        window.wallMaterialData[orientation].material = null;
+        window.wallMaterialData[orientation].thicknessMm = null;
+        window.wallMaterialData[orientation].defaultThicknessMm = null;
+        window.wallMaterialData[orientation].calculatedU = null;
+        // Zeige beide Felder: Dicke UND manuellen U-Wert Input
+        if (thicknessField) {
+            thicknessField.style.display = 'block';
+        }
+        if (manualUField) {
+            manualUField.style.display = 'block';
+        }
+        // Fokus auf U-Wert Input-Feld
+        const manualUInput = document.getElementById(`${orientation}_u_manual`);
+        if (manualUInput) {
+            manualUInput.focus();
+        }
+        return;
+    }
+
+    const materialId = parseInt(select.value);
+    const material = window.materialPresets[materialId];
+
+    if (material) {
+        window.wallMaterialData[orientation].materialId = materialId;
+        window.wallMaterialData[orientation].material = material;
+        // Zeige Dickefeld, verstecke Manual U-Input
+        if (thicknessField) {
+            thicknessField.style.display = 'block';
+        }
+        if (manualUField) {
+            manualUField.style.display = 'none';
+        }
+        updateWallUValue(orientation);
+    }
+}
+
+function updateWallThickness(orientation) {
+    const input = document.getElementById(`${orientation}_thickness_mm`);
+    const thicknessMm = input.value ? parseFloat(input.value) : null;
+    window.wallMaterialData[orientation].thicknessMm = thicknessMm;
+    updateWallUValue(orientation);
+}
+
+// Update wenn Benutzer manuell U-Wert eingibt
+function updateWallManualU(orientation) {
+    const input = document.getElementById(`${orientation}_u_manual`);
+    const manualU = input.value ? parseFloat(input.value) : null;
+    window.wallMaterialData[orientation].manualU = manualU;
+    updateWallUValue(orientation);
+}
+
+// Update wenn Putz-Checkbox geändert wird
+function updateWallPlaster(orientation) {
+    const checkbox = document.getElementById(`${orientation}_plaster_check`);
+    const select = document.getElementById(`${orientation}_plaster`);
+
+    if (checkbox.checked) {
+        select.disabled = false;
+        if (select.value) {
+            const plasterId = parseInt(select.value);
+            const plaster = window.materialPresets[plasterId];
+            window.wallMaterialData[orientation].plaster = plaster;
+        }
+    } else {
+        select.disabled = true;
+        select.value = '';
+        window.wallMaterialData[orientation].plaster = null;
+    }
+
+    updateWallUValue(orientation);
+}
+
+// Berechne U-Wert aus Material + optionalem Putz + manueller Eingabe
+async function updateWallUValue(orientation) {
+    const data = window.wallMaterialData[orientation];
+    let uValue = null;
+
+    // Priorität: Manuelle Eingabe > Material U-Wert > Fallback
+    if (data.manualU !== null && data.manualU !== undefined) {
+        uValue = data.manualU;
+    } else if (data.material && data.material.u_value) {
+        uValue = data.material.u_value;
+    } else if (data.materialId) {
+        const thicknessInput = document.getElementById(`${orientation}_thickness_mm`);
+        let thicknessMm = data.thicknessMm;
+
+        if (thicknessMm === null || thicknessMm === undefined || Number.isNaN(thicknessMm)) {
+            thicknessMm = data.defaultThicknessMm;
+        }
+
+        const query = thicknessMm ? `?thickness_mm=${encodeURIComponent(thicknessMm)}` : '';
+        const response = await fetch(`/api/ekobaudat-material/${data.materialId}/thermal_u/${query}`);
+        if (response.ok) {
+            const thermalData = await response.json();
+            data.defaultThicknessMm = thermalData.default_thickness_mm || data.defaultThicknessMm;
+            data.lambdaValue = thermalData.lambda_value || data.lambdaValue;
+            data.calculatedU = thermalData.u_value;
+            uValue = thermalData.u_value;
+
+            if (thicknessInput && !thicknessInput.value && thermalData.default_thickness_mm) {
+                thicknessInput.value = thermalData.default_thickness_mm;
+                data.thicknessMm = thermalData.default_thickness_mm;
+            }
+        }
+    }
+
+    // Füge Putz hinzu wenn vorhanden
+    if (uValue !== null && data.plaster && data.plaster.u_value) {
+        uValue += data.plaster.u_value;
+    }
+
+    // Zeige Ergebnis
+    if (uValue !== null && uValue > 0) {
+        document.getElementById(`${orientation}_u_display`).innerText = uValue.toFixed(3) + ' W/m²K';
+    } else {
+        document.getElementById(`${orientation}_u_display`).innerText = '—';
+    }
+
+    return uValue;
+}
+
+// Update Dachtyp - zeige/verstecke Material-Felder
+function updateRoofType() {
+    const select = document.getElementById('roof_type');
+    const materialField = document.getElementById('roof_material_field');
+    const uField = document.getElementById('roof_u_field');
+    const displayField = document.getElementById('roof_u_display_field');
+
+    if (!select || !select.value) {
+        materialField.style.display = 'none';
+        uField.style.display = 'none';
+        displayField.style.display = 'none';
+        window.roofMaterialData = { type: null, materialId: null, material: null, manualU: null };
+        document.getElementById('roof_u_display').innerText = '—';
+        document.getElementById('roof_result').innerText = '—';
+        return;
+    }
+
+    window.roofMaterialData.type = select.value;
+    materialField.style.display = 'block';
+    displayField.style.display = 'block';
+    // uField bleibt versteckt bis "custom" Material ausgewählt wird
+    uField.style.display = 'none';
+}
+
+// Update Boden-Grenztyp - zeige/verstecke entsprechende Felder
+function updateFloorBoundary() {
+    const select = document.getElementById('floor_boundary');
+    const materialField = document.getElementById('floor_material_field');
+    const tempField = document.getElementById('floor_unheated_temp_field');
+    const uField = document.getElementById('floor_u_field');
+    const displayField = document.getElementById('floor_u_display_field');
+
+    if (!select || !select.value) {
+        materialField.style.display = 'none';
+        tempField.style.display = 'none';
+        uField.style.display = 'none';
+        displayField.style.display = 'none';
+        window.floorMaterialData = { boundary: null, materialId: null, material: null, manualU: null, unheatedTemp: null };
+        document.getElementById('floor_u_display').innerText = '—';
+        document.getElementById('floor_result').innerText = '—';
+        return;
+    }
+
+    window.floorMaterialData.boundary = select.value;
+    // uField bleibt versteckt bis "custom" Material ausgewählt wird
+    uField.style.display = 'none';
+    displayField.style.display = 'block';
+
+    if (select.value === 'erdreich') {
+        // Erdreich: Material + U-Wert Eingabe
+        materialField.style.display = 'block';
+        tempField.style.display = 'none';
+        document.getElementById('floor_unheated_temp').value = 10;
+    } else if (select.value === 'unheated') {
+        // Unbeheizter Raum: Temperatur Eingabe
+        materialField.style.display = 'none';
+        tempField.style.display = 'block';
+        window.floorMaterialData.materialId = null;
+        window.floorMaterialData.material = null;
+        document.getElementById('floor_material').value = '';
+    }
+}
+
+// Lade Dach & Boden Materialien
+async function populateRoofFloorMaterials() {
+    try {
+        // Lade Dach-Materialien
+        const roofResponse = await fetch('/api/ekobaudat-material/popular_roof/');
+        if (roofResponse.ok) {
+            const roofData = await roofResponse.json();
+            for (const preset of roofData) {
+                const matResponse = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+                if (matResponse.ok) {
+                    const matData = await matResponse.json();
+                    window.materialPresets[preset.id] = {
+                        ...preset,
+                        ...matData
+                    };
+                }
+            }
+            const roofSelect = document.getElementById('roof_material');
+            if (roofSelect) {
+                roofSelect.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
+                roofData.forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.id;
+                    option.textContent = preset.simple_name;
+                    option.dataset.presetId = preset.id;
+                    roofSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Lade Boden-Materialien
+        const floorResponse = await fetch('/api/ekobaudat-material/popular_floor/');
+        if (floorResponse.ok) {
+            const floorData = await floorResponse.json();
+            for (const preset of floorData) {
+                const matResponse = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+                if (matResponse.ok) {
+                    const matData = await matResponse.json();
+                    window.materialPresets[preset.id] = {
+                        ...preset,
+                        ...matData
+                    };
+                }
+            }
+            const floorSelect = document.getElementById('floor_material');
+            if (floorSelect) {
+                floorSelect.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
+                floorData.forEach(preset => {
+                    const option = document.createElement('option');
+                    option.value = preset.id;
+                    option.textContent = preset.simple_name;
+                    option.dataset.presetId = preset.id;
+                    floorSelect.appendChild(option);
+                });
+            }
+        }
+    } catch (err) {
+        console.error('Fehler beim Laden der Dach/Boden-Materialien:', err);
+    }
+}
+
+// Update wenn Dach-Material ausgewählt wird
+async function updateRoofMaterial() {
+    const select = document.getElementById('roof_material');
+    const uField = document.getElementById('roof_u_field');
+    
+    if (!select || !select.value) {
+        document.getElementById('roof_u_display').innerText = '—';
+        window.roofMaterialData = { type: window.roofMaterialData?.type || null, materialId: null, material: null, manualU: null, calculatedU: null };
+        if (uField) {
+            uField.style.display = 'none';
+        }
+        return;
+    }
+
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
+    if (select.value === 'custom') {
+        window.roofMaterialData = { type: window.roofMaterialData?.type || null, materialId: null, material: null, manualU: null, calculatedU: null };
+        if (uField) {
+            uField.style.display = 'block';
+        }
+        // Fokus auf U-Wert Input-Feld
+        const manualUInput = document.getElementById('roof_u_manual');
+        if (manualUInput) {
+            manualUInput.focus();
+        }
+        return;
+    }
+
+    const materialId = parseInt(select.value);
+    const material = window.materialPresets[materialId];
+
+    if (material) {
+        window.roofMaterialData = window.roofMaterialData || {};
+        window.roofMaterialData.materialId = materialId;
+        window.roofMaterialData.material = material;
+        // Verstecke Manual U-Input, verwende stattdessen Backend-Berechnung
+        if (uField) {
+            uField.style.display = 'none';
+        }
+
+        if (window.roofMaterialData.manualU !== null && window.roofMaterialData.manualU !== undefined) {
+            updateRoofUValue();
+            return;
+        }
+
+        const response = await fetch(`/api/ekobaudat-material/${materialId}/thermal_u/`);
+        if (response.ok) {
+            const thermalData = await response.json();
+            window.roofMaterialData.calculatedU = thermalData.u_value;
+            updateRoofUValue();
+        } else {
+            window.roofMaterialData.calculatedU = null;
+            updateRoofUValue();
+        }
+    }
+}
+
+// Update wenn Benutzer manuell Dach U-Wert eingibt
+function updateRoofManualU() {
+    const input = document.getElementById('roof_u_manual');
+    const manualU = input.value ? parseFloat(input.value) : null;
+    window.roofMaterialData = window.roofMaterialData || {};
+    window.roofMaterialData.manualU = manualU;
+    updateRoofUValue();
+}
+
+// Berechne Dach U-Wert
+function updateRoofUValue() {
+    const data = window.roofMaterialData || {};
+    let uValue = null;
+
+    // Priorität: Manuelle Eingabe > Material U-Wert
+    if (data.manualU !== null && data.manualU !== undefined) {
+        uValue = data.manualU;
+    } else if (data.calculatedU !== null && data.calculatedU !== undefined) {
+        uValue = data.calculatedU;
+    } else if (data.material && data.material.u_value) {
+        uValue = data.material.u_value;
+    }
+
+    // Zeige Ergebnis
+    if (uValue !== null && uValue > 0) {
+        document.getElementById('roof_u_display').innerText = uValue.toFixed(3) + ' W/m²K';
+    } else {
+        document.getElementById('roof_u_display').innerText = '—';
+    }
+}
+
+// Update wenn Boden-Material ausgewählt wird
+async function updateFloorMaterial() {
+    const select = document.getElementById('floor_material');
+    const uField = document.getElementById('floor_u_field');
+    
+    if (!select || !select.value) {
+        document.getElementById('floor_u_display').innerText = '—';
+        window.floorMaterialData = { boundary: window.floorMaterialData?.boundary || null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: window.floorMaterialData?.unheatedTemp || null };
+        if (uField) {
+            uField.style.display = 'none';
+        }
+        return;
+    }
+
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
+    if (select.value === 'custom') {
+        window.floorMaterialData = { boundary: window.floorMaterialData?.boundary || null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: window.floorMaterialData?.unheatedTemp || null };
+        if (uField) {
+            uField.style.display = 'block';
+        }
+        // Fokus auf U-Wert Input-Feld
+        const manualUInput = document.getElementById('floor_u_manual');
+        if (manualUInput) {
+            manualUInput.focus();
+        }
+        return;
+    }
+
+    const materialId = parseInt(select.value);
+    const material = window.materialPresets[materialId];
+
+    if (material) {
+        window.floorMaterialData = window.floorMaterialData || {};
+        window.floorMaterialData.materialId = materialId;
+        window.floorMaterialData.material = material;
+        // Verstecke Manual U-Input, verwende stattdessen Backend-Berechnung
+        if (uField) {
+            uField.style.display = 'none';
+        }
+
+        if (window.floorMaterialData.manualU !== null && window.floorMaterialData.manualU !== undefined) {
+            updateFloorUValue();
+            return;
+        }
+
+        const response = await fetch(`/api/ekobaudat-material/${materialId}/thermal_u/`);
+        if (response.ok) {
+            const thermalData = await response.json();
+            window.floorMaterialData.calculatedU = thermalData.u_value;
+            updateFloorUValue();
+        } else {
+            window.floorMaterialData.calculatedU = null;
+            updateFloorUValue();
+        }
+    }
+}
+
+// Update wenn Benutzer manuell Boden U-Wert eingibt
+function updateFloorManualU() {
+    const input = document.getElementById('floor_u_manual');
+    const manualU = input.value ? parseFloat(input.value) : null;
+    window.floorMaterialData = window.floorMaterialData || {};
+    window.floorMaterialData.manualU = manualU;
+    updateFloorUValue();
+}
+
+// Berechne Boden U-Wert
+function updateFloorUValue() {
+    const data = window.floorMaterialData || {};
+    let uValue = null;
+
+    // Priorität: Manuelle Eingabe > Material U-Wert
+    if (data.manualU !== null && data.manualU !== undefined) {
+        uValue = data.manualU;
+    } else if (data.calculatedU !== null && data.calculatedU !== undefined) {
+        uValue = data.calculatedU;
+    } else if (data.material && data.material.u_value) {
+        uValue = data.material.u_value;
+    }
+
+    // Zeige Ergebnis
+    if (uValue !== null && uValue > 0) {
+        document.getElementById('floor_u_display').innerText = uValue.toFixed(3) + ' W/m²K';
+    } else {
+        document.getElementById('floor_u_display').innerText = '—';
+    }
+}
+
+// Hilfsfunktion: Dach U-Wert auslesen
+function getRoofUValue() {
+    const uDisplay = document.getElementById('roof_u_display');
+    if (uDisplay && uDisplay.innerText !== '—') {
+        return parseFloat(uDisplay.innerText);
+    }
+    if (window.roofMaterialData && window.roofMaterialData.calculatedU !== null && window.roofMaterialData.calculatedU !== undefined) {
+        return window.roofMaterialData.calculatedU;
+    }
+    return 0.20; // Fallback Default für Dach
+}
+
+// Hilfsfunktion: Boden U-Wert auslesen
+function getFloorUValue() {
+    const uDisplay = document.getElementById('floor_u_display');
+    if (uDisplay && uDisplay.innerText !== '—') {
+        return parseFloat(uDisplay.innerText);
+    }
+    if (window.floorMaterialData && window.floorMaterialData.calculatedU !== null && window.floorMaterialData.calculatedU !== undefined) {
+        return window.floorMaterialData.calculatedU;
+    }
+    return 0.25; // Fallback Default für Boden
+}
+
+async function calculateEnvelope() {
     hideErrors();
 
-    /* Sende POST-Request an Backend */
+    await Promise.all(['north', 'south', 'east', 'west'].map((orientation) => updateWallUValue(orientation)));
+
+    // Nutze berechnete Wand-Flächen statt manueller Eingabe
+    const wallAreas = window.wallAreas || {
+        north: parseFloat(document.getElementById('north_area') || {value: 0}).value,
+        south: parseFloat(document.getElementById('south_area') || {value: 0}).value,
+        east: parseFloat(document.getElementById('east_area') || {value: 0}).value,
+        west: parseFloat(document.getElementById('west_area') || {value: 0}).value
+    };
+
+    // Sammle berechnete U-Werte aus Material-Selection
+    const getUValue = (orientation) => {
+        const data = window.wallMaterialData[orientation] || {};
+        if (data.manualU !== null && data.manualU !== undefined) {
+            return data.manualU;
+        }
+        if (data.calculatedU !== null && data.calculatedU !== undefined) {
+            return data.calculatedU;
+        }
+        const uDisplay = document.getElementById(`${orientation}_u_display`);
+        if (uDisplay && uDisplay.innerText !== '—') {
+            return parseFloat(uDisplay.innerText);
+        }
+        return 0.28; // Fallback Default
+    };
+
     fetch('/calculate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        /* Sammle alle Eingabewerte und konvertiere zu JSON */
         body: JSON.stringify({
             bgf: document.getElementById('bgf').value,
             gradstunden: document.getElementById('gradstunden').value,
 
-            north_area: document.getElementById('north_area').value,
-            north_u: document.getElementById('north_u').value,
-            south_area: document.getElementById('south_area').value,
-            south_u: document.getElementById('south_u').value,
-            east_area: document.getElementById('east_area').value,
-            east_u: document.getElementById('east_u').value,
-            west_area: document.getElementById('west_area').value,
-            west_u: document.getElementById('west_u').value,
+            north_area: wallAreas.north || 0,
+            north_u: getUValue('north'),
+            south_area: wallAreas.south || 0,
+            south_u: getUValue('south'),
+            east_area: wallAreas.east || 0,
+            east_u: getUValue('east'),
+            west_area: wallAreas.west || 0,
+            west_u: getUValue('west'),
 
-            roof_area: document.getElementById('roof_area').value,
-            roof_u: document.getElementById('roof_u').value,
-            floor_area: document.getElementById('floor_area').value,
-            floor_u: document.getElementById('floor_u').value,
+            roof_area: wallAreas.roof || 0,
+            roof_u: getRoofUValue(),
+            floor_area: wallAreas.floor || 0,
+            floor_u: getFloorUValue(),
 
             window_north_area: document.getElementById('window_north_area').value,
             window_south_area: document.getElementById('window_south_area').value,
@@ -1947,14 +3766,11 @@ function calculateEnvelope() {
         })
     })
     .then(async res => {
-        /* Konvertiere Response zu JSON */
         const data = await res.json();
-        /* Wenn Response nicht OK (Status 200-299), werfe Fehler */
         if (!res.ok) throw data;
         return data;
     })
     .then(data => {
-        /* Aktualisiere alle Result-Chips mit Berechnungsergebnissen */
         document.getElementById('north_result').innerText = data.north_loss + ' W/K';
         document.getElementById('south_result').innerText = data.south_loss + ' W/K';
         document.getElementById('east_result').innerText = data.east_loss + ' W/K';
@@ -1967,56 +3783,40 @@ function calculateEnvelope() {
         document.getElementById('window_total_result').innerText = data.window_total + ' W/K';
         document.getElementById('envelope_total_result').innerText = data.envelope_total + ' W/K';
 
-        /* Aktualisiere Jahreskennwerte */
         document.getElementById('solar_gain_result').innerText = data.solar_gain_kwh + ' kWh/a';
         document.getElementById('annual_heat_result').innerText = data.annual_heat_demand_kwh + ' kWh/a';
         document.getElementById('adjusted_heat_result').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
         document.getElementById('specific_heat_result').innerText = data.specific_heat_demand + ' kWh/m²a';
 
-        /* Aktualisiere Ampelbewertung */
         updateRating(data.rating_color, data.rating_label, data.rating_message);
 
-        /* Aktualisiere Energiebilanz-Zusammenfassung */
         document.getElementById('bilanz_heat').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
         document.getElementById('bilanz_specific').innerText = data.specific_heat_demand + ' kWh/m²a';
         document.getElementById('bilanz_h').innerText = data.envelope_total + ' W/K';
         document.getElementById('bilanz_rating').innerText = data.rating_label;
     })
     .catch(err => {
-        /* Fehlerbehandlung */
         if (err.errors) {
-            /* Zeige Backend-Fehler an */
             showErrors(err.errors);
         } else {
-            /* Generischer Fehlermeldung */
             showErrors(['Unbekannter Fehler bei der Berechnung.']);
         }
     });
 }
 
-/* ============================================================
-   ANLAGENTECHNIK BERECHNEN
-   Konvertiert Heizwärmebedarf in Endenergie und Primärenergie
-   ============================================================ */
 function calculateSystem() {
-    /* Verstecke alte Fehler */
     hideSystemErrors();
 
-    /* Hole den berechneten Heizwärmebedarf netto aus der Gebäudehülle */
     const heatDemandText = document.getElementById('adjusted_heat_result').innerText;
-    /* Extrahiere nur die Zahl (remove 'kWh/a' und Komma) */
     const heatDemandNet = parseFloat(
         heatDemandText.replace('kWh/a', '').replace(',', '.').trim()
     );
 
-    /* Prüfe ob Zahl gültig ist (isNaN = "is Not a Number") */
     if (isNaN(heatDemandNet)) {
-        /* Wenn noch nicht berechnet, zeige Fehler */
         showSystemErrors(['Bitte zuerst die Gebäudehülle auswerten, damit ein Heizwärmebedarf netto vorliegt.']);
         return;
     }
 
-    /* Sende System-Berechnung an Backend */
     fetch('/calculate-system/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2036,7 +3836,6 @@ function calculateSystem() {
         return data;
     })
     .then(data => {
-        /* Aktualisiere alle Anlagentechnik-Ergebnisse */
         document.getElementById('system_heating_end').innerText = data.heating_end_energy + ' kWh/a';
         document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
         document.getElementById('system_aux').innerText = data.auxiliary_electricity + ' kWh/a';
@@ -2046,17 +3845,14 @@ function calculateSystem() {
         document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m²a';
         document.getElementById('system_spec_primary').innerText = data.specific_primary_energy + ' kWh/m²a';
 
-        /* Aktualisiere System-Ampelbewertung */
         updateSystemRating(data.system_color, data.system_label, data.system_message);
 
-        /* Aktualisiere Energiebilanz-Zusammenfassung */
         document.getElementById('bilanz_system_end').innerText = data.total_end_energy + ' kWh/a';
         document.getElementById('bilanz_system_primary').innerText = data.primary_energy + ' kWh/a';
         document.getElementById('bilanz_system_co2').innerText = data.co2_emissions + ' kg/a';
         document.getElementById('bilanz_system_rating').innerText = data.system_label;
     })
     .catch(err => {
-        /* Fehlerbehandlung */
         if (err.errors) {
             showSystemErrors(err.errors);
         } else {
@@ -2065,10 +3861,123 @@ function calculateSystem() {
     });
 }
 
+function showPvErrors(errors) {
+    const errorBox = document.getElementById('pvErrorBox');
+    errorBox.className = 'alert-box error';
+    const listItems = errors.map(error => `<li>${error}</li>`).join('');
+    errorBox.innerHTML = `
+        <span class="alert-title">Bitte PV-Eingaben prüfen</span>
+        <ul class="alert-list">${listItems}</ul>
+    `;
+}
+
+function hidePvErrors() {
+    const errorBox = document.getElementById('pvErrorBox');
+    errorBox.className = 'alert-box';
+    errorBox.innerHTML = '';
+}
+
+let lastPvSelfConsumptionKwh = 0;
+
+function calculatePV() {
+    hidePvErrors();
+
+    fetch('/calculate-pv/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            kwp: document.getElementById('pv_kwp').value,
+            specific_yield: document.getElementById('pv_specific_yield').value,
+            self_consumption_rate: document.getElementById('pv_self_rate').value,
+            electricity_price: document.getElementById('pv_electricity_price').value,
+            feed_in_tariff: document.getElementById('pv_feed_in_tariff').value
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        document.getElementById('pv_annual_yield').innerText = data.annual_yield_kwh + ' kWh/a';
+        document.getElementById('pv_self_kwh').innerText = data.self_consumption_kwh + ' kWh/a';
+        document.getElementById('pv_feed_in_kwh').innerText = data.feed_in_kwh + ' kWh/a';
+        document.getElementById('pv_total_benefit').innerText = data.total_benefit_eur + ' €/a';
+
+        lastPvSelfConsumptionKwh = data.self_consumption_kwh;
+
+        // Direkt in Bilanz anzeigen
+        document.getElementById('bilanz_pv_self').innerText = data.self_consumption_kwh + ' kWh/a';
+
+        // Bilanz neu rechnen (optional)
+        calculateBalance();
+    })
+    .catch(err => {
+        if (err.errors) showPvErrors(err.errors);
+        else showPvErrors(['Unbekannter Fehler bei der PV-Berechnung.']);
+    });
+}
+
+function calculateBalance() {
+    // Heizwärmebedarf netto aus Gebäudehülle
+    const heatDemandText = document.getElementById('adjusted_heat_result').innerText;
+    const heatDemandNet = parseFloat(
+        heatDemandText.replace('kWh/a', '').replace(',', '.').trim()
+    );
+
+    if (isNaN(heatDemandNet)) {
+        showSystemErrors(['Bitte zuerst die Gebäudehülle auswerten (Heizwärmebedarf netto fehlt).']);
+        return;
+    }
+
+    // Hilfsstrom aus Systemtab (Input-Feld)
+    const aux = parseFloat(String(document.getElementById('auxiliary_electricity').value).replace(',', '.')) || 0;
+
+    // Warmwasser aus Systemtab (Input-Feld)
+    const hotwater = parseFloat(String(document.getElementById('hotwater_demand').value).replace(',', '.')) || 0;
+
+    // Haushaltsstrom: MVP-Fixwert
+    const household = 2000;
+
+    fetch('/calculate-balance/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            heat_demand_net_kwh: heatDemandNet,
+            hotwater_kwh: hotwater,
+            auxiliary_electricity_kwh: aux,
+            household_electricity_kwh: household,
+            pv_self_consumption_kwh: lastPvSelfConsumptionKwh,
+            electricity_co2_factor: 0.40
+        })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        document.getElementById('bilanz_el_gross').innerText = data.total_electricity_gross_kwh + ' kWh/a';
+        document.getElementById('bilanz_el_net').innerText = data.grid_electricity_net_kwh + ' kWh/a';
+        document.getElementById('bilanz_el_co2').innerText = data.co2_electricity_kg + ' kg/a';
+
+        // falls PV noch nicht gerechnet wurde:
+        const pvBox = document.getElementById('bilanz_pv_self');
+        if (pvBox && (pvBox.innerText === '—' || pvBox.innerText.trim() === '')) {
+            pvBox.innerText = lastPvSelfConsumptionKwh + ' kWh/a';
+        }
+    })
+    .catch(err => {
+        if (err.errors) showSystemErrors(err.errors);
+        else showSystemErrors(['Unbekannter Fehler bei der Energiebilanz.']);
+    });
+}
+
 window.addEventListener('load', function () {
     applySystemDefaults();
-    calculateEnvelope();
-    loadMaterials();
+    updateGeometryStats();
+    populateWallMaterials();  // Lade ÖKOBAUDAT Wandmaterialien
+    populateRoofFloorMaterials();  // Lade ÖKOBAUDAT Dach & Boden Materialien
 });
 </script>
 
