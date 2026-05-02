@@ -1,11 +1,11 @@
-﻿from django.urls import path
+from django.urls import path
 from . import views
 
 urlpatterns = [
     path("", views.index),
     path("calculate/", views.calculate),
     path("calculate-system/", views.calculate_system),
-    path("materials/list/", views.materials_list),
-    path("materials/create/", views.create_material),
-    path("materials/import/", views.import_materials),
+    path("projects/save/", views.save_project),
+    path("projects/<uuid:project_id>/", views.load_project),
+    path("projects/<uuid:project_id>/report/", views.project_report),
 ]

@@ -264,75 +264,11 @@ body {
     letter-spacing: -0.01em;
 }
 
-.alert-box {
-    display: none;
-    margin-bottom: 18px;
-    border-radius: 14px;
-    padding: 16px;
-    border: 1px solid transparent;
-    background: #fff4f0;
-    color: #8d3d31;
-}
-
-.alert-box.error {
-    display: block;
-    border-color: #efc1bb;
-}
-
-.alert-title {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 8px;
-}
-
-.alert-list {
-    margin: 0;
-    padding-left: 18px;
-}
-
 /* ============================================================
    FORM-FIELD (Input-Felder mit Label)
    ============================================================ */
 .field {
     margin-bottom: 12px;
-}
-
-.materials-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-}
-
-.materials-table tr.clickable {
-    cursor: pointer;
-}
-
-.materials-table tr.clickable:hover {
-    background: rgba(0, 116, 217, 0.08);
-}
-
-.materials-table tr.selected {
-    background: rgba(0, 116, 217, 0.16);
-}
-
-.materials-table th,
-.materials-table td {
-    padding: 10px 12px;
-    border: 1px solid #e6e6e6;
-    text-align: left;
-    font-size: 13px;
-}
-
-.materials-table th {
-    background: #f9faf9;
-    color: #3f4a3f;
-    font-weight: 700;
-}
-
-.materials-empty {
-    margin-top: 12px;
-    color: var(--muted);
-    font-size: 13px;
 }
 
 .field label {
@@ -365,6 +301,75 @@ body {
     /* Grüne Border */
     background: #f8fff8;
     /* Heller grüner Hintergrund */
+}
+
+.radio-group {
+    display: grid;
+    gap: 10px;
+}
+
+.radio-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.radio-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 12px;
+    background: #f8f8f8;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d2d2d;
+}
+
+.compact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.zone-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.zone-table th,
+.zone-table td {
+    border-bottom: 1px solid #e5e5e5;
+    padding: 8px 6px;
+    vertical-align: top;
+}
+
+.zone-table th {
+    text-align: left;
+    font-weight: 800;
+    color: #3a3a3a;
+    background: #f6f6f6;
+}
+
+.zone-table input,
+.zone-table select {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+}
+
+.section-subtitle {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #3f6f46;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .note {
@@ -659,9 +664,10 @@ body {
         <!-- Action-Buttons rechts oben -->
         <div class="actions">
             <!-- Button für Expertenmodus (funktioniert noch nicht) -->
-            <button class="btn btn-yellow">Expertenmodus</button>
+            <button class="btn btn-yellow" onclick="showTab('daten', document.querySelector('.tabs button'))">Expertenmodus</button>
             <!-- Button zum Speichern des Projekts (funktioniert noch nicht) -->
-            <button class="btn btn-green">Projekt speichern</button>
+            <button class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
+            <button class="btn btn-primary" onclick="openProjectReport()">Bericht öffnen</button>
         </div>
     </div>
 
@@ -714,81 +720,102 @@ body {
                     </div>
                 </div>
 
-                <!-- =============== CARD 1: GRUNDDATEN =============== -->
+                <!-- =============== CARD 1: PROJEKTSTART =============== -->
                 <div class="card">
-                    <h3>Grunddaten</h3>
-                    <!-- Projektname-Feld -->
-                    <div class="field">
-                        <label>Projektname</label>
-                        <input id="projectName" value="UR Bau Projekt">
+                    <h3>Neues Projekt</h3>
+                    <div class="section-subtitle">Berechnungsverfahren</div>
+                    <div class="radio-group">
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="building_kind" value="wohngebäude" checked> Wohngebäude</label>
+                            <label class="radio-option"><input type="radio" name="building_kind" value="nichtwohngebäude"> Nichtwohngebäude</label>
+                        </div>
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="energy_basis" value="bedarf" checked> Bedarf</label>
+                            <label class="radio-option"><input type="radio" name="energy_basis" value="bedarf_verbrauch"> Bedarf und Verbrauch</label>
+                            <label class="radio-option"><input type="radio" name="energy_basis" value="verbrauch"> Verbrauch</label>
+                        </div>
+                        <div class="radio-row">
+                            <label class="radio-option"><input type="radio" name="legal_basis" value="geg_en_gev" checked> Nachweis nach GEG/EnEV</label>
+                            <label class="radio-option"><input type="radio" name="legal_basis" value="bestand"> Energieausweis (Gebäudebestand)</label>
+                        </div>
                     </div>
-                    <!-- Standort-Dropdown -->
-                    <div class="field">
-                        <label>Standort</label>
-                        <select>
-                            <option>Augsburg (Bayern)</option>
-                        </select>
-                    </div>
-                    <!-- Gebäudetyp-Dropdown -->
-                    <div class="field">
-                        <label>Gebäudetyp</label>
-                        <select>
-                            <option>Bürogebäude</option>
-                        </select>
-                    </div>
-                    <!-- Projektart-Dropdown -->
-                    <div class="field">
-                        <label>Projektart</label>
-                        <select>
-                            <option>Neubau</option>
-                        </select>
-                    </div>
-                </div>
 
-                <!-- =============== CARD 2: GEBÄUDEGEOMETRIE =============== -->
-                <div class="card">
-                    <h3>Gebäudegeometrie</h3>
-                    <!-- 2x2 Gitter für Abmessungen -->
-                    <div class="grid-2">
+                    <div class="section-subtitle" style="margin-top: 16px;">Projektdaten</div>
+                    <div class="compact-grid">
                         <div class="field">
-                            <label>Länge Nord/Süd (m)</label>
-                            <input value="12">
+                            <label>Projektname</label>
+                            <input id="projectName" value="UR Bau Projekt">
                         </div>
                         <div class="field">
-                            <label>Breite Ost/West (m)</label>
-                            <input value="10">
+                            <label>Projektnummer</label>
+                            <input id="projectNumber" value="">
+                        </div>
+                        <div class="field">
+                            <label>Aktenzeichen</label>
+                            <input id="fileReference" value="">
+                        </div>
+                        <div class="field">
+                            <label>Standort</label>
+                            <select id="projectLocation">
+                                <option>Augsburg (Bayern)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top:18px;">
+                <!-- =============== CARD 2: GEBÄUDEGEOMETRIE =============== -->
+                <div class="card">
+                    <h3>Gebäudegeometrie nach DIN V 18599</h3>
+                    <div class="compact-grid">
+                        <div class="field">
+                            <label>Nettovolumen V<sub>n</sub> (m³)</label>
+                            <input id="netVolume" type="number" step="0.1" value="1260">
+                        </div>
+                        <div class="field">
+                            <label>BGF (m²)</label>
+                            <input id="bgf" type="number" value="360">
+                        </div>
+                        <div class="field">
+                            <label>NGF (m²)</label>
+                            <input id="ngf" type="number" step="0.1" value="320">
                         </div>
                         <div class="field">
                             <label>Anzahl Geschosse</label>
-                            <input value="3">
+                            <input id="floorCount" type="number" value="3">
                         </div>
                         <div class="field">
                             <label>Geschosshöhe (m)</label>
-                            <input value="3.5">
+                            <input id="room_height" type="number" step="0.1" value="3.5">
+                        </div>
+                        <div class="field">
+                            <label>Gebäudegruppe</label>
+                            <select id="buildingGroup">
+                                <option>Gruppe 1 - Wohnen, Büro, Praxen, Hotels</option>
+                                <option>Gruppe 2 - Verkauf, Gastronomie, Lager</option>
+                            </select>
                         </div>
                     </div>
 
-                    <!-- Berechnete Statistiken (automatisch gefüllt) -->
+                    <div class="note">Die Felder sind so angeordnet, dass sie später direkt in Zonen, Nutzungen und Bilanzräume nach DIN V 18599 übernommen werden können.</div>
+
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Gesamthöhe</div>
-                            <div class="value">10.5 m</div>
-                            <!-- 3.5 m/Geschoß × 3 Geschosse = 10.5 m -->
+                            <div class="value" id="buildingHeightValue">10.5 m</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Brutto-Rauminhalt</div>
-                            <div class="value">1260 m³</div>
-                            <!-- 12 × 10 × 10.5 = 1260 m³ -->
+                            <div class="value" id="volumeValue">1260 m³</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">BGF</div>
-                            <div class="value">360 m²</div>
-                            <!-- Brutto-Geschossfläche: 12 × 10 × 3 = 360 m² -->
+                            <div class="label">Heizzonen</div>
+                            <div class="value">1</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Hüllfläche A</div>
-                            <div class="value">702 m²</div>
-                            <!-- Gesamtoberfläche des Gebäudes -->
+                            <div class="label">Bilanzräume</div>
+                            <div class="value">1</div>
                         </div>
                     </div>
                 </div>
@@ -796,57 +823,79 @@ body {
                 <!-- =============== CARD 3: KLIMADATEN =============== -->
                 <div class="card">
                     <h3>Klimadaten und Randbedingungen</h3>
-                    <!-- 3-spaltig für Klima-Parameter -->
-                    <div class="grid-3">
+                    <div class="compact-grid">
                         <div class="field">
                             <label>Klimaregion</label>
-                            <select>
+                            <select id="climateRegion">
                                 <option>Region 3 (Süddeutschland)</option>
                             </select>
                         </div>
                         <div class="field">
                             <label>Höhenlage (m ü. NN)</label>
-                            <input value="500">
+                            <input id="altitude" type="number" value="500">
                         </div>
                         <div class="field">
                             <label>Raum-Soll-Temperatur (°C)</label>
-                            <input value="20">
+                            <input id="setpointTemperature" type="number" value="20">
+                        </div>
+                        <div class="field">
+                            <label>Gradstunden/Jahr (Kh/a)</label>
+                            <input id="gradstunden" type="number" value="78000">
                         </div>
                     </div>
 
-                    <!-- BGF für spezifische Kennwerte (wichtig für Berechnung) -->
-                    <div class="field">
-                        <label>BGF für spezifische Kennwerte (m²)</label>
-                        <input id="bgf" type="number" value="360">
-                        <!-- id="bgf" wird in JavaScript referenziert -->
-                    </div>
-
-                    <!-- Gradstunden pro Jahr (wichtig für Heizwärmebedarf) -->
-                    <div class="field">
-                        <label>Gradstunden/Jahr (Kh/a)</label>
-                        <input id="gradstunden" type="number" value="78000">
-                        <!-- id="gradstunden" wird in JavaScript referenziert -->
+                    <div class="compact-grid" style="margin-top: 8px;">
+                        <div class="field">
+                            <label>Luftwechselrate n (1/h)</label>
+                            <input id="air_change_rate" type="number" step="0.01" value="0.50">
+                        </div>
+                        <div class="field">
+                            <label>Wärmebrückenfaktor</label>
+                            <input id="thermal_bridge_factor" type="number" step="0.01" value="0.05">
+                        </div>
+                        <div class="field">
+                            <label>Interne Gewinne (W/m²)</label>
+                            <input id="internal_gains_density" type="number" step="0.1" value="2.0">
+                        </div>
+                        <div class="field">
+                            <label>Gewinnnutzungsgrad</label>
+                            <input id="gain_utilization_factor" type="number" step="0.01" value="0.75">
+                        </div>
                     </div>
 
                     <!-- Hinweistext zur Berechnung -->
                     <div class="note">
-                        Vereinfachtes Modell: Jahres-Heizwärmebedarf ≈ H × Gradstunden / 1000.
-                        H ist hier der Transmissionswärmeverlustkoeffizient in W/K.
+                        DIN V 18599-orientierte Modellierung: Zonen, Volumen, Luftwechsel, Wärmebrücken und nutzbare Gewinne werden getrennt erfasst.
                     </div>
                 </div>
 
                 <!-- =============== CARD 4: NUTZUNG UND PERSONEN =============== -->
                 <div class="card">
                     <h3>Nutzung und Personen</h3>
-                    <!-- 2 Eingabefelder -->
-                    <div class="grid-2">
+                    <div class="compact-grid">
                         <div class="field">
                             <label>Personendichte (m²/Person)</label>
-                            <input value="20">
+                            <input id="personDensity" type="number" value="20">
                         </div>
                         <div class="field">
                             <label>Betriebsstunden/Jahr</label>
-                            <input value="2500">
+                            <input id="occupancy_hours" type="number" value="2500">
+                        </div>
+                        <div class="field">
+                            <label>Projektart</label>
+                            <select id="projectType">
+                                <option>Neubau</option>
+                                <option>Bestand</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Nutzungsprofil</label>
+                            <select id="usageProfile">
+                                <option>EFH / Büro ähnlich</option>
+                                <option>Verwaltung</option>
+                                <option>Schule</option>
+                                <option>Hotel / Wohnen</option>
+                            </select>
                         </div>
                     </div>
 
@@ -862,7 +911,84 @@ body {
                             <div class="value">2500</div>
                         </div>
                     </div>
+
+                    <div class="note" style="margin-top: 10px;">Diese Felder bilden die Nutzung in einer DIN-V-18599-näheren Form ab und können später pro Zone oder Nutzungstyp differenziert werden.</div>
                 </div>
+            </div>
+
+            <div class="card" style="margin-top:18px;">
+                <h3>Nutzungszonen nach DIN V 18599</h3>
+                <div class="note">Die Zonen werden als erste fachliche Zerlegung erfasst. Später lassen sich daraus separate Bilanzräume, Nutzungsprofile und Ausstattungen ableiten.</div>
+
+                <table class="zone-table">
+                    <thead>
+                        <tr>
+                            <th>Zone</th>
+                            <th>Nutzungsprofil</th>
+                            <th>Fläche (m²)</th>
+                            <th>Solltemp. (°C)</th>
+                            <th>Luftwechsel (1/h)</th>
+                            <th>Int. Gewinne (W/m²)</th>
+                            <th>Belegung (h/a)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input id="zone_name_1" value="Zone 1 - Büro"></td>
+                            <td>
+                                <select id="zone_profile_1">
+                                    <option value="office">Büro</option>
+                                    <option value="living">Wohnen</option>
+                                    <option value="meeting">Besprechung</option>
+                                    <option value="school">Schule</option>
+                                    <option value="circulation">Flur</option>
+                                    <option value="service">Nebenraum</option>
+                                </select>
+                            </td>
+                            <td><input id="zone_area_1" type="number" value="180"></td>
+                            <td><input id="zone_temp_1" type="number" step="0.1" value="20"></td>
+                            <td><input id="zone_air_1" type="number" step="0.01" value="0.60"></td>
+                            <td><input id="zone_gains_1" type="number" step="0.1" value="4.5"></td>
+                            <td><input id="zone_hours_1" type="number" value="2500"></td>
+                        </tr>
+                        <tr>
+                            <td><input id="zone_name_2" value="Zone 2 - Flur"></td>
+                            <td>
+                                <select id="zone_profile_2">
+                                    <option value="circulation">Flur</option>
+                                    <option value="office">Büro</option>
+                                    <option value="living">Wohnen</option>
+                                    <option value="meeting">Besprechung</option>
+                                    <option value="school">Schule</option>
+                                    <option value="service">Nebenraum</option>
+                                </select>
+                            </td>
+                            <td><input id="zone_area_2" type="number" value="90"></td>
+                            <td><input id="zone_temp_2" type="number" step="0.1" value="18"></td>
+                            <td><input id="zone_air_2" type="number" step="0.01" value="0.70"></td>
+                            <td><input id="zone_gains_2" type="number" step="0.1" value="1.5"></td>
+                            <td><input id="zone_hours_2" type="number" value="1200"></td>
+                        </tr>
+                        <tr>
+                            <td><input id="zone_name_3" value="Zone 3 - Besprechung"></td>
+                            <td>
+                                <select id="zone_profile_3">
+                                    <option value="meeting">Besprechung</option>
+                                    <option value="office">Büro</option>
+                                    <option value="living">Wohnen</option>
+                                    <option value="school">Schule</option>
+                                    <option value="circulation">Flur</option>
+                                    <option value="service">Nebenraum</option>
+                                </select>
+                            </td>
+                            <td><input id="zone_area_3" type="number" value="90"></td>
+                            <td><input id="zone_temp_3" type="number" step="0.1" value="21"></td>
+                            <td><input id="zone_air_3" type="number" step="0.01" value="1.00"></td>
+                            <td><input id="zone_gains_3" type="number" step="0.1" value="5.0"></td>
+                            <td><input id="zone_hours_3" type="number" value="1400"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -880,92 +1006,6 @@ body {
             <div id="errorBox" class="alert-box"></div>
 
             <!-- =============== AUSSENWÄNDE NACH HIMMELSRICHTUNG =============== -->
-            <div class="card">
-                <h3>Ökobaudat Materialdaten</h3>
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Material auswählen</label>
-                        <select id="material_select" onchange="applySelectedMaterial()">
-                            <option value="">Neues Material eingeben</option>
-                            {% for material in materials %}
-                                <option value="{{ material.id }}"
-                                    data-u="{{ material.u_value|default_if_none:'' }}"
-                                    data-name="{{ material.name|escapejs }}"
-                                    data-producer="{{ material.producer|escapejs }}"
-                                    data-category="{{ material.category|escapejs }}"
-                                    data-co2="{{ material.embodied_co2|default_if_none:'' }}"
-                                    data-notes="{{ material.notes|escapejs }}">
-                                    {{ material.name }}{% if material.producer %} – {{ material.producer }}{% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label>Komponente wählen</label>
-                        <select id="material_component">
-                            <option value="north_u">Nord U-Wert</option>
-                            <option value="south_u">Süd U-Wert</option>
-                            <option value="east_u">Ost U-Wert</option>
-                            <option value="west_u">West U-Wert</option>
-                            <option value="roof_u">Dach U-Wert</option>
-                            <option value="floor_u">Boden U-Wert</option>
-                            <option value="window_u">Fenster U-Wert</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid-2" style="margin-top: 14px;">
-                    <div class="field">
-                        <label>Ökobaudat-CSV wählen</label>
-                        <select id="material_csv_file">
-                            <option value="">Keine Datei ausgewählt</option>
-                            {% for filename in data_files %}
-                                <option value="{{ filename }}">{{ filename }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="field" style="align-self: end;">
-                        <button class="btn btn-primary" onclick="importMaterialCsv()" type="button">CSV importieren</button>
-                    </div>
-                </div>
-                <button class="btn btn-green" onclick="applyMaterialToComponent()" type="button">U-Wert auf gewählte Komponente übernehmen</button>
-                <div class="note" id="materialMessage">Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.</div>
-
-                <div class="field">
-                    <label>Materialname</label>
-                    <input id="material_name" type="text" placeholder="Materialname">
-                </div>
-                <div class="field">
-                    <label>Hersteller / Produzent</label>
-                    <input id="material_producer" type="text" placeholder="Hersteller">
-                </div>
-                <div class="field">
-                    <label>Kategorie</label>
-                    <input id="material_category" type="text" placeholder="z. B. Dämmstoff, Holz, Baustoff">
-                </div>
-                <div class="grid-3">
-                    <div class="field">
-                        <label>U-Wert (W/m²K)</label>
-                        <input id="material_u" type="number" step="0.01" placeholder="0.20">
-                    </div>
-                    <div class="field">
-                        <label>CO₂-Wert (kg CO₂e/m³)</label>
-                        <input id="material_co2" type="number" step="0.1" placeholder="z. B. 12.3">
-                    </div>
-                    <div class="field">
-                        <label>Bemerkungen</label>
-                        <input id="material_notes" type="text" placeholder="z. B. Ökobaudat-Beschreibung">
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="saveMaterial(); return false;" type="button">Material speichern</button>
-
-                <div class="materials-panel" style="margin-top: 18px;">
-                    <h3>Importierte Ökobaudat-Materialien</h3>
-                    <div id="materialsListContainer">
-                        <div class="materials-empty">Lade Materialdaten…</div>
-                    </div>
-                </div>
-            </div>
-
             <div class="card">
                 <h3>Außenwände – Wärmeverlustkoeffizient nach Orientierung</h3>
 
@@ -1419,6 +1459,9 @@ Schneider Verwaltungsgebäude;Ja;BW_12350`;
 
 let allBuildings = [];
 let dedupedBuildings = [];
+let currentProjectId = null;
+let lastEnvelopeCalculation = null;
+let lastSystemCalculation = null;
 
 /* ============================================================
    TAB-WECHSEL FUNKTION
@@ -1582,7 +1625,107 @@ function loadBuildingToForm(building) {
         projectNameInput.value = building.name;
     }
 
+    const projectType = document.getElementById('projectType');
+    if (projectType) {
+        projectType.value = building.conformity === 'Ja' ? 'Neubau' : 'Bestand';
+    }
+
     console.log(`✅ Gebäude geladen: ${building.name}`);
+}
+
+function collectZones() {
+    const zoneIndexes = [1, 2, 3];
+    return zoneIndexes.map(index => ({
+        name: document.getElementById(`zone_name_${index}`)?.value || `Zone ${index}`,
+        usage_profile: document.getElementById(`zone_profile_${index}`)?.value || 'office',
+        area: document.getElementById(`zone_area_${index}`)?.value,
+        setpoint_temperature: document.getElementById(`zone_temp_${index}`)?.value,
+        air_change_rate: document.getElementById(`zone_air_${index}`)?.value,
+        internal_gains_density: document.getElementById(`zone_gains_${index}`)?.value,
+        occupancy_hours: document.getElementById(`zone_hours_${index}`)?.value,
+        gain_utilization_factor: document.getElementById('gain_utilization_factor')?.value
+    })).filter(zone => parseFloat(zone.area) > 0);
+}
+
+function collectProjectData() {
+    const projectName = document.getElementById('projectName')?.value || 'Unbenanntes Projekt';
+    return {
+        project_id: currentProjectId,
+        project_name: projectName,
+        project_number: document.getElementById('projectNumber')?.value || '',
+        file_reference: document.getElementById('fileReference')?.value || '',
+        legal_basis: document.querySelector('input[name="legal_basis"]:checked')?.value || '',
+        energy_basis: document.querySelector('input[name="energy_basis"]:checked')?.value || '',
+        building_kind: document.querySelector('input[name="building_kind"]:checked')?.value || '',
+        location: document.getElementById('projectLocation')?.value || ''
+    };
+}
+
+async function saveProject() {
+    if (!lastEnvelopeCalculation) {
+        await calculateEnvelope();
+    }
+
+    const payload = {
+        project: collectProjectData(),
+        zones: collectZones(),
+        calculation: {
+            envelope: lastEnvelopeCalculation,
+            system: lastSystemCalculation
+        },
+        form: {
+            volume: document.getElementById('netVolume')?.value,
+            bgf: document.getElementById('bgf')?.value,
+            ngf: document.getElementById('ngf')?.value,
+            room_height: document.getElementById('room_height')?.value,
+            air_change_rate: document.getElementById('air_change_rate')?.value,
+            thermal_bridge_factor: document.getElementById('thermal_bridge_factor')?.value,
+            internal_gains_density: document.getElementById('internal_gains_density')?.value,
+            occupancy_hours: document.getElementById('occupancy_hours')?.value,
+            gain_utilization_factor: document.getElementById('gain_utilization_factor')?.value,
+            gradstunden: document.getElementById('gradstunden')?.value,
+            north_area: document.getElementById('north_area')?.value,
+            north_u: document.getElementById('north_u')?.value,
+            south_area: document.getElementById('south_area')?.value,
+            south_u: document.getElementById('south_u')?.value,
+            east_area: document.getElementById('east_area')?.value,
+            east_u: document.getElementById('east_u')?.value,
+            west_area: document.getElementById('west_area')?.value,
+            west_u: document.getElementById('west_u')?.value,
+            roof_area: document.getElementById('roof_area')?.value,
+            roof_u: document.getElementById('roof_u')?.value,
+            floor_area: document.getElementById('floor_area')?.value,
+            floor_u: document.getElementById('floor_u')?.value,
+            window_north_area: document.getElementById('window_north_area')?.value,
+            window_south_area: document.getElementById('window_south_area')?.value,
+            window_east_area: document.getElementById('window_east_area')?.value,
+            window_west_area: document.getElementById('window_west_area')?.value,
+            window_u: document.getElementById('window_u')?.value,
+            g_value: document.getElementById('g_value')?.value
+        }
+    };
+
+    const response = await fetch('/projects/save/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (!response.ok) {
+        alert(data.error || 'Projekt konnte nicht gespeichert werden.');
+        return;
+    }
+
+    currentProjectId = data.project_id;
+    alert(`Projekt gespeichert: ${data.project_name}\nProjekt-ID: ${data.project_id}`);
+}
+
+function openProjectReport() {
+    if (!currentProjectId) {
+        alert('Bitte zuerst ein Projekt speichern.');
+        return;
+    }
+    window.open(`/projects/${currentProjectId}/report/`, '_blank');
 }
 
 /* ============================================================
@@ -1661,225 +1804,6 @@ function updateSystemRating(color, label, message) {
     document.getElementById('systemRatingText').innerText = message;
 }
 
-function applySelectedMaterial() {
-    const option = document.getElementById('material_select').selectedOptions[0];
-    if (!option || !option.value) {
-        document.getElementById('material_name').value = '';
-        document.getElementById('material_producer').value = '';
-        document.getElementById('material_category').value = '';
-        document.getElementById('material_u').value = '';
-        document.getElementById('material_co2').value = '';
-        document.getElementById('material_notes').value = '';
-        document.getElementById('materialMessage').innerText = 'Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.';
-        return;
-    }
-
-    document.getElementById('material_name').value = option.dataset.name || '';
-    document.getElementById('material_producer').value = option.dataset.producer || '';
-    document.getElementById('material_category').value = option.dataset.category || '';
-    document.getElementById('material_u').value = option.dataset.u || '';
-    document.getElementById('material_co2').value = option.dataset.co2 || '';
-    document.getElementById('material_notes').value = option.dataset.notes || '';
-    document.getElementById('materialMessage').innerText = 'Materialdaten geladen. Klicke auf "U-Wert übernehmen", um die Komponente zu bestücken.';
-}
-
-function applyMaterialToComponent() {
-    const uValue = document.getElementById('material_u').value;
-    const target = document.getElementById('material_component').value;
-    if (!uValue) {
-        document.getElementById('materialMessage').innerText = 'Bitte erst einen U-Wert im Materialformular eingeben oder ein Material auswählen.';
-        return;
-    }
-    document.getElementById(target).value = uValue;
-    document.getElementById('materialMessage').innerText = `U-Wert ${uValue} W/m²K auf ${document.getElementById('material_component').selectedOptions[0].text} angewendet.`;
-}
-
-function saveMaterial() {
-    const payload = {
-        name: document.getElementById('material_name').value,
-        producer: document.getElementById('material_producer').value,
-        category: document.getElementById('material_category').value,
-        u_value: document.getElementById('material_u').value,
-        embodied_co2: document.getElementById('material_co2').value,
-        notes: document.getElementById('material_notes').value,
-    };
-
-    fetch('/materials/create/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(async res => {
-        const data = await res.json();
-        if (!res.ok) throw data;
-        return data;
-    })
-    .then(data => {
-        const select = document.getElementById('material_select');
-        const option = document.createElement('option');
-        option.value = data.material.id;
-        option.dataset.u = data.material.u_value || '';
-        option.dataset.name = data.material.name || '';
-        option.dataset.producer = data.material.producer || '';
-        option.dataset.category = data.material.category || '';
-        option.dataset.co2 = data.material.embodied_co2 || '';
-        option.dataset.notes = data.material.notes || '';
-        option.text = data.material.name + (data.material.producer ? ' – ' + data.material.producer : '');
-        select.appendChild(option);
-        select.value = data.material.id;
-        applySelectedMaterial();
-        document.getElementById('materialMessage').innerText = 'Material gespeichert und ausgewählt.';
-        loadMaterials();
-    })
-    .catch(err => {
-        const message = (err.errors && err.errors.join(' ')) || 'Material konnte nicht gespeichert werden.';
-        document.getElementById('materialMessage').innerText = message;
-    });
-}
-
-function importMaterialCsv() {
-    const filename = document.getElementById('material_csv_file').value;
-    if (!filename) {
-        document.getElementById('materialMessage').innerText = 'Bitte eine CSV-Datei aus dashboard/data auswählen.';
-        return;
-    }
-
-    fetch('/materials/import/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename })
-    })
-    .then(async res => {
-        const data = await res.json();
-        if (!res.ok) throw data;
-        return data;
-    })
-    .then(data => {
-        document.getElementById('materialMessage').innerText = `Import abgeschlossen: ${data.result.imported} neue Materialien, ${data.result.updated} aktualisiert, ${data.result.skipped} übersprungen.`;
-        loadMaterials();
-    })
-    .catch(err => {
-        const message = (err.errors && err.errors.join(' ')) || 'CSV-Import fehlgeschlagen.';
-        document.getElementById('materialMessage').innerText = message;
-    });
-}
-
-function escapeHtml(value) {
-    return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-let selectedMaterialRow = null;
-
-function updateSelectedMaterialRow(row) {
-    if (selectedMaterialRow) {
-        selectedMaterialRow.classList.remove('selected');
-    }
-    selectedMaterialRow = row;
-    if (selectedMaterialRow) {
-        selectedMaterialRow.classList.add('selected');
-    }
-}
-
-function selectMaterialFromRow(row) {
-    const material = row.dataset;
-    const select = document.getElementById('material_select');
-    let option = select.querySelector(`option[value="${material.id}"]`);
-
-    if (!option) {
-        option = document.createElement('option');
-        option.value = material.id;
-        option.dataset.u = material.uValue || '';
-        option.dataset.name = material.name || '';
-        option.dataset.producer = material.producer || '';
-        option.dataset.category = material.category || '';
-        option.dataset.co2 = material.embodiedCo2 || '';
-        option.dataset.notes = material.notes || '';
-        option.text = `${material.name || ''}${material.producer ? ' – ' + material.producer : ''}`;
-        select.appendChild(option);
-    }
-
-    select.value = material.id;
-    applySelectedMaterial();
-    updateSelectedMaterialRow(row);
-
-    const uValue = document.getElementById('material_u').value;
-    const component = document.getElementById('material_component').value;
-    if (uValue && component) {
-        applyMaterialToComponent();
-    } else if (uValue) {
-        document.getElementById('materialMessage').innerText = `Material ${material.name} ausgewählt. Klicke auf "U-Wert übernehmen" oder wähle eine Fläche, um den U-Wert zu übertragen.`;
-    }
-}
-
-function buildMaterialsTable(items) {
-    if (!items.length) {
-        return '<div class="materials-empty">Keine importierten Materialien vorhanden.</div>';
-    }
-
-    const rows = items.map(mat => {
-        const name = escapeHtml(mat.name);
-        const producer = escapeHtml(mat.producer);
-        const category = escapeHtml(mat.category);
-        const uValue = mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : '-';
-        const co2 = mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : '-';
-        const notes = escapeHtml(mat.notes);
-
-        return `
-            <tr class="clickable" data-id="${mat.id}"
-                data-name="${name}"
-                data-producer="${producer}"
-                data-category="${category}"
-                data-u-value="${mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : ''}"
-                data-embodied-co2="${mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : ''}"
-                data-notes="${notes}"
-                onclick="selectMaterialFromRow(this)">
-                <td>${name}</td>
-                <td>${producer || '-'}</td>
-                <td>${category || '-'}</td>
-                <td>${uValue}</td>
-                <td>${co2}</td>
-                <td>${notes || '-'}</td>
-            </tr>
-        `;
-    }).join('');
-
-    return `
-        <table class="materials-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Produzent</th>
-                    <th>Kategorie</th>
-                    <th>U-Wert</th>
-                    <th>CO₂</th>
-                    <th>Bemerkungen</th>
-                </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-    `;
-}
-
-function loadMaterials() {
-    fetch('/materials/list/')
-        .then(async res => {
-            const data = await res.json();
-            if (!res.ok) throw data;
-            return data;
-        })
-        .then(data => {
-            document.getElementById('materialsListContainer').innerHTML = buildMaterialsTable(data.materials);
-        })
-        .catch(() => {
-            document.getElementById('materialsListContainer').innerHTML = '<div class="materials-empty">Materialliste konnte nicht geladen werden.</div>';
-        });
-}
-
 /* ============================================================
    SYSTEM-DEFAULTS ANPASSEN
    Passt Effizienzwerte basierend auf Heizystem an
@@ -1916,12 +1840,29 @@ function calculateEnvelope() {
     hideErrors();
 
     /* Sende POST-Request an Backend */
-    fetch('/calculate/', {
+    return fetch('/calculate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         /* Sammle alle Eingabewerte und konvertiere zu JSON */
         body: JSON.stringify({
+            building_kind: document.querySelector('input[name="building_kind"]:checked')?.value,
+            energy_basis: document.querySelector('input[name="energy_basis"]:checked')?.value,
+            legal_basis: document.querySelector('input[name="legal_basis"]:checked')?.value,
+
+            project_number: document.getElementById('projectNumber')?.value,
+            file_reference: document.getElementById('fileReference')?.value,
+            building_group: document.getElementById('buildingGroup')?.value,
+            zones: collectZones(),
+
+            volume: document.getElementById('netVolume').value,
             bgf: document.getElementById('bgf').value,
+            ngf: document.getElementById('ngf').value,
+            room_height: document.getElementById('room_height').value,
+            air_change_rate: document.getElementById('air_change_rate').value,
+            thermal_bridge_factor: document.getElementById('thermal_bridge_factor').value,
+            internal_gains_density: document.getElementById('internal_gains_density').value,
+            occupancy_hours: document.getElementById('occupancy_hours').value,
+            gain_utilization_factor: document.getElementById('gain_utilization_factor').value,
             gradstunden: document.getElementById('gradstunden').value,
 
             north_area: document.getElementById('north_area').value,
@@ -1954,6 +1895,7 @@ function calculateEnvelope() {
         return data;
     })
     .then(data => {
+        lastEnvelopeCalculation = data;
         /* Aktualisiere alle Result-Chips mit Berechnungsergebnissen */
         document.getElementById('north_result').innerText = data.north_loss + ' W/K';
         document.getElementById('south_result').innerText = data.south_loss + ' W/K';
@@ -2017,7 +1959,7 @@ function calculateSystem() {
     }
 
     /* Sende System-Berechnung an Backend */
-    fetch('/calculate-system/', {
+    return fetch('/calculate-system/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2036,6 +1978,7 @@ function calculateSystem() {
         return data;
     })
     .then(data => {
+        lastSystemCalculation = data;
         /* Aktualisiere alle Anlagentechnik-Ergebnisse */
         document.getElementById('system_heating_end').innerText = data.heating_end_energy + ' kWh/a';
         document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
@@ -2064,12 +2007,6 @@ function calculateSystem() {
         }
     });
 }
-
-window.addEventListener('load', function () {
-    applySystemDefaults();
-    calculateEnvelope();
-    loadMaterials();
-});
 </script>
 
 </body>
