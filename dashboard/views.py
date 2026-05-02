@@ -3,9 +3,93 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from .csv_utils import import_materials_from_csv, list_data_files
+from .models import EkobaudatMaterial
+
 
 def index(request):
-    return render(request, "dashboard/index.html")
+    materials = EkobaudatMaterial.objects.order_by("name")
+    data_files = list_data_files()
+    return render(request, "dashboard/index.html", {
+        "materials": materials,
+        "data_files": data_files,
+    })
+
+
+def materials_list(request):
+    materials = EkobaudatMaterial.objects.order_by("name")
+    result = [
+        {
+            "id": mat.id,
+            "name": mat.name,
+            "producer": mat.producer,
+            "category": mat.category,
+            "u_value": mat.u_value,
+            "embodied_co2": mat.embodied_co2,
+            "notes": mat.notes,
+        }
+        for mat in materials
+    ]
+    return JsonResponse({"materials": result})
+
+
+@csrf_exempt
+def create_material(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "errors": ["Only POST allowed"]}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        name = data.get("name", "").strip()
+        producer = data.get("producer", "").strip()
+        category = data.get("category", "").strip()
+        notes = data.get("notes", "").strip()
+
+        if not name:
+            return JsonResponse({"ok": False, "errors": ["Materialname darf nicht leer sein."]}, status=400)
+
+        material = EkobaudatMaterial.objects.create(
+            name=name,
+            producer=producer,
+            category=category,
+            u_value=safe_float(data.get("u_value"), None),
+            embodied_co2=safe_float(data.get("embodied_co2"), None),
+            notes=notes,
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "material": {
+                "id": material.id,
+                "name": material.name,
+                "producer": material.producer,
+                "category": material.category,
+                "u_value": material.u_value,
+                "embodied_co2": material.embodied_co2,
+                "notes": material.notes,
+            },
+        })
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+
+
+@csrf_exempt
+def import_materials(request):
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "errors": ["Only POST allowed"]}, status=400)
+
+    try:
+        data = json.loads(request.body)
+        filename = data.get("filename", "").strip()
+        if not filename:
+            return JsonResponse({"ok": False, "errors": ["Bitte eine CSV-Datei auswählen."]}, status=400)
+
+        result = import_materials_from_csv(filename, EkobaudatMaterial)
+        return JsonResponse({"ok": True, "result": result})
+    except FileNotFoundError as e:
+        return JsonResponse({"ok": False, "errors": [str(e)]}, status=400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
 
 
 def get_rating(value_per_m2a):
@@ -26,7 +110,6 @@ def get_rating(value_per_m2a):
         "color": "red",
         "message": "Hoher Heizwärmebedarf – Gebäudehülle verbessern."
     }
-
 
 def validate_non_negative(name, value, errors):
     if value < 0:

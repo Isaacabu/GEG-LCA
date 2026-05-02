@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -204,8 +203,72 @@ body {
     letter-spacing: -0.01em;
 }
 
+.alert-box {
+    display: none;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid transparent;
+    background: #fff4f0;
+    color: #8d3d31;
+}
+
+.alert-box.error {
+    display: block;
+    border-color: #efc1bb;
+}
+
+.alert-title {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.alert-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
 .field {
     margin-bottom: 12px;
+}
+
+.materials-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.materials-table tr.clickable {
+    cursor: pointer;
+}
+
+.materials-table tr.clickable:hover {
+    background: rgba(0, 116, 217, 0.08);
+}
+
+.materials-table tr.selected {
+    background: rgba(0, 116, 217, 0.16);
+}
+
+.materials-table th,
+.materials-table td {
+    padding: 10px 12px;
+    border: 1px solid #e6e6e6;
+    text-align: left;
+    font-size: 13px;
+}
+
+.materials-table th {
+    background: #f9faf9;
+    color: #3f4a3f;
+    font-weight: 700;
+}
+
+.materials-empty {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
 .field label {
@@ -602,6 +665,92 @@ body {
             <div class="section-divider"></div>
 
             <div id="errorBox" class="alert-box"></div>
+
+            <div class="card">
+                <h3>Ökobaudat Materialdaten</h3>
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Material auswählen</label>
+                        <select id="material_select" onchange="applySelectedMaterial()">
+                            <option value="">Neues Material eingeben</option>
+                            {% for material in materials %}
+                                <option value="{{ material.id }}"
+                                    data-u="{{ material.u_value|default_if_none:'' }}"
+                                    data-name="{{ material.name|escapejs }}"
+                                    data-producer="{{ material.producer|escapejs }}"
+                                    data-category="{{ material.category|escapejs }}"
+                                    data-co2="{{ material.embodied_co2|default_if_none:'' }}"
+                                    data-notes="{{ material.notes|escapejs }}">
+                                    {{ material.name }}{% if material.producer %} – {{ material.producer }}{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Komponente wählen</label>
+                        <select id="material_component">
+                            <option value="north_u">Nord U-Wert</option>
+                            <option value="south_u">Süd U-Wert</option>
+                            <option value="east_u">Ost U-Wert</option>
+                            <option value="west_u">West U-Wert</option>
+                            <option value="roof_u">Dach U-Wert</option>
+                            <option value="floor_u">Boden U-Wert</option>
+                            <option value="window_u">Fenster U-Wert</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-top: 14px;">
+                    <div class="field">
+                        <label>Ökobaudat-CSV wählen</label>
+                        <select id="material_csv_file">
+                            <option value="">Keine Datei ausgewählt</option>
+                            {% for filename in data_files %}
+                                <option value="{{ filename }}">{{ filename }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field" style="align-self: end;">
+                        <button class="btn btn-primary" onclick="importMaterialCsv()" type="button">CSV importieren</button>
+                    </div>
+                </div>
+                <button class="btn btn-green" onclick="applyMaterialToComponent()" type="button">U-Wert auf gewählte Komponente übernehmen</button>
+                <div class="note" id="materialMessage">Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.</div>
+
+                <div class="field">
+                    <label>Materialname</label>
+                    <input id="material_name" type="text" placeholder="Materialname">
+                </div>
+                <div class="field">
+                    <label>Hersteller / Produzent</label>
+                    <input id="material_producer" type="text" placeholder="Hersteller">
+                </div>
+                <div class="field">
+                    <label>Kategorie</label>
+                    <input id="material_category" type="text" placeholder="z. B. Dämmstoff, Holz, Baustoff">
+                </div>
+                <div class="grid-3">
+                    <div class="field">
+                        <label>U-Wert (W/m²K)</label>
+                        <input id="material_u" type="number" step="0.01" placeholder="0.20">
+                    </div>
+                    <div class="field">
+                        <label>CO₂-Wert (kg CO₂e/m³)</label>
+                        <input id="material_co2" type="number" step="0.1" placeholder="z. B. 12.3">
+                    </div>
+                    <div class="field">
+                        <label>Bemerkungen</label>
+                        <input id="material_notes" type="text" placeholder="z. B. Ökobaudat-Beschreibung">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveMaterial(); return false;" type="button">Material speichern</button>
+
+                <div class="materials-panel" style="margin-top: 18px;">
+                    <h3>Importierte Ökobaudat-Materialien</h3>
+                    <div id="materialsListContainer">
+                        <div class="materials-empty">Lade Materialdaten…</div>
+                    </div>
+                </div>
+            </div>
 
             <div class="card">
                 <h3>Außenwände – Wärmeverlustkoeffizient nach Orientierung</h3>
@@ -1009,6 +1158,225 @@ function updateSystemRating(color, label, message) {
     document.getElementById('systemRatingText').innerText = message;
 }
 
+function applySelectedMaterial() {
+    const option = document.getElementById('material_select').selectedOptions[0];
+    if (!option || !option.value) {
+        document.getElementById('material_name').value = '';
+        document.getElementById('material_producer').value = '';
+        document.getElementById('material_category').value = '';
+        document.getElementById('material_u').value = '';
+        document.getElementById('material_co2').value = '';
+        document.getElementById('material_notes').value = '';
+        document.getElementById('materialMessage').innerText = 'Wähle ein Material und einen Bauteiltyp aus, um den U-Wert zu übernehmen.';
+        return;
+    }
+
+    document.getElementById('material_name').value = option.dataset.name || '';
+    document.getElementById('material_producer').value = option.dataset.producer || '';
+    document.getElementById('material_category').value = option.dataset.category || '';
+    document.getElementById('material_u').value = option.dataset.u || '';
+    document.getElementById('material_co2').value = option.dataset.co2 || '';
+    document.getElementById('material_notes').value = option.dataset.notes || '';
+    document.getElementById('materialMessage').innerText = 'Materialdaten geladen. Klicke auf "U-Wert übernehmen", um die Komponente zu bestücken.';
+}
+
+function applyMaterialToComponent() {
+    const uValue = document.getElementById('material_u').value;
+    const target = document.getElementById('material_component').value;
+    if (!uValue) {
+        document.getElementById('materialMessage').innerText = 'Bitte erst einen U-Wert im Materialformular eingeben oder ein Material auswählen.';
+        return;
+    }
+    document.getElementById(target).value = uValue;
+    document.getElementById('materialMessage').innerText = `U-Wert ${uValue} W/m²K auf ${document.getElementById('material_component').selectedOptions[0].text} angewendet.`;
+}
+
+function saveMaterial() {
+    const payload = {
+        name: document.getElementById('material_name').value,
+        producer: document.getElementById('material_producer').value,
+        category: document.getElementById('material_category').value,
+        u_value: document.getElementById('material_u').value,
+        embodied_co2: document.getElementById('material_co2').value,
+        notes: document.getElementById('material_notes').value,
+    };
+
+    fetch('/materials/create/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        const select = document.getElementById('material_select');
+        const option = document.createElement('option');
+        option.value = data.material.id;
+        option.dataset.u = data.material.u_value || '';
+        option.dataset.name = data.material.name || '';
+        option.dataset.producer = data.material.producer || '';
+        option.dataset.category = data.material.category || '';
+        option.dataset.co2 = data.material.embodied_co2 || '';
+        option.dataset.notes = data.material.notes || '';
+        option.text = data.material.name + (data.material.producer ? ' – ' + data.material.producer : '');
+        select.appendChild(option);
+        select.value = data.material.id;
+        applySelectedMaterial();
+        document.getElementById('materialMessage').innerText = 'Material gespeichert und ausgewählt.';
+        loadMaterials();
+    })
+    .catch(err => {
+        const message = (err.errors && err.errors.join(' ')) || 'Material konnte nicht gespeichert werden.';
+        document.getElementById('materialMessage').innerText = message;
+    });
+}
+
+function importMaterialCsv() {
+    const filename = document.getElementById('material_csv_file').value;
+    if (!filename) {
+        document.getElementById('materialMessage').innerText = 'Bitte eine CSV-Datei aus dashboard/data auswählen.';
+        return;
+    }
+
+    fetch('/materials/import/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename })
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw data;
+        return data;
+    })
+    .then(data => {
+        document.getElementById('materialMessage').innerText = `Import abgeschlossen: ${data.result.imported} neue Materialien, ${data.result.updated} aktualisiert, ${data.result.skipped} übersprungen.`;
+        loadMaterials();
+    })
+    .catch(err => {
+        const message = (err.errors && err.errors.join(' ')) || 'CSV-Import fehlgeschlagen.';
+        document.getElementById('materialMessage').innerText = message;
+    });
+}
+
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+let selectedMaterialRow = null;
+
+function updateSelectedMaterialRow(row) {
+    if (selectedMaterialRow) {
+        selectedMaterialRow.classList.remove('selected');
+    }
+    selectedMaterialRow = row;
+    if (selectedMaterialRow) {
+        selectedMaterialRow.classList.add('selected');
+    }
+}
+
+function selectMaterialFromRow(row) {
+    const material = row.dataset;
+    const select = document.getElementById('material_select');
+    let option = select.querySelector(`option[value="${material.id}"]`);
+
+    if (!option) {
+        option = document.createElement('option');
+        option.value = material.id;
+        option.dataset.u = material.uValue || '';
+        option.dataset.name = material.name || '';
+        option.dataset.producer = material.producer || '';
+        option.dataset.category = material.category || '';
+        option.dataset.co2 = material.embodiedCo2 || '';
+        option.dataset.notes = material.notes || '';
+        option.text = `${material.name || ''}${material.producer ? ' – ' + material.producer : ''}`;
+        select.appendChild(option);
+    }
+
+    select.value = material.id;
+    applySelectedMaterial();
+    updateSelectedMaterialRow(row);
+
+    const uValue = document.getElementById('material_u').value;
+    const component = document.getElementById('material_component').value;
+    if (uValue && component) {
+        applyMaterialToComponent();
+    } else if (uValue) {
+        document.getElementById('materialMessage').innerText = `Material ${material.name} ausgewählt. Klicke auf "U-Wert übernehmen" oder wähle eine Fläche, um den U-Wert zu übertragen.`;
+    }
+}
+
+function buildMaterialsTable(items) {
+    if (!items.length) {
+        return '<div class="materials-empty">Keine importierten Materialien vorhanden.</div>';
+    }
+
+    const rows = items.map(mat => {
+        const name = escapeHtml(mat.name);
+        const producer = escapeHtml(mat.producer);
+        const category = escapeHtml(mat.category);
+        const uValue = mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : '-';
+        const co2 = mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : '-';
+        const notes = escapeHtml(mat.notes);
+
+        return `
+            <tr class="clickable" data-id="${mat.id}"
+                data-name="${name}"
+                data-producer="${producer}"
+                data-category="${category}"
+                data-u-value="${mat.u_value !== null && mat.u_value !== undefined ? escapeHtml(mat.u_value) : ''}"
+                data-embodied-co2="${mat.embodied_co2 !== null && mat.embodied_co2 !== undefined ? escapeHtml(mat.embodied_co2) : ''}"
+                data-notes="${notes}"
+                onclick="selectMaterialFromRow(this)">
+                <td>${name}</td>
+                <td>${producer || '-'}</td>
+                <td>${category || '-'}</td>
+                <td>${uValue}</td>
+                <td>${co2}</td>
+                <td>${notes || '-'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <table class="materials-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Produzent</th>
+                    <th>Kategorie</th>
+                    <th>U-Wert</th>
+                    <th>CO₂</th>
+                    <th>Bemerkungen</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
+}
+
+function loadMaterials() {
+    fetch('/materials/list/')
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw data;
+            return data;
+        })
+        .then(data => {
+            document.getElementById('materialsListContainer').innerHTML = buildMaterialsTable(data.materials);
+        })
+        .catch(() => {
+            document.getElementById('materialsListContainer').innerHTML = '<div class="materials-empty">Materialliste konnte nicht geladen werden.</div>';
+        });
+}
+
 function applySystemDefaults() {
     const system = document.getElementById('heating_system').value;
     const efficiency = document.getElementById('efficiency');
@@ -1160,11 +1528,9 @@ function calculateSystem() {
 window.addEventListener('load', function () {
     applySystemDefaults();
     calculateEnvelope();
+    loadMaterials();
 });
 </script>
 
 </body>
 </html>
-=======
-
->>>>>>> 60c4f5d9d2418ec8b81cc3bb4796449a779cf8a0
