@@ -2,6 +2,20 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+# Importiere zentrale Hilfsfunktionen und Konstanten
+from ..utils import safe_float, validate_non_negative, validate_positive, validate_u_value, get_rating
+from ..constants import (
+    SOLAR_FACTORS, PRIMARY_ENERGY_FACTORS, CO2_FACTORS,
+    RATING_THRESHOLDS, SYSTEM_RATING_THRESHOLDS,
+    DEFAULT_GRADSTUNDEN, DEFAULT_G_VALUE, VALID_HEATING_SYSTEMS,
+    DEFAULT_HOTWATER_DEMAND, DEFAULT_AUXILIARY_ELECTRICITY,
+    DEFAULT_ROOM_HEIGHT, VENTILATION_CONSTANT,
+    DEFAULT_THERMAL_BRIDGE_FACTOR, DEFAULT_INTERNAL_GAINS_DENSITY,
+    DEFAULT_OCCUPANCY_HOURS, DEFAULT_GAIN_UTILIZATION_FACTOR,
+    DEFAULT_EFFICIENCY, DEFAULT_COP, DEFAULT_R_SI, DEFAULT_R_SE,
+    MAX_EFFICIENCY, MAX_COP, MAX_U_VALUE, MAX_G_VALUE, MIN_G_VALUE
+)
+
 
 ZONE_PROFILE_DEFAULTS = {
     "office": {
@@ -53,52 +67,6 @@ ZONE_PROFILE_DEFAULTS = {
         "setpoint_temperature": 19.0,
     },
 }
-
-
-def safe_float(value: Any, default: float = 0.0) -> float:
-    try:
-        if value is None or value == "":
-            return default
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def validate_non_negative(name: str, value: float, errors: List[str]) -> None:
-    if value < 0:
-        errors.append(f"{name} darf nicht negativ sein.")
-
-
-def validate_positive(name: str, value: float, errors: List[str]) -> None:
-    if value <= 0:
-        errors.append(f"{name} muss groesser als 0 sein.")
-
-
-def validate_u_value(name: str, value: float, errors: List[str]) -> None:
-    if value < 0:
-        errors.append(f"{name} darf nicht negativ sein.")
-    elif value > 5:
-        errors.append(f"{name} ist unrealistisch hoch (> 5 W/m²K).")
-
-
-def get_rating(value_per_m2a: float) -> Dict[str, str]:
-    if value_per_m2a <= 40:
-        return {
-            "label": "Sehr gut",
-            "color": "green",
-            "message": "Niedriger Heizwärmebedarf - energetisch günstig."
-        }
-    if value_per_m2a <= 80:
-        return {
-            "label": "Mittel",
-            "color": "yellow",
-            "message": "Akzeptabler Bereich - Optimierung sinnvoll."
-        }
-    return {
-        "label": "Kritisch",
-        "color": "red",
-        "message": "Hoher Heizwärmebedarf - Gebäudehülle verbessern."
-    }
 
 
 def build_zone_summary(zones: Any) -> Dict[str, Any]:
@@ -179,13 +147,13 @@ def build_zone_summary(zones: Any) -> Dict[str, Any]:
 
 def calculate_envelope_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     bgf = safe_float(data.get("bgf"), 0)
-    gradstunden = safe_float(data.get("gradstunden"), 78000)
-    room_height = safe_float(data.get("room_height", data.get("floor_height")), 3.0)
+    gradstunden = safe_float(data.get("gradstunden"), DEFAULT_GRADSTUNDEN)
+    room_height = safe_float(data.get("room_height", data.get("floor_height")), DEFAULT_ROOM_HEIGHT)
     air_change_rate = safe_float(data.get("air_change_rate"), 0.5)
-    thermal_bridge_factor = safe_float(data.get("thermal_bridge_factor"), 0.05)
-    internal_gains_density = safe_float(data.get("internal_gains_density"), 2.0)
-    occupancy_hours = safe_float(data.get("occupancy_hours"), 2500)
-    gain_utilization_factor = safe_float(data.get("gain_utilization_factor"), 0.75)
+    thermal_bridge_factor = safe_float(data.get("thermal_bridge_factor"), DEFAULT_THERMAL_BRIDGE_FACTOR)
+    internal_gains_density = safe_float(data.get("internal_gains_density"), DEFAULT_INTERNAL_GAINS_DENSITY)
+    occupancy_hours = safe_float(data.get("occupancy_hours"), DEFAULT_OCCUPANCY_HOURS)
+    gain_utilization_factor = safe_float(data.get("gain_utilization_factor"), DEFAULT_GAIN_UTILIZATION_FACTOR)
     zone_summary = build_zone_summary(data.get("zones"))
 
     if zone_summary["count"] > 0:
@@ -213,7 +181,7 @@ def calculate_envelope_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     window_east_area = safe_float(data.get("window_east_area"))
     window_west_area = safe_float(data.get("window_west_area"))
     window_u = safe_float(data.get("window_u"))
-    g_value = safe_float(data.get("g_value"), 0.55)
+    g_value = safe_float(data.get("g_value"), DEFAULT_G_VALUE)
 
     errors: List[str] = []
 
@@ -247,8 +215,8 @@ def calculate_envelope_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     validate_non_negative("Fenster West", window_west_area, errors)
     validate_u_value("Fenster U-Wert", window_u, errors)
 
-    if g_value < 0 or g_value > 1:
-        errors.append("g-Wert muss zwischen 0 und 1 liegen.")
+    if g_value < MIN_G_VALUE or g_value > MAX_G_VALUE:
+        errors.append(f"g-Wert muss zwischen {MIN_G_VALUE} und {MAX_G_VALUE} liegen.")
 
     if bgf == 0:
         errors.append("BGF darf nicht 0 sein, da sonst kein spezifischer Wert berechnet werden kann.")
@@ -277,19 +245,14 @@ def calculate_envelope_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     window_total = window_north_loss + window_south_loss + window_east_loss + window_west_loss
 
     envelope_transmission_total = wall_total + roof_floor_total + window_total
-    ventilation_loss = 0.34 * air_change_rate * volume
+    ventilation_loss = VENTILATION_CONSTANT * air_change_rate * volume
     thermal_bridge_loss = envelope_transmission_total * thermal_bridge_factor
 
-    solar_factor_north = 20
-    solar_factor_south = 90
-    solar_factor_east = 50
-    solar_factor_west = 50
-
     solar_gain_kwh = (
-        window_north_area * g_value * solar_factor_north
-        + window_south_area * g_value * solar_factor_south
-        + window_east_area * g_value * solar_factor_east
-        + window_west_area * g_value * solar_factor_west
+        window_north_area * g_value * SOLAR_FACTORS['north']
+        + window_south_area * g_value * SOLAR_FACTORS['south']
+        + window_east_area * g_value * SOLAR_FACTORS['east']
+        + window_west_area * g_value * SOLAR_FACTORS['west']
     )
 
     internal_gains_kwh = (bgf * internal_gains_density * occupancy_hours) / 1000
@@ -345,10 +308,10 @@ def calculate_system_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     heat_demand_net = safe_float(data.get("heat_demand_net"))
     bgf = safe_float(data.get("bgf"))
     heating_system = data.get("heating_system", "gas")
-    efficiency = safe_float(data.get("efficiency"), 0.9)
-    cop = safe_float(data.get("cop"), 3.5)
-    hotwater_demand = safe_float(data.get("hotwater_demand"), 3000)
-    auxiliary_electricity = safe_float(data.get("auxiliary_electricity"), 1200)
+    efficiency = safe_float(data.get("efficiency"), DEFAULT_EFFICIENCY)
+    cop = safe_float(data.get("cop"), DEFAULT_COP)
+    hotwater_demand = safe_float(data.get("hotwater_demand"), DEFAULT_HOTWATER_DEMAND)
+    auxiliary_electricity = safe_float(data.get("auxiliary_electricity"), DEFAULT_AUXILIARY_ELECTRICITY)
 
     errors: List[str] = []
 
@@ -360,32 +323,17 @@ def calculate_system_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     if bgf == 0:
         errors.append("BGF darf nicht 0 sein.")
 
-    valid_systems = ["gas", "heatpump", "district", "pellet"]
-    if heating_system not in valid_systems:
+    if heating_system not in VALID_HEATING_SYSTEMS:
         errors.append("Ungültiges Heizsystem.")
 
-    if efficiency <= 0 or efficiency > 1.2:
-        errors.append("Wirkungsgrad muss > 0 und plausibel sein (z. B. 0.85 bis 1.0).")
+    if efficiency <= 0 or efficiency > MAX_EFFICIENCY:
+        errors.append(f"Wirkungsgrad muss > 0 und plausibel sein (z. B. 0.85 bis 1.0).")
 
-    if cop <= 0 or cop > 10:
-        errors.append("COP muss > 0 und plausibel sein (z. B. 2.5 bis 5.0).")
+    if cop <= 0 or cop > MAX_COP:
+        errors.append(f"COP muss > 0 und plausibel sein (z. B. 2.5 bis 5.0).")
 
     if errors:
         return {"ok": False, "errors": errors}
-
-    primary_factors = {
-        "gas": 1.1,
-        "heatpump": 1.8,
-        "district": 0.7,
-        "pellet": 0.2,
-    }
-
-    co2_factors = {
-        "gas": 0.24,
-        "heatpump": 0.40,
-        "district": 0.18,
-        "pellet": 0.04,
-    }
 
     if heating_system == "heatpump":
         heating_end_energy = heat_demand_net / cop
@@ -395,16 +343,16 @@ def calculate_system_profile(data: Dict[str, Any]) -> Dict[str, Any]:
         hotwater_end_energy = hotwater_demand / efficiency
 
     total_end_energy = heating_end_energy + hotwater_end_energy + auxiliary_electricity
-    primary_energy = total_end_energy * primary_factors[heating_system]
-    co2_emissions = total_end_energy * co2_factors[heating_system]
+    primary_energy = total_end_energy * PRIMARY_ENERGY_FACTORS[heating_system]
+    co2_emissions = total_end_energy * CO2_FACTORS[heating_system]
     specific_end_energy = total_end_energy / bgf
     specific_primary_energy = primary_energy / bgf
 
-    if specific_primary_energy <= 60:
+    if specific_primary_energy <= SYSTEM_RATING_THRESHOLDS['efficient']:
         system_label = "Sehr effizient"
         system_color = "green"
         system_message = "Die Anlagentechnik arbeitet energetisch günstig."
-    elif specific_primary_energy <= 120:
+    elif specific_primary_energy <= SYSTEM_RATING_THRESHOLDS['medium']:
         system_label = "Mittel"
         system_color = "yellow"
         system_message = "Die Anlagentechnik ist nutzbar, aber optimierbar."
