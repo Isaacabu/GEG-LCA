@@ -56,6 +56,13 @@ def calculate(request):
         window_u = safe_float(data.get("window_u"))
         g_value = safe_float(data.get("g_value"), DEFAULT_G_VALUE)
 
+        door_north_count = safe_float(data.get("door_north_count"), 0)
+        door_south_count = safe_float(data.get("door_south_count"), 0)
+        door_east_count = safe_float(data.get("door_east_count"), 0)
+        door_west_count = safe_float(data.get("door_west_count"), 0)
+        door_area_per_unit = safe_float(data.get("door_area_per_unit"), 2.0)
+        door_u = safe_float(data.get("door_u"))
+
         errors = []
 
         validate_non_negative("BGF", bgf, errors)
@@ -85,6 +92,13 @@ def calculate(request):
         if g_value < MIN_G_VALUE or g_value > MAX_G_VALUE:
             errors.append(f"g-Wert muss zwischen {MIN_G_VALUE} und {MAX_G_VALUE} liegen.")
 
+        validate_non_negative("Türen Nord", door_north_count, errors)
+        validate_non_negative("Türen Süd", door_south_count, errors)
+        validate_non_negative("Türen Ost", door_east_count, errors)
+        validate_non_negative("Türen West", door_west_count, errors)
+        validate_non_negative("Türfläche pro Unit", door_area_per_unit, errors)
+        validate_u_value("Tür U-Wert", door_u, errors)
+
         if bgf == 0:
             errors.append("BGF darf nicht 0 sein, da sonst kein spezifischer Wert berechnet werden kann.")
 
@@ -113,6 +127,24 @@ def calculate(request):
         )
 
         envelope_total = wall_total + roof_floor_total + window_total
+
+        door_north_area = door_north_count * door_area_per_unit
+        door_south_area = door_south_count * door_area_per_unit
+        door_east_area = door_east_count * door_area_per_unit
+        door_west_area = door_west_count * door_area_per_unit
+
+        door_north_loss = door_north_area * door_u
+        door_south_loss = door_south_area * door_u
+        door_east_loss = door_east_area * door_u
+        door_west_loss = door_west_area * door_u
+        door_total = (
+            door_north_loss
+            + door_south_loss
+            + door_east_loss
+            + door_west_loss
+        )
+
+        envelope_total = envelope_total + door_total
 
         solar_gain_kwh = (
             window_north_area * g_value * SOLAR_FACTORS['north']
@@ -144,6 +176,12 @@ def calculate(request):
             "window_east_loss": round(window_east_loss, 2),
             "window_west_loss": round(window_west_loss, 2),
             "window_total": round(window_total, 2),
+
+            "door_north_loss": round(door_north_loss, 2),
+            "door_south_loss": round(door_south_loss, 2),
+            "door_east_loss": round(door_east_loss, 2),
+            "door_west_loss": round(door_west_loss, 2),
+            "door_total": round(door_total, 2),
 
             "envelope_total": round(envelope_total, 2),
             "annual_heat_demand_kwh": round(annual_heat_demand_kwh, 2),
@@ -432,17 +470,17 @@ class GebäudeViewSet(viewsets.ModelViewSet):
     queryset = Gebäude.objects.all()
     serializer_class = GebäudeSerializer
     search_fields = ['name', 'standort']
-    
+
     @action(detail=True, methods=['get'])
     def kennwerte(self, request, pk=None):
         """Berechne Kennwerte für Gebäude"""
         gebäude = self.get_object()
         bauteile = gebäude.bauteile.all()
-        
+
         total_h = sum(b.transmissionsverlust for b in bauteile)
         annual_heat_demand = (total_h * gebäude.gradstunden) / 1000
         specific_heat_demand = annual_heat_demand / gebäude.bgf if gebäude.bgf > 0 else 0
-        
+
         return Response({
             'gebäude_id': gebäude.id,
             'total_h': round(total_h, 2),
@@ -474,6 +512,24 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
         1108: {'lambda_value': 0.17, 'default_thickness_mm': 10},
         352: {'lambda_value': 1.90, 'default_thickness_mm': 60},
         661: {'lambda_value': 2.10, 'default_thickness_mm': 200},
+    }
+
+    WINDOW_PRESETS = {
+        603: {'u_value': 1.30, 'g_value': 0.63},
+        604: {'u_value': 0.80, 'g_value': 0.55},
+        609: {'u_value': 1.20, 'g_value': 0.63},
+        610: {'u_value': 0.90, 'g_value': 0.55},
+        1049: {'u_value': 0.80, 'g_value': 0.55},
+    }
+
+    DOOR_PRESETS = {
+        2001: {'u_value': 2.5},   # Holztür (Altbau)
+        2002: {'u_value': 1.3},   # Kunststoff-Haustür PVC (KfW-55)
+        2003: {'u_value': 0.95},  # Holz-Alu-Kompo (KfW-40)
+        2004: {'u_value': 2.2},   # Aluminium-Fassadentür
+        2005: {'u_value': 3.5},   # Stahlzarge Innentür
+        2006: {'u_value': 1.8},   # Kunststoff-Nebeneingangstür
+        2007: {'u_value': 0.55},  # Industrie-Sectionaltore
     }
     
     def get_queryset(self):
@@ -507,14 +563,59 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
     def popular_plaster(self, request):
         """Beliebte Putze mit einfachen Namen"""
         materials = [
-            {'id': 1593, 'simple_name': 'Lehmputz', 'category': 'plaster'},
+            {'id': 1277, 'simple_name': 'Kalkputz', 'category': 'plaster'},
+            {'id': 1279, 'simple_name': 'Kalk-Zementputz', 'category': 'plaster'},
+            {'id': 1281, 'simple_name': 'Gipsputz', 'category': 'plaster'},
+            {'id': 1282, 'simple_name': 'Lehmputz', 'category': 'plaster'},
+            {'id': 1214, 'simple_name': 'Silikat-(Dispersions)putz', 'category': 'plaster'},
+            {'id': 1273, 'simple_name': 'Kunstharzputz', 'category': 'plaster'},
+            {'id': 1216, 'simple_name': 'Kratzputz (mineralisch)', 'category': 'plaster'},
         ]
         return Response(materials)
+
+    @action(detail=False, methods=['get'])
+    def popular_doors(self, request):
+        """Beliebte Türtypen / Eingänge für UI"""
+        doors = [
+            {'id': 2001, 'simple_name': 'Holztür (Altbau-Standard)', 'category': 'door', **self.DOOR_PRESETS[2001]},
+            {'id': 2002, 'simple_name': 'Kunststoff-Haustür (KfW-55)', 'category': 'door', **self.DOOR_PRESETS[2002]},
+            {'id': 2003, 'simple_name': 'Holz-Alu-Komposition (KfW-40)', 'category': 'door', **self.DOOR_PRESETS[2003]},
+            {'id': 2004, 'simple_name': 'Aluminium-Fassadentür', 'category': 'door', **self.DOOR_PRESETS[2004]},
+            {'id': 2005, 'simple_name': 'Stahlzarge Innentür', 'category': 'door', **self.DOOR_PRESETS[2005]},
+            {'id': 2006, 'simple_name': 'Kunststoff-Nebeneingangstür', 'category': 'door', **self.DOOR_PRESETS[2006]},
+            {'id': 2007, 'simple_name': 'Industrie-Sectionaltore', 'category': 'door', **self.DOOR_PRESETS[2007]},
+        ]
+        return Response(doors)
 
     @action(detail=True, methods=['get'])
     def thermal_u(self, request, pk=None):
         """Berechnet einen U-Wert aus hinterlegter Lambda-Annahme und Dicke."""
         material = self.get_object()
+
+        window_preset = self.WINDOW_PRESETS.get(material.id)
+        if window_preset:
+            return Response({
+                'id': material.id,
+                'name': material.name,
+                'u_value': window_preset['u_value'],
+                'g_value': window_preset['g_value'],
+                'lambda_value': None,
+                'thickness_mm': None,
+                'default_thickness_mm': None,
+                'formula': 'window_preset',
+            })
+
+        door_preset = self.DOOR_PRESETS.get(material.id)
+        if door_preset:
+            return Response({
+                'id': material.id,
+                'name': material.name,
+                'u_value': door_preset['u_value'],
+                'lambda_value': None,
+                'thickness_mm': None,
+                'default_thickness_mm': None,
+                'formula': 'door_preset',
+            })
 
         if material.u_value is not None:
             return Response({
@@ -574,5 +675,17 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
         materials = [
             {'id': 352, 'simple_name': 'Estrich', 'category': 'floor'},
             {'id': 661, 'simple_name': 'Betonplatte', 'category': 'floor'},
+        ]
+        return Response(materials)
+
+    @action(detail=False, methods=['get'])
+    def popular_windows(self, request):
+        """Beliebte Fenstertypen / Verglasungen aus ÖKOBAUDAT für UI"""
+        materials = [
+            {'id': 603, 'simple_name': 'Fenster - 2-fach Verglasung (Holz)', 'category': 'window', **self.WINDOW_PRESETS[603]},
+            {'id': 604, 'simple_name': 'Fenster - 3-fach Verglasung (Holz)', 'category': 'window', **self.WINDOW_PRESETS[604]},
+            {'id': 609, 'simple_name': 'Kunststofffenster - 2-fach Verglasung', 'category': 'window', **self.WINDOW_PRESETS[609]},
+            {'id': 610, 'simple_name': 'Kunststofffenster - 3-fach Verglasung', 'category': 'window', **self.WINDOW_PRESETS[610]},
+            {'id': 1049, 'simple_name': 'Dreifachverglasung (generisch)', 'category': 'window', **self.WINDOW_PRESETS[1049]},
         ]
         return Response(materials)

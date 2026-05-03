@@ -467,7 +467,6 @@ body {
     <div class="tabs">
         <button class="active" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
         <button onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
-        <button onclick="showTab('bautechnik', this)">🔨 Bautechnik</button>
         <button onclick="showTab('anlage', this)">⚙️ Anlagentechnik</button>
         <button onclick="showTab('pv', this)">☀️ Photovoltaik</button>
         <button onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
@@ -486,16 +485,35 @@ body {
                     </div>
                     <div class="field">
                         <label>Standort</label>
-                        <select id="project_location">
-                            <option>Augsburg (Bayern)</option>
-                        </select>
+                        <button type="button" class="btn btn-primary btn-sm" id="location_button" onclick="toggleLocationMenu()">Augsburg (Bayern)</button>
+                        <input type="hidden" id="project_location" value="Augsburg (Bayern)">
+                        <input type="hidden" id="project_state" value="Bayern">
+                        <input type="hidden" id="project_city" value="Augsburg">
+                        <div id="location_menu" style="display:none; margin-top:10px;">
+                            <div class="grid-2" id="state_button_grid"></div>
+                        </div>
+                        <div id="city_menu" style="display:none; margin-top:10px;">
+                            <div class="label" id="city_menu_label">Ort auswählen</div>
+                            <div class="grid-2" id="city_button_grid" style="margin-top:8px;"></div>
+                        </div>
+                        <div class="note" id="location_summary" style="margin-top:8px;">Aktuell: Augsburg (Bayern)</div>
                     </div>
                     <div class="field">
                         <label>Gebäudetyp</label>
-                        <select id="building_type">
-                            <option value="wohngebaeude">Wohngebäude</option>
-                            <option value="nicht_wohngebaeude">Nicht Wohngebäude</option>
-                        </select>
+                        <button type="button" class="btn btn-primary btn-sm" id="building_type_button" onclick="toggleBuildingTypeMenu()">Wohngebäude</button>
+                        <input type="hidden" id="building_type" value="wohngebaeude">
+                        <input type="hidden" id="building_type_variant" value="Einfamilienhaus">
+                        <div id="building_type_menu" style="display:none; margin-top:10px;">
+                            <div class="grid-2">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('wohngebaeude')">Wohngebäude</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('nicht_wohngebaeude')">Nichtwohngebäude</button>
+                            </div>
+                        </div>
+                        <div id="building_type_variants" style="display:none; margin-top:10px;">
+                            <div class="label" id="building_type_variant_label">Wohngebäude-Typ</div>
+                            <div id="building_type_variant_buttons" class="grid-2" style="margin-top:8px;"></div>
+                        </div>
+                        <div class="note" id="building_type_summary" style="margin-top:8px;">Aktuell: Wohngebäude - Einfamilienhaus</div>
                     </div>
                 </div>
 
@@ -616,7 +634,7 @@ body {
                     Wand-Flächen werden automatisch aus den Gebäudedaten berechnet. Wählen Sie das Material für jede Orientierung.
                 </p>
                 <p class="note" style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
-                    Wenn ÖKOBAUDAT keinen direkten U-Wert liefert, wird der Wert im Backend aus hinterlegter Lambda-Annahme und Dicke berechnet.
+                    Wandmaterialien übernehmen U-Wert und Dicke automatisch aus dem Backend aus der ÖKOBAUDAT-Zuordnung.
                 </p>
 
                 <div class="grid-4">
@@ -630,12 +648,11 @@ body {
                             <label>Nord Wandmaterial</label>
                             <select id="north_material" onchange="updateWallMaterial('north')">
                                 <option value="">-- Wählen --</option>
-                                <option value="custom">-- Custom (manuell) --</option>
                             </select>
                         </div>
                         <div class="field" id="north_thickness_field" style="display:none;">
                             <label>Nord Dicke (mm)</label>
-                            <input id="north_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('north')">
+                            <input id="north_thickness_mm" type="number" step="1" min="1" placeholder="wird automatisch gesetzt" onchange="updateWallThickness('north')">
                         </div>
                         <div class="field" id="north_u_manual_field" style="display:none;">
                             <label>Nord U-Wert (W/m²K) – manuell</label>
@@ -666,12 +683,11 @@ body {
                             <label>Süd Wandmaterial</label>
                             <select id="south_material" onchange="updateWallMaterial('south')">
                                 <option value="">-- Wählen --</option>
-                                <option value="custom">-- Custom (manuell) --</option>
                             </select>
                         </div>
                         <div class="field" id="south_thickness_field" style="display:none;">
                             <label>Süd Dicke (mm)</label>
-                            <input id="south_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('south')">
+                            <input id="south_thickness_mm" type="number" step="1" min="1" placeholder="wird automatisch gesetzt" onchange="updateWallThickness('south')">
                         </div>
                         <div class="field" id="south_u_manual_field" style="display:none;">
                             <label>Süd U-Wert (W/m²K) – manuell</label>
@@ -702,12 +718,11 @@ body {
                             <label>Ost Wandmaterial</label>
                             <select id="east_material" onchange="updateWallMaterial('east')">
                                 <option value="">-- Wählen --</option>
-                                <option value="custom">-- Custom (manuell) --</option>
                             </select>
                         </div>
                         <div class="field" id="east_thickness_field" style="display:none;">
                             <label>Ost Dicke (mm)</label>
-                            <input id="east_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('east')">
+                            <input id="east_thickness_mm" type="number" step="1" min="1" placeholder="wird automatisch gesetzt" onchange="updateWallThickness('east')">
                         </div>
                         <div class="field" id="east_u_manual_field" style="display:none;">
                             <label>Ost U-Wert (W/m²K) – manuell</label>
@@ -738,12 +753,11 @@ body {
                             <label>West Wandmaterial</label>
                             <select id="west_material" onchange="updateWallMaterial('west')">
                                 <option value="">-- Wählen --</option>
-                                <option value="custom">-- Custom (manuell) --</option>
                             </select>
                         </div>
                         <div class="field" id="west_thickness_field" style="display:none;">
                             <label>West Dicke (mm)</label>
-                            <input id="west_thickness_mm" type="number" step="1" min="1" placeholder="z.B. 365" onchange="updateWallThickness('west')">
+                            <input id="west_thickness_mm" type="number" step="1" min="1" placeholder="wird automatisch gesetzt" onchange="updateWallThickness('west')">
                         </div>
                         <div class="field" id="west_u_manual_field" style="display:none;">
                             <label>West U-Wert (W/m²K) – manuell</label>
@@ -906,6 +920,13 @@ body {
                     </div>
 
                     <div class="field">
+                        <label>Fenstertyp</label>
+                        <select id="window_type" onchange="updateWindowType()">
+                            <option value="">-- Fenstertyp wählen --</option>
+                            <option value="custom">-- Eigenen U-Wert eingeben --</option>
+                        </select>
+                    </div>
+                    <div class="field">
                         <label>Fenster U-Wert (W/m²K)</label>
                         <input id="window_u" type="number" step="0.01" value="1.10">
                     </div>
@@ -923,6 +944,59 @@ body {
                         <div class="stat-box">
                             <div class="label">Gebäudehülle gesamt (W/K)</div>
                             <div class="value" id="envelope_total_result">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Türen & Eingänge</h3>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Türen Nord (Anzahl)</label>
+                            <input id="door_north_count" type="number" min="0" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Türen Süd (Anzahl)</label>
+                            <input id="door_south_count" type="number" min="0" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Türen Ost (Anzahl)</label>
+                            <input id="door_east_count" type="number" min="0" value="0">
+                        </div>
+                        <div class="field">
+                            <label>Türen West (Anzahl)</label>
+                            <input id="door_west_count" type="number" min="0" value="1">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Fläche pro Tür (m²)</label>
+                            <input id="door_area_per_unit" type="number" step="0.01" min="0" value="2.0">
+                        </div>
+                        <div class="field">
+                            <label>Rahmendicke (mm)</label>
+                            <input id="door_frame_thickness" type="number" step="1" min="0" value="80">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Türtyp</label>
+                        <select id="door_type" onchange="updateDoorType()">
+                            <option value="">-- Türtyp wählen --</option>
+                            <option value="custom">-- Eigenen U-Wert eingeben --</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Tür U-Wert (W/m²K)</label>
+                        <input id="door_u" type="number" step="0.01" value="2.5">
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Türen gesamt (W/K)</div>
+                            <div class="value" id="door_total_result">—</div>
                         </div>
                     </div>
                 </div>
@@ -3152,6 +3226,219 @@ window.wallMaterialData = {
 };
 window.roofMaterialData = { type: null, materialId: null, material: null, manualU: null, calculatedU: null };
 window.floorMaterialData = { boundary: null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: null };
+window.locationOptions = {
+    Bayern: ['Augsburg', 'München', 'Nürnberg', 'Regensburg', 'Ingolstadt', 'Würzburg', 'Bamberg', 'Passau'],
+    'Baden-Württemberg': ['Stuttgart', 'Mannheim', 'Karlsruhe', 'Freiburg', 'Heidelberg', 'Ulm', 'Tübingen', 'Konstanz'],
+    Berlin: ['Mitte', 'Charlottenburg', 'Kreuzberg', 'Prenzlauer Berg', 'Spandau', 'Neukölln', 'Pankow', 'Treptow-Köpenick'],
+    Brandenburg: ['Potsdam', 'Cottbus', 'Brandenburg an der Havel', 'Frankfurt (Oder)', 'Oranienburg', 'Eberswalde', 'Falkensee', 'Königs Wusterhausen'],
+    Bremen: ['Bremen', 'Bremerhaven', 'Vegesack', 'Hemelingen', 'Burglesum', 'Walle', 'Huchting', 'Blumenthal'],
+    Hamburg: ['Hamburg-Mitte', 'Altona', 'Eimsbüttel', 'Wandsbek', 'Hamburg-Nord', 'Bergedorf', 'Harburg', 'Winterhude'],
+    Hessen: ['Frankfurt am Main', 'Wiesbaden', 'Kassel', 'Darmstadt', 'Offenbach', 'Marburg', 'Gießen', 'Fulda'],
+    'Mecklenburg-Vorpommern': ['Schwerin', 'Rostock', 'Neubrandenburg', 'Stralsund', 'Greifswald', 'Wismar', 'Güstrow', 'Ribnitz-Damgarten'],
+    Niedersachsen: ['Hannover', 'Braunschweig', 'Oldenburg', 'Osnabrück', 'Wolfsburg', 'Göttingen', 'Salzgitter', 'Hildesheim'],
+    'Nordrhein-Westfalen': ['Köln', 'Düsseldorf', 'Dortmund', 'Essen', 'Bochum', 'Bonn', 'Münster', 'Aachen'],
+    'Rheinland-Pfalz': ['Mainz', 'Ludwigshafen', 'Koblenz', 'Trier', 'Kaiserslautern', 'Worms', 'Neuwied', 'Bad Kreuznach'],
+    Saarland: ['Saarbrücken', 'Neunkirchen', 'Homburg', 'Völklingen', 'St. Ingbert', 'Merzig', 'Saarlouis', 'Püttlingen'],
+    Sachsen: ['Dresden', 'Leipzig', 'Chemnitz', 'Zwickau', 'Plauen', 'Görlitz', 'Riesa', 'Freiberg'],
+    'Sachsen-Anhalt': ['Magdeburg', 'Halle (Saale)', 'Dessau-Roßlau', 'Wittenberg', 'Halberstadt', 'Stendal', 'Bitterfeld-Wolfen', 'Merseburg'],
+    'Schleswig-Holstein': ['Kiel', 'Lübeck', 'Flensburg', 'Neumünster', 'Norderstedt', 'Elmshorn', 'Itzehoe', 'Rendsburg'],
+    Thüringen: ['Erfurt', 'Jena', 'Gera', 'Weimar', 'Gotha', 'Nordhausen', 'Eisenach', 'Suhl']
+};
+window.buildingTypeOptions = {
+    wohngebaeude: ['Einfamilienhaus', 'Doppelhaus', 'Reihenhaus', 'Mehrfamilienhaus', 'Wohnblock', 'Passivhaus', 'Altbau'],
+    nicht_wohngebaeude: ['Bürogebäude', 'Schulgebäude', 'Krankenhaus', 'Hotel', 'Einzelhandel', 'Lagerhalle', 'Produktionshalle']
+};
+
+function initializeBuildingTypeSelector() {
+    const buildingTypeButton = document.getElementById('building_type_button');
+    const buildingTypeInput = document.getElementById('building_type');
+    const buildingTypeVariantInput = document.getElementById('building_type_variant');
+    const panel = document.getElementById('building_type_variants');
+    const buttons = document.getElementById('building_type_variant_buttons');
+    if (buildingTypeButton) {
+        buildingTypeButton.textContent = 'Wohngebäude';
+    }
+    if (buildingTypeInput) {
+        buildingTypeInput.value = 'wohngebaeude';
+    }
+    if (buildingTypeVariantInput) {
+        buildingTypeVariantInput.value = 'Einfamilienhaus';
+    }
+    if (panel) {
+        panel.style.display = 'none';
+    }
+    if (buttons) {
+        buttons.innerHTML = '';
+    }
+    updateBuildingTypeSummary();
+}
+
+function toggleBuildingTypeMenu() {
+    const menu = document.getElementById('building_type_menu');
+    if (!menu) return;
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function selectBuildingCategory(category) {
+    const buildingTypeInput = document.getElementById('building_type');
+    const buildingTypeButton = document.getElementById('building_type_button');
+    const menu = document.getElementById('building_type_menu');
+    if (buildingTypeInput) {
+        buildingTypeInput.value = category;
+    }
+    if (buildingTypeButton) {
+        buildingTypeButton.textContent = category === 'wohngebaeude' ? 'Wohngebäude' : 'Nichtwohngebäude';
+    }
+    if (menu) {
+        menu.style.display = 'none';
+    }
+    renderBuildingTypeOptions(category);
+    updateBuildingTypeSummary();
+}
+
+function renderBuildingTypeOptions(category) {
+    const panel = document.getElementById('building_type_variants');
+    const buttons = document.getElementById('building_type_variant_buttons');
+    const label = document.getElementById('building_type_variant_label');
+    const variantInput = document.getElementById('building_type_variant');
+    const options = window.buildingTypeOptions[category] || [];
+    if (!panel || !buttons || !label) return;
+
+    panel.style.display = 'block';
+    label.textContent = category === 'wohngebaeude' ? 'Wohngebäude-Typ' : 'Nichtwohngebäude-Typ';
+    buttons.innerHTML = '';
+
+    options.forEach((optionText, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-secondary btn-sm';
+        button.style.marginBottom = '8px';
+        button.textContent = optionText;
+        button.onclick = () => selectBuildingVariant(category, optionText);
+        if (index === 0 && variantInput) {
+            variantInput.value = optionText;
+        }
+        buttons.appendChild(button);
+    });
+
+    if (variantInput && options.length) {
+        variantInput.value = options[0];
+    }
+}
+
+function selectBuildingVariant(category, variant) {
+    const buildingTypeInput = document.getElementById('building_type');
+    const variantInput = document.getElementById('building_type_variant');
+    if (buildingTypeInput) {
+        buildingTypeInput.value = category;
+    }
+    if (variantInput) {
+        variantInput.value = variant;
+    }
+    updateBuildingTypeSummary();
+}
+
+function updateBuildingTypeSummary() {
+    const buildingTypeInput = document.getElementById('building_type');
+    const variantInput = document.getElementById('building_type_variant');
+    const summary = document.getElementById('building_type_summary');
+    if (!summary) return;
+
+    const category = buildingTypeInput?.value || 'wohngebaeude';
+    const categoryLabel = category === 'wohngebaeude' ? 'Wohngebäude' : 'Nichtwohngebäude';
+    const variant = variantInput?.value || '';
+    summary.textContent = variant ? `Aktuell: ${categoryLabel} - ${variant}` : `Aktuell: ${categoryLabel}`;
+}
+
+function initializeLocationSelector() {
+    const locationButton = document.getElementById('location_button');
+    const locationInput = document.getElementById('project_location');
+    const stateInput = document.getElementById('project_state');
+    const cityInput = document.getElementById('project_city');
+    const locationSummary = document.getElementById('location_summary');
+    const stateGrid = document.getElementById('state_button_grid');
+    const cityGrid = document.getElementById('city_button_grid');
+    const cityMenu = document.getElementById('city_menu');
+    const cityLabel = document.getElementById('city_menu_label');
+
+    if (locationButton) locationButton.textContent = 'Augsburg (Bayern)';
+    if (locationInput) locationInput.value = 'Augsburg (Bayern)';
+    if (stateInput) stateInput.value = 'Bayern';
+    if (cityInput) cityInput.value = 'Augsburg';
+    if (locationSummary) locationSummary.textContent = 'Aktuell: Augsburg (Bayern)';
+    if (cityMenu) cityMenu.style.display = 'none';
+    if (cityLabel) cityLabel.textContent = 'Ort auswählen';
+    if (stateGrid) {
+        stateGrid.innerHTML = '';
+        Object.keys(window.locationOptions).forEach((state) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-secondary btn-sm';
+            button.textContent = state;
+            button.onclick = () => selectState(state);
+            stateGrid.appendChild(button);
+        });
+    }
+    if (cityGrid) cityGrid.innerHTML = '';
+}
+
+function toggleLocationMenu() {
+    const menu = document.getElementById('location_menu');
+    if (!menu) return;
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function selectState(state) {
+    const stateInput = document.getElementById('project_state');
+    const cityInput = document.getElementById('project_city');
+    const locationInput = document.getElementById('project_location');
+    const locationButton = document.getElementById('location_button');
+    const cityMenu = document.getElementById('city_menu');
+    const cityLabel = document.getElementById('city_menu_label');
+    const cityGrid = document.getElementById('city_button_grid');
+    const cities = window.locationOptions[state] || [];
+
+    if (stateInput) stateInput.value = state;
+    if (cityInput && cities.length) cityInput.value = cities[0];
+    if (locationInput && cities.length) locationInput.value = `${cities[0]} (${state})`;
+    if (locationButton && cities.length) locationButton.textContent = `${cities[0]} (${state})`;
+    if (cityMenu) cityMenu.style.display = 'block';
+    if (cityLabel) cityLabel.textContent = `${state} - Ort auswählen`;
+    if (cityGrid) {
+        cityGrid.innerHTML = '';
+        cities.forEach((city) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-secondary btn-sm';
+            button.textContent = city;
+            button.onclick = () => selectCity(state, city);
+            cityGrid.appendChild(button);
+        });
+    }
+    updateLocationSummary();
+}
+
+function selectCity(state, city) {
+    const stateInput = document.getElementById('project_state');
+    const cityInput = document.getElementById('project_city');
+    const locationInput = document.getElementById('project_location');
+    const locationButton = document.getElementById('location_button');
+    if (stateInput) stateInput.value = state;
+    if (cityInput) cityInput.value = city;
+    if (locationInput) locationInput.value = `${city} (${state})`;
+    if (locationButton) locationButton.textContent = `${city} (${state})`;
+    updateLocationSummary();
+}
+
+function updateLocationSummary() {
+    const stateInput = document.getElementById('project_state');
+    const cityInput = document.getElementById('project_city');
+    const summary = document.getElementById('location_summary');
+    if (!summary) return;
+    const state = stateInput?.value || 'Bayern';
+    const city = cityInput?.value || 'Augsburg';
+    summary.textContent = `Aktuell: ${city} (${state})`;
+}
 
 // Populate Material-Dropdowns von ÖKOBAUDAT API - NUR BELIEBTE MATERIALIEN
 async function populateWallMaterials() {
@@ -3160,6 +3447,12 @@ async function populateWallMaterials() {
         const wallResponse = await fetch('/api/ekobaudat-material/popular_walls/');
         if (!wallResponse.ok) throw new Error('Wall materials API Error');
         const wallData = await wallResponse.json();
+        const currentValues = {
+            north: document.getElementById('north_material')?.value || '',
+            south: document.getElementById('south_material')?.value || '',
+            east: document.getElementById('east_material')?.value || '',
+            west: document.getElementById('west_material')?.value || ''
+        };
         
         // Lade die echten Materialien-Details für die IDs
         const popularmaterialIds = wallData.map(m => m.id);
@@ -3182,7 +3475,7 @@ async function populateWallMaterials() {
         orientations.forEach(orientation => {
             const select = document.getElementById(`${orientation}_material`);
             if (select) {
-                select.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
+                select.innerHTML = '<option value="">-- Wählen --</option>';
                 wallData.forEach(preset => {
                     const option = document.createElement('option');
                     option.value = preset.id;
@@ -3190,11 +3483,25 @@ async function populateWallMaterials() {
                     option.dataset.presetId = preset.id;
                     select.appendChild(option);
                 });
+                if (currentValues[orientation]) {
+                    select.value = currentValues[orientation];
+                }
+                if (select.value) {
+                    updateWallMaterial(orientation);
+                }
             }
         });
 
         // Populate Putz/Coating Dropdowns
         populatePlasterMaterials();
+
+        // Wenn bereits ein Material gewählt ist, U-Werte direkt nachladen
+        for (const orientation of orientations) {
+            const select = document.getElementById(`${orientation}_material`);
+            if (select && select.value) {
+                updateWallMaterial(orientation);
+            }
+        }
     } catch (err) {
         console.error('Fehler beim Laden der Materialien:', err);
     }
@@ -3238,10 +3545,11 @@ async function populatePlasterMaterials() {
 }
 
 // Update U-Wert wenn Material ausgewählt wird
-function updateWallMaterial(orientation) {
+async function updateWallMaterial(orientation) {
     const select = document.getElementById(`${orientation}_material`);
     const thicknessField = document.getElementById(`${orientation}_thickness_field`);
     const manualUField = document.getElementById(`${orientation}_u_manual_field`);
+    const thicknessInput = document.getElementById(`${orientation}_thickness_mm`);
     
     if (!select || !select.value) {
         document.getElementById(`${orientation}_u_display`).innerText = '—';
@@ -3250,6 +3558,9 @@ function updateWallMaterial(orientation) {
         window.wallMaterialData[orientation].thicknessMm = null;
         window.wallMaterialData[orientation].defaultThicknessMm = null;
         window.wallMaterialData[orientation].calculatedU = null;
+        if (thicknessInput) {
+            thicknessInput.readOnly = false;
+        }
         if (thicknessField) {
             thicknessField.style.display = 'none';
         }
@@ -3266,6 +3577,10 @@ function updateWallMaterial(orientation) {
         window.wallMaterialData[orientation].thicknessMm = null;
         window.wallMaterialData[orientation].defaultThicknessMm = null;
         window.wallMaterialData[orientation].calculatedU = null;
+        if (thicknessInput) {
+            thicknessInput.readOnly = false;
+            thicknessInput.placeholder = 'z.B. 365';
+        }
         // Zeige beide Felder: Dicke UND manuellen U-Wert Input
         if (thicknessField) {
             thicknessField.style.display = 'block';
@@ -3287,14 +3602,24 @@ function updateWallMaterial(orientation) {
     if (material) {
         window.wallMaterialData[orientation].materialId = materialId;
         window.wallMaterialData[orientation].material = material;
+        window.wallMaterialData[orientation].defaultThicknessMm = material.defaultThicknessMm || null;
+        window.wallMaterialData[orientation].lambdaValue = material.lambdaValue || null;
         // Zeige Dickefeld, verstecke Manual U-Input
         if (thicknessField) {
             thicknessField.style.display = 'block';
         }
+        if (thicknessInput) {
+            thicknessInput.readOnly = true;
+            thicknessInput.placeholder = 'wird automatisch gesetzt';
+            if (material.defaultThicknessMm && !thicknessInput.value) {
+                thicknessInput.value = material.defaultThicknessMm;
+                window.wallMaterialData[orientation].thicknessMm = material.defaultThicknessMm;
+            }
+        }
         if (manualUField) {
             manualUField.style.display = 'none';
         }
-        updateWallUValue(orientation);
+        await updateWallUValue(orientation);
     }
 }
 
@@ -3342,8 +3667,6 @@ async function updateWallUValue(orientation) {
     // Priorität: Manuelle Eingabe > Material U-Wert > Fallback
     if (data.manualU !== null && data.manualU !== undefined) {
         uValue = data.manualU;
-    } else if (data.material && data.material.u_value) {
-        uValue = data.material.u_value;
     } else if (data.materialId) {
         const thicknessInput = document.getElementById(`${orientation}_thickness_mm`);
         let thicknessMm = data.thicknessMm;
@@ -3361,9 +3684,16 @@ async function updateWallUValue(orientation) {
             data.calculatedU = thermalData.u_value;
             uValue = thermalData.u_value;
 
-            if (thicknessInput && !thicknessInput.value && thermalData.default_thickness_mm) {
-                thicknessInput.value = thermalData.default_thickness_mm;
-                data.thicknessMm = thermalData.default_thickness_mm;
+            const resolvedThickness = thermalData.thickness_mm || thermalData.default_thickness_mm || thicknessMm;
+            if (resolvedThickness) {
+                data.thicknessMm = resolvedThickness;
+                if (thicknessInput) {
+                    thicknessInput.value = resolvedThickness;
+                }
+            }
+
+            if (thermalData.u_value !== null && thermalData.u_value !== undefined) {
+                uValue = thermalData.u_value;
             }
         }
     }
@@ -3449,6 +3779,9 @@ function updateFloorBoundary() {
 // Lade Dach & Boden Materialien
 async function populateRoofFloorMaterials() {
     try {
+        const currentRoofValue = document.getElementById('roof_material')?.value || '';
+        const currentFloorValue = document.getElementById('floor_material')?.value || '';
+
         // Lade Dach-Materialien
         const roofResponse = await fetch('/api/ekobaudat-material/popular_roof/');
         if (roofResponse.ok) {
@@ -3473,6 +3806,12 @@ async function populateRoofFloorMaterials() {
                     option.dataset.presetId = preset.id;
                     roofSelect.appendChild(option);
                 });
+                if (currentRoofValue) {
+                    roofSelect.value = currentRoofValue;
+                }
+                if (roofSelect.value) {
+                    updateRoofMaterial();
+                }
             }
         }
 
@@ -3500,6 +3839,14 @@ async function populateRoofFloorMaterials() {
                     option.dataset.presetId = preset.id;
                     floorSelect.appendChild(option);
                 });
+
+                if (currentFloorValue) {
+                    floorSelect.value = currentFloorValue;
+                }
+
+                if (floorSelect.value) {
+                    updateFloorMaterial();
+                }
             }
         }
     } catch (err) {
@@ -3762,7 +4109,14 @@ async function calculateEnvelope() {
             window_east_area: document.getElementById('window_east_area').value,
             window_west_area: document.getElementById('window_west_area').value,
             window_u: document.getElementById('window_u').value,
-            g_value: document.getElementById('g_value').value
+            g_value: document.getElementById('g_value').value,
+
+            door_north_count: document.getElementById('door_north_count').value,
+            door_south_count: document.getElementById('door_south_count').value,
+            door_east_count: document.getElementById('door_east_count').value,
+            door_west_count: document.getElementById('door_west_count').value,
+            door_area_per_unit: document.getElementById('door_area_per_unit').value,
+            door_u: document.getElementById('door_u').value
         })
     })
     .then(async res => {
@@ -3782,6 +4136,10 @@ async function calculateEnvelope() {
 
         document.getElementById('window_total_result').innerText = data.window_total + ' W/K';
         document.getElementById('envelope_total_result').innerText = data.envelope_total + ' W/K';
+
+        if (data.door_total !== undefined) {
+            document.getElementById('door_total_result').innerText = data.door_total + ' W/K';
+        }
 
         document.getElementById('solar_gain_result').innerText = data.solar_gain_kwh + ' kWh/a';
         document.getElementById('annual_heat_result').innerText = data.annual_heat_demand_kwh + ' kWh/a';
@@ -3978,7 +4336,164 @@ window.addEventListener('load', function () {
     updateGeometryStats();
     populateWallMaterials();  // Lade ÖKOBAUDAT Wandmaterialien
     populateRoofFloorMaterials();  // Lade ÖKOBAUDAT Dach & Boden Materialien
+    populateWindowTypes(); // Lade Fenstertypen
+    populateDoorTypes(); // Lade Türtypen
+    initializeBuildingTypeSelector();
+    initializeLocationSelector();
+    setTimeout(refreshEnvelopeUValues, 800);
 });
+
+function refreshEnvelopeUValues() {
+    ['north', 'south', 'east', 'west'].forEach((orientation) => {
+        const select = document.getElementById(`${orientation}_material`);
+        if (select && select.value) {
+            updateWallMaterial(orientation);
+        }
+    });
+
+    const roofSelect = document.getElementById('roof_material');
+    if (roofSelect && roofSelect.value) {
+        updateRoofMaterial();
+    }
+
+    const floorSelect = document.getElementById('floor_material');
+    if (floorSelect && floorSelect.value) {
+        updateFloorMaterial();
+    }
+}
+
+// Fenster: Populate und Auswahl
+async function populateWindowTypes() {
+    try {
+        const resp = await fetch('/api/ekobaudat-material/popular_windows/');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        for (const preset of data) {
+            const matResp = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+            if (matResp.ok) {
+                const mat = await matResp.json();
+                window.materialPresets[preset.id] = { ...mat, ...preset };
+            }
+        }
+        const select = document.getElementById('window_type');
+        if (select) {
+            data.forEach(preset => {
+                const opt = document.createElement('option');
+                opt.value = preset.id;
+                opt.textContent = preset.simple_name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error('Fehler beim Laden der Fenstertypen:', err);
+    }
+}
+
+async function updateWindowType() {
+    const sel = document.getElementById('window_type');
+    const uInput = document.getElementById('window_u');
+    const gInput = document.getElementById('g_value');
+    if (!sel || !sel.value) return;
+
+    if (sel.value === 'custom') {
+        uInput.readOnly = false;
+        gInput.readOnly = false;
+        uInput.focus();
+        return;
+    }
+    const id = parseInt(sel.value);
+    const preset = window.materialPresets[id];
+    if (preset) {
+        if (preset.u_value != null) {
+            uInput.value = preset.u_value;
+        }
+        if (preset.g_value != null) {
+            gInput.value = preset.g_value;
+        }
+        uInput.readOnly = true;
+        gInput.readOnly = true;
+        return;
+    }
+
+    const resp = await fetch(`/api/ekobaudat-material/${id}/thermal_u/`);
+    if (resp.ok) {
+        const thermal = await resp.json();
+        if (thermal.u_value != null) {
+            uInput.value = thermal.u_value;
+            uInput.readOnly = true;
+        }
+        if (thermal.g_value != null) {
+            gInput.value = thermal.g_value;
+            gInput.readOnly = true;
+        }
+        return;
+    }
+
+    // Fallback: leave editable if the backend has no preset data
+    uInput.readOnly = false;
+    gInput.readOnly = false;
+}
+
+// Türen: Populate und Auswahl
+async function populateDoorTypes() {
+    try {
+        const resp = await fetch('/api/ekobaudat-material/popular_doors/');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        for (const preset of data) {
+            const matResp = await fetch(`/api/ekobaudat-material/${preset.id}/`);
+            if (matResp.ok) {
+                const mat = await matResp.json();
+                window.materialPresets[preset.id] = { ...mat, ...preset };
+            }
+        }
+        const select = document.getElementById('door_type');
+        if (select) {
+            data.forEach(preset => {
+                const opt = document.createElement('option');
+                opt.value = preset.id;
+                opt.textContent = preset.simple_name;
+                select.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.error('Fehler beim Laden der Türtypen:', err);
+    }
+}
+
+async function updateDoorType() {
+    const sel = document.getElementById('door_type');
+    const uInput = document.getElementById('door_u');
+    if (!sel || !sel.value) return;
+
+    if (sel.value === 'custom') {
+        uInput.readOnly = false;
+        uInput.focus();
+        return;
+    }
+    const id = parseInt(sel.value);
+    const preset = window.materialPresets[id];
+    if (preset) {
+        if (preset.u_value != null) {
+            uInput.value = preset.u_value;
+        }
+        uInput.readOnly = true;
+        return;
+    }
+
+    const resp = await fetch(`/api/ekobaudat-material/${id}/thermal_u/`);
+    if (resp.ok) {
+        const thermal = await resp.json();
+        if (thermal.u_value != null) {
+            uInput.value = thermal.u_value;
+            uInput.readOnly = true;
+        }
+        return;
+    }
+
+    // Fallback: leave editable if the backend has no preset data
+    uInput.readOnly = false;
+}
 </script>
 
 </body>
