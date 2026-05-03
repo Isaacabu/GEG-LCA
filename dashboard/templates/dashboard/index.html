@@ -504,7 +504,6 @@ body {
             <div class="upload-area">
                 <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
                 <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">📥 Daten importieren</button>
-                <div id="uploadStatus" class="upload-status">Bereit zum Import</div>
             </div>
         </div>
     </div>
@@ -3158,8 +3157,6 @@ function triggerEkobaudatUpload() {
 async function handleEkobaudatUpload(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-
-    setUploadStatus('⏳ Wird hochgeladen...', 'loading');
 
     const formData = new FormData();
     formData.append('csv_file', file);
