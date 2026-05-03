@@ -4291,8 +4291,6 @@ function calculateSystem() {
         return;
     }
 
-    const volumeText = document.getElementById('length_ns').value * document.getElementById('length_ew').value * parseFloat('3') || 0;
-
     fetch('/calculate-system/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -4305,7 +4303,7 @@ function calculateSystem() {
             hotwater_demand: document.getElementById('hotwater_demand').value,
             auxiliary_electricity: document.getElementById('auxiliary_electricity').value,
             ventilation_air_change_rate: parseFloat(document.getElementById('ventilation_system').value) || 0.5,
-            volume: volumeText
+            volume: 0
         })
     })
     .then(async res => {
