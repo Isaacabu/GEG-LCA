@@ -60,7 +60,10 @@ def read_csv_rows(filename: str) -> List[Dict[str, str]]:
     if not csv_path.exists():
         raise FileNotFoundError(f"Datei nicht gefunden: {csv_path}")
 
-    raw = csv_path.read_bytes()
+    return read_csv_rows_from_bytes(csv_path.read_bytes(), csv_path.name)
+
+
+def read_csv_rows_from_bytes(raw: bytes, filename: str = "upload.csv") -> List[Dict[str, str]]:
     text = None
     for encoding in ("utf-8-sig", "cp1252", "latin-1"):
         try:
@@ -70,7 +73,7 @@ def read_csv_rows(filename: str) -> List[Dict[str, str]]:
             continue
 
     if text is None:
-        raise UnicodeDecodeError("csv", b"", 0, 1, f"Keine unterstützte Kodierung für {csv_path.name}")
+        raise UnicodeDecodeError("csv", b"", 0, 1, f"Keine unterstützte Kodierung für {filename}")
 
     sample = text[:4096]
     delimiter = detect_delimiter(sample)
@@ -79,6 +82,48 @@ def read_csv_rows(filename: str) -> List[Dict[str, str]]:
         {key.strip(): (value or "").strip() for key, value in row.items()}
         for row in reader
     ]
+
+
+def _import_material_rows(rows, model_class):
+    imported = 0
+    updated = 0
+    skipped = 0
+
+    for row in rows:
+        parsed = extract_material_data(row)
+        if not parsed or not parsed["name"]:
+            skipped += 1
+            continue
+
+        defaults = {
+            "producer": parsed["producer"],
+            "category": parsed["category"],
+            "u_value": parsed["u_value"],
+            "embodied_co2": parsed["embodied_co2"],
+            "notes": parsed["notes"],
+        }
+
+        _, created = model_class.objects.update_or_create(
+            name=parsed["name"],
+            defaults=defaults,
+        )
+        if created:
+            imported += 1
+        else:
+            updated += 1
+
+    return {
+        "rows": len(rows),
+        "imported": imported,
+        "updated": updated,
+        "skipped": skipped,
+    }
+
+
+def import_materials_from_uploaded_file(uploaded_file, model_class):
+    raw = uploaded_file.read()
+    rows = read_csv_rows_from_bytes(raw, getattr(uploaded_file, "name", "upload.csv"))
+    return _import_material_rows(rows, model_class)
 
 
 def extract_material_data(row: Dict[str, str]) -> Optional[Dict[str, Optional[object]]]:
@@ -106,37 +151,6 @@ def extract_material_data(row: Dict[str, str]) -> Optional[Dict[str, Optional[ob
 
 def import_materials_from_csv(filename: str, model_class):
     rows = read_csv_rows(filename)
-    imported = 0
-    updated = 0
-    skipped = 0
-
-    for row in rows:
-        parsed = extract_material_data(row)
-        if not parsed or not parsed["name"]:
-            skipped += 1
-            continue
-
-        defaults = {
-            "producer": parsed["producer"],
-            "category": parsed["category"],
-            "u_value": parsed["u_value"],
-            "embodied_co2": parsed["embodied_co2"],
-            "notes": parsed["notes"],
-        }
-
-        obj, created = model_class.objects.update_or_create(
-            name=parsed["name"],
-            defaults=defaults,
-        )
-        if created:
-            imported += 1
-        else:
-            updated += 1
-
-    return {
-        "file": filename,
-        "rows": len(rows),
-        "imported": imported,
-        "updated": updated,
-        "skipped": skipped,
-    }
+    result = _import_material_rows(rows, model_class)
+    result["file"] = filename
+    return result

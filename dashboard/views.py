@@ -2,9 +2,11 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 # Importiere zentrale Hilfsfunktionen und Konstanten
 from .utils import safe_float, validate_non_negative, validate_u_value, get_rating
+from .csv_utils import import_materials_from_uploaded_file
 from .constants import (
     SOLAR_FACTORS, PRIMARY_ENERGY_FACTORS, CO2_FACTORS,
     RATING_THRESHOLDS, SYSTEM_RATING_THRESHOLDS,
@@ -17,6 +19,29 @@ from .constants import (
 
 def index(request):
     return render(request, "dashboard/index.html")
+
+
+@csrf_exempt
+@require_POST
+def upload_ekobaudat(request):
+    uploaded_file = request.FILES.get("csv_file")
+    if not uploaded_file:
+        return JsonResponse({"ok": False, "errors": ["Keine CSV-Datei hochgeladen."]}, status=400)
+
+    filename = (uploaded_file.name or "").lower()
+    if not filename.endswith(".csv"):
+        return JsonResponse({"ok": False, "errors": ["Bitte eine CSV-Datei hochladen."]}, status=400)
+
+    try:
+        result = import_materials_from_uploaded_file(uploaded_file, EkobaudatMaterial)
+        return JsonResponse({
+            "ok": True,
+            "message": "Ökobaudat erfolgreich importiert.",
+            "file": uploaded_file.name,
+            **result,
+        })
+    except Exception as exc:
+        return JsonResponse({"ok": False, "errors": [f"Import fehlgeschlagen: {exc}"]}, status=400)
 
 
 @csrf_exempt

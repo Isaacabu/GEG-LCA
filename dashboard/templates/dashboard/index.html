@@ -85,6 +85,46 @@ body {
     flex-wrap: wrap;
 }
 
+.upload-area {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.upload-status {
+    min-height: 0;
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    background: var(--green-dark);
+    box-shadow: var(--shadow);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    text-align: center;
+}
+
+.upload-status.loading {
+    background: linear-gradient(180deg, #4d7a53, #3f6f46);
+}
+
+.upload-status.success {
+    background: linear-gradient(180deg, #5f8f65, #4f7f56);
+}
+
+.upload-status.error {
+    background: linear-gradient(180deg, #b24f42, #8f382d);
+}
+
+.hidden-file-input {
+    display: none;
+}
+
 .btn {
     border: none;
     border-radius: 12px;
@@ -461,6 +501,11 @@ body {
         <div class="actions">
             <button id="expertBtn" class="btn btn-yellow" onclick="toggleExpertMode()">Expertenmodus</button>
             <button id="saveProjectBtn" class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
+            <div class="upload-area">
+                <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
+                <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">📥 Daten importieren</button>
+                <div id="uploadStatus" class="upload-status">Bereit zum Import</div>
+            </div>
         </div>
     </div>
 
@@ -3089,6 +3134,57 @@ function toggleExpertMode() {
     } else {
         btn.innerText = 'Expertenmodus';
         btn.classList.remove('active');
+    }
+}
+
+function setUploadStatus(message, state) {
+    const status = document.getElementById('uploadStatus');
+    if (!status) return;
+    status.className = 'upload-status';
+    if (state) {
+        status.classList.add(state);
+    }
+    status.textContent = message;
+}
+
+function triggerEkobaudatUpload() {
+    const input = document.getElementById('ekobaudatUploadInput');
+    if (input) {
+        input.value = '';
+        input.click();
+    }
+}
+
+async function handleEkobaudatUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    setUploadStatus('⏳ Wird hochgeladen...', 'loading');
+
+    const formData = new FormData();
+    formData.append('csv_file', file);
+
+    try {
+        const response = await fetch('/upload-ekobaudat/', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            const message = data.errors && data.errors.length ? data.errors[0] : 'Import fehlgeschlagen';
+            throw new Error(message);
+        }
+
+        setUploadStatus(`✓ ${data.imported} Materialien importiert`, 'success');
+
+        await populateWallMaterials();
+        await populateRoofFloorMaterials();
+        await populateWindowTypes();
+        await populateDoorTypes();
+        await refreshEnvelopeUValues();
+    } catch (error) {
+        setUploadStatus(`✗ ${error.message || 'Import fehlgeschlagen'}`, 'error');
     }
 }
 
