@@ -1,0 +1,1140 @@
+<!-- BAUTECHNIK SEKTION (JS-App) -->
+<div id="bautechnik" class="tab" style="display: none;">
+    <style>
+        .bautechnik-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: calc(100vh - 300px);
+        }
+        
+        .bautechnik-sidebar {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .bautechnik-nav-item {
+            padding: 12px 16px;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            transition: 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-nav-item:hover {
+            background: #efefef;
+        }
+        
+        .bautechnik-nav-item.active {
+            background: #e8f5e9;
+            border-left-color: var(--green-dark);
+            color: var(--green-dark);
+        }
+        
+        .bautechnik-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .bautechnik-content h2 {
+            margin-top: 0;
+            color: #1f2b1f;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .bautechnik-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        
+        .bautechnik-table thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .bautechnik-table th,
+        .bautechnik-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-table tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .bautechnik-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-form-grid.full {
+            grid-template-columns: 1fr;
+        }
+        
+        .bautechnik-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bautechnik-modal.active {
+            display: flex;
+        }
+        
+        .bautechnik-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .bautechnik-modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: #1f2b1f;
+        }
+        
+        .bautechnik-modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+        
+        .bautechnik-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .bautechnik-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            border-top-color: var(--green-dark);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .bautechnik-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .bautechnik-error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .bautechnik-success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+        
+        .btn-danger {
+            background: #d32f2f;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e68900;
+        }
+
+        .schicht-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    
+    <div class="panel" style="height: auto;">
+        <h2 class="section-title">Bautechnik</h2>
+        <div class="section-divider"></div>
+        
+        <div class="bautechnik-container">
+            <!-- SIDEBAR NAVIGATION -->
+            <div class="bautechnik-sidebar">
+                <div class="bautechnik-nav-item active" onclick="switchBautechnikSection('materialien')">
+                    📋 Materialien
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('konstruktionen')">
+                    🏗️ Konstruktionen
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('fenster')">
+                    🪟 Fenster
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('tueren')">
+                    🚪 Türen/Tore
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('sonnenschutz')">
+                    ☀️ Sonnenschutz
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('gebaeude')">
+                    🏢 Gebäude
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('bauteile')">
+                    📐 Bauteile
+                </div>
+            </div>
+            
+            <!-- CONTENT AREA -->
+            <div class="bautechnik-content">
+                <div id="materialien-section" class="bautechnik-section">
+                    <h2>Materialien</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openMaterialForm()">+ Neues Material</button>
+                    </div>
+                    <div id="materialien-list"></div>
+                </div>
+                
+                <div id="konstruktionen-section" class="bautechnik-section" style="display:none;">
+                    <h2>Konstruktionen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openKonstruktionForm()">+ Neue Konstruktion</button>
+                    </div>
+                    <div id="konstruktionen-list"></div>
+                </div>
+                
+                <div id="fenster-section" class="bautechnik-section" style="display:none;">
+                    <h2>Fenstertypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openFensterForm()">+ Neuer Fenstertyp</button>
+                    </div>
+                    <div id="fenster-list"></div>
+                </div>
+                
+                <div id="tueren-section" class="bautechnik-section" style="display:none;">
+                    <h2>Tür- & Tortypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openTürForm()">+ Neuer Türtyp</button>
+                    </div>
+                    <div id="tueren-list"></div>
+                </div>
+                
+                <div id="sonnenschutz-section" class="bautechnik-section" style="display:none;">
+                    <h2>Sonnenschutzvorrichtungen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openSonnenschutzForm()">+ Neue Vorrichtung</button>
+                    </div>
+                    <div id="sonnenschutz-list"></div>
+                </div>
+                
+                <div id="gebaeude-section" class="bautechnik-section" style="display:none;">
+                    <h2>Gebäude</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openGebäudeForm()">+ Neues Gebäude</button>
+                    </div>
+                    <div id="gebaeude-list"></div>
+                </div>
+                
+                <div id="bauteile-section" class="bautechnik-section" style="display:none;">
+                    <h2>Bauteile</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openBauteilForm()">+ Neues Bauteil</button>
+                    </div>
+                    <div id="bauteile-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Material Modal -->
+<div id="materialModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Material</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="materialName" type="text">
+            </div>
+            <div class="field">
+                <label>Rohdichte (kg/m³)</label>
+                <input id="materialRohdichte" type="number" min="0" step="10">
+            </div>
+            <div class="field">
+                <label>Wärmeleitfähigkeit λ (W/mK)</label>
+                <input id="materialLambda" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>Spez. Wärmekapazität (kJ/kgK)</label>
+                <input id="materialC" type="number" min="0" step="0.1">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveMaterial()">Speichern</button>
+            <button class="btn" onclick="closeModal('materialModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Fenster Modal -->
+<div id="fensterModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Fenstertyp</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="fensterName" type="text">
+            </div>
+            <div class="field">
+                <label>Uw-Wert (W/m²K)</label>
+                <input id="fensterUw" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>g-Wert (0-1)</label>
+                <input id="fensterG" type="number" min="0" max="1" step="0.01">
+            </div>
+            <div class="field">
+                <label>ψ-Wert Kante (W/mK)</label>
+                <input id="fensterPsi" type="number" min="0" step="0.01" value="0.06">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveFenster()">Speichern</button>
+            <button class="btn" onclick="closeModal('fensterModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Türen Modal -->
+<div id="turenModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Türtyp</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="turenName" type="text">
+            </div>
+            <div class="field">
+                <label>U-Wert (W/m²K)</label>
+                <input id="turenU" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>Luftdichtheit (m³/h·m²)</label>
+                <input id="turenLuft" type="number" min="0" step="0.1">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveTuren()">Speichern</button>
+            <button class="btn" onclick="closeModal('turenModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Sonnenschutz Modal -->
+<div id="sonnenschutzModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Sonnenschutzvorrichtung</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="sonnenschutzName" type="text">
+            </div>
+            <div class="field">
+                <label>Position</label>
+                <select id="sonnenschutzPosition">
+                    <option value="innen">Innen</option>
+                    <option value="außen">Außen</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Typ</label>
+                <select id="sonnenschutzTyp">
+                    <option value="fest">Fest</option>
+                    <option value="variabel">Variabel</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Reduktionsfaktor (0-1)</label>
+                <input id="sonnenschutzReduktion" type="number" min="0" max="1" step="0.01">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveSonnenschutz()">Speichern</button>
+            <button class="btn" onclick="closeModal('sonnenschutzModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Gebäude Modal -->
+<div id="gebaudeModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Gebäude</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="gebaudeName" type="text">
+            </div>
+            <div class="field">
+                <label>Standort</label>
+                <input id="gebaudeStandort" type="text" placeholder="z.B. Berlin">
+            </div>
+            <div class="field">
+                <label>BGF (m²)</label>
+                <input id="gebaudeBGF" type="number" min="0" step="1">
+            </div>
+            <div class="field">
+                <label>Gradstunden/Jahr (Kh/a)</label>
+                <input id="gebaudeGradstunden" type="number" min="0" step="100" value="78000">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveGebaude()">Speichern</button>
+            <button class="btn" onclick="closeModal('gebaudeModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bauteil Modal -->
+<div id="bauteilModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Bauteil</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="bauteilName" type="text">
+            </div>
+            <div class="field">
+                <label>Gebäude</label>
+                <select id="bauteilGebaude"></select>
+            </div>
+            <div class="field">
+                <label>Orientierung</label>
+                <select id="bauteilOrientierung">
+                    <option value="nord">Nord</option>
+                    <option value="süd">Süd</option>
+                    <option value="ost">Ost</option>
+                    <option value="west">West</option>
+                    <option value="horizontal">Horizontal</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Fläche (m²)</label>
+                <input id="bauteilFlaeche" type="number" min="0" step="0.1">
+            </div>
+            <div class="field">
+                <label>Konstruktion</label>
+                <select id="bauteilKonstruktion"></select>
+            </div>
+            <div class="field">
+                <label>Fenstertyp</label>
+                <select id="bauteilFenster"></select>
+            </div>
+            <div class="field">
+                <label>Fensterfläche (m²)</label>
+                <input id="bauteilFensterFlaeche" type="number" min="0" step="0.1">
+            </div>
+            <div class="field">
+                <label>Sonnenschutz</label>
+                <select id="bauteilSonnenschutz"></select>
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveBauteil()">Speichern</button>
+            <button class="btn" onclick="closeModal('bauteilModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<!-- Konstruktion Modal -->
+<div id="konstruktionModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Konstruktion</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="konstruktionName" type="text">
+            </div>
+            <div class="field">
+                <label>Typ</label>
+                <select id="konstruktionTyp">
+                    <option value="aussen_wand">Außenwand</option>
+                    <option value="dach">Dach</option>
+                    <option value="bodenplatte">Bodenplatte</option>
+                    <option value="decke">Decke</option>
+                    <option value="keller_wand">Kellerwand</option>
+                </select>
+            </div>
+            <div class="field full">
+                <label>Beschreibung</label>
+                <textarea id="konstruktionBeschreibung" style="min-height:60px;"></textarea>
+            </div>
+            <div class="field">
+                <label>R_si (m²K/W)</label>
+                <input id="konstruktionRsi" type="number" min="0" step="0.01" value="0.13">
+            </div>
+            <div class="field">
+                <label>R_se (m²K/W)</label>
+                <input id="konstruktionRse" type="number" min="0" step="0.01" value="0.04">
+            </div>
+        </div>
+        
+        <div style="margin-top:20px; padding-top:20px; border-top: 1px solid #eee;">
+            <h3 style="margin:0 0 12px 0;">Schichten</h3>
+            <div id="konstruktionSchichten" style="margin-bottom:12px;"></div>
+            <div class="bautechnik-form-grid">
+                <select id="konstruktionMaterialSelect"></select>
+                <input id="konstruktionDicke" type="number" min="10" step="10" placeholder="Dicke (mm)">
+                <button class="btn btn-primary btn-sm" onclick="addSchichtToKonstruktion()">+ Schicht</button>
+            </div>
+        </div>
+        
+        <div class="bautechnik-modal-footer" style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="saveKonstruktion()">Speichern</button>
+            <button class="btn" onclick="closeModal('konstruktionModal')" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let bautechnikState = {
+    currentSection: 'materialien',
+    materialien: [],
+    konstruktionen: [],
+    fenster: [],
+    tueren: [],
+    sonnenschutz: [],
+    gebaeude: [],
+    bauteile: [],
+    currentKonstruktionSchichten: [],
+};
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.getElementById(modalId).querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+    bautechnikState.currentKonstruktionSchichten = [];
+}
+
+function switchBautechnikSection(section) {
+    // Hide all sections
+    document.querySelectorAll('.bautechnik-section').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.bautechnik-nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById(section + '-section').style.display = 'block';
+    event.target.classList.add('active');
+    
+    bautechnikState.currentSection = section;
+    loadBautechnikData(section);
+}
+
+function loadBautechnikData(section) {
+    const listId = section + '-list';
+    const container = document.getElementById(listId);
+    container.innerHTML = '<div class="bautechnik-loading"><div class="bautechnik-spinner"></div></div>';
+    
+    let apiUrl = '';
+    switch(section) {
+        case 'materialien': apiUrl = '/api/material/'; break;
+        case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
+        case 'fenster': apiUrl = '/api/fenster-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
+        case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
+        case 'bauteile': apiUrl = '/api/bauteil/'; break;
+    }
+    
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+            bautechnikState[section] = data.results || data;
+            renderBautechnikTable(section, bautechnikState[section]);
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="bautechnik-error">Fehler beim Laden der Daten</div>';
+            console.error(err);
+        });
+}
+
+function renderBautechnikTable(section, items) {
+    const container = document.getElementById(section + '-list');
+    
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
+        return;
+    }
+    
+    let html = '<table class="bautechnik-table"><thead><tr>';
+    
+    if (section === 'materialien') {
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(m => {
+            html += `<tr>
+                <td>${m.name}</td>
+                <td>${m.rohdichte}</td>
+                <td>${m.lambda_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'fenster') {
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(f => {
+            html += `<tr>
+                <td>${f.name}</td>
+                <td>${f.u_w}</td>
+                <td>${f.g_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'tueren') {
+        html += '<th>Name</th><th>U-Wert</th><th>Luftdichtheit</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(t => {
+            html += `<tr>
+                <td>${t.name}</td>
+                <td>${t.u_value}</td>
+                <td>${t.luftdichtheit}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'sonnenschutz') {
+        html += '<th>Name</th><th>Position</th><th>Typ</th><th>Reduktion</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(s => {
+            html += `<tr>
+                <td>${s.name}</td>
+                <td>${s.position}</td>
+                <td>${s.typ}</td>
+                <td>${(s.reduktionsfaktor*100).toFixed(0)}%</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'gebaeude') {
+        html += '<th>Name</th><th>Standort</th><th>BGF</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(g => {
+            html += `<tr>
+                <td>${g.name}</td>
+                <td>${g.standort}</td>
+                <td>${g.bgf} m²</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'konstruktionen') {
+        html += '<th>Name</th><th>Typ</th><th>U-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(k => {
+            html += `<tr>
+                <td>${k.name}</td>
+                <td>${k.typ}</td>
+                <td>${(k.u_value || 0).toFixed(3)}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'bauteile') {
+        html += '<th>Name</th><th>Gebäude</th><th>Fläche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(b => {
+            const transLoss = (b.transmissionsverlust || 0).toFixed(1);
+            html += `<tr>
+                <td>${b.name}</td>
+                <td>${b.gebaeude_name || '-'}</td>
+                <td>${b.flaeche} m²</td>
+                <td>${transLoss} W/K</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">Löschen</button></td>
+            </tr>`;
+        });
+    }
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+// ===== MATERIAL =====
+function openMaterialForm() {
+    document.getElementById('materialModal').classList.add('active');
+}
+
+function saveMaterial() {
+    const data = {
+        name: document.getElementById('materialName').value,
+        rohdichte: parseFloat(document.getElementById('materialRohdichte').value),
+        lambda_value: parseFloat(document.getElementById('materialLambda').value),
+        c_specific: parseFloat(document.getElementById('materialC').value) || 1.0,
+        mu_value: 1.0,
+    };
+    
+    if (!data.name || !data.rohdichte || !data.lambda_value) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+    }
+    
+    fetch('/api/material/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('materialModal');
+        loadBautechnikData('materialien');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteMaterial(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/material/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('materialien'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== FENSTER =====
+function openFensterForm() {
+    loadSelectOptions();
+    document.getElementById('fensterModal').classList.add('active');
+}
+
+function saveFenster() {
+    const data = {
+        name: document.getElementById('fensterName').value,
+        u_w: parseFloat(document.getElementById('fensterUw').value),
+        g_value: parseFloat(document.getElementById('fensterG').value),
+        psi_edge: parseFloat(document.getElementById('fensterPsi').value) || 0.06,
+    };
+    
+    if (!data.name || !data.u_w) {
+        alert('Bitte mindestens Name und Uw-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/fenster-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('fensterModal');
+        loadBautechnikData('fenster');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteFenster(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('fenster'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== TÜREN =====
+function openTürForm() {
+    document.getElementById('turenModal').classList.add('active');
+}
+
+function saveTuren() {
+    const data = {
+        name: document.getElementById('turenName').value,
+        u_value: parseFloat(document.getElementById('turenU').value),
+        luftdichtheit: parseFloat(document.getElementById('turenLuft').value) || 0,
+    };
+    
+    if (!data.name || !data.u_value) {
+        alert('Bitte mindestens Name und U-Wert ausfüllen');
+        return;
+    }
+    
+    fetch('/api/tür-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('turenModal');
+        loadBautechnikData('tueren');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteTuren(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/tür-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('tueren'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== SONNENSCHUTZ =====
+function openSonnenschutzForm() {
+    document.getElementById('sonnenschutzModal').classList.add('active');
+}
+
+function saveSonnenschutz() {
+    const data = {
+        name: document.getElementById('sonnenschutzName').value,
+        position: document.getElementById('sonnenschutzPosition').value,
+        typ: document.getElementById('sonnenschutzTyp').value,
+        reduktionsfaktor: parseFloat(document.getElementById('sonnenschutzReduktion').value) || 0.5,
+    };
+    
+    if (!data.name) {
+        alert('Bitte Name ausfüllen');
+        return;
+    }
+    
+    fetch('/api/sonnenschutz-typ/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('sonnenschutzModal');
+        loadBautechnikData('sonnenschutz');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteSonnenschutz(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/sonnenschutz-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('sonnenschutz'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== GEBÄUDE =====
+function openGebäudeForm() {
+    document.getElementById('gebaudeModal').classList.add('active');
+}
+
+function saveGebaude() {
+    const data = {
+        name: document.getElementById('gebaudeName').value,
+        standort: document.getElementById('gebaudeStandort').value,
+        bgf: parseFloat(document.getElementById('gebaudeBGF').value),
+        gradstunden: parseFloat(document.getElementById('gebaudeGradstunden').value) || 78000,
+    };
+    
+    if (!data.name || !data.bgf) {
+        alert('Bitte Name und BGF ausfüllen');
+        return;
+    }
+    
+    fetch('/api/gebäude/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('gebaudeModal');
+        loadBautechnikData('gebaeude');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteGebaude(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/gebäude/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('gebaeude'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== BAUTEILE =====
+function openBauteilForm() {
+    loadSelectOptions();
+    document.getElementById('bauteilModal').classList.add('active');
+}
+
+function loadSelectOptions() {
+    // Load Gebäude options
+    fetch('/api/gebäude/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilGebaude');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(g => {
+                select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            });
+        });
+    
+    // Load Konstruktion options
+    fetch('/api/konstruktion/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilKonstruktion');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(k => {
+                select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
+            });
+        });
+    
+    // Load Fenster options
+    fetch('/api/fenster-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilFenster');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(f => {
+                select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+            });
+        });
+    
+    // Load Sonnenschutz options
+    fetch('/api/sonnenschutz-typ/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('bauteilSonnenschutz');
+            select.innerHTML = '<option value="">-- Wählen --</option>';
+            (d.results || d).forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        });
+}
+
+function saveBauteil() {
+    const gebaudeId = parseInt(document.getElementById('bauteilGebaude').value);
+    const konstruktionId = parseInt(document.getElementById('bauteilKonstruktion').value) || null;
+    const fensterTypeId = parseInt(document.getElementById('bauteilFenster').value) || null;
+    const sonnenschutzId = parseInt(document.getElementById('bauteilSonnenschutz').value) || null;
+    
+    const data = {
+        name: document.getElementById('bauteilName').value,
+        gebaeude: gebaudeId,
+        orientierung: document.getElementById('bauteilOrientierung').value,
+        flaeche: parseFloat(document.getElementById('bauteilFlaeche').value),
+        konstruktion: konstruktionId,
+        fenster_typ: fensterTypeId,
+        fenster_flaeche: parseFloat(document.getElementById('bauteilFensterFlaeche').value) || 0,
+        sonnenschutz: sonnenschutzId,
+    };
+    
+    if (!data.name || !data.gebaeude || !data.flaeche) {
+        alert('Bitte Name, Gebäude und Fläche ausfüllen');
+        return;
+    }
+    
+    fetch('/api/bauteil/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        closeModal('bauteilModal');
+        loadBautechnikData('bauteile');
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function deleteBauteil(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/bauteil/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('bauteile'))
+            .catch(err => console.error(err));
+    }
+}
+
+// ===== KONSTRUKTION =====
+function openKonstruktionForm() {
+    bautechnikState.currentKonstruktionSchichten = [];
+    loadKonstruktionSelectOptions();
+    document.getElementById('konstruktionModal').classList.add('active');
+}
+
+function loadKonstruktionSelectOptions() {
+    fetch('/api/material/')
+        .then(r => r.json())
+        .then(d => {
+            const select = document.getElementById('konstruktionMaterialSelect');
+            select.innerHTML = '<option value="">-- Material wählen --</option>';
+            (d.results || d).forEach(m => {
+                select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        });
+}
+
+function addSchichtToKonstruktion() {
+    const materialId = parseInt(document.getElementById('konstruktionMaterialSelect').value);
+    const dicke = parseInt(document.getElementById('konstruktionDicke').value);
+    const materialName = document.querySelector('#konstruktionMaterialSelect option:checked').text;
+    
+    if (!materialId || !dicke) {
+        alert('Material und Dicke auswählen');
+        return;
+    }
+    
+    bautechnikState.currentKonstruktionSchichten.push({
+        material_id: materialId,
+        dicke_mm: dicke,
+        material_name: materialName
+    });
+    
+    renderKonstruktionSchichten();
+    document.getElementById('konstruktionMaterialSelect').value = '';
+    document.getElementById('konstruktionDicke').value = '';
+}
+
+function renderKonstruktionSchichten() {
+    const container = document.getElementById('konstruktionSchichten');
+    container.innerHTML = '';
+    
+    bautechnikState.currentKonstruktionSchichten.forEach((s, idx) => {
+        container.innerHTML += `
+            <div class="schicht-item">
+                <span>${idx+1}. ${s.material_name} (${s.dicke_mm}mm)</span>
+                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">✕</button>
+            </div>
+        `;
+    });
+}
+
+function removeSchichtFromKonstruktion(idx) {
+    bautechnikState.currentKonstruktionSchichten.splice(idx, 1);
+    renderKonstruktionSchichten();
+}
+
+function saveKonstruktion() {
+    const name = document.getElementById('konstruktionName').value;
+    const typ = document.getElementById('konstruktionTyp').value;
+    const beschreibung = document.getElementById('konstruktionBeschreibung').value;
+    const r_si = parseFloat(document.getElementById('konstruktionRsi').value) || 0.13;
+    const r_se = parseFloat(document.getElementById('konstruktionRse').value) || 0.04;
+    
+    if (!name || !typ) {
+        alert('Bitte Name und Typ ausfüllen');
+        return;
+    }
+    
+    const data = {
+        name: name,
+        typ: typ,
+        description: beschreibung,
+        r_si: r_si,
+        r_se: r_se,
+        schichten: bautechnikState.currentKonstruktionSchichten.map(s => s.material_id)
+    };
+    
+    fetch('/api/konstruktion/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('API Error');
+        return res.json();
+    })
+    .then(result => {
+        // Add schichten via the through model
+        addSchichtenToKonstruktion(result.id);
+    })
+    .catch(err => alert('Fehler: ' + err));
+}
+
+function addSchichtenToKonstruktion(konstruktionId) {
+    const schichten = bautechnikState.currentKonstruktionSchichten;
+    let completed = 0;
+    
+    schichten.forEach((s, order) => {
+        const data = {
+            konstruktion: konstruktionId,
+            schicht: s.material_id,
+            order: order
+        };
+        
+        fetch('/api/konstruktion-schicht/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(() => {
+            completed++;
+            if (completed === schichten.length) {
+                closeModal('konstruktionModal');
+                loadBautechnikData('konstruktionen');
+            }
+        });
+    });
+}
+
+function deleteKonstruktion(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/konstruktion/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('konstruktionen'))
+            .catch(err => console.error(err));
+    }
+}
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('bautechnik')) {
+        loadBautechnikData('materialien');
+    }
+});
+</script>
