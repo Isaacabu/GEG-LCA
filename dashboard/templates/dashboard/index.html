@@ -504,6 +504,7 @@ body {
             <div class="upload-area">
                 <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
                 <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">📥 Daten importieren</button>
+                <div id="uploadStatus" class="upload-status" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -3144,6 +3145,7 @@ function setUploadStatus(message, state) {
         status.classList.add(state);
     }
     status.textContent = message;
+    status.style.display = 'inline-flex';
 }
 
 function triggerEkobaudatUpload() {
