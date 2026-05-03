@@ -2277,6 +2277,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="auxiliary_electricity" type="number" value="1200">
                     </div>
 
+                    <div class="field">
+                        <label>Lüftungssystem</label>
+                        <select id="ventilation_system">
+                            <option value="0.5" data-label="ohne Lüftungsanlage">ohne Lüftungsanlage</option>
+                            <option value="0.6" data-label="zentrale Abluftanlage ohne Wärmerückgewinnung">zentrale Abluftanlage ohne WRG</option>
+                            <option value="1.0" data-label="Abluft/Zuluftanlage ohne Wärmerückgewinnung">Abluft/Zuluftanlage ohne WRG</option>
+                            <option value="0.8" data-label="Abluft/Zuluftanlage mit Wärmerückgewinnung">Abluft/Zuluftanlage mit WRG</option>
+                            <option value="0.7" data-label="dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung">dezentrale Abluft/Zuluftanlage mit WRG</option>
+                            <option value="0.7" data-label="Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager">Abluft/Zuluft-WP ohne WÜ</option>
+                            <option value="0.6" data-label="Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager">Abluft/Zuluft-WP mit WÜ</option>
+                        </select>
+                    </div>
+
                     <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
 
                     <div class="note">
@@ -2318,6 +2331,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="stat-box">
                             <div class="label">Spezifische Primärenergie (kWh/m²a)</div>
                             <div class="value" id="system_spec_primary">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Lüftungsverlust (kWh/a)</div>
+                            <div class="value" id="system_ventilation">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Heizwärmebedarf mit Lüftung (kWh/a)</div>
+                            <div class="value" id="system_heat_adjusted">—</div>
                         </div>
                     </div>
 
@@ -4270,6 +4291,8 @@ function calculateSystem() {
         return;
     }
 
+    const volumeText = document.getElementById('length_ns').value * document.getElementById('length_ew').value * parseFloat('3') || 0;
+
     fetch('/calculate-system/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -4280,7 +4303,9 @@ function calculateSystem() {
             efficiency: document.getElementById('efficiency').value,
             cop: document.getElementById('cop').value,
             hotwater_demand: document.getElementById('hotwater_demand').value,
-            auxiliary_electricity: document.getElementById('auxiliary_electricity').value
+            auxiliary_electricity: document.getElementById('auxiliary_electricity').value,
+            ventilation_air_change_rate: parseFloat(document.getElementById('ventilation_system').value) || 0.5,
+            volume: volumeText
         })
     })
     .then(async res => {
@@ -4297,6 +4322,8 @@ function calculateSystem() {
         document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
         document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m²a';
         document.getElementById('system_spec_primary').innerText = data.specific_primary_energy + ' kWh/m²a';
+        document.getElementById('system_ventilation').innerText = data.ventilation_loss_kwh + ' kWh/a';
+        document.getElementById('system_heat_adjusted').innerText = data.adjusted_heat_demand_net + ' kWh/a';
 
         updateSystemRating(data.system_color, data.system_label, data.system_message);
 

@@ -13,7 +13,7 @@ from .constants import (
     DEFAULT_GRADSTUNDEN, DEFAULT_G_VALUE, VALID_HEATING_SYSTEMS,
     DEFAULT_HOTWATER_DEMAND, DEFAULT_AUXILIARY_ELECTRICITY,
     MAX_U_VALUE, MAX_G_VALUE, MIN_G_VALUE, MIN_EFFICIENCY, MIN_COP,
-    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP
+    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP, VENTILATION_CONSTANT
 )
 
 
@@ -243,6 +243,8 @@ def calculate_system(request):
 
         hotwater_demand = safe_float(data.get("hotwater_demand"), DEFAULT_HOTWATER_DEMAND)
         auxiliary_electricity = safe_float(data.get("auxiliary_electricity"), DEFAULT_AUXILIARY_ELECTRICITY)
+        ventilation_air_change_rate = safe_float(data.get("ventilation_air_change_rate"), 0.5)
+        volume = safe_float(data.get("volume"), 0)
 
         errors = []
 
@@ -266,11 +268,15 @@ def calculate_system(request):
         if errors:
             return JsonResponse({"ok": False, "errors": errors}, status=400)
 
+        # Calculate ventilation losses
+        ventilation_loss_kwh = (VENTILATION_CONSTANT * ventilation_air_change_rate * volume * DEFAULT_GRADSTUNDEN) / 1000 if volume > 0 else 0
+        adjusted_heat_demand_net = heat_demand_net + ventilation_loss_kwh
+
         if heating_system == "heatpump":
-            heating_end_energy = heat_demand_net / cop
+            heating_end_energy = adjusted_heat_demand_net / cop
             hotwater_end_energy = hotwater_demand / cop
         else:
-            heating_end_energy = heat_demand_net / efficiency
+            heating_end_energy = adjusted_heat_demand_net / efficiency
             hotwater_end_energy = hotwater_demand / efficiency
 
         total_end_energy = heating_end_energy + hotwater_end_energy + auxiliary_electricity
@@ -304,6 +310,8 @@ def calculate_system(request):
             "co2_emissions": round(co2_emissions, 2),
             "specific_end_energy": round(specific_end_energy, 2),
             "specific_primary_energy": round(specific_primary_energy, 2),
+            "ventilation_loss_kwh": round(ventilation_loss_kwh, 2),
+            "adjusted_heat_demand_net": round(adjusted_heat_demand_net, 2),
             "system_label": system_label,
             "system_color": system_color,
             "system_message": system_message
