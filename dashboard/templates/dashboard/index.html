@@ -274,6 +274,44 @@ body {
     background: #f8fff8;
 }
 
+.ventilation-section {
+    margin-top: 8px;
+    padding: 14px;
+    border: 1px solid #e3e3e3;
+    border-radius: 14px;
+    background: #fafafa;
+}
+
+.ventilation-section h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #222;
+}
+
+.ventilation-field--disabled {
+    opacity: 0.55;
+}
+
+.ventilation-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.ventilation-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2a2a2a;
+}
+
+.ventilation-option input {
+    margin: 0;
+}
+
 .value-display {
     width: 100%;
     border: 1px solid #dddddd;
@@ -2277,17 +2315,73 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="auxiliary_electricity" type="number" value="1200">
                     </div>
 
-                    <div class="field">
-                        <label>Lüftungssystem</label>
-                        <select id="ventilation_system">
-                            <option value="0.5" data-label="ohne Lüftungsanlage">ohne Lüftungsanlage</option>
-                            <option value="0.6" data-label="zentrale Abluftanlage ohne Wärmerückgewinnung">zentrale Abluftanlage ohne WRG</option>
-                            <option value="1.0" data-label="Abluft/Zuluftanlage ohne Wärmerückgewinnung">Abluft/Zuluftanlage ohne WRG</option>
-                            <option value="0.8" data-label="Abluft/Zuluftanlage mit Wärmerückgewinnung">Abluft/Zuluftanlage mit WRG</option>
-                            <option value="0.7" data-label="dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung">dezentrale Abluft/Zuluftanlage mit WRG</option>
-                            <option value="0.7" data-label="Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager">Abluft/Zuluft-WP ohne WÜ</option>
-                            <option value="0.6" data-label="Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager">Abluft/Zuluft-WP mit WÜ</option>
-                        </select>
+                    <div class="ventilation-section">
+                        <h4>Erzeugung</h4>
+
+                        <div class="field">
+                            <label>Art der Lüftungsanlage</label>
+                            <select id="ventilation_system" onchange="updateVentilationControls()">
+                                <option value="0.5" data-label="ohne Lüftungsanlage">ohne Lüftungsanlage</option>
+                                <option value="0.6" data-label="zentrale Abluftanlage ohne Wärmerückgewinnung">zentrale Abluftanlage ohne WRG</option>
+                                <option value="1.0" data-label="Abluft/Zuluftanlage ohne Wärmerückgewinnung">Abluft/Zuluftanlage ohne WRG</option>
+                                <option value="0.8" data-label="Abluft/Zuluftanlage mit Wärmerückgewinnung">Abluft/Zuluftanlage mit WRG</option>
+                                <option value="0.7" data-label="dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung">dezentrale Abluft/Zuluftanlage mit WRG</option>
+                                <option value="0.7" data-label="Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager">Abluft/Zuluft-WP ohne WÜ</option>
+                                <option value="0.6" data-label="Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager">Abluft/Zuluft-WP mit WÜ</option>
+                            </select>
+                        </div>
+
+                        <div class="field ventilation-field" id="ventilation-fan-type-field">
+                            <label>Ventilatortyp</label>
+                            <div class="ventilation-options">
+                                <label class="ventilation-option"><input type="radio" name="ventilation_fan_type" value="ac" checked> AC-Ventilator</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_fan_type" value="dc"> DC-Ventilator</label>
+                            </div>
+                        </div>
+
+                        <div class="field ventilation-field" id="ventilation-heat-recovery-field">
+                            <label>Wärmebereitstellungsgrad (ohne Erdwärmetauscher)</label>
+                            <div class="ventilation-options">
+                                <label class="ventilation-option"><input type="radio" name="ventilation_heat_recovery" value="0.8" checked> &gt; 80%</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_heat_recovery" value="0.6"> &gt; 60%</label>
+                            </div>
+                        </div>
+
+                        <h4>Verteilung</h4>
+
+                        <div class="field ventilation-field" id="ventilation-distribution-field">
+                            <label>Lage der Verteilleitungen</label>
+                            <select id="ventilation_distribution">
+                                <option value="innerhalb">innerhalb</option>
+                                <option value="außerhalb">außerhalb</option>
+                            </select>
+                        </div>
+
+                        <h4>Übergabe</h4>
+
+                        <div class="field ventilation-field" id="ventilation-room-control-field">
+                            <label>Einzelraumregelung</label>
+                            <div class="ventilation-options">
+                                <label class="ventilation-option"><input type="radio" name="ventilation_room_control" value="with"> mit</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_room_control" value="without" checked> ohne</label>
+                            </div>
+                        </div>
+
+                        <div class="field ventilation-field" id="ventilation-precontrol-field">
+                            <label>Vorregelung</label>
+                            <div class="ventilation-options">
+                                <label class="ventilation-option"><input type="radio" name="ventilation_precontrol" value="with"> mit</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_precontrol" value="without" checked> ohne zentrale Vorregelung</label>
+                            </div>
+                        </div>
+
+                        <div class="field ventilation-field" id="ventilation-outlet-field">
+                            <label>Anordnung der Auslässe</label>
+                            <div class="ventilation-options">
+                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="outer" checked> überwiegend Außenwand</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="inner"> überwiegend Innenwand</label>
+                            </div>
+                        </div>
                     </div>
 
                     <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
@@ -4339,6 +4433,79 @@ function calculateSystem() {
     });
 }
 
+function setVentilationFieldState(fieldId, disabled) {
+    const field = document.getElementById(fieldId);
+    if (!field) {
+        return;
+    }
+
+    field.classList.toggle('ventilation-field--disabled', disabled);
+    field.querySelectorAll('input, select').forEach((element) => {
+        element.disabled = disabled;
+    });
+}
+
+function updateVentilationControls() {
+    const ventilationSelect = document.getElementById('ventilation_system');
+    if (!ventilationSelect || ventilationSelect.selectedIndex < 0) {
+        return;
+    }
+
+    const selectedOption = ventilationSelect.options[ventilationSelect.selectedIndex];
+    const selectedLabel = (selectedOption.dataset.label || selectedOption.textContent || '').trim();
+
+    const allDisabled = {
+        fanType: true,
+        heatRecovery: true,
+        distribution: true,
+        roomControl: true,
+        precontrol: true,
+        outletArrangement: true
+    };
+
+    switch (selectedLabel) {
+        case 'ohne Lüftungsanlage':
+            // Alles bleibt disabled
+            break;
+        case 'zentrale Abluftanlage ohne Wärmerückgewinnung':
+        case 'Abluft/Zuluftanlage ohne Wärmerückgewinnung':
+            allDisabled.fanType = false;
+            break;
+        case 'Abluft/Zuluftanlage mit Wärmerückgewinnung':
+            allDisabled.heatRecovery = false;
+            allDisabled.distribution = false;
+            break;
+        case 'dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung':
+            allDisabled.heatRecovery = false;
+            break;
+        case 'Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager':
+            allDisabled.fanType = false;
+            allDisabled.distribution = false;
+            allDisabled.roomControl = false;
+            allDisabled.precontrol = false;
+            allDisabled.outletArrangement = false;
+            break;
+        case 'Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager':
+            allDisabled.fanType = false;
+            allDisabled.heatRecovery = false;
+            allDisabled.distribution = false;
+            allDisabled.roomControl = false;
+            allDisabled.precontrol = false;
+            allDisabled.outletArrangement = false;
+            break;
+        default:
+            allDisabled.fanType = false;
+            break;
+    }
+
+    setVentilationFieldState('ventilation-fan-type-field', allDisabled.fanType);
+    setVentilationFieldState('ventilation-heat-recovery-field', allDisabled.heatRecovery);
+    setVentilationFieldState('ventilation-distribution-field', allDisabled.distribution);
+    setVentilationFieldState('ventilation-room-control-field', allDisabled.roomControl);
+    setVentilationFieldState('ventilation-precontrol-field', allDisabled.precontrol);
+    setVentilationFieldState('ventilation-outlet-field', allDisabled.outletArrangement);
+}
+
 function showPvErrors(errors) {
     const errorBox = document.getElementById('pvErrorBox');
     errorBox.className = 'alert-box error';
@@ -4453,6 +4620,7 @@ function calculateBalance() {
 
 window.addEventListener('load', function () {
     applySystemDefaults();
+    updateVentilationControls();
     updateGeometryStats();
     populateWallMaterials();  // Lade ÖKOBAUDAT Wandmaterialien
     populateRoofFloorMaterials();  // Lade ÖKOBAUDAT Dach & Boden Materialien
