@@ -537,7 +537,6 @@ body {
         </div>
 
         <div class="actions">
-            <button id="expertBtn" class="btn btn-yellow" onclick="toggleExpertMode()">Expertenmodus</button>
             <button id="saveProjectBtn" class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
             <div class="upload-area">
                 <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
@@ -3303,21 +3302,6 @@ function updateSystemRating(color, label, message) {
     ratingBox.className = 'rating-box ' + color;
     document.getElementById('systemRatingTitle').innerText = label;
     document.getElementById('systemRatingText').innerText = message;
-}
-
-// Expertenmodus umschalten und Projekt speichern (Frontend-Integration)
-window.isExpertMode = false;
-function toggleExpertMode() {
-    window.isExpertMode = !window.isExpertMode;
-    document.body.classList.toggle('expert', window.isExpertMode);
-    const btn = document.getElementById('expertBtn');
-    if (window.isExpertMode) {
-        btn.innerText = 'Expertenmodus (AN)';
-        btn.classList.add('active');
-    } else {
-        btn.innerText = 'Expertenmodus';
-        btn.classList.remove('active');
-    }
 }
 
 function setUploadStatus(message, state) {
