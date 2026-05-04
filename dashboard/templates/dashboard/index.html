@@ -243,6 +243,15 @@ body {
     letter-spacing: -0.01em;
 }
 
+.pv-panel {
+    max-width: 940px;
+    margin: 0 auto;
+}
+
+.pv-results-box {
+    margin-top: 16px;
+}
+
 .field {
     margin-bottom: 12px;
 }
@@ -491,6 +500,20 @@ body {
     gap: 14px;
 }
 
+.bilanz-stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.bilanz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
 .summary-box {
     background: #fafafa;
     border: 1px solid #e2e2e2;
@@ -711,7 +734,7 @@ body {
             <div id="errorBox" class="alert-box"></div>
 
             <div class="card">
-                <h3>Außenwände – Materialauswahl nach Orientierung</h3>
+                <h3>Wandfläche – Materialauswahl nach Orientierung</h3>
                 <p class="note" style="margin-bottom: 15px; color: #666; font-size: 0.9em;">
                     Wand-Flächen werden automatisch aus den Gebäudedaten berechnet. Wählen Sie das Material für jede Orientierung.
                 </p>
@@ -2454,7 +2477,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 
     <div id="pv" class="tab">
-        <div class="panel">
+        <div class="panel pv-panel">
             <h2 class="section-title">Photovoltaik</h2>
             <div class="section-divider"></div>
 
@@ -2556,7 +2579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <div class="card" style="margin-top: 16px;">
+            <div class="card pv-results-box">
                 <h3>PV-Ergebnisse</h3>
 
                 <div class="stats">
@@ -2597,64 +2620,78 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="bilanz" class="tab">
         <div class="panel">
             <h2 class="section-title">Energiebilanz</h2>
-            <div class="big-summary">
-                <div class="summary-box">
-                    <div class="label">Heizwärmebedarf netto</div>
-                    <div class="value" id="bilanz_heat">—</div>
+            <div class="bilanz-stack">
+                <div class="card">
+                    <h3>Gebäudehülle</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Heizwärmebedarf netto</div>
+                            <div class="value" id="bilanz_heat">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Spezifischer Bedarf</div>
+                            <div class="value" id="bilanz_specific">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Transmissionskoeffizient H</div>
+                            <div class="value" id="bilanz_h">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Ampelstatus</div>
+                            <div class="value" id="bilanz_rating">—</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="summary-box">
-                    <div class="label">Spezifischer Bedarf</div>
-                    <div class="value" id="bilanz_specific">—</div>
+
+                <div class="card">
+                    <h3>Anlagentechnik</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">Endenergie gesamt</div>
+                            <div class="value" id="bilanz_system_end">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Primärenergie</div>
+                            <div class="value" id="bilanz_system_primary">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">CO₂-Emissionen</div>
+                            <div class="value" id="bilanz_system_co2">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Systembewertung</div>
+                            <div class="value" id="bilanz_system_rating">—</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="summary-box">
-                    <div class="label">Transmissionskoeffizient H</div>
-                    <div class="value" id="bilanz_h">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">Ampelstatus</div>
-                    <div class="value" id="bilanz_rating">—</div>
+
+                <div class="card">
+                    <h3>Strom & PV</h3>
+                    <div class="stats">
+                        <div class="stat-box">
+                            <div class="label">PV‑Eigenverbrauch</div>
+                            <div class="value" id="bilanz_pv_self">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Strom brutto (Hilfs+Haushalt)</div>
+                            <div class="value" id="bilanz_el_gross">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">Netto‑Strombezug</div>
+                            <div class="value" id="bilanz_el_net">—</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="label">CO₂ Strom (kg/a)</div>
+                            <div class="value" id="bilanz_el_co2">—</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="big-summary" style="margin-top:14px;">
-                <div class="summary-box">
-                    <div class="label">Endenergie gesamt</div>
-                    <div class="value" id="bilanz_system_end">—</div>
+            <div class="card bilanz-footer" style="margin-top: 16px;">
+                <div class="note" style="margin-top: 0;">
+                    Die Energiebilanz bündelt Gebäudehülle, Anlagentechnik und PV in einer kompakten Übersicht.
                 </div>
-                <div class="summary-box">
-                    <div class="label">Primärenergie</div>
-                    <div class="value" id="bilanz_system_primary">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">CO₂-Emissionen</div>
-                    <div class="value" id="bilanz_system_co2">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">Systembewertung</div>
-                    <div class="value" id="bilanz_system_rating">—</div>
-                </div>
-            </div>
-
-            <div class="big-summary" style="margin-top:14px;">
-                <div class="summary-box">
-                    <div class="label">PV‑Eigenverbrauch</div>
-                    <div class="value" id="bilanz_pv_self">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">Strom brutto (Hilfs+Haushalt)</div>
-                    <div class="value" id="bilanz_el_gross">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">Netto‑Strombezug</div>
-                    <div class="value" id="bilanz_el_net">—</div>
-                </div>
-                <div class="summary-box">
-                    <div class="label">CO₂ Strom (kg/a)</div>
-                    <div class="value" id="bilanz_el_co2">—</div>
-                </div>
-            </div>
-
-            <div class="footer-note">
                 <button class="btn btn-primary" onclick="calculateBalance()">Energiebilanz aktualisieren</button>
             </div>
         </div>
