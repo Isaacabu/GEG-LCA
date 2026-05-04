@@ -2459,21 +2459,84 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="grid-2">
                 <div class="card">
-                    <h3>PV-Eingaben</h3>
+                    <h3>PV-Flächen (Rot: Nutzer-Eingaben)</h3>
+
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Dach</h4>
+                    <div class="field">
+                        <label>Verfügbare Fläche (m²)</label>
+                        <input id="pv_roof_available_area" type="number" step="0.1" value="50">
+                    </div>
+                    <div class="field">
+                        <label>PV-Anteil (%)</label>
+                        <input id="pv_roof_percentage" type="number" step="1" min="0" max="100" value="80">
+                    </div>
+                    <div class="field">
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_roof_area">—</div>
+                    </div>
+
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Nord/Süd-Fassade</h4>
+                    <div class="field">
+                        <label>Verfügbare Fläche (m²)</label>
+                        <input id="pv_ns_facade_available" type="number" step="0.1" value="30">
+                    </div>
+                    <div class="field">
+                        <label>PV-Anteil (%)</label>
+                        <input id="pv_ns_facade_percentage" type="number" step="1" min="0" max="100" value="40">
+                    </div>
+                    <div class="field">
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_ns_facade_area">—</div>
+                    </div>
+
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade</h4>
+                    <div class="field">
+                        <label>Verfügbare Fläche (m²)</label>
+                        <input id="pv_ew_facade_available" type="number" step="0.1" value="20">
+                    </div>
+                    <div class="field">
+                        <label>PV-Anteil (%)</label>
+                        <input id="pv_ew_facade_percentage" type="number" step="1" min="0" max="100" value="30">
+                    </div>
+                    <div class="field">
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_ew_facade_area">—</div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="updatePVAreaCalculations()" style="margin-top: 14px;">Flächen berechnen</button>
+                </div>
+
+                <div class="card">
+                    <h3>PV-System (Hellgrün: Berechnungen)</h3>
 
                     <div class="field">
-                        <label>Anlagengröße (kWp)</label>
-                        <input id="pv_kwp" type="number" step="0.1" value="8">
+                        <label>Modultyp (Ökobaudat)</label>
+                        <select id="pv_module_type" onchange="updatePVModuleData()">
+                            <option value="standard">Standard monokristallin (380-400 Wp)</option>
+                            <option value="high_eff">High-Efficiency (420-440 Wp)</option>
+                            <option value="thin_film">Dünnschicht (300-350 Wp)</option>
+                            <option value="bifacial">Bifazial (450+ Wp)</option>
+                        </select>
                     </div>
 
                     <div class="field">
-                        <label>Spezifischer Ertrag (kWh/kWp·a)</label>
-                        <input id="pv_specific_yield" type="number" step="1" value="950">
+                        <label style="color: #999;">Modulleistung spezifisch (Wp/m²)</label>
+                        <div class="value-display" id="pv_module_power">—</div>
                     </div>
 
                     <div class="field">
-                        <label>Eigenverbrauchsquote (0 bis 1)</label>
-                        <input id="pv_self_rate" type="number" step="0.01" value="0.30">
+                        <label>Systemwirkungsgrad (%)</label>
+                        <input id="pv_system_efficiency" type="number" step="0.1" value="85" min="60" max="95">
+                    </div>
+
+                    <div class="field">
+                        <label>Verschattung/Verluste (%)</label>
+                        <input id="pv_losses" type="number" step="0.1" value="15" min="0" max="30">
+                    </div>
+
+                    <div class="field">
+                        <label>Eigenverbrauchsquote (0...1)</label>
+                        <input id="pv_self_rate" type="number" step="0.01" min="0" max="1" value="0.30">
                     </div>
 
                     <div class="field">
@@ -2486,38 +2549,43 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="pv_feed_in_tariff" type="number" step="0.01" value="0.08">
                     </div>
 
-                    <button class="btn btn-primary" onclick="calculatePV()">PV auswerten</button>
+                    <button class="btn btn-primary" onclick="calculatePV()" style="margin-top: 14px;">PV auswerten</button>
+                </div>
+            </div>
 
-                    <div class="note">
-                        Ergebnis „PV‑Eigenverbrauch (kWh/a)" wird in der Energiebilanz als Abzug beim Strombezug verwendet.
+            <div class="card" style="margin-top: 16px;">
+                <h3>PV-Ergebnisse (Blau)</h3>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="label">Installierte Leistung (kWp)</div>
+                        <div class="value" id="pv_installed_kwp">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Jahresertrag (kWh/a)</div>
+                        <div class="value" id="pv_annual_yield">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Eigenverbrauch (kWh/a)</div>
+                        <div class="value" id="pv_self_kwh">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Einspeisung (kWh/a)</div>
+                        <div class="value" id="pv_feed_in_kwh">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">CO₂-Ersparnis (kg/a)</div>
+                        <div class="value" id="pv_co2_savings">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">Wirtschaftlichkeit (€/a)</div>
+                        <div class="value" id="pv_total_benefit">—</div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <h3>PV-Ergebnisse</h3>
-
-                    <div class="stats">
-                        <div class="stat-box">
-                            <div class="label">Jahresertrag</div>
-                            <div class="value" id="pv_annual_yield">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="label">PV‑Eigenverbrauch</div>
-                            <div class="value" id="pv_self_kwh">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="label">Einspeisung</div>
-                            <div class="value" id="pv_feed_in_kwh">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="label">Ersparnis + Vergütung</div>
-                            <div class="value" id="pv_total_benefit">—</div>
-                        </div>
-                    </div>
-
-                    <div class="note">
-                        Hinweis: Das ist ein MVP. Batteriespeicher, Degradation, Eigenverbrauchsmodell, Lastprofile usw. folgen später.
-                    </div>
+                <div class="note" style="margin-top: 12px;">
+                    Die PV-Flächen werden aus Verfügbarer Fläche × PV-Anteil berechnet. Der Ertrag berücksichtigt Orientierung, Systemwirkungsgrad und Verschattung.
+                </div>
                 </div>
             </div>
         </div>
@@ -4524,43 +4592,133 @@ function hidePvErrors() {
 
 let lastPvSelfConsumptionKwh = 0;
 
+function updatePVAreaCalculations() {
+    const roofAvailable = parseFloat(document.getElementById('pv_roof_available_area').value) || 0;
+    const roofPct = (parseFloat(document.getElementById('pv_roof_percentage').value) || 0) / 100;
+    const nsAvailable = parseFloat(document.getElementById('pv_ns_facade_available').value) || 0;
+    const nsPct = (parseFloat(document.getElementById('pv_ns_facade_percentage').value) || 0) / 100;
+    const ewAvailable = parseFloat(document.getElementById('pv_ew_facade_available').value) || 0;
+    const ewPct = (parseFloat(document.getElementById('pv_ew_facade_percentage').value) || 0) / 100;
+
+    const roofArea = roofAvailable * roofPct;
+    const nsArea = nsAvailable * nsPct;
+    const ewArea = ewAvailable * ewPct;
+
+    document.getElementById('pv_roof_area').innerText = roofArea.toFixed(1) + ' m²';
+    document.getElementById('pv_ns_facade_area').innerText = nsArea.toFixed(1) + ' m²';
+    document.getElementById('pv_ew_facade_area').innerText = ewArea.toFixed(1) + ' m²';
+}
+
+function updatePVModuleData() {
+    const moduleType = document.getElementById('pv_module_type').value;
+    let modulePower = 190;  // Wp/m² - Standard
+    
+    switch (moduleType) {
+        case 'standard':
+            modulePower = 190;  // ~380 Wp / 2m² = 190 Wp/m²
+            break;
+        case 'high_eff':
+            modulePower = 220;  // ~440 Wp / 2m² = 220 Wp/m²
+            break;
+        case 'thin_film':
+            modulePower = 150;  // ~300 Wp / 2m² = 150 Wp/m²
+            break;
+        case 'bifacial':
+            modulePower = 240;  // ~450 Wp / 2m² = 240 Wp/m² (mit Ertrag von hinten)
+            break;
+    }
+    
+    document.getElementById('pv_module_power').innerText = modulePower.toFixed(0) + ' Wp/m²';
+}
+
 function calculatePV() {
     hidePvErrors();
 
-    fetch('/calculate-pv/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            kwp: document.getElementById('pv_kwp').value,
-            specific_yield: document.getElementById('pv_specific_yield').value,
-            self_consumption_rate: document.getElementById('pv_self_rate').value,
-            electricity_price: document.getElementById('pv_electricity_price').value,
-            feed_in_tariff: document.getElementById('pv_feed_in_tariff').value
-        })
-    })
-    .then(async res => {
-        const data = await res.json();
-        if (!res.ok) throw data;
-        return data;
-    })
-    .then(data => {
-        document.getElementById('pv_annual_yield').innerText = data.annual_yield_kwh + ' kWh/a';
-        document.getElementById('pv_self_kwh').innerText = data.self_consumption_kwh + ' kWh/a';
-        document.getElementById('pv_feed_in_kwh').innerText = data.feed_in_kwh + ' kWh/a';
-        document.getElementById('pv_total_benefit').innerText = data.total_benefit_eur + ' €/a';
+    // Flächen berechnen
+    updatePVAreaCalculations();
 
-        lastPvSelfConsumptionKwh = data.self_consumption_kwh;
+    const roofAvailable = parseFloat(document.getElementById('pv_roof_available_area').value) || 0;
+    const roofPct = (parseFloat(document.getElementById('pv_roof_percentage').value) || 0) / 100;
+    const nsAvailable = parseFloat(document.getElementById('pv_ns_facade_available').value) || 0;
+    const nsPct = (parseFloat(document.getElementById('pv_ns_facade_percentage').value) || 0) / 100;
+    const ewAvailable = parseFloat(document.getElementById('pv_ew_facade_available').value) || 0;
+    const ewPct = (parseFloat(document.getElementById('pv_ew_facade_percentage').value) || 0) / 100;
 
-        // Direkt in Bilanz anzeigen
-        document.getElementById('bilanz_pv_self').innerText = data.self_consumption_kwh + ' kWh/a';
+    const totalArea = (roofAvailable * roofPct) + (nsAvailable * nsPct) + (ewAvailable * ewPct);
+    const moduleType = document.getElementById('pv_module_type').value;
+    let modulePower = 190;  // Wp/m²
+    let ertragsfaktor = 950; // kWh/kWp*a (Reference)
+    
+    switch (moduleType) {
+        case 'standard':
+            modulePower = 190;
+            ertragsfaktor = 950;
+            break;
+        case 'high_eff':
+            modulePower = 220;
+            ertragsfaktor = 960;  // Leicht bessere Temperaturbilanz
+            break;
+        case 'thin_film':
+            modulePower = 150;
+            ertragsfaktor = 1000;  // Besseres Schwachlichtverhalten
+            break;
+        case 'bifacial':
+            modulePower = 240;
+            ertragsfaktor = 1050;  // +10% durch Rückseiteneintrag
+            break;
+    }
 
-        // Bilanz neu rechnen (optional)
-        calculateBalance();
-    })
-    .catch(err => {
-        if (err.errors) showPvErrors(err.errors);
-        else showPvErrors(['Unbekannter Fehler bei der PV-Berechnung.']);
-    });
+    const systemEfficiency = (parseFloat(document.getElementById('pv_system_efficiency').value) || 85) / 100;
+    const losses = (parseFloat(document.getElementById('pv_losses').value) || 15) / 100;
+    const selfRate = parseFloat(document.getElementById('pv_self_rate').value) || 0.30;
+    const electricityPrice = parseFloat(document.getElementById('pv_electricity_price').value) || 0.35;
+    const feedInTariff = parseFloat(document.getElementById('pv_feed_in_tariff').value) || 0.08;
+
+    const errors = [];
+    
+    if (totalArea <= 0) {
+        errors.push('Gesamte PV-Fläche muss > 0 m² sein.');
+    }
+    
+    if (systemEfficiency <= 0.5 || systemEfficiency > 1) {
+        errors.push('Systemwirkungsgrad sollte zwischen 60% und 95% liegen.');
+    }
+    
+    if (losses < 0 || losses > 0.5) {
+        errors.push('Verluste sollten zwischen 0% und 30% liegen.');
+    }
+    
+    if (selfRate < 0 || selfRate > 1) {
+        errors.push('Eigenverbrauchsquote muss zwischen 0 und 1 liegen.');
+    }
+
+    if (errors.length > 0) {
+        showPvErrors(errors);
+        return;
+    }
+
+    // Berechnungen
+    const installedKwp = (totalArea * modulePower) / 1000;
+    const netEfficiency = systemEfficiency * (1 - losses);
+    const annualYield = totalArea * modulePower * ertragsfaktor / 1000 * netEfficiency;
+    const selfConsumption = annualYield * selfRate;
+    const feedIn = Math.max(0, annualYield - selfConsumption);
+    const savings = selfConsumption * electricityPrice;
+    const feedInRevenue = feedIn * feedInTariff;
+    const totalBenefit = savings + feedInRevenue;
+    const co2Factor = 0.45;  // kg CO2 pro kWh Strom (Deutschmix)
+    const co2Savings = annualYield * co2Factor;
+
+    document.getElementById('pv_installed_kwp').innerText = installedKwp.toFixed(2) + ' kWp';
+    document.getElementById('pv_annual_yield').innerText = annualYield.toFixed(0) + ' kWh/a';
+    document.getElementById('pv_self_kwh').innerText = selfConsumption.toFixed(0) + ' kWh/a';
+    document.getElementById('pv_feed_in_kwh').innerText = feedIn.toFixed(0) + ' kWh/a';
+    document.getElementById('pv_co2_savings').innerText = co2Savings.toFixed(0) + ' kg/a';
+    document.getElementById('pv_total_benefit').innerText = totalBenefit.toFixed(2) + ' €/a';
+
+    lastPvSelfConsumptionKwh = selfConsumption;
+    document.getElementById('bilanz_pv_self').innerText = selfConsumption.toFixed(0) + ' kWh/a';
+    calculateBalance();
 }
 
 function calculateBalance() {
@@ -4621,6 +4779,8 @@ function calculateBalance() {
 window.addEventListener('load', function () {
     applySystemDefaults();
     updateVentilationControls();
+    updatePVModuleData();
+    updatePVAreaCalculations();
     updateGeometryStats();
     populateWallMaterials();  // Lade ÖKOBAUDAT Wandmaterialien
     populateRoofFloorMaterials();  // Lade ÖKOBAUDAT Dach & Boden Materialien
