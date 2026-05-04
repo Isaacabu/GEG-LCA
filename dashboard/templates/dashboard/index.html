@@ -2410,6 +2410,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="value" id="system_total_end">—</div>
                         </div>
                         <div class="stat-box">
+                            <div class="label">Endenergie / Verbrauch gesamt (kWh/a)</div>
+                            <div class="value" id="system_consumption">—</div>
+                        </div>
+                        <div class="stat-box">
                             <div class="label">Primärenergie (kWh/a)</div>
                             <div class="value" id="system_primary">—</div>
                         </div>
@@ -3447,6 +3451,9 @@ function updateGeometryStats() {
     document.getElementById('geometry_envelope_area').innerText = `${envelopeArea.toFixed(0)} m²`;
     document.getElementById('bgf').value = bgf.toFixed(0);
 
+    // Für die Anlagentechnik wird das Volumen später direkt verwendet.
+    window.geometryVolume = volume;
+
     // Automatische Berechnung der Wand-Flächen nach Orientierung
     const northArea = length * totalHeight;  // Länge × Höhe
     const southArea = length * totalHeight;  // Länge × Höhe
@@ -4449,7 +4456,7 @@ function calculateSystem() {
             hotwater_demand: document.getElementById('hotwater_demand').value,
             auxiliary_electricity: document.getElementById('auxiliary_electricity').value,
             ventilation_air_change_rate: parseFloat(document.getElementById('ventilation_system').value) || 0.5,
-            volume: 0
+            volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m³', '').trim()) || 0
         })
     })
     .then(async res => {
@@ -4462,6 +4469,7 @@ function calculateSystem() {
         document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
         document.getElementById('system_aux').innerText = data.auxiliary_electricity + ' kWh/a';
         document.getElementById('system_total_end').innerText = data.total_end_energy + ' kWh/a';
+        document.getElementById('system_consumption').innerText = data.total_end_energy + ' kWh/a';
         document.getElementById('system_primary').innerText = data.primary_energy + ' kWh/a';
         document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
         document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m²a';
