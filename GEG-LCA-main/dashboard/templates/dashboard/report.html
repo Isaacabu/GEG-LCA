@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.project_name }} - Bericht</title>
+    <style>
+:root {
+    --bg: #060e1a;
+    --bg-2: #091526;
+    --bg-3: #0d1d35;
+    --surface: rgba(255, 255, 255, 0.055);
+    --line: rgba(255, 255, 255, 0.10);
+    --line-strong: rgba(255, 255, 255, 0.20);
+    --text: #eef2f8;
+    --muted: #8d9db0;
+    --dim: #5c6a7a;
+    --accent: #22d3ee;
+    --accent-2: #3dc5d8;
+    --gold: #f6b94b;
+    --shadow: 0 24px 56px -16px rgba(0, 0, 0, 0.65);
+    --cyan-dim: rgba(34, 211, 238, 0.20);
+    --cyan-glow: rgba(34, 211, 238, 0.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(34, 211, 238, 0.12), transparent 60%),
+        radial-gradient(900px 500px at -10% 30%, rgba(246, 185, 75, 0.08), transparent 60%),
+        var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+}
+
+.page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 22px 50px;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 80% 50%, rgba(34, 211, 238, 0.14), transparent 60%),
+        radial-gradient(circle at 10% 80%, rgba(246, 185, 75, 0.10), transparent 60%);
+    pointer-events: none;
+}
+
+.hero > * { position: relative; z-index: 1; }
+
+.hero h1 {
+    margin: 0 0 10px;
+    font-size: clamp(26px, 3vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    background: linear-gradient(140deg, #ffffff 0%, #c8dde8 60%, #9bbfcf 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.pill {
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.10);
+    color: var(--accent);
+    border: 1px solid rgba(34, 211, 238, 0.30);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    margin-bottom: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+    opacity: 0.35;
+}
+
+.card .label {
+    font-size: 11px;
+    color: var(--dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    margin-bottom: 8px;
+}
+
+.card .value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+}
+
+.section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 26px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    margin-bottom: 18px;
+}
+
+h2 {
+    margin: 0 0 16px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    color: var(--text);
+}
+
+th, td {
+    text-align: left;
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+
+th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--muted);
+}
+
+.muted { color: var(--muted); }
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.summary-box {
+    border-radius: 14px;
+    background: rgba(6, 14, 26, 0.40);
+    border: 1px solid var(--line);
+    padding: 18px;
+}
+
+.summary-box h3 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+}
+
+.summary-box ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+a.button {
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 999px;
+    padding: 11px 20px;
+    font-weight: 600;
+    font-size: 13px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    color: #04101c;
+    border: 0;
+    box-shadow: 0 4px 20px -4px var(--cyan-glow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    letter-spacing: 0.01em;
+}
+
+a.button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 32px -6px var(--cyan-glow);
+}
+
+.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--line);
+    box-shadow: none;
+}
+
+.secondary:hover {
+    background: rgba(255,255,255,0.10);
+}
+
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.30); }
+
+@media (max-width: 1000px) {
+    .grid, .summary { grid-template-columns: 1fr 1fr; }
+    .hero { flex-direction: column; }
+}
+
+@media (max-width: 640px) {
+    .grid, .summary { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+    <div class="page">
+        <div class="hero">
+            <div>
+                <div class="pill">DIN V 18599-orientierter Projektbericht</div>
+                <h1>{{ project.project_name }}</h1>
+                <p>
+                    Projekt-ID: {{ project.project_id }}<br>
+                    {% if project.project_number %}Projektnummer: {{ project.project_number }}<br>{% endif %}
+                    {% if project.file_reference %}Aktenzeichen: {{ project.file_reference }}<br>{% endif %}
+                    {% if project.location %}Standort: {{ project.location }}{% endif %}
+                </p>
+            </div>
+            <div class="actions">
+                <a class="button secondary" href="/">Zurück zur Eingabe</a>
+                <a class="button" href="/projects/{{ project.project_id }}/report/">Bericht aktualisieren</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card"><div class="label">Gebäudetyp</div><div class="value">{{ project.building_kind|default:"-" }}</div></div>
+            <div class="card"><div class="label">Berechnungsbasis</div><div class="value">{{ project.energy_basis|default:"-" }}</div></div>
+            <div class="card"><div class="label">Normbasis</div><div class="value">{{ project.legal_basis|default:"-" }}</div></div>
+            <div class="card"><div class="label">Zonen</div><div class="value">{{ zones|length }}</div></div>
+        </div>
+
+        <div class="section">
+            <h2>Zonenübersicht</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Nutzungsprofil</th>
+                        <th>Fläche</th>
+                        <th>Solltemp.</th>
+                        <th>Luftwechsel</th>
+                        <th>Interne Gewinne</th>
+                        <th>Belegung</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for zone in zones %}
+                    <tr>
+                        <td>{{ zone.zone_name }}</td>
+                        <td>{{ zone.usage_profile }}</td>
+                        <td>{{ zone.area }} m²</td>
+                        <td>{{ zone.setpoint_temperature }} °C</td>
+                        <td>{{ zone.air_change_rate }} 1/h</td>
+                        <td>{{ zone.internal_gains_density }} W/m²</td>
+                        <td>{{ zone.occupancy_hours }} h/a</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="muted">Keine Zonen gespeichert.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary">
+            <div class="summary-box">
+                <h3>Gebäudehülle</h3>
+                <ul>
+                    <li>Heizwärmebedarf netto: {{ calculation.envelope.adjusted_heat_demand_kwh|default:"-" }} kWh/a</li>
+                    <li>Spezifisch: {{ calculation.envelope.specific_heat_demand|default:"-" }} kWh/m²a</li>
+                    <li>Ampel: {{ calculation.envelope.rating_label|default:"-" }}</li>
+                    <li>Bilanzierte Zonenfläche: {{ calculation.envelope.zone_total_area|default:"-" }} m²</li>
+                </ul>
+            </div>
+            <div class="summary-box">
+                <h3>Anlagentechnik</h3>
+                <ul>
+                    <li>Endenergie gesamt: {{ calculation.system.total_end_energy|default:"-" }} kWh/a</li>
+                    <li>Primärenergie: {{ calculation.system.primary_energy|default:"-" }} kWh/a</li>
+                    <li>CO₂: {{ calculation.system.co2_emissions|default:"-" }} kg/a</li>
+                    <li>Bewertung: {{ calculation.system.system_label|default:"-" }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Hinweis</h2>
+            <p class="muted" style="margin:0; line-height:1.6;">
+                Dieser Bericht ist als projektbezogene Zusammenfassung angelegt und kann später um PDF-Export,
+                Variantenvergleich und normgenauere DIN-V-18599-Bilanzräume erweitert werden.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
