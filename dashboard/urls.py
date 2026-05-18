@@ -17,13 +17,11 @@ router.register(r'api/ekobaudat-material', views.EkobaudatMaterialViewSet, basen
 
 urlpatterns = [
     path("", views.index),
-    path("upload-ekobaudat/", views.upload_ekobaudat),
     path("calculate/", views.calculate),
     path("calculate-system/", views.calculate_system),
-    path("calculate-reference/", views.calculate_reference),
     path("calculate-pv/", views.calculate_pv),
     path("calculate-balance/", views.calculate_balance),
-    path("climate-locations/", views.get_climate_locations),
+    path("upload-ekobaudat-csv/", views.upload_ekobaudat_csv, name="upload-ekobaudat-csv"),
     
     # REST API Routes
     path("", include(router.urls)),
