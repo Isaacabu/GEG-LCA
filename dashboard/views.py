@@ -11,7 +11,7 @@ from .constants import (
     DEFAULT_GRADSTUNDEN, DEFAULT_G_VALUE, VALID_HEATING_SYSTEMS,
     DEFAULT_HOTWATER_DEMAND, DEFAULT_AUXILIARY_ELECTRICITY,
     MAX_U_VALUE, MAX_G_VALUE, MIN_G_VALUE,
-    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP
+    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP, MIN_EFFICIENCY, MIN_COP
 )
 
 
@@ -211,6 +211,9 @@ def calculate_system(request):
 
         heat_demand_net = safe_float(data.get("heat_demand_net"))
         bgf = safe_float(data.get("bgf"))
+        ventilation_n = safe_float(data.get("ventilation_air_change_rate"), 0.5)
+        volume = safe_float(data.get("volume"), 0.0)
+        gradstunden = safe_float(data.get("gradstunden"), DEFAULT_GRADSTUNDEN)
 
         heating_system = data.get("heating_system", "gas")
         efficiency = safe_float(data.get("efficiency"), DEFAULT_EFFICIENCY)
@@ -256,6 +259,9 @@ def calculate_system(request):
         specific_end_energy = total_end_energy / bgf
         specific_primary_energy = primary_energy / bgf
 
+        ventilation_loss_kwh = (ventilation_n * volume * 0.34 * gradstunden) / 1000
+        adjusted_heat_demand_net = heat_demand_net + ventilation_loss_kwh
+
         if specific_primary_energy <= SYSTEM_RATING_THRESHOLDS['efficient']:
             system_label = "Sehr effizient"
             system_color = "green"
@@ -279,6 +285,8 @@ def calculate_system(request):
             "co2_emissions": round(co2_emissions, 2),
             "specific_end_energy": round(specific_end_energy, 2),
             "specific_primary_energy": round(specific_primary_energy, 2),
+            "ventilation_loss_kwh": round(ventilation_loss_kwh, 2),
+            "adjusted_heat_demand_net": round(adjusted_heat_demand_net, 2),
             "system_label": system_label,
             "system_color": system_color,
             "system_message": system_message

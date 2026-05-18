@@ -5331,7 +5331,8 @@ function calculateSystem() {
             hotwater_demand: document.getElementById('hotwater_demand').value,
             auxiliary_electricity: document.getElementById('auxiliary_electricity').value,
             ventilation_air_change_rate: parseFloat(document.getElementById('ventilation_system').value) || 0.5,
-            volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m³', '').trim()) || 0
+            volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m³', '').trim()) || 0,
+            gradstunden: parseFloat(document.getElementById('gradstunden').value) || 66000
         })
     })
     .then(async res => {
