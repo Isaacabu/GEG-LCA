@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -738,7 +738,7 @@ input[type="checkbox"], input[type="radio"] {
     }
 }
 
-/* === Building Hero (klickbares Geb├â┬ñudeschema im Tab Geb├â┬ñudedaten) === */
+/* === Building Hero (klickbares GebÃ¤udeschema im Tab GebÃ¤udedaten) === */
 .building-hero {
   position: relative;
   margin-top: 28px;
@@ -778,7 +778,7 @@ input[type="checkbox"], input[type="radio"] {
   100% { box-shadow: 0 0 0 0   #22d3ee00, 0 0 0   #22d3ee00; }
 }
 
-/* === H_T W├â┬ñrmeverlust-Tabelle === */
+/* === H_T WÃ¤rmeverlust-Tabelle === */
 .ht-table h3 {
   margin-bottom: 16px;
 }
@@ -1040,30 +1040,30 @@ input[type="checkbox"], input[type="radio"] {
     <div class="topbar">
         <div class="title-block">
             <h1>GEGenius Smart Energy Analysis</h1>
-            <p>Exakte energetische Bewertung nach GEG mit strukturierter Projektlogik aus Geb├ñudedaten, Geb├ñudeh├╝lle, Photovoltaik und Energiebilanz.</p>
+            <p>Exakte energetische Bewertung nach GEG mit strukturierter Projektlogik aus Gebäudedaten, Gebäudehülle, Photovoltaik und Energiebilanz.</p>
         </div>
 
         <div class="actions">
             <button id="saveProjectBtn" class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
             <div class="upload-area">
                 <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
-                <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">­ƒôÑ Daten importieren</button>
+                <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">📥 Daten importieren</button>
                 <div id="uploadStatus" class="upload-status" style="display:none;"></div>
             </div>
         </div>
     </div>
 
     <div class="tabs">
-        <button class="active" onclick="showTab('daten', this)">­ƒÅó Geb├ñudedaten</button>
-        <button onclick="showTab('huelle', this)">­ƒÅá Geb├ñudeh├╝lle</button>
-        <button onclick="showTab('anlage', this)">ÔÜÖ´©Å Anlagentechnik</button>
-        <button onclick="showTab('pv', this)">ÔÿÇ´©Å Photovoltaik</button>
-        <button onclick="showTab('bilanz', this)">­ƒƒó Energiebilanz</button>
+        <button class="active" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
+        <button onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
+        <button onclick="showTab('anlage', this)">⚙️ Anlagentechnik</button>
+        <button onclick="showTab('pv', this)">☀️ Photovoltaik</button>
+        <button onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
     </div>
 
     <div id="daten" class="tab active">
         <div class="panel">
-            <h2 class="section-title">Geb├ñudedaten</h2>
+            <h2 class="section-title">Gebäudedaten</h2>
 
             <div class="grid-2">
                 <div class="card">
@@ -1082,35 +1082,35 @@ input[type="checkbox"], input[type="radio"] {
                             <div class="grid-2" id="state_button_grid"></div>
                         </div>
                         <div id="city_menu" style="display:none; margin-top:10px;">
-                            <div class="label" id="city_menu_label">Ort ausw├ñhlen</div>
+                            <div class="label" id="city_menu_label">Ort auswählen</div>
                             <div class="grid-2" id="city_button_grid" style="margin-top:8px;"></div>
                         </div>
                         <div class="note" id="location_summary" style="margin-top:8px;">Aktuell: Augsburg (Bayern)</div>
                     </div>
                     <div class="field">
-                        <label>Geb├ñudetyp</label>
-                        <button type="button" class="btn btn-primary btn-sm" id="building_type_button" onclick="toggleBuildingTypeMenu()">Wohngeb├ñude</button>
+                        <label>Gebäudetyp</label>
+                        <button type="button" class="btn btn-primary btn-sm" id="building_type_button" onclick="toggleBuildingTypeMenu()">Wohngebäude</button>
                         <input type="hidden" id="building_type" value="wohngebaeude">
                         <input type="hidden" id="building_type_variant" value="Einfamilienhaus">
                         <div id="building_type_menu" style="display:none; margin-top:10px;">
                             <div class="grid-2">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('wohngebaeude')">Wohngeb├ñude</button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('nicht_wohngebaeude')">Nichtwohngeb├ñude</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('wohngebaeude')">Wohngebäude</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="selectBuildingCategory('nicht_wohngebaeude')">Nichtwohngebäude</button>
                             </div>
                         </div>
                         <div id="building_type_variants" style="display:none; margin-top:10px;">
-                            <div class="label" id="building_type_variant_label">Wohngeb├ñude-Typ</div>
+                            <div class="label" id="building_type_variant_label">Wohngebäude-Typ</div>
                             <div id="building_type_variant_buttons" class="grid-2" style="margin-top:8px;"></div>
                         </div>
-                        <div class="note" id="building_type_summary" style="margin-top:8px;">Aktuell: Wohngeb├ñude - Einfamilienhaus</div>
+                        <div class="note" id="building_type_summary" style="margin-top:8px;">Aktuell: Wohngebäude - Einfamilienhaus</div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h3>Geb├ñudegeometrie</h3>
+                    <h3>Gebäudegeometrie</h3>
                     <div class="grid-2">
                         <div class="field">
-                            <label>L├ñnge Nord/S├╝d (m)</label>
+                            <label>Länge Nord/Süd (m)</label>
                             <input id="building_length" type="number" min="0" step="0.1" value="12" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
@@ -1122,27 +1122,27 @@ input[type="checkbox"], input[type="radio"] {
                             <input id="building_floors" type="number" min="0" step="1" value="3" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
-                            <label>Geschossh├Âhe (m)</label>
+                            <label>Geschosshöhe (m)</label>
                             <input id="building_floor_height" type="number" min="0" step="0.1" value="3.5" oninput="updateGeometryStats()">
                         </div>
                     </div>
 
                     <div class="stats">
                         <div class="stat-box">
-                            <div class="label">Gesamth├Âhe</div>
+                            <div class="label">Gesamthöhe</div>
                             <div class="value" id="geometry_total_height">10.5 m</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Brutto-Rauminhalt</div>
-                            <div class="value" id="geometry_volume">1260 m┬│</div>
+                            <div class="value" id="geometry_volume">1260 m³</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">BGF</div>
-                            <div class="value" id="geometry_bgf">360 m┬▓</div>
+                            <div class="value" id="geometry_bgf">360 m²</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">H├╝llfl├ñche A</div>
-                            <div class="value" id="geometry_envelope_area">702 m┬▓</div>
+                            <div class="label">Hüllfläche A</div>
+                            <div class="value" id="geometry_envelope_area">702 m²</div>
                         </div>
                     </div>
                 </div>
@@ -1152,20 +1152,20 @@ input[type="checkbox"], input[type="radio"] {
                     <div class="grid-3">
                         <div class="field">
                             <label>Klimaregion (auto. aus Standort)</label>
-                            <input id="climate_region_display" type="text" value="Region 3 (S├╝ddeutschland)" readonly>
+                            <input id="climate_region_display" type="text" value="Region 3 (Süddeutschland)" readonly>
                         </div>
                         <div class="field">
-                            <label>H├Âhenlage (m ├╝. NN)</label>
+                            <label>Höhenlage (m ü. NN)</label>
                             <input id="elevation_m" type="number" min="0" step="10" value="500">
                         </div>
                         <div class="field">
-                            <label>Raum-Soll-Temperatur (┬░C)</label>
+                            <label>Raum-Soll-Temperatur (°C)</label>
                             <input id="indoor_setpoint" type="number" min="15" max="26" step="0.5" value="20">
                         </div>
                     </div>
 
                     <div class="field">
-                        <label>BGF f├╝r spezifische Kennwerte (m┬▓)</label>
+                        <label>BGF für spezifische Kennwerte (m²)</label>
                         <input id="bgf" type="number" value="360">
                     </div>
 
@@ -1175,8 +1175,8 @@ input[type="checkbox"], input[type="radio"] {
                     </div>
 
                     <div class="note">
-                        Vereinfachtes Modell: Jahres-Heizw├ñrmebedarf Ôëê H ├ù Gradstunden / 1000.
-                        H ist hier der Transmissionsw├ñrmeverlustkoeffizient in W/K.
+                        Vereinfachtes Modell: Jahres-Heizwärmebedarf ≈ H × Gradstunden / 1000.
+                        H ist hier der Transmissionswärmeverlustkoeffizient in W/K.
                     </div>
                 </div>
 
@@ -1184,7 +1184,7 @@ input[type="checkbox"], input[type="radio"] {
                     <h3>Nutzung und Personen</h3>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Personendichte (m┬▓/Person)</label>
+                            <label>Personendichte (m²/Person)</label>
                             <input id="personendichte" type="number" min="1" step="1" value="40" oninput="updateUsageStats()">
                         </div>
                         <div class="field">
@@ -1196,26 +1196,26 @@ input[type="checkbox"], input[type="radio"] {
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Anzahl Personen</div>
-                            <div class="value" id="usage_n_persons">ÔÇö</div>
+                            <div class="value" id="usage_n_persons">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Vollbenutzungsstunden/Jahr</div>
                             <div class="value" id="usage_vbh">8760</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Interne Gewinne (W/m┬▓)</div>
-                            <div class="value" id="usage_internal_gains">ÔÇö</div>
+                            <div class="label">Interne Gewinne (W/m²)</div>
+                            <div class="value" id="usage_internal_gains">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Nutzungsprofil</div>
-                            <div class="value" id="usage_profile_label" style="font-size:0.9em;">Wohngeb├ñude</div>
+                            <div class="value" id="usage_profile_label" style="font-size:0.9em;">Wohngebäude</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="building-hero" aria-label="Geb├ñudeschema ÔÇô klickbare Hotspots zur Geb├ñudeh├╝lle">
-                <svg viewBox="0 0 800 360" role="img" aria-label="Geb├ñudeschnitt">
+            <div class="building-hero" aria-label="Gebäudeschema – klickbare Hotspots zur Gebäudehülle">
+                <svg viewBox="0 0 800 360" role="img" aria-label="Gebäudeschnitt">
                     <defs>
                         <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stop-color="#0e1c33" />
@@ -1233,28 +1233,28 @@ input[type="checkbox"], input[type="radio"] {
                     <rect x="0" y="0" width="800" height="360" fill="url(#bgGrad)" />
 
                     <g class="hotspot" onclick="openHuelleFromHero('floor')">
-                        <title>Boden ÔÇô zur Eingabe</title>
+                        <title>Boden – zur Eingabe</title>
                         <rect x="60" y="300" width="680" height="14" fill="#0b1830" />
                         <line x1="60" y1="307" x2="740" y2="307" stroke="#22d3ee" stroke-opacity="0.25" stroke-dasharray="4 6" />
                         <text x="80" y="335" fill="#9aa7b7" font-size="11" letter-spacing="2">BODEN</text>
                     </g>
 
                     <g class="hotspot" onclick="openHuelleFromHero('wall')">
-                        <title>Au├ƒenwand ÔÇô zur Eingabe</title>
+                        <title>Außenwand – zur Eingabe</title>
                         <rect x="120" y="120" width="560" height="180" fill="url(#wallGrad)" />
                         <rect x="120" y="120" width="560" height="180" fill="none" stroke="#22d3ee" stroke-opacity="0.25" />
                         <text x="135" y="140" fill="#9aa7b7" font-size="11" letter-spacing="2">AUSSENWAND</text>
                     </g>
 
                     <g class="hotspot" onclick="openHuelleFromHero('roof')">
-                        <title>Dach ÔÇô zur Eingabe</title>
+                        <title>Dach – zur Eingabe</title>
                         <polygon points="100,120 700,120 660,70 140,70" fill="url(#roofGrad)" />
                         <polygon points="100,120 700,120 660,70 140,70" fill="none" stroke="#22d3ee" stroke-opacity="0.4" />
                         <text x="350" y="100" fill="#06121f" font-size="11" letter-spacing="2">DACH</text>
                     </g>
 
                     <g class="hotspot" onclick="openHuelleFromHero('window')">
-                        <title>Fenster ÔÇô zur Eingabe</title>
+                        <title>Fenster – zur Eingabe</title>
                         <rect x="200" y="170" width="80" height="80" fill="#0e1c33" stroke="#f6b94b" stroke-width="2" />
                         <line x1="240" y1="170" x2="240" y2="250" stroke="#f6b94b" stroke-opacity="0.7" />
                         <line x1="200" y1="210" x2="280" y2="210" stroke="#f6b94b" stroke-opacity="0.7" />
@@ -1265,35 +1265,35 @@ input[type="checkbox"], input[type="radio"] {
                     </g>
 
                     <g class="hotspot" onclick="openHuelleFromHero('door')">
-                        <title>T├╝r ÔÇô zur Eingabe</title>
+                        <title>Tür – zur Eingabe</title>
                         <rect x="370" y="200" width="60" height="100" fill="#0e1c33" stroke="#22d3ee" stroke-width="2" />
                         <circle cx="420" cy="252" r="2" fill="#22d3ee" />
                         <text x="370" y="320" fill="#22d3ee" font-size="11" letter-spacing="2">TUER</text>
                     </g>
                 </svg>
-                <p class="note" style="margin-top:14px;text-align:center;">Tipp: Bauteil im Schema anklicken, um direkt zur passenden Eingabe im Tab ÔÇ×Geb├ñudeh├╝lleÔÇ£ zu springen.</p>
+                <p class="note" style="margin-top:14px;text-align:center;">Tipp: Bauteil im Schema anklicken, um direkt zur passenden Eingabe im Tab „Gebäudehülle“ zu springen.</p>
             </div>
         </div>
     </div>
 
     <div id="huelle" class="tab">
         <div class="panel">
-            <h2 class="section-title">Geb├ñudeh├╝lle</h2>
+            <h2 class="section-title">Gebäudehülle</h2>
             <div class="section-divider"></div>
 
             <div id="errorBox" class="alert-box"></div>
 
-            <!-- Ôæá Au├ƒenw├ñnde -->
+            <!-- ① Außenwände -->
             <div class="card" id="card-aussenwand">
-                <h3>­ƒº▒ Au├ƒenw├ñnde ÔÇô Schichtenaufbau (von innen ÔåÆ au├ƒen)</h3>
-                <p class="note" style="margin-bottom:14px;">Fl├ñchen werden aus den Geb├ñudedaten berechnet. Derselbe Aufbau gilt f├╝r alle Orientierungen (N/S/O/W). U = 1 / (R<sub>si</sub> + ╬ú d/╬╗ + R<sub>se</sub>)</p>
+                <h3>🧱 Außenwände – Schichtenaufbau (von innen → außen)</h3>
+                <p class="note" style="margin-bottom:14px;">Flächen werden aus den Gebäudedaten berechnet. Derselbe Aufbau gilt für alle Orientierungen (N/S/O/W). U = 1 / (R<sub>si</sub> + Σ d/λ + R<sub>se</sub>)</p>
 
-                <!-- Wandfl├ñchen-Anzeige -->
+                <!-- Wandflächen-Anzeige -->
                 <div class="grid-4" style="margin-bottom:18px;">
-                    <div class="field"><label>Nord (m┬▓)</label><div class="value-display" id="north_area_display">ÔÇö</div></div>
-                    <div class="field"><label>S├╝d (m┬▓)</label><div class="value-display" id="south_area_display">ÔÇö</div></div>
-                    <div class="field"><label>Ost (m┬▓)</label><div class="value-display" id="east_area_display">ÔÇö</div></div>
-                    <div class="field"><label>West (m┬▓)</label><div class="value-display" id="west_area_display">ÔÇö</div></div>
+                    <div class="field"><label>Nord (m²)</label><div class="value-display" id="north_area_display">—</div></div>
+                    <div class="field"><label>Süd (m²)</label><div class="value-display" id="south_area_display">—</div></div>
+                    <div class="field"><label>Ost (m²)</label><div class="value-display" id="east_area_display">—</div></div>
+                    <div class="field"><label>West (m²)</label><div class="value-display" id="west_area_display">—</div></div>
                 </div>
 
                 <!-- Schichten-Tabelle + Visualisierung -->
@@ -1303,25 +1303,25 @@ input[type="checkbox"], input[type="radio"] {
                         <span class="wl-col-num">#</span>
                         <span class="wl-col-type">Schichttyp</span>
                         <span class="wl-col-thick">Dicke (mm)</span>
-                        <span class="wl-col-mat">Material / ├ûKOBAUDAT</span>
-                        <span class="wl-col-lambda">╬╗ W/mK</span>
-                        <span class="wl-col-r">R m┬▓K/W</span>
+                        <span class="wl-col-mat">Material / ÖKOBAUDAT</span>
+                        <span class="wl-col-lambda">λ W/mK</span>
+                        <span class="wl-col-r">R m²K/W</span>
                         <span class="wl-col-del"></span>
                     </div>
                     <div id="wall_layers_container"></div>
 
                     <!-- Aktions-Buttons -->
                     <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
-                        <button class="btn btn-primary" onclick="addWallLayer()">+ Schicht hinzuf├╝gen</button>
-                        <button class="btn" onclick="loadStandardWallBuild()">ÔÜí WDVS-Standardaufbau</button>
+                        <button class="btn btn-primary" onclick="addWallLayer()">+ Schicht hinzufügen</button>
+                        <button class="btn" onclick="loadStandardWallBuild()">⚡ WDVS-Standardaufbau</button>
                     </div>
                   </div>
                   <div class="wall-viz-col">
-                    <div class="wall-viz-title">Wandaufbau <span class="wall-viz-sub">(innen ÔåÆ au├ƒen, ma├ƒstabsgetreu)</span></div>
+                    <div class="wall-viz-title">Wandaufbau <span class="wall-viz-sub">(innen → außen, maßstabsgetreu)</span></div>
                     <div class="wall-viz-frame">
                       <svg id="wall_viz_svg" viewBox="0 0 320 286" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
                     </div>
-                    <div class="wall-viz-scale" id="wall_viz_scale">ÔÇö</div>
+                    <div class="wall-viz-scale" id="wall_viz_scale">—</div>
                     <div class="wall-viz-legend" id="wall_viz_legend"></div>
                   </div>
                 </div>
@@ -1330,24 +1330,24 @@ input[type="checkbox"], input[type="radio"] {
                 <div class="wall-u-summary">
                     <div class="wall-u-row">
                         <span class="wall-u-label">Gesamtdicke</span>
-                        <div class="value-display" id="wall_total_thickness_display">ÔÇö</div>
+                        <div class="value-display" id="wall_total_thickness_display">—</div>
                     </div>
                     <div class="wall-u-row">
                         <span class="wall-u-label">R<sub>si</sub> + R<sub>se</sub></span>
-                        <div class="value-display">0.17 m┬▓K/W</div>
+                        <div class="value-display">0.17 m²K/W</div>
                     </div>
                     <div class="wall-u-row wall-u-highlight">
-                        <span class="wall-u-label">U-Wert Au├ƒenwand</span>
-                        <div class="value-display" id="wall_u_computed_display">ÔÇö</div>
+                        <span class="wall-u-label">U-Wert Außenwand</span>
+                        <div class="value-display" id="wall_u_computed_display">—</div>
                     </div>
                 </div>
 
-                <!-- Hidden legacy-Elemente f├╝r JS-Kompatibilit├ñt (calculateEnvelope liest wallMaterialData) -->
+                <!-- Hidden legacy-Elemente für JS-Kompatibilität (calculateEnvelope liest wallMaterialData) -->
                 <div style="display:none;" aria-hidden="true">
-                    <div id="north_u_display">ÔÇö</div>
-                    <div id="south_u_display">ÔÇö</div>
-                    <div id="east_u_display">ÔÇö</div>
-                    <div id="west_u_display">ÔÇö</div>
+                    <div id="north_u_display">—</div>
+                    <div id="south_u_display">—</div>
+                    <div id="east_u_display">—</div>
+                    <div id="west_u_display">—</div>
                     <select id="north_material"></select>
                     <select id="south_material"></select>
                     <select id="east_material"></select>
@@ -1366,80 +1366,80 @@ input[type="checkbox"], input[type="radio"] {
                     <input type="checkbox" id="west_plaster_check"><select id="west_plaster"></select>
                 </div>
 
-                <button class="btn btn-primary" style="margin-top:18px;" onclick="calculateEnvelope()">Geb├ñudeh├╝lle auswerten</button>
+                <button class="btn btn-primary" style="margin-top:18px;" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
 
                 <div class="result-row" style="margin-top:14px;">
-                    <div class="result-chip"><span class="small">Nord (W/K)</span><strong id="north_result">ÔÇö</strong></div>
-                    <div class="result-chip"><span class="small">S├╝d (W/K)</span><strong id="south_result">ÔÇö</strong></div>
-                    <div class="result-chip"><span class="small">Ost (W/K)</span><strong id="east_result">ÔÇö</strong></div>
-                    <div class="result-chip"><span class="small">West (W/K)</span><strong id="west_result">ÔÇö</strong></div>
-                    <div class="result-chip"><span class="small">W├ñnde gesamt (W/K)</span><strong id="wall_total_result">ÔÇö</strong></div>
+                    <div class="result-chip"><span class="small">Nord (W/K)</span><strong id="north_result">—</strong></div>
+                    <div class="result-chip"><span class="small">Süd (W/K)</span><strong id="south_result">—</strong></div>
+                    <div class="result-chip"><span class="small">Ost (W/K)</span><strong id="east_result">—</strong></div>
+                    <div class="result-chip"><span class="small">West (W/K)</span><strong id="west_result">—</strong></div>
+                    <div class="result-chip"><span class="small">Wände gesamt (W/K)</span><strong id="wall_total_result">—</strong></div>
                 </div>
             </div>
 
-            <!-- Ôæí Fenster + T├╝ren -->
+            <!-- ② Fenster + Türen -->
             <div class="grid-2" style="margin-top:18px;">
                 <div class="card" id="card-fenster">
-                    <h3>Ôè× Fenster</h3>
+                    <h3>⊞ Fenster</h3>
                     <div class="field">
                         <label>Fenstertyp</label>
                         <select id="window_type" onchange="updateWindowType()">
-                            <option value="">-- Fenstertyp w├ñhlen --</option>
+                            <option value="">-- Fenstertyp wählen --</option>
                             <option value="custom">-- Eigenen U-Wert eingeben --</option>
                         </select>
                     </div>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Gesamt-Fensterfl├ñche (m┬▓)</label>
+                            <label>Gesamt-Fensterfläche (m²)</label>
                             <div class="value-display" id="window_total_area_display">32</div>
                         </div>
                         <div class="field">
-                            <label>U_w-Wert (W/m┬▓K)</label>
+                            <label>U_w-Wert (W/m²K)</label>
                             <input id="window_u" type="number" step="0.01" value="1.10">
                         </div>
                     </div>
-                    <p class="note" style="margin:10px 0 6px;">Fensterfl├ñchen nach Orientierung:</p>
+                    <p class="note" style="margin:10px 0 6px;">Fensterflächen nach Orientierung:</p>
                     <div class="grid-4" style="gap:8px;">
-                        <div class="field"><label>Nord (m┬▓)</label><input id="window_north_area" type="number" value="8" oninput="updateWindowTotalDisplay()"></div>
-                        <div class="field"><label>S├╝d (m┬▓)</label><input id="window_south_area" type="number" value="12" oninput="updateWindowTotalDisplay()"></div>
-                        <div class="field"><label>Ost (m┬▓)</label><input id="window_east_area" type="number" value="6" oninput="updateWindowTotalDisplay()"></div>
-                        <div class="field"><label>West (m┬▓)</label><input id="window_west_area" type="number" value="6" oninput="updateWindowTotalDisplay()"></div>
+                        <div class="field"><label>Nord (m²)</label><input id="window_north_area" type="number" value="8" oninput="updateWindowTotalDisplay()"></div>
+                        <div class="field"><label>Süd (m²)</label><input id="window_south_area" type="number" value="12" oninput="updateWindowTotalDisplay()"></div>
+                        <div class="field"><label>Ost (m²)</label><input id="window_east_area" type="number" value="6" oninput="updateWindowTotalDisplay()"></div>
+                        <div class="field"><label>West (m²)</label><input id="window_west_area" type="number" value="6" oninput="updateWindowTotalDisplay()"></div>
                     </div>
                     <div class="grid-2" style="margin-top:10px;">
-                        <div class="field"><label>g-Wert (0ÔÇô1)</label><input id="g_value" type="number" step="0.01" value="0.55"></div>
-                        <div class="field"><label>¤ê-Wert (W/mK)</label><div class="value-display">ÔÇö</div></div>
+                        <div class="field"><label>g-Wert (0–1)</label><input id="g_value" type="number" step="0.01" value="0.55"></div>
+                        <div class="field"><label>ψ-Wert (W/mK)</label><div class="value-display">—</div></div>
                     </div>
                     <!-- result element kept for JS -->
-                    <div style="display:none;"><div id="window_total_result">ÔÇö</div></div>
+                    <div style="display:none;"><div id="window_total_result">—</div></div>
                 </div>
 
                 <div class="card" id="card-tuer">
-                    <h3>­ƒÜ¬ T├╝ren &amp; Eing├ñnge</h3>
+                    <h3>🚪 Türen &amp; Eingänge</h3>
                     <div class="field">
-                        <label>T├╝rtyp</label>
+                        <label>Türtyp</label>
                         <select id="door_type" onchange="updateDoorType()">
-                            <option value="">-- T├╝rtyp w├ñhlen --</option>
+                            <option value="">-- Türtyp wählen --</option>
                             <option value="custom">-- Eigenen U-Wert eingeben --</option>
                         </select>
                     </div>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Anzahl T├╝ren</label>
+                            <label>Anzahl Türen</label>
                             <div class="value-display" id="door_total_count_display">1</div>
                         </div>
                         <div class="field">
-                            <label>Fl├ñche/T├╝r (m┬▓)</label>
+                            <label>Fläche/Tür (m²)</label>
                             <input id="door_area_per_unit" type="number" step="0.01" min="0" value="2.0">
                         </div>
                     </div>
                     <div class="field">
-                        <label>T├╝r U-Wert (W/m┬▓K)</label>
+                        <label>Tür U-Wert (W/m²K)</label>
                         <input id="door_u" type="number" step="0.01" value="2.5">
                     </div>
-                    <p class="note" style="margin:10px 0 6px;">T├╝ren nach Orientierung:</p>
+                    <p class="note" style="margin:10px 0 6px;">Türen nach Orientierung:</p>
                     <div class="grid-4" style="gap:8px;">
                         <div class="field"><label>Nord</label><input id="door_north_count" type="number" min="0" value="0" oninput="updateDoorTotalDisplay()"></div>
-                        <div class="field"><label>S├╝d</label><input id="door_south_count" type="number" min="0" value="0" oninput="updateDoorTotalDisplay()"></div>
+                        <div class="field"><label>Süd</label><input id="door_south_count" type="number" min="0" value="0" oninput="updateDoorTotalDisplay()"></div>
                         <div class="field"><label>Ost</label><input id="door_east_count" type="number" min="0" value="0" oninput="updateDoorTotalDisplay()"></div>
                         <div class="field"><label>West</label><input id="door_west_count" type="number" min="0" value="1" oninput="updateDoorTotalDisplay()"></div>
                     </div>
@@ -1448,116 +1448,116 @@ input[type="checkbox"], input[type="radio"] {
                         <input id="door_frame_thickness" type="number" step="1" min="0" value="80">
                     </div>
                     <!-- result element kept for JS -->
-                    <div style="display:none;"><div id="door_total_result">ÔÇö</div></div>
+                    <div style="display:none;"><div id="door_total_result">—</div></div>
                 </div>
             </div>
 
-            <!-- Ôæó Dach + Boden -->
+            <!-- ③ Dach + Boden -->
             <div class="grid-2" style="margin-top:18px;">
                 <div class="card" id="card-dach">
-                    <h3>­ƒÅá Dach</h3>
+                    <h3>🏠 Dach</h3>
                     <div class="field">
                         <label>Dachtyp</label>
                         <select id="roof_type" onchange="updateRoofType()">
-                            <option value="">-- W├ñhlen --</option>
+                            <option value="">-- Wählen --</option>
                             <option value="steildach">Steildach</option>
                             <option value="flachdach">Flachdach</option>
                         </select>
                     </div>
                     <div class="field" id="roof_material_field" style="display:none;">
                         <label>Dachmaterial</label>
-                        <select id="roof_material" onchange="updateRoofMaterial()"><option value="">-- W├ñhlen --</option></select>
+                        <select id="roof_material" onchange="updateRoofMaterial()"><option value="">-- Wählen --</option></select>
                     </div>
                     <div class="field" id="roof_u_field" style="display:none;">
-                        <label>Dach U-Wert ÔÇô manuell</label>
+                        <label>Dach U-Wert – manuell</label>
                         <input id="roof_u_manual" type="number" step="0.01" placeholder="z.B. 0.20" oninput="updateRoofManualU()">
                     </div>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Dachfl├ñche (m┬▓)</label>
-                            <div class="value-display" id="roof_area_display">ÔÇö</div>
+                            <label>Dachfläche (m²)</label>
+                            <div class="value-display" id="roof_area_display">—</div>
                         </div>
                         <div class="field" id="roof_u_display_field">
                             <label>U-Wert Dach</label>
-                            <div class="value-display" id="roof_u_display">ÔÇö</div>
+                            <div class="value-display" id="roof_u_display">—</div>
                         </div>
                     </div>
                     <!-- result element kept for JS -->
-                    <div style="display:none;"><strong id="roof_result">ÔÇö</strong></div>
+                    <div style="display:none;"><strong id="roof_result">—</strong></div>
                 </div>
 
                 <div class="card" id="card-boden">
-                    <h3>Ô¼ø Boden</h3>
+                    <h3>⬛ Boden</h3>
                     <div class="field">
                         <label>Boden grenzt an</label>
                         <select id="floor_boundary" onchange="updateFloorBoundary()">
-                            <option value="">-- W├ñhlen --</option>
+                            <option value="">-- Wählen --</option>
                             <option value="erdreich">Erdreich</option>
                             <option value="unheated">Unbeheizter Raum</option>
                         </select>
                     </div>
                     <div class="field" id="floor_material_field" style="display:none;">
                         <label>Bodenmaterial</label>
-                        <select id="floor_material" onchange="updateFloorMaterial()"><option value="">-- W├ñhlen --</option></select>
+                        <select id="floor_material" onchange="updateFloorMaterial()"><option value="">-- Wählen --</option></select>
                     </div>
                     <div class="field" id="floor_unheated_temp_field" style="display:none;">
-                        <label>Temperatur unbeheizter Raum (┬░C)</label>
+                        <label>Temperatur unbeheizter Raum (°C)</label>
                         <input id="floor_unheated_temp" type="number" step="0.1" value="10" oninput="updateFloorUValue()">
                     </div>
                     <div class="field" id="floor_u_field" style="display:none;">
-                        <label>Boden U-Wert ÔÇô manuell</label>
+                        <label>Boden U-Wert – manuell</label>
                         <input id="floor_u_manual" type="number" step="0.01" placeholder="z.B. 0.25" oninput="updateFloorManualU()">
                     </div>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Bodenfl├ñche (m┬▓)</label>
-                            <div class="value-display" id="floor_area_display">ÔÇö</div>
+                            <label>Bodenfläche (m²)</label>
+                            <div class="value-display" id="floor_area_display">—</div>
                         </div>
                         <div class="field" id="floor_u_display_field">
                             <label>U-Wert Boden</label>
-                            <div class="value-display" id="floor_u_display">ÔÇö</div>
+                            <div class="value-display" id="floor_u_display">—</div>
                         </div>
                     </div>
                     <!-- result element kept for JS -->
-                    <div style="display:none;"><strong id="floor_result">ÔÇö</strong></div>
+                    <div style="display:none;"><strong id="floor_result">—</strong></div>
                 </div>
             </div>
 
-            <!-- Ôæú H_T W├ñrmeverlustkoeffizienten -->
+            <!-- ④ H_T Wärmeverlustkoeffizienten -->
             <div class="card ht-table" style="margin-top:18px;">
-                <h3>Ôëí W├ñrmeverlustkoeffizienten H_T (W/K)</h3>
-                <div class="ht-row"><span>W├ñnde (N+S+O+W)</span><span id="ht_wall">ÔÇö</span></div>
-                <div class="ht-row"><span>Fenster</span><span id="ht_window">ÔÇö</span></div>
-                <div class="ht-row"><span>T├╝ren</span><span id="ht_door">ÔÇö</span></div>
-                <div class="ht-row"><span>Dach</span><span id="ht_roof">ÔÇö</span></div>
-                <div class="ht-row"><span>Boden</span><span id="ht_floor">ÔÇö</span></div>
-                <div class="ht-row ht-total"><span>H_T gesamt</span><span id="ht_total">ÔÇö</span></div>
+                <h3>≡ Wärmeverlustkoeffizienten H_T (W/K)</h3>
+                <div class="ht-row"><span>Wände (N+S+O+W)</span><span id="ht_wall">—</span></div>
+                <div class="ht-row"><span>Fenster</span><span id="ht_window">—</span></div>
+                <div class="ht-row"><span>Türen</span><span id="ht_door">—</span></div>
+                <div class="ht-row"><span>Dach</span><span id="ht_roof">—</span></div>
+                <div class="ht-row"><span>Boden</span><span id="ht_floor">—</span></div>
+                <div class="ht-row ht-total"><span>H_T gesamt</span><span id="ht_total">—</span></div>
             </div>
 
-            <!-- Ôæñ Ergebniszeile -->
+            <!-- ⑤ Ergebniszeile -->
             <div class="huelle-results">
                 <div class="stat-box">
-                    <div class="label">Heizw├ñrmebedarf brutto (kWh/a)</div>
-                    <div class="value" id="annual_heat_result">ÔÇö</div>
+                    <div class="label">Heizwärmebedarf brutto (kWh/a)</div>
+                    <div class="value" id="annual_heat_result">—</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Spezifisch kWh/(m┬▓┬Àa)</div>
-                    <div class="value" id="specific_heat_result">ÔÇö</div>
+                    <div class="label">Spezifisch kWh/(m²·a)</div>
+                    <div class="value" id="specific_heat_result">—</div>
                 </div>
                 <div class="stat-box">
                     <div class="label">GEG-Bewertung</div>
                     <div id="ratingBox" class="rating-box" style="margin:0;">
-                        <div id="ratingTitle" class="rating-title">ÔÇö</div>
-                        <div id="ratingText" class="rating-text" style="font-size:11px;">ÔÇö</div>
+                        <div id="ratingTitle" class="rating-title">—</div>
+                        <div id="ratingText" class="rating-text" style="font-size:11px;">—</div>
                     </div>
                 </div>
             </div>
 
             <!-- Hidden result elements still needed by JS -->
             <div style="display:none;">
-                <div id="envelope_total_result">ÔÇö</div>
-                <div id="solar_gain_result">ÔÇö</div>
-                <div id="adjusted_heat_result">ÔÇö</div>
+                <div id="envelope_total_result">—</div>
+                <div id="solar_gain_result">—</div>
+                <div id="adjusted_heat_result">—</div>
             </div>
         </div>
     </div>
@@ -1828,25 +1828,25 @@ input[type="checkbox"], input[type="radio"] {
             <!-- SIDEBAR NAVIGATION -->
             <div class="bautechnik-sidebar">
                 <div class="bautechnik-nav-item active" onclick="switchBautechnikSection('materialien')">
-                    ­ƒôï Materialien
+                    📋 Materialien
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('konstruktionen')">
-                    ­ƒÅù´©Å Konstruktionen
+                    🏗️ Konstruktionen
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('fenster')">
-                    ­ƒ¬ƒ Fenster
+                    🪟 Fenster
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('tueren')">
-                    ­ƒÜ¬ T├╝ren/Tore
+                    🚪 Türen/Tore
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('sonnenschutz')">
-                    ÔÿÇ´©Å Sonnenschutz
+                    ☀️ Sonnenschutz
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('gebaeude')">
-                    ­ƒÅó Geb├ñude
+                    🏢 Gebäude
                 </div>
                 <div class="bautechnik-nav-item" onclick="switchBautechnikSection('bauteile')">
-                    ­ƒôÉ Bauteile
+                    📐 Bauteile
                 </div>
             </div>
             
@@ -1877,9 +1877,9 @@ input[type="checkbox"], input[type="radio"] {
                 </div>
                 
                 <div id="tueren-section" class="bautechnik-section" style="display:none;">
-                    <h2>T├╝r- & Tortypen</h2>
+                    <h2>Tür- & Tortypen</h2>
                     <div class="bautechnik-toolbar">
-                        <button class="btn btn-primary btn-sm" onclick="openT├╝rForm()">+ Neuer T├╝rtyp</button>
+                        <button class="btn btn-primary btn-sm" onclick="openTürForm()">+ Neuer Türtyp</button>
                     </div>
                     <div id="tueren-list"></div>
                 </div>
@@ -1893,9 +1893,9 @@ input[type="checkbox"], input[type="radio"] {
                 </div>
                 
                 <div id="gebaeude-section" class="bautechnik-section" style="display:none;">
-                    <h2>Geb├ñude</h2>
+                    <h2>Gebäude</h2>
                     <div class="bautechnik-toolbar">
-                        <button class="btn btn-primary btn-sm" onclick="openGeb├ñudeForm()">+ Neues Geb├ñude</button>
+                        <button class="btn btn-primary btn-sm" onclick="openGebäudeForm()">+ Neues Gebäude</button>
                     </div>
                     <div id="gebaeude-list"></div>
                 </div>
@@ -1924,15 +1924,15 @@ input[type="checkbox"], input[type="radio"] {
                 <input id="materialName" type="text">
             </div>
             <div class="field">
-                <label>Rohdichte (kg/m┬│)</label>
+                <label>Rohdichte (kg/m³)</label>
                 <input id="materialRohdichte" type="number" min="0" step="10">
             </div>
             <div class="field">
-                <label>W├ñrmeleitf├ñhigkeit ╬╗ (W/mK)</label>
+                <label>Wärmeleitfähigkeit λ (W/mK)</label>
                 <input id="materialLambda" type="number" min="0" step="0.01">
             </div>
             <div class="field">
-                <label>Spez. W├ñrmekapazit├ñt (kJ/kgK)</label>
+                <label>Spez. Wärmekapazität (kJ/kgK)</label>
                 <input id="materialC" type="number" min="0" step="0.1">
             </div>
         </div>
@@ -1953,7 +1953,7 @@ input[type="checkbox"], input[type="radio"] {
                 <input id="fensterName" type="text">
             </div>
             <div class="field">
-                <label>Uw-Wert (W/m┬▓K)</label>
+                <label>Uw-Wert (W/m²K)</label>
                 <input id="fensterUw" type="number" min="0" step="0.01">
             </div>
             <div class="field">
@@ -1961,7 +1961,7 @@ input[type="checkbox"], input[type="radio"] {
                 <input id="fensterG" type="number" min="0" max="1" step="0.01">
             </div>
             <div class="field">
-                <label>¤ê-Wert Kante (W/mK)</label>
+                <label>ψ-Wert Kante (W/mK)</label>
                 <input id="fensterPsi" type="number" min="0" step="0.01" value="0.06">
             </div>
         </div>
@@ -1972,21 +1972,21 @@ input[type="checkbox"], input[type="radio"] {
     </div>
 </div>
 
-<!-- T├╝ren Modal -->
+<!-- Türen Modal -->
 <div id="turenModal" class="bautechnik-modal">
     <div class="bautechnik-modal-content">
-        <div class="bautechnik-modal-header">T├╝rtyp</div>
+        <div class="bautechnik-modal-header">Türtyp</div>
         <div class="bautechnik-form-grid full">
             <div class="field">
                 <label>Name</label>
                 <input id="turenName" type="text">
             </div>
             <div class="field">
-                <label>U-Wert (W/m┬▓K)</label>
+                <label>U-Wert (W/m²K)</label>
                 <input id="turenU" type="number" min="0" step="0.01">
             </div>
             <div class="field">
-                <label>Luftdichtheit (m┬│/h┬Àm┬▓)</label>
+                <label>Luftdichtheit (m³/h·m²)</label>
                 <input id="turenLuft" type="number" min="0" step="0.1">
             </div>
         </div>
@@ -2010,7 +2010,7 @@ input[type="checkbox"], input[type="radio"] {
                 <label>Position</label>
                 <select id="sonnenschutzPosition">
                     <option value="innen">Innen</option>
-                    <option value="au├ƒen">Au├ƒen</option>
+                    <option value="außen">Außen</option>
                 </select>
             </div>
             <div class="field">
@@ -2032,10 +2032,10 @@ input[type="checkbox"], input[type="radio"] {
     </div>
 </div>
 
-<!-- Geb├ñude Modal -->
+<!-- Gebäude Modal -->
 <div id="gebaudeModal" class="bautechnik-modal">
     <div class="bautechnik-modal-content">
-        <div class="bautechnik-modal-header">Geb├ñude</div>
+        <div class="bautechnik-modal-header">Gebäude</div>
         <div class="bautechnik-form-grid full">
             <div class="field">
                 <label>Name</label>
@@ -2046,7 +2046,7 @@ input[type="checkbox"], input[type="radio"] {
                 <input id="gebaudeStandort" type="text" placeholder="z.B. Berlin">
             </div>
             <div class="field">
-                <label>BGF (m┬▓)</label>
+                <label>BGF (m²)</label>
                 <input id="gebaudeBGF" type="number" min="0" step="1">
             </div>
             <div class="field">
@@ -2071,21 +2071,21 @@ input[type="checkbox"], input[type="radio"] {
                 <input id="bauteilName" type="text">
             </div>
             <div class="field">
-                <label>Geb├ñude</label>
+                <label>Gebäude</label>
                 <select id="bauteilGebaude"></select>
             </div>
             <div class="field">
                 <label>Orientierung</label>
                 <select id="bauteilOrientierung">
                     <option value="nord">Nord</option>
-                    <option value="s├╝d">S├╝d</option>
+                    <option value="süd">Süd</option>
                     <option value="ost">Ost</option>
                     <option value="west">West</option>
                     <option value="horizontal">Horizontal</option>
                 </select>
             </div>
             <div class="field">
-                <label>Fl├ñche (m┬▓)</label>
+                <label>Fläche (m²)</label>
                 <input id="bauteilFlaeche" type="number" min="0" step="0.1">
             </div>
             <div class="field">
@@ -2097,7 +2097,7 @@ input[type="checkbox"], input[type="radio"] {
                 <select id="bauteilFenster"></select>
             </div>
             <div class="field">
-                <label>Fensterfl├ñche (m┬▓)</label>
+                <label>Fensterfläche (m²)</label>
                 <input id="bauteilFensterFlaeche" type="number" min="0" step="0.1">
             </div>
             <div class="field">
@@ -2124,7 +2124,7 @@ input[type="checkbox"], input[type="radio"] {
             <div class="field">
                 <label>Typ</label>
                 <select id="konstruktionTyp">
-                    <option value="aussen_wand">Au├ƒenwand</option>
+                    <option value="aussen_wand">Außenwand</option>
                     <option value="dach">Dach</option>
                     <option value="bodenplatte">Bodenplatte</option>
                     <option value="decke">Decke</option>
@@ -2136,11 +2136,11 @@ input[type="checkbox"], input[type="radio"] {
                 <textarea id="konstruktionBeschreibung" style="min-height:60px;"></textarea>
             </div>
             <div class="field">
-                <label>R_si (m┬▓K/W)</label>
+                <label>R_si (m²K/W)</label>
                 <input id="konstruktionRsi" type="number" min="0" step="0.01" value="0.13">
             </div>
             <div class="field">
-                <label>R_se (m┬▓K/W)</label>
+                <label>R_se (m²K/W)</label>
                 <input id="konstruktionRse" type="number" min="0" step="0.01" value="0.04">
             </div>
         </div>
@@ -2204,9 +2204,9 @@ function loadBautechnikData(section) {
         case 'materialien': apiUrl = '/api/material/'; break;
         case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
         case 'fenster': apiUrl = '/api/fenster-typ/'; break;
-        case 'tueren': apiUrl = '/api/t├╝r-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
         case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
-        case 'gebaeude': apiUrl = '/api/geb├ñude/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
         case 'bauteile': apiUrl = '/api/bauteil/'; break;
     }
     
@@ -2226,30 +2226,30 @@ function renderBautechnikTable(section, items) {
     const container = document.getElementById(section + '-list');
     
     if (!items || items.length === 0) {
-        container.innerHTML = '<div class="bautechnik-empty">Keine Eintr├ñge vorhanden</div>';
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
         return;
     }
     
     let html = '<table class="bautechnik-table"><thead><tr>';
     
     if (section === 'materialien') {
-        html += '<th>Name</th><th>¤ü (kg/m┬│)</th><th>╬╗ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(m => {
             html += `<tr>
                 <td>${m.name}</td>
                 <td>${m.rohdichte}</td>
                 <td>${m.lambda_value}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'fenster') {
-        html += '<th>Name</th><th>Uw (W/m┬▓K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(f => {
             html += `<tr>
                 <td>${f.name}</td>
                 <td>${f.u_w}</td>
                 <td>${f.g_value}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'tueren') {
@@ -2259,7 +2259,7 @@ function renderBautechnikTable(section, items) {
                 <td>${t.name}</td>
                 <td>${t.u_value}</td>
                 <td>${t.luftdichtheit}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'sonnenschutz') {
@@ -2270,7 +2270,7 @@ function renderBautechnikTable(section, items) {
                 <td>${s.position}</td>
                 <td>${s.typ}</td>
                 <td>${(s.reduktionsfaktor*100).toFixed(0)}%</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'gebaeude') {
@@ -2279,8 +2279,8 @@ function renderBautechnikTable(section, items) {
             html += `<tr>
                 <td>${g.name}</td>
                 <td>${g.standort}</td>
-                <td>${g.bgf} m┬▓</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">L├Âschen</button></td>
+                <td>${g.bgf} m²</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'konstruktionen') {
@@ -2290,19 +2290,19 @@ function renderBautechnikTable(section, items) {
                 <td>${k.name}</td>
                 <td>${k.typ}</td>
                 <td>${(k.u_value || 0).toFixed(3)}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'bauteile') {
-        html += '<th>Name</th><th>Geb├ñude</th><th>Fl├ñche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>Gebäude</th><th>Fläche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(b => {
             const transLoss = (b.transmissionsverlust || 0).toFixed(1);
             html += `<tr>
                 <td>${b.name}</td>
                 <td>${b.gebaeude_name || '-'}</td>
-                <td>${b.flaeche} m┬▓</td>
+                <td>${b.flaeche} m²</td>
                 <td>${transLoss} W/K</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">Löschen</button></td>
             </tr>`;
         });
     }
@@ -2326,7 +2326,7 @@ function saveMaterial() {
     };
     
     if (!data.name || !data.rohdichte || !data.lambda_value) {
-        alert('Bitte alle Felder ausf├╝llen');
+        alert('Bitte alle Felder ausfüllen');
         return;
     }
     
@@ -2344,7 +2344,7 @@ function saveMaterial() {
 }
 
 function deleteMaterial(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/material/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('materialien'))
             .catch(err => console.error(err));
@@ -2366,7 +2366,7 @@ function saveFenster() {
     };
     
     if (!data.name || !data.u_w) {
-        alert('Bitte mindestens Name und Uw-Wert ausf├╝llen');
+        alert('Bitte mindestens Name und Uw-Wert ausfüllen');
         return;
     }
     
@@ -2384,15 +2384,15 @@ function saveFenster() {
 }
 
 function deleteFenster(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('fenster'))
             .catch(err => console.error(err));
     }
 }
 
-// ===== T├£REN =====
-function openT├╝rForm() {
+// ===== TÜREN =====
+function openTürForm() {
     document.getElementById('turenModal').classList.add('active');
 }
 
@@ -2404,11 +2404,11 @@ function saveTuren() {
     };
     
     if (!data.name || !data.u_value) {
-        alert('Bitte mindestens Name und U-Wert ausf├╝llen');
+        alert('Bitte mindestens Name und U-Wert ausfüllen');
         return;
     }
     
-    fetch('/api/t├╝r-typ/', {
+    fetch('/api/tür-typ/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -2422,8 +2422,8 @@ function saveTuren() {
 }
 
 function deleteTuren(id) {
-    if (confirm('Wirklich l├Âschen?')) {
-        fetch(`/api/t├╝r-typ/${id}/`, { method: 'DELETE' })
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/tür-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('tueren'))
             .catch(err => console.error(err));
     }
@@ -2443,7 +2443,7 @@ function saveSonnenschutz() {
     };
     
     if (!data.name) {
-        alert('Bitte Name ausf├╝llen');
+        alert('Bitte Name ausfüllen');
         return;
     }
     
@@ -2461,15 +2461,15 @@ function saveSonnenschutz() {
 }
 
 function deleteSonnenschutz(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/sonnenschutz-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('sonnenschutz'))
             .catch(err => console.error(err));
     }
 }
 
-// ===== GEB├äUDE =====
-function openGeb├ñudeForm() {
+// ===== GEBÄUDE =====
+function openGebäudeForm() {
     document.getElementById('gebaudeModal').classList.add('active');
 }
 
@@ -2482,11 +2482,11 @@ function saveGebaude() {
     };
     
     if (!data.name || !data.bgf) {
-        alert('Bitte Name und BGF ausf├╝llen');
+        alert('Bitte Name und BGF ausfüllen');
         return;
     }
     
-    fetch('/api/geb├ñude/', {
+    fetch('/api/gebäude/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -2500,8 +2500,8 @@ function saveGebaude() {
 }
 
 function deleteGebaude(id) {
-    if (confirm('Wirklich l├Âschen?')) {
-        fetch(`/api/geb├ñude/${id}/`, { method: 'DELETE' })
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/gebäude/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('gebaeude'))
             .catch(err => console.error(err));
     }
@@ -2514,12 +2514,12 @@ function openBauteilForm() {
 }
 
 function loadSelectOptions() {
-    // Load Geb├ñude options
-    fetch('/api/geb├ñude/')
+    // Load Gebäude options
+    fetch('/api/gebäude/')
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilGebaude');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(g => {
                 select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             });
@@ -2530,7 +2530,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilKonstruktion');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(k => {
                 select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
             });
@@ -2541,7 +2541,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilFenster');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(f => {
                 select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
             });
@@ -2552,7 +2552,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilSonnenschutz');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(s => {
                 select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
             });
@@ -2577,7 +2577,7 @@ function saveBauteil() {
     };
     
     if (!data.name || !data.gebaeude || !data.flaeche) {
-        alert('Bitte Name, Geb├ñude und Fl├ñche ausf├╝llen');
+        alert('Bitte Name, Gebäude und Fläche ausfüllen');
         return;
     }
     
@@ -2595,7 +2595,7 @@ function saveBauteil() {
 }
 
 function deleteBauteil(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/bauteil/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('bauteile'))
             .catch(err => console.error(err));
@@ -2614,7 +2614,7 @@ function loadKonstruktionSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('konstruktionMaterialSelect');
-            select.innerHTML = '<option value="">-- Material w├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Material wählen --</option>';
             (d.results || d).forEach(m => {
                 select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
             });
@@ -2627,7 +2627,7 @@ function addSchichtToKonstruktion() {
     const materialName = document.querySelector('#konstruktionMaterialSelect option:checked').text;
     
     if (!materialId || !dicke) {
-        alert('Material und Dicke ausw├ñhlen');
+        alert('Material und Dicke auswählen');
         return;
     }
     
@@ -2650,7 +2650,7 @@ function renderKonstruktionSchichten() {
         container.innerHTML += `
             <div class="schicht-item">
                 <span>${idx+1}. ${s.material_name} (${s.dicke_mm}mm)</span>
-                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">Ô£ò</button>
+                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">✕</button>
             </div>
         `;
     });
@@ -2669,7 +2669,7 @@ function saveKonstruktion() {
     const r_se = parseFloat(document.getElementById('konstruktionRse').value) || 0.04;
     
     if (!name || !typ) {
-        alert('Bitte Name und Typ ausf├╝llen');
+        alert('Bitte Name und Typ ausfüllen');
         return;
     }
     
@@ -2731,7 +2731,7 @@ function addSchichtenToKonstruktion(konstruktionId) {
 }
 
 function deleteKonstruktion(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/konstruktion/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('konstruktionen'))
             .catch(err => console.error(err));
@@ -2759,19 +2759,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label>Heizsystem</label>
                         <select id="heating_system" onchange="applySystemDefaults()">
                             <option value="gas">Gas-Brennwert</option>
-                            <option value="heatpump">W├ñrmepumpe</option>
-                            <option value="district">Fernw├ñrme</option>
+                            <option value="heatpump">Wärmepumpe</option>
+                            <option value="district">Fernwärme</option>
                             <option value="pellet">Pellet</option>
                         </select>
                     </div>
 
                     <div class="field">
-                        <label>Wirkungsgrad ╬À</label>
+                        <label>Wirkungsgrad η</label>
                         <input id="efficiency" type="number" step="0.01" value="0.90">
                     </div>
 
                     <div class="field">
-                        <label>COP (nur f├╝r W├ñrmepumpe relevant)</label>
+                        <label>COP (nur für Wärmepumpe relevant)</label>
                         <input id="cop" type="number" step="0.1" value="3.5">
                     </div>
 
@@ -2789,15 +2789,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h4>Erzeugung</h4>
 
                         <div class="field">
-                            <label>Art der L├╝ftungsanlage</label>
+                            <label>Art der Lüftungsanlage</label>
                             <select id="ventilation_system" onchange="updateVentilationControls()">
-                                <option value="0.5" data-label="ohne L├╝ftungsanlage">ohne L├╝ftungsanlage</option>
-                                <option value="0.6" data-label="zentrale Abluftanlage ohne W├ñrmer├╝ckgewinnung">zentrale Abluftanlage ohne WRG</option>
-                                <option value="1.0" data-label="Abluft/Zuluftanlage ohne W├ñrmer├╝ckgewinnung">Abluft/Zuluftanlage ohne WRG</option>
-                                <option value="0.8" data-label="Abluft/Zuluftanlage mit W├ñrmer├╝ckgewinnung">Abluft/Zuluftanlage mit WRG</option>
-                                <option value="0.7" data-label="dezentrale Abluft/Zuluftanlage mit W├ñrmer├╝ckgewinnung">dezentrale Abluft/Zuluftanlage mit WRG</option>
-                                <option value="0.7" data-label="Abluft/Zuluft-W├ñrmepumpe ohne W├ñrme├╝bertrager">Abluft/Zuluft-WP ohne W├£</option>
-                                <option value="0.6" data-label="Abluft/Zuluft-W├ñrmepumpe mit W├ñrme├╝bertrager">Abluft/Zuluft-WP mit W├£</option>
+                                <option value="0.5" data-label="ohne Lüftungsanlage">ohne Lüftungsanlage</option>
+                                <option value="0.6" data-label="zentrale Abluftanlage ohne Wärmerückgewinnung">zentrale Abluftanlage ohne WRG</option>
+                                <option value="1.0" data-label="Abluft/Zuluftanlage ohne Wärmerückgewinnung">Abluft/Zuluftanlage ohne WRG</option>
+                                <option value="0.8" data-label="Abluft/Zuluftanlage mit Wärmerückgewinnung">Abluft/Zuluftanlage mit WRG</option>
+                                <option value="0.7" data-label="dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung">dezentrale Abluft/Zuluftanlage mit WRG</option>
+                                <option value="0.7" data-label="Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager">Abluft/Zuluft-WP ohne WÜ</option>
+                                <option value="0.6" data-label="Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager">Abluft/Zuluft-WP mit WÜ</option>
                             </select>
                         </div>
 
@@ -2810,7 +2810,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
 
                         <div class="field ventilation-field" id="ventilation-heat-recovery-field">
-                            <label>W├ñrmebereitstellungsgrad (ohne Erdw├ñrmetauscher)</label>
+                            <label>Wärmebereitstellungsgrad (ohne Erdwärmetauscher)</label>
                             <div class="ventilation-options">
                                 <label class="ventilation-option"><input type="radio" name="ventilation_heat_recovery" value="0.8" checked> &gt; 80%</label>
                                 <label class="ventilation-option"><input type="radio" name="ventilation_heat_recovery" value="0.6"> &gt; 60%</label>
@@ -2823,11 +2823,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <label>Lage der Verteilleitungen</label>
                             <select id="ventilation_distribution">
                                 <option value="innerhalb">innerhalb</option>
-                                <option value="au├ƒerhalb">au├ƒerhalb</option>
+                                <option value="außerhalb">außerhalb</option>
                             </select>
                         </div>
 
-                        <h4>├£bergabe</h4>
+                        <h4>Übergabe</h4>
 
                         <div class="field ventilation-field" id="ventilation-room-control-field">
                             <label>Einzelraumregelung</label>
@@ -2846,10 +2846,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
 
                         <div class="field ventilation-field" id="ventilation-outlet-field">
-                            <label>Anordnung der Ausl├ñsse</label>
+                            <label>Anordnung der Auslässe</label>
                             <div class="ventilation-options">
-                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="outer" checked> ├╝berwiegend Au├ƒenwand</label>
-                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="inner"> ├╝berwiegend Innenwand</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="outer" checked> überwiegend Außenwand</label>
+                                <label class="ventilation-option"><input type="radio" name="ventilation_outlet_arrangement" value="inner"> überwiegend Innenwand</label>
                             </div>
                         </div>
                     </div>
@@ -2857,7 +2857,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
 
                     <div class="note">
-                        Grundlage ist der zuvor berechnete Heizw├ñrmebedarf netto aus der Geb├ñudeh├╝lle.
+                        Grundlage ist der zuvor berechnete Heizwärmebedarf netto aus der Gebäudehülle.
                     </div>
                 </div>
 
@@ -2866,60 +2866,60 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="stats">
                         <div class="stat-box">
                             <div class="label">Heizung Endenergie (kWh/a)</div>
-                            <div class="value" id="system_heating_end">ÔÇö</div>
+                            <div class="value" id="system_heating_end">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Warmwasser Endenergie (kWh/a)</div>
-                            <div class="value" id="system_hotwater_end">ÔÇö</div>
+                            <div class="value" id="system_hotwater_end">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Hilfsstrom (kWh/a)</div>
-                            <div class="value" id="system_aux">ÔÇö</div>
+                            <div class="value" id="system_aux">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Endenergie gesamt (kWh/a)</div>
-                            <div class="value" id="system_total_end">ÔÇö</div>
+                            <div class="value" id="system_total_end">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Endenergie / Verbrauch gesamt (kWh/a)</div>
-                            <div class="value" id="system_consumption">ÔÇö</div>
+                            <div class="value" id="system_consumption">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Prim├ñrenergie (kWh/a)</div>
-                            <div class="value" id="system_primary">ÔÇö</div>
+                            <div class="label">Primärenergie (kWh/a)</div>
+                            <div class="value" id="system_primary">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">COÔéé-Emissionen (kg/a)</div>
-                            <div class="value" id="system_co2">ÔÇö</div>
+                            <div class="label">CO₂-Emissionen (kg/a)</div>
+                            <div class="value" id="system_co2">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Spezifische Endenergie (kWh/m┬▓a)</div>
-                            <div class="value" id="system_spec_end">ÔÇö</div>
+                            <div class="label">Spezifische Endenergie (kWh/m²a)</div>
+                            <div class="value" id="system_spec_end">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Spezifische Prim├ñrenergie (kWh/m┬▓a)</div>
-                            <div class="value" id="system_spec_primary">ÔÇö</div>
+                            <div class="label">Spezifische Primärenergie (kWh/m²a)</div>
+                            <div class="value" id="system_spec_primary">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">L├╝ftungsverlust (kWh/a)</div>
-                            <div class="value" id="system_ventilation">ÔÇö</div>
+                            <div class="label">Lüftungsverlust (kWh/a)</div>
+                            <div class="value" id="system_ventilation">—</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">Heizw├ñrmebedarf mit L├╝ftung (kWh/a)</div>
-                            <div class="value" id="system_heat_adjusted">ÔÇö</div>
+                            <div class="label">Heizwärmebedarf mit Lüftung (kWh/a)</div>
+                            <div class="value" id="system_heat_adjusted">—</div>
                         </div>
                     </div>
 
                     <div id="systemRatingBox" class="rating-box">
-                        <div id="systemRatingTitle" class="rating-title">ÔÇö</div>
-                        <div id="systemRatingText" class="rating-text">ÔÇö</div>
+                        <div id="systemRatingTitle" class="rating-title">—</div>
+                        <div id="systemRatingText" class="rating-text">—</div>
                     </div>
                 </div>
             </div>
 
             <div class="footer-note">
-                Das Anlagentechnik-Modul wandelt den Heizw├ñrmebedarf netto in Endenergie, Prim├ñrenergie und COÔéé um.
-                Dadurch entsteht der n├ñchste echte Systemschritt nach der Geb├ñudeh├╝lle.
+                Das Anlagentechnik-Modul wandelt den Heizwärmebedarf netto in Endenergie, Primärenergie und CO₂ um.
+                Dadurch entsteht der nächste echte Systemschritt nach der Gebäudehülle.
             </div>
         </div>
     </div>
@@ -2933,11 +2933,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <div class="grid-2">
                 <div class="card">
-                    <h3>PV-Fl├ñchen</h3>
+                    <h3>PV-Flächen</h3>
 
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Dach</h4>
                     <div class="field">
-                        <label>Verf├╝gbare Fl├ñche (m┬▓)</label>
+                        <label>Verfügbare Fläche (m²)</label>
                         <input id="pv_roof_available_area" type="number" step="0.1" value="50">
                     </div>
                     <div class="field">
@@ -2945,13 +2945,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="pv_roof_percentage" type="number" step="1" min="0" max="100" value="80">
                     </div>
                     <div class="field">
-                        <label style="color: #999;">PV-Fl├ñche (auto)</label>
-                        <div class="value-display" id="pv_roof_area">ÔÇö</div>
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_roof_area">—</div>
                     </div>
 
-                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Nord/S├╝d-Fassade</h4>
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Nord/Süd-Fassade</h4>
                     <div class="field">
-                        <label>Verf├╝gbare Fl├ñche (m┬▓)</label>
+                        <label>Verfügbare Fläche (m²)</label>
                         <input id="pv_ns_facade_available" type="number" step="0.1" value="30">
                     </div>
                     <div class="field">
@@ -2959,13 +2959,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="pv_ns_facade_percentage" type="number" step="1" min="0" max="100" value="40">
                     </div>
                     <div class="field">
-                        <label style="color: #999;">PV-Fl├ñche (auto)</label>
-                        <div class="value-display" id="pv_ns_facade_area">ÔÇö</div>
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_ns_facade_area">—</div>
                     </div>
 
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade</h4>
                     <div class="field">
-                        <label>Verf├╝gbare Fl├ñche (m┬▓)</label>
+                        <label>Verfügbare Fläche (m²)</label>
                         <input id="pv_ew_facade_available" type="number" step="0.1" value="20">
                     </div>
                     <div class="field">
@@ -2973,29 +2973,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input id="pv_ew_facade_percentage" type="number" step="1" min="0" max="100" value="30">
                     </div>
                     <div class="field">
-                        <label style="color: #999;">PV-Fl├ñche (auto)</label>
-                        <div class="value-display" id="pv_ew_facade_area">ÔÇö</div>
+                        <label style="color: #999;">PV-Fläche (auto)</label>
+                        <div class="value-display" id="pv_ew_facade_area">—</div>
                     </div>
 
-                    <button class="btn btn-primary" onclick="updatePVAreaCalculations()" style="margin-top: 14px;">Fl├ñchen berechnen</button>
+                    <button class="btn btn-primary" onclick="updatePVAreaCalculations()" style="margin-top: 14px;">Flächen berechnen</button>
                 </div>
 
                 <div class="card">
                     <h3>PV-System</h3>
 
                     <div class="field">
-                        <label>Modultyp (├ûkobaudat)</label>
+                        <label>Modultyp (Ökobaudat)</label>
                         <select id="pv_module_type" onchange="updatePVModuleData()">
                             <option value="standard">Standard monokristallin (380-400 Wp)</option>
                             <option value="high_eff">High-Efficiency (420-440 Wp)</option>
-                            <option value="thin_film">D├╝nnschicht (300-350 Wp)</option>
+                            <option value="thin_film">Dünnschicht (300-350 Wp)</option>
                             <option value="bifacial">Bifazial (450+ Wp)</option>
                         </select>
                     </div>
 
                     <div class="field">
-                        <label style="color: #999;">Modulleistung spezifisch (Wp/m┬▓)</label>
-                        <div class="value-display" id="pv_module_power">ÔÇö</div>
+                        <label style="color: #999;">Modulleistung spezifisch (Wp/m²)</label>
+                        <div class="value-display" id="pv_module_power">—</div>
                     </div>
 
                     <div class="field">
@@ -3014,12 +3014,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
 
                     <div class="field">
-                        <label>Strompreis (Ôé¼/kWh)</label>
+                        <label>Strompreis (€/kWh)</label>
                         <input id="pv_electricity_price" type="number" step="0.01" value="0.35">
                     </div>
 
                     <div class="field">
-                        <label>Einspeiseverg├╝tung (Ôé¼/kWh)</label>
+                        <label>Einspeisevergütung (€/kWh)</label>
                         <input id="pv_feed_in_tariff" type="number" step="0.01" value="0.08">
                     </div>
 
@@ -3033,32 +3033,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="stats">
                     <div class="stat-box">
                         <div class="label">Installierte Leistung (kWp)</div>
-                        <div class="value" id="pv_installed_kwp">ÔÇö</div>
+                        <div class="value" id="pv_installed_kwp">—</div>
                     </div>
                     <div class="stat-box">
                         <div class="label">Jahresertrag (kWh/a)</div>
-                        <div class="value" id="pv_annual_yield">ÔÇö</div>
+                        <div class="value" id="pv_annual_yield">—</div>
                     </div>
                     <div class="stat-box">
                         <div class="label">Eigenverbrauch (kWh/a)</div>
-                        <div class="value" id="pv_self_kwh">ÔÇö</div>
+                        <div class="value" id="pv_self_kwh">—</div>
                     </div>
                     <div class="stat-box">
                         <div class="label">Einspeisung (kWh/a)</div>
-                        <div class="value" id="pv_feed_in_kwh">ÔÇö</div>
+                        <div class="value" id="pv_feed_in_kwh">—</div>
                     </div>
                     <div class="stat-box">
-                        <div class="label">COÔéé-Ersparnis (kg/a)</div>
-                        <div class="value" id="pv_co2_savings">ÔÇö</div>
+                        <div class="label">CO₂-Ersparnis (kg/a)</div>
+                        <div class="value" id="pv_co2_savings">—</div>
                     </div>
                     <div class="stat-box">
-                        <div class="label">Wirtschaftlichkeit (Ôé¼/a)</div>
-                        <div class="value" id="pv_total_benefit">ÔÇö</div>
+                        <div class="label">Wirtschaftlichkeit (€/a)</div>
+                        <div class="value" id="pv_total_benefit">—</div>
                     </div>
                 </div>
 
                 <div class="note" style="margin-top: 12px;">
-                    Die PV-Fl├ñchen werden aus Verf├╝gbarer Fl├ñche ├ù PV-Anteil berechnet. Der Ertrag ber├╝cksichtigt Orientierung, Systemwirkungsgrad und Verschattung.
+                    Die PV-Flächen werden aus Verfügbarer Fläche × PV-Anteil berechnet. Der Ertrag berücksichtigt Orientierung, Systemwirkungsgrad und Verschattung.
                 </div>
                 </div>
             </div>
@@ -3070,58 +3070,58 @@ document.addEventListener('DOMContentLoaded', function() {
             <h2 class="section-title">Energiebilanz</h2>
             <div class="big-summary">
                 <div class="summary-box">
-                    <div class="label">Heizw├ñrmebedarf netto</div>
-                    <div class="value" id="bilanz_heat">ÔÇö</div>
+                    <div class="label">Heizwärmebedarf netto</div>
+                    <div class="value" id="bilanz_heat">—</div>
                 </div>
                 <div class="summary-box">
                     <div class="label">Spezifischer Bedarf</div>
-                    <div class="value" id="bilanz_specific">ÔÇö</div>
+                    <div class="value" id="bilanz_specific">—</div>
                 </div>
                 <div class="summary-box">
                     <div class="label">Transmissionskoeffizient H</div>
-                    <div class="value" id="bilanz_h">ÔÇö</div>
+                    <div class="value" id="bilanz_h">—</div>
                 </div>
                 <div class="summary-box">
                     <div class="label">Ampelstatus</div>
-                    <div class="value" id="bilanz_rating">ÔÇö</div>
+                    <div class="value" id="bilanz_rating">—</div>
                 </div>
             </div>
 
             <div class="big-summary" style="margin-top:14px;">
                 <div class="summary-box">
                     <div class="label">Endenergie gesamt</div>
-                    <div class="value" id="bilanz_system_end">ÔÇö</div>
+                    <div class="value" id="bilanz_system_end">—</div>
                 </div>
                 <div class="summary-box">
-                    <div class="label">Prim├ñrenergie</div>
-                    <div class="value" id="bilanz_system_primary">ÔÇö</div>
+                    <div class="label">Primärenergie</div>
+                    <div class="value" id="bilanz_system_primary">—</div>
                 </div>
                 <div class="summary-box">
-                    <div class="label">COÔéé-Emissionen</div>
-                    <div class="value" id="bilanz_system_co2">ÔÇö</div>
+                    <div class="label">CO₂-Emissionen</div>
+                    <div class="value" id="bilanz_system_co2">—</div>
                 </div>
                 <div class="summary-box">
                     <div class="label">Systembewertung</div>
-                    <div class="value" id="bilanz_system_rating">ÔÇö</div>
+                    <div class="value" id="bilanz_system_rating">—</div>
                 </div>
             </div>
 
             <div class="big-summary" style="margin-top:14px;">
                 <div class="summary-box">
-                    <div class="label">PVÔÇæEigenverbrauch</div>
-                    <div class="value" id="bilanz_pv_self">ÔÇö</div>
+                    <div class="label">PV‑Eigenverbrauch</div>
+                    <div class="value" id="bilanz_pv_self">—</div>
                 </div>
                 <div class="summary-box">
                     <div class="label">Strom brutto (Hilfs+Haushalt)</div>
-                    <div class="value" id="bilanz_el_gross">ÔÇö</div>
+                    <div class="value" id="bilanz_el_gross">—</div>
                 </div>
                 <div class="summary-box">
-                    <div class="label">NettoÔÇæStrombezug</div>
-                    <div class="value" id="bilanz_el_net">ÔÇö</div>
+                    <div class="label">Netto‑Strombezug</div>
+                    <div class="value" id="bilanz_el_net">—</div>
                 </div>
                 <div class="summary-box">
-                    <div class="label">COÔéé Strom (kg/a)</div>
-                    <div class="value" id="bilanz_el_co2">ÔÇö</div>
+                    <div class="label">CO₂ Strom (kg/a)</div>
+                    <div class="value" id="bilanz_el_co2">—</div>
                 </div>
             </div>
 
@@ -3182,9 +3182,9 @@ function loadBautechnikData(section) {
         case 'materialien': apiUrl = '/api/material/'; break;
         case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
         case 'fenster': apiUrl = '/api/fenster-typ/'; break;
-        case 'tueren': apiUrl = '/api/t├╝r-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
         case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
-        case 'gebaeude': apiUrl = '/api/geb├ñude/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
         case 'bauteile': apiUrl = '/api/bauteil/'; break;
     }
     
@@ -3204,30 +3204,30 @@ function renderBautechnikTable(section, items) {
     const container = document.getElementById(section + '-list');
     
     if (!items || items.length === 0) {
-        container.innerHTML = '<div class="bautechnik-empty">Keine Eintr├ñge vorhanden</div>';
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
         return;
     }
     
     let html = '<table class="bautechnik-table"><thead><tr>';
     
     if (section === 'materialien') {
-        html += '<th>Name</th><th>¤ü (kg/m┬│)</th><th>╬╗ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(m => {
             html += `<tr>
                 <td>${m.name}</td>
                 <td>${m.rohdichte}</td>
                 <td>${m.lambda_value}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'fenster') {
-        html += '<th>Name</th><th>Uw (W/m┬▓K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(f => {
             html += `<tr>
                 <td>${f.name}</td>
                 <td>${f.u_w}</td>
                 <td>${f.g_value}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'tueren') {
@@ -3237,7 +3237,7 @@ function renderBautechnikTable(section, items) {
                 <td>${t.name}</td>
                 <td>${t.u_value}</td>
                 <td>${t.luftdichtheit}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteTuren(${t.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'sonnenschutz') {
@@ -3248,7 +3248,7 @@ function renderBautechnikTable(section, items) {
                 <td>${s.position}</td>
                 <td>${s.typ}</td>
                 <td>${(s.reduktionsfaktor*100).toFixed(0)}%</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSonnenschutz(${s.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'gebaeude') {
@@ -3257,8 +3257,8 @@ function renderBautechnikTable(section, items) {
             html += `<tr>
                 <td>${g.name}</td>
                 <td>${g.standort}</td>
-                <td>${g.bgf} m┬▓</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">L├Âschen</button></td>
+                <td>${g.bgf} m²</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteGebaude(${g.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'konstruktionen') {
@@ -3268,19 +3268,19 @@ function renderBautechnikTable(section, items) {
                 <td>${k.name}</td>
                 <td>${k.typ}</td>
                 <td>${(k.u_value || 0).toFixed(3)}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteKonstruktion(${k.id})">Löschen</button></td>
             </tr>`;
         });
     } else if (section === 'bauteile') {
-        html += '<th>Name</th><th>Geb├ñude</th><th>Fl├ñche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
+        html += '<th>Name</th><th>Gebäude</th><th>Fläche</th><th>Transmissionsverlust</th><th>Aktion</th></tr></thead><tbody>';
         items.forEach(b => {
             const transLoss = (b.transmissionsverlust || 0).toFixed(1);
             html += `<tr>
                 <td>${b.name}</td>
                 <td>${b.gebaeude_name || '-'}</td>
-                <td>${b.flaeche} m┬▓</td>
+                <td>${b.flaeche} m²</td>
                 <td>${transLoss} W/K</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">L├Âschen</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteBauteil(${b.id})">Löschen</button></td>
             </tr>`;
         });
     }
@@ -3304,7 +3304,7 @@ function saveMaterial() {
     };
     
     if (!data.name || !data.rohdichte || !data.lambda_value) {
-        alert('Bitte alle Felder ausf├╝llen');
+        alert('Bitte alle Felder ausfüllen');
         return;
     }
     
@@ -3322,7 +3322,7 @@ function saveMaterial() {
 }
 
 function deleteMaterial(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/material/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('materialien'))
             .catch(err => console.error(err));
@@ -3344,7 +3344,7 @@ function saveFenster() {
     };
     
     if (!data.name || !data.u_w) {
-        alert('Bitte mindestens Name und Uw-Wert ausf├╝llen');
+        alert('Bitte mindestens Name und Uw-Wert ausfüllen');
         return;
     }
     
@@ -3362,15 +3362,15 @@ function saveFenster() {
 }
 
 function deleteFenster(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('fenster'))
             .catch(err => console.error(err));
     }
 }
 
-// ===== T├£REN =====
-function openT├╝rForm() {
+// ===== TÜREN =====
+function openTürForm() {
     document.getElementById('turenModal').classList.add('active');
 }
 
@@ -3382,11 +3382,11 @@ function saveTuren() {
     };
     
     if (!data.name || !data.u_value) {
-        alert('Bitte mindestens Name und U-Wert ausf├╝llen');
+        alert('Bitte mindestens Name und U-Wert ausfüllen');
         return;
     }
     
-    fetch('/api/t├╝r-typ/', {
+    fetch('/api/tür-typ/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -3400,8 +3400,8 @@ function saveTuren() {
 }
 
 function deleteTuren(id) {
-    if (confirm('Wirklich l├Âschen?')) {
-        fetch(`/api/t├╝r-typ/${id}/`, { method: 'DELETE' })
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/tür-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('tueren'))
             .catch(err => console.error(err));
     }
@@ -3421,7 +3421,7 @@ function saveSonnenschutz() {
     };
     
     if (!data.name) {
-        alert('Bitte Name ausf├╝llen');
+        alert('Bitte Name ausfüllen');
         return;
     }
     
@@ -3439,15 +3439,15 @@ function saveSonnenschutz() {
 }
 
 function deleteSonnenschutz(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/sonnenschutz-typ/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('sonnenschutz'))
             .catch(err => console.error(err));
     }
 }
 
-// ===== GEB├äUDE =====
-function openGeb├ñudeForm() {
+// ===== GEBÄUDE =====
+function openGebäudeForm() {
     document.getElementById('gebaudeModal').classList.add('active');
 }
 
@@ -3460,11 +3460,11 @@ function saveGebaude() {
     };
     
     if (!data.name || !data.bgf) {
-        alert('Bitte Name und BGF ausf├╝llen');
+        alert('Bitte Name und BGF ausfüllen');
         return;
     }
     
-    fetch('/api/geb├ñude/', {
+    fetch('/api/gebäude/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -3478,8 +3478,8 @@ function saveGebaude() {
 }
 
 function deleteGebaude(id) {
-    if (confirm('Wirklich l├Âschen?')) {
-        fetch(`/api/geb├ñude/${id}/`, { method: 'DELETE' })
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/gebäude/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('gebaeude'))
             .catch(err => console.error(err));
     }
@@ -3492,12 +3492,12 @@ function openBauteilForm() {
 }
 
 function loadSelectOptions() {
-    // Load Geb├ñude options
-    fetch('/api/geb├ñude/')
+    // Load Gebäude options
+    fetch('/api/gebäude/')
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilGebaude');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(g => {
                 select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             });
@@ -3508,7 +3508,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilKonstruktion');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(k => {
                 select.innerHTML += `<option value="${k.id}">${k.name}</option>`;
             });
@@ -3519,7 +3519,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilFenster');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(f => {
                 select.innerHTML += `<option value="${f.id}">${f.name}</option>`;
             });
@@ -3530,7 +3530,7 @@ function loadSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('bauteilSonnenschutz');
-            select.innerHTML = '<option value="">-- W├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Wählen --</option>';
             (d.results || d).forEach(s => {
                 select.innerHTML += `<option value="${s.id}">${s.name}</option>`;
             });
@@ -3555,7 +3555,7 @@ function saveBauteil() {
     };
     
     if (!data.name || !data.gebaeude || !data.flaeche) {
-        alert('Bitte Name, Geb├ñude und Fl├ñche ausf├╝llen');
+        alert('Bitte Name, Gebäude und Fläche ausfüllen');
         return;
     }
     
@@ -3573,7 +3573,7 @@ function saveBauteil() {
 }
 
 function deleteBauteil(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/bauteil/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('bauteile'))
             .catch(err => console.error(err));
@@ -3592,7 +3592,7 @@ function loadKonstruktionSelectOptions() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById('konstruktionMaterialSelect');
-            select.innerHTML = '<option value="">-- Material w├ñhlen --</option>';
+            select.innerHTML = '<option value="">-- Material wählen --</option>';
             (d.results || d).forEach(m => {
                 select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
             });
@@ -3605,7 +3605,7 @@ function addSchichtToKonstruktion() {
     const materialName = document.querySelector('#konstruktionMaterialSelect option:checked').text;
     
     if (!materialId || !dicke) {
-        alert('Material und Dicke ausw├ñhlen');
+        alert('Material und Dicke auswählen');
         return;
     }
     
@@ -3628,7 +3628,7 @@ function renderKonstruktionSchichten() {
         container.innerHTML += `
             <div class="schicht-item">
                 <span>${idx+1}. ${s.material_name} (${s.dicke_mm}mm)</span>
-                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">Ô£ò</button>
+                <button class="btn btn-sm btn-danger" onclick="removeSchichtFromKonstruktion(${idx})">✕</button>
             </div>
         `;
     });
@@ -3647,7 +3647,7 @@ function saveKonstruktion() {
     const r_se = parseFloat(document.getElementById('konstruktionRse').value) || 0.04;
     
     if (!name || !typ) {
-        alert('Bitte Name und Typ ausf├╝llen');
+        alert('Bitte Name und Typ ausfüllen');
         return;
     }
     
@@ -3703,7 +3703,7 @@ function addSchichtenToKonstruktion(konstruktionId) {
 }
 
 function deleteKonstruktion(id) {
-    if (confirm('Wirklich l├Âschen?')) {
+    if (confirm('Wirklich löschen?')) {
         fetch(`/api/konstruktion/${id}/`, { method: 'DELETE' })
             .then(() => loadBautechnikData('konstruktionen'))
             .catch(err => console.error(err));
@@ -3730,7 +3730,7 @@ function showTab(id, btn) {
     btn.classList.add('active');
 }
 
-// Hero-Schema (Tab Geb├ñudedaten): Klick auf Bauteil ÔåÆ Geb├ñudeh├╝lle ├Âffnen und zur passenden Karte scrollen
+// Hero-Schema (Tab Gebäudedaten): Klick auf Bauteil → Gebäudehülle öffnen und zur passenden Karte scrollen
 function openHuelleFromHero(part) {
     const map = {
         roof:   'card-dach',
@@ -3742,7 +3742,7 @@ function openHuelleFromHero(part) {
     const cardId = map[part];
     if (!cardId) return;
 
-    // Tab-Button f├╝r Geb├ñudeh├╝lle finden (zweiter Tab) und showTab aufrufen
+    // Tab-Button für Gebäudehülle finden (zweiter Tab) und showTab aufrufen
     const huelleBtn = document.querySelector(".tabs button[onclick*=\"showTab('huelle'\"]");
     if (huelleBtn) {
         showTab('huelle', huelleBtn);
@@ -3761,10 +3761,10 @@ function openHuelleFromHero(part) {
     }
 }
 
-// Helper: open Geb├ñudeh├╝lle and show Bautechnik subsection
+// Helper: open Gebäudehülle and show Bautechnik subsection
 // Bautechnik helper removed per user request
 
-// Gesamt-Fensterfl├ñche-Anzeige aktualisieren
+// Gesamt-Fensterfläche-Anzeige aktualisieren
 function updateWindowTotalDisplay() {
     const n = parseFloat(document.getElementById('window_north_area').value) || 0;
     const s = parseFloat(document.getElementById('window_south_area').value) || 0;
@@ -3774,7 +3774,7 @@ function updateWindowTotalDisplay() {
     if (el) el.textContent = (n + s + e + w).toFixed(1).replace('.0','');
 }
 
-// Gesamt-T├╝ranzahl-Anzeige aktualisieren
+// Gesamt-Türanzahl-Anzeige aktualisieren
 function updateDoorTotalDisplay() {
     const n = parseInt(document.getElementById('door_north_count').value) || 0;
     const s = parseInt(document.getElementById('door_south_count').value) || 0;
@@ -3789,7 +3789,7 @@ function syncHtTable() {
     const copyVal = (srcId, dstId) => {
         const src = document.getElementById(srcId);
         const dst = document.getElementById(dstId);
-        if (src && dst) dst.textContent = src.textContent || src.innerHTML || 'ÔÇö';
+        if (src && dst) dst.textContent = src.textContent || src.innerHTML || '—';
     };
     copyVal('wall_total_result', 'ht_wall');
     copyVal('window_total_result', 'ht_window');
@@ -3804,7 +3804,7 @@ function showErrors(errors) {
     errorBox.className = 'alert-box error';
     const listItems = errors.map(error => `<li>${error}</li>`).join('');
     errorBox.innerHTML = `
-        <span class="alert-title">Bitte Eingaben pr├╝fen</span>
+        <span class="alert-title">Bitte Eingaben prüfen</span>
         <ul class="alert-list">${listItems}</ul>
     `;
 }
@@ -3820,7 +3820,7 @@ function showSystemErrors(errors) {
     errorBox.className = 'alert-box error';
     const listItems = errors.map(error => `<li>${error}</li>`).join('');
     errorBox.innerHTML = `
-        <span class="alert-title">Bitte Systemeingaben pr├╝fen</span>
+        <span class="alert-title">Bitte Systemeingaben prüfen</span>
         <ul class="alert-list">${listItems}</ul>
     `;
 }
@@ -3883,7 +3883,7 @@ async function handleEkobaudatUpload(event) {
             throw new Error(message);
         }
 
-        setUploadStatus(`Ô£ô ${data.imported} Materialien importiert`, 'success');
+        setUploadStatus(`✓ ${data.imported} Materialien importiert`, 'success');
 
         await populateWallMaterials();
         await populateRoofFloorMaterials();
@@ -3891,7 +3891,7 @@ async function handleEkobaudatUpload(event) {
         await populateDoorTypes();
         await refreshEnvelopeUValues();
     } catch (error) {
-        setUploadStatus(`Ô£ù ${error.message || 'Import fehlgeschlagen'}`, 'error');
+        setUploadStatus(`✗ ${error.message || 'Import fehlgeschlagen'}`, 'error');
     }
 }
 
@@ -3901,24 +3901,24 @@ async function saveProject() {
     const bgf = parseFloat(document.getElementById('bgf').value) || 0;
     const gradstunden = parseFloat(document.getElementById('gradstunden').value) || 66000;
 
-    // Create Geb├ñude
+    // Create Gebäude
     try {
-        const res = await fetch('/api/geb├ñude/', {
+        const res = await fetch('/api/gebäude/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, standort, bgf, gradstunden })
         });
-        if (!res.ok) throw new Error('Fehler beim Anlegen des Geb├ñudes');
+        if (!res.ok) throw new Error('Fehler beim Anlegen des Gebäudes');
         const geb = await res.json();
 
-        // Prepare bauteile (W├ñnde + Dach + Boden)
+        // Prepare bauteile (Wände + Dach + Boden)
         const parts = [
-            { name: 'Au├ƒenwand Nord', orientierung: 'nord', flaeche: parseFloat(document.getElementById('north_area').value) || 0, fenster_fl├ñche: parseFloat(document.getElementById('window_north_area').value) || 0 },
-            { name: 'Au├ƒenwand S├╝d', orientierung: 's├╝d', flaeche: parseFloat(document.getElementById('south_area').value) || 0, fenster_fl├ñche: parseFloat(document.getElementById('window_south_area').value) || 0 },
-            { name: 'Au├ƒenwand Ost', orientierung: 'ost', flaeche: parseFloat(document.getElementById('east_area').value) || 0, fenster_fl├ñche: parseFloat(document.getElementById('window_east_area').value) || 0 },
-            { name: 'Au├ƒenwand West', orientierung: 'west', flaeche: parseFloat(document.getElementById('west_area').value) || 0, fenster_fl├ñche: parseFloat(document.getElementById('window_west_area').value) || 0 },
-            { name: 'Dach', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('roof_area').value) || 0, fenster_fl├ñche: 0 },
-            { name: 'Boden', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('floor_area').value) || 0, fenster_fl├ñche: 0 }
+            { name: 'Außenwand Nord', orientierung: 'nord', flaeche: parseFloat(document.getElementById('north_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_north_area').value) || 0 },
+            { name: 'Außenwand Süd', orientierung: 'süd', flaeche: parseFloat(document.getElementById('south_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_south_area').value) || 0 },
+            { name: 'Außenwand Ost', orientierung: 'ost', flaeche: parseFloat(document.getElementById('east_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_east_area').value) || 0 },
+            { name: 'Außenwand West', orientierung: 'west', flaeche: parseFloat(document.getElementById('west_area').value) || 0, fenster_fläche: parseFloat(document.getElementById('window_west_area').value) || 0 },
+            { name: 'Dach', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('roof_area').value) || 0, fenster_fläche: 0 },
+            { name: 'Boden', orientierung: 'horizontal', flaeche: parseFloat(document.getElementById('floor_area').value) || 0, fenster_fläche: 0 }
         ];
 
         // Post bauteile sequentially
@@ -3931,7 +3931,7 @@ async function saveProject() {
                 flaeche: p.flaeche,
                 konstruktion: null,
                 fenster_typ: null,
-                fenster_fl├ñche: p.fenster_fl├ñche || 0,
+                fenster_fläche: p.fenster_fläche || 0,
                 sonnenschutz: null
             };
             await fetch('/api/bauteil/', {
@@ -3943,7 +3943,7 @@ async function saveProject() {
 
         // Visual feedback
         const saveBtn = document.getElementById('saveProjectBtn');
-        saveBtn.innerText = 'Projekt gespeichert Ô£ô';
+        saveBtn.innerText = 'Projekt gespeichert ✓';
         setTimeout(() => saveBtn.innerText = 'Projekt speichern', 3000);
     } catch (err) {
         alert('Fehler beim Speichern des Projekts: ' + (err.message || err));
@@ -3983,35 +3983,35 @@ function updateGeometryStats() {
     const envelopeArea = (2 * (length + width) * totalHeight) + (2 * length * width);
 
     document.getElementById('geometry_total_height').innerText = `${totalHeight.toFixed(1)} m`;
-    document.getElementById('geometry_volume').innerText = `${volume.toFixed(0)} m┬│`;
-    document.getElementById('geometry_bgf').innerText = `${bgf.toFixed(0)} m┬▓`;
-    document.getElementById('geometry_envelope_area').innerText = `${envelopeArea.toFixed(0)} m┬▓`;
+    document.getElementById('geometry_volume').innerText = `${volume.toFixed(0)} m³`;
+    document.getElementById('geometry_bgf').innerText = `${bgf.toFixed(0)} m²`;
+    document.getElementById('geometry_envelope_area').innerText = `${envelopeArea.toFixed(0)} m²`;
     document.getElementById('bgf').value = bgf.toFixed(0);
 
-    // F├╝r die Anlagentechnik wird das Volumen sp├ñter direkt verwendet.
+    // Für die Anlagentechnik wird das Volumen später direkt verwendet.
     window.geometryVolume = volume;
 
-    // Automatische Berechnung der Wand-Fl├ñchen nach Orientierung
-    const northArea = length * totalHeight;  // L├ñnge ├ù H├Âhe
-    const southArea = length * totalHeight;  // L├ñnge ├ù H├Âhe
-    const eastArea = width * totalHeight;    // Breite ├ù H├Âhe
-    const westArea = width * totalHeight;    // Breite ├ù H├Âhe
+    // Automatische Berechnung der Wand-Flächen nach Orientierung
+    const northArea = length * totalHeight;  // Länge × Höhe
+    const southArea = length * totalHeight;  // Länge × Höhe
+    const eastArea = width * totalHeight;    // Breite × Höhe
+    const westArea = width * totalHeight;    // Breite × Höhe
 
-    document.getElementById('north_area_display').innerText = `${northArea.toFixed(1)} m┬▓`;
-    document.getElementById('south_area_display').innerText = `${southArea.toFixed(1)} m┬▓`;
-    document.getElementById('east_area_display').innerText = `${eastArea.toFixed(1)} m┬▓`;
-    document.getElementById('west_area_display').innerText = `${westArea.toFixed(1)} m┬▓`;
+    document.getElementById('north_area_display').innerText = `${northArea.toFixed(1)} m²`;
+    document.getElementById('south_area_display').innerText = `${southArea.toFixed(1)} m²`;
+    document.getElementById('east_area_display').innerText = `${eastArea.toFixed(1)} m²`;
+    document.getElementById('west_area_display').innerText = `${westArea.toFixed(1)} m²`;
 
-    // Automatische Berechnung der Dach- und Bodenfl├ñchen
-    // KORREKT: Dach und Boden = Grundriss-Fl├ñche (1 Stockwerk), NICHT Gesamt-BGF!
-    const footprintArea = length * width;  // z.B. 12 ├ù 10 = 120 m┬▓
-    const roofArea = footprintArea;   // Dachfl├ñche = Grundrissfl├ñche
-    const floorArea = footprintArea;  // Bodenplatte = Grundrissfl├ñche
+    // Automatische Berechnung der Dach- und Bodenflächen
+    // KORREKT: Dach und Boden = Grundriss-Fläche (1 Stockwerk), NICHT Gesamt-BGF!
+    const footprintArea = length * width;  // z.B. 12 × 10 = 120 m²
+    const roofArea = footprintArea;   // Dachfläche = Grundrissfläche
+    const floorArea = footprintArea;  // Bodenplatte = Grundrissfläche
 
-    document.getElementById('roof_area_display').innerText = `${roofArea.toFixed(1)} m┬▓`;
-    document.getElementById('floor_area_display').innerText = `${floorArea.toFixed(1)} m┬▓`;
+    document.getElementById('roof_area_display').innerText = `${roofArea.toFixed(1)} m²`;
+    document.getElementById('floor_area_display').innerText = `${floorArea.toFixed(1)} m²`;
 
-    // Speichere die Werte global f├╝r calculateEnvelope
+    // Speichere die Werte global für calculateEnvelope
     window.wallAreas = {
         north: northArea,
         south: southArea,
@@ -4021,33 +4021,33 @@ function updateGeometryStats() {
         floor: floorArea
     };
 
-    // Nutzungs-Statistik aktualisieren (Personenanzahl h├ñngt von BGF ab)
+    // Nutzungs-Statistik aktualisieren (Personenanzahl hängt von BGF ab)
     if (typeof updateUsageStats === 'function') updateUsageStats();
 }
 
 // =====================================================================
-// NUTZUNG & PERSONEN ÔÇö Vorschau der Werte, die sp├ñter an /calculate/ gesendet werden.
+// NUTZUNG & PERSONEN — Vorschau der Werte, die später an /calculate/ gesendet werden.
 // =====================================================================
-// Tabellen-Defaults pro Geb├ñudetyp/Variante (m├╝ssen mit USAGE_VARIANT_OVERRIDES
+// Tabellen-Defaults pro Gebäudetyp/Variante (müssen mit USAGE_VARIANT_OVERRIDES
 // in dashboard/constants.py konsistent gehalten werden).
 window.USAGE_VARIANT_DEFAULTS = {
-    'Einfamilienhaus':    {personendichte: 40, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngeb├ñude - EFH'},
-    'Mehrfamilienhaus':   {personendichte: 35, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngeb├ñude - MFH'},
-    'Reihenhaus':         {personendichte: 38, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngeb├ñude - RH'},
-    'Doppelhaush├ñlfte':   {personendichte: 38, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngeb├ñude - DHH'},
-    'B├╝rogeb├ñude':        {personendichte: 20, occupancy_hours: 2500, equip: 4.5, light: 3.0, label: 'B├╝ro'},
-    'Schulgeb├ñude':       {personendichte:  6, occupancy_hours: 1800, equip: 2.0, light: 3.0, label: 'Schule'},
+    'Einfamilienhaus':    {personendichte: 40, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngebäude - EFH'},
+    'Mehrfamilienhaus':   {personendichte: 35, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngebäude - MFH'},
+    'Reihenhaus':         {personendichte: 38, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngebäude - RH'},
+    'Doppelhaushälfte':   {personendichte: 38, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngebäude - DHH'},
+    'Bürogebäude':        {personendichte: 20, occupancy_hours: 2500, equip: 4.5, light: 3.0, label: 'Büro'},
+    'Schulgebäude':       {personendichte:  6, occupancy_hours: 1800, equip: 2.0, light: 3.0, label: 'Schule'},
     'Kindergarten':       {personendichte:  6, occupancy_hours: 2000, equip: 2.0, light: 3.0, label: 'Kindergarten'},
-    'Verwaltungsgeb├ñude': {personendichte: 20, occupancy_hours: 2500, equip: 4.5, light: 3.0, label: 'Verwaltung'},
+    'Verwaltungsgebäude': {personendichte: 20, occupancy_hours: 2500, equip: 4.5, light: 3.0, label: 'Verwaltung'},
     'Hotel':              {personendichte: 30, occupancy_hours: 4000, equip: 3.0, light: 3.0, label: 'Hotel'},
     'Krankenhaus':        {personendichte: 20, occupancy_hours: 8760, equip: 5.0, light: 3.0, label: 'Krankenhaus'},
     'Einzelhandel':       {personendichte: 10, occupancy_hours: 3000, equip: 6.0, light: 4.0, label: 'Einzelhandel'},
     'Gewerbe/Werkstatt':  {personendichte: 50, occupancy_hours: 2500, equip: 4.0, light: 3.0, label: 'Gewerbe'},
-    'Industriegeb├ñude':   {personendichte: 50, occupancy_hours: 4000, equip: 6.0, light: 3.0, label: 'Industrie'},
+    'Industriegebäude':   {personendichte: 50, occupancy_hours: 4000, equip: 6.0, light: 3.0, label: 'Industrie'},
 };
 window.USAGE_CATEGORY_DEFAULTS = {
-    'wohngebaeude':        {personendichte: 40, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngeb├ñude'},
-    'nicht_wohngebaeude':  {personendichte: 20, occupancy_hours: 2500, equip: 4.0, light: 3.0, label: 'Nichtwohngeb├ñude'},
+    'wohngebaeude':        {personendichte: 40, occupancy_hours: 8760, equip: 1.5, light: 0.5, label: 'Wohngebäude'},
+    'nicht_wohngebaeude':  {personendichte: 20, occupancy_hours: 2500, equip: 4.0, light: 3.0, label: 'Nichtwohngebäude'},
 };
 
 function getUsageDefaults() {
@@ -4065,7 +4065,7 @@ function updateUsageStats() {
     const hours     = parseFloat(document.getElementById('usage_hours')?.value) || defaults.occupancy_hours;
 
     const nPersons = (bgf > 0 && personDen > 0) ? bgf / personDen : 0;
-    // Q_int [W/m┬▓] = (n ┬À 70 W) / BGF + Equip + Light  (vgl. DIN V 18599-10)
+    // Q_int [W/m²] = (n · 70 W) / BGF + Equip + Light  (vgl. DIN V 18599-10)
     const intGains = bgf > 0
         ? ((nPersons * 70) / bgf) + defaults.equip + defaults.light
         : (defaults.equip + defaults.light);
@@ -4077,7 +4077,7 @@ function updateUsageStats() {
     if (el('usage_profile_label'))  el('usage_profile_label').innerText  = defaults.label;
 }
 
-// Wenn der Nutzer Geb├ñudetyp/Variante wechselt ÔåÆ Personendichte/Stunden auf Profil-Default setzen
+// Wenn der Nutzer Gebäudetyp/Variante wechselt → Personendichte/Stunden auf Profil-Default setzen
 function applyUsageProfileDefaults() {
     const defaults = getUsageDefaults();
     const pd  = document.getElementById('personendichte');
@@ -4087,10 +4087,10 @@ function applyUsageProfileDefaults() {
     updateUsageStats();
 }
 
-// ===== ├ûKOBAUDAT MATERIAL-INTEGRATION =====
+// ===== ÖKOBAUDAT MATERIAL-INTEGRATION =====
 
-// Global storage f├╝r Material- und Putz-Daten
-window.materialPresets = {};  // Map von Material-ID zu vollst├ñndigen Daten
+// Global storage für Material- und Putz-Daten
+window.materialPresets = {};  // Map von Material-ID zu vollständigen Daten
 window.wallMaterialData = {
     north: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null },
     south: { materialId: null, material: null, plaster: null, manualU: null, thicknessMm: null, defaultThicknessMm: null, calculatedU: null, lambdaValue: null },
@@ -4100,26 +4100,26 @@ window.wallMaterialData = {
 window.roofMaterialData = { type: null, materialId: null, material: null, manualU: null, calculatedU: null };
 window.floorMaterialData = { boundary: null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: null };
 window.locationOptions = {
-    Bayern: ['Augsburg', 'M├╝nchen', 'N├╝rnberg', 'Regensburg', 'Ingolstadt', 'W├╝rzburg', 'Bamberg', 'Passau'],
-    'Baden-W├╝rttemberg': ['Stuttgart', 'Mannheim', 'Karlsruhe', 'Freiburg', 'Heidelberg', 'Ulm', 'T├╝bingen', 'Konstanz'],
-    Berlin: ['Mitte', 'Charlottenburg', 'Kreuzberg', 'Prenzlauer Berg', 'Spandau', 'Neuk├Âlln', 'Pankow', 'Treptow-K├Âpenick'],
-    Brandenburg: ['Potsdam', 'Cottbus', 'Brandenburg an der Havel', 'Frankfurt (Oder)', 'Oranienburg', 'Eberswalde', 'Falkensee', 'K├Ânigs Wusterhausen'],
+    Bayern: ['Augsburg', 'München', 'Nürnberg', 'Regensburg', 'Ingolstadt', 'Würzburg', 'Bamberg', 'Passau'],
+    'Baden-Württemberg': ['Stuttgart', 'Mannheim', 'Karlsruhe', 'Freiburg', 'Heidelberg', 'Ulm', 'Tübingen', 'Konstanz'],
+    Berlin: ['Mitte', 'Charlottenburg', 'Kreuzberg', 'Prenzlauer Berg', 'Spandau', 'Neukölln', 'Pankow', 'Treptow-Köpenick'],
+    Brandenburg: ['Potsdam', 'Cottbus', 'Brandenburg an der Havel', 'Frankfurt (Oder)', 'Oranienburg', 'Eberswalde', 'Falkensee', 'Königs Wusterhausen'],
     Bremen: ['Bremen', 'Bremerhaven', 'Vegesack', 'Hemelingen', 'Burglesum', 'Walle', 'Huchting', 'Blumenthal'],
-    Hamburg: ['Hamburg-Mitte', 'Altona', 'Eimsb├╝ttel', 'Wandsbek', 'Hamburg-Nord', 'Bergedorf', 'Harburg', 'Winterhude'],
-    Hessen: ['Frankfurt am Main', 'Wiesbaden', 'Kassel', 'Darmstadt', 'Offenbach', 'Marburg', 'Gie├ƒen', 'Fulda'],
-    'Mecklenburg-Vorpommern': ['Schwerin', 'Rostock', 'Neubrandenburg', 'Stralsund', 'Greifswald', 'Wismar', 'G├╝strow', 'Ribnitz-Damgarten'],
-    Niedersachsen: ['Hannover', 'Braunschweig', 'Oldenburg', 'Osnabr├╝ck', 'Wolfsburg', 'G├Âttingen', 'Salzgitter', 'Hildesheim'],
-    'Nordrhein-Westfalen': ['K├Âln', 'D├╝sseldorf', 'Dortmund', 'Essen', 'Bochum', 'Bonn', 'M├╝nster', 'Aachen'],
+    Hamburg: ['Hamburg-Mitte', 'Altona', 'Eimsbüttel', 'Wandsbek', 'Hamburg-Nord', 'Bergedorf', 'Harburg', 'Winterhude'],
+    Hessen: ['Frankfurt am Main', 'Wiesbaden', 'Kassel', 'Darmstadt', 'Offenbach', 'Marburg', 'Gießen', 'Fulda'],
+    'Mecklenburg-Vorpommern': ['Schwerin', 'Rostock', 'Neubrandenburg', 'Stralsund', 'Greifswald', 'Wismar', 'Güstrow', 'Ribnitz-Damgarten'],
+    Niedersachsen: ['Hannover', 'Braunschweig', 'Oldenburg', 'Osnabrück', 'Wolfsburg', 'Göttingen', 'Salzgitter', 'Hildesheim'],
+    'Nordrhein-Westfalen': ['Köln', 'Düsseldorf', 'Dortmund', 'Essen', 'Bochum', 'Bonn', 'Münster', 'Aachen'],
     'Rheinland-Pfalz': ['Mainz', 'Ludwigshafen', 'Koblenz', 'Trier', 'Kaiserslautern', 'Worms', 'Neuwied', 'Bad Kreuznach'],
-    Saarland: ['Saarbr├╝cken', 'Neunkirchen', 'Homburg', 'V├Âlklingen', 'St. Ingbert', 'Merzig', 'Saarlouis', 'P├╝ttlingen'],
-    Sachsen: ['Dresden', 'Leipzig', 'Chemnitz', 'Zwickau', 'Plauen', 'G├Ârlitz', 'Riesa', 'Freiberg'],
-    'Sachsen-Anhalt': ['Magdeburg', 'Halle (Saale)', 'Dessau-Ro├ƒlau', 'Wittenberg', 'Halberstadt', 'Stendal', 'Bitterfeld-Wolfen', 'Merseburg'],
-    'Schleswig-Holstein': ['Kiel', 'L├╝beck', 'Flensburg', 'Neum├╝nster', 'Norderstedt', 'Elmshorn', 'Itzehoe', 'Rendsburg'],
-    Th├╝ringen: ['Erfurt', 'Jena', 'Gera', 'Weimar', 'Gotha', 'Nordhausen', 'Eisenach', 'Suhl']
+    Saarland: ['Saarbrücken', 'Neunkirchen', 'Homburg', 'Völklingen', 'St. Ingbert', 'Merzig', 'Saarlouis', 'Püttlingen'],
+    Sachsen: ['Dresden', 'Leipzig', 'Chemnitz', 'Zwickau', 'Plauen', 'Görlitz', 'Riesa', 'Freiberg'],
+    'Sachsen-Anhalt': ['Magdeburg', 'Halle (Saale)', 'Dessau-Roßlau', 'Wittenberg', 'Halberstadt', 'Stendal', 'Bitterfeld-Wolfen', 'Merseburg'],
+    'Schleswig-Holstein': ['Kiel', 'Lübeck', 'Flensburg', 'Neumünster', 'Norderstedt', 'Elmshorn', 'Itzehoe', 'Rendsburg'],
+    Thüringen: ['Erfurt', 'Jena', 'Gera', 'Weimar', 'Gotha', 'Nordhausen', 'Eisenach', 'Suhl']
 };
 window.buildingTypeOptions = {
     wohngebaeude: ['Einfamilienhaus', 'Doppelhaus', 'Reihenhaus', 'Mehrfamilienhaus', 'Wohnblock', 'Passivhaus', 'Altbau'],
-    nicht_wohngebaeude: ['B├╝rogeb├ñude', 'Schulgeb├ñude', 'Krankenhaus', 'Hotel', 'Einzelhandel', 'Lagerhalle', 'Produktionshalle']
+    nicht_wohngebaeude: ['Bürogebäude', 'Schulgebäude', 'Krankenhaus', 'Hotel', 'Einzelhandel', 'Lagerhalle', 'Produktionshalle']
 };
 
 function initializeBuildingTypeSelector() {
@@ -4129,7 +4129,7 @@ function initializeBuildingTypeSelector() {
     const panel = document.getElementById('building_type_variants');
     const buttons = document.getElementById('building_type_variant_buttons');
     if (buildingTypeButton) {
-        buildingTypeButton.textContent = 'Wohngeb├ñude';
+        buildingTypeButton.textContent = 'Wohngebäude';
     }
     if (buildingTypeInput) {
         buildingTypeInput.value = 'wohngebaeude';
@@ -4160,7 +4160,7 @@ function selectBuildingCategory(category) {
         buildingTypeInput.value = category;
     }
     if (buildingTypeButton) {
-        buildingTypeButton.textContent = category === 'wohngebaeude' ? 'Wohngeb├ñude' : 'Nichtwohngeb├ñude';
+        buildingTypeButton.textContent = category === 'wohngebaeude' ? 'Wohngebäude' : 'Nichtwohngebäude';
     }
     if (menu) {
         menu.style.display = 'none';
@@ -4179,7 +4179,7 @@ function renderBuildingTypeOptions(category) {
     if (!panel || !buttons || !label) return;
 
     panel.style.display = 'block';
-    label.textContent = category === 'wohngebaeude' ? 'Wohngeb├ñude-Typ' : 'Nichtwohngeb├ñude-Typ';
+    label.textContent = category === 'wohngebaeude' ? 'Wohngebäude-Typ' : 'Nichtwohngebäude-Typ';
     buttons.innerHTML = '';
 
     options.forEach((optionText, index) => {
@@ -4220,7 +4220,7 @@ function updateBuildingTypeSummary() {
     if (!summary) return;
 
     const category = buildingTypeInput?.value || 'wohngebaeude';
-    const categoryLabel = category === 'wohngebaeude' ? 'Wohngeb├ñude' : 'Nichtwohngeb├ñude';
+    const categoryLabel = category === 'wohngebaeude' ? 'Wohngebäude' : 'Nichtwohngebäude';
     const variant = variantInput?.value || '';
     summary.textContent = variant ? `Aktuell: ${categoryLabel} - ${variant}` : `Aktuell: ${categoryLabel}`;
 }
@@ -4242,7 +4242,7 @@ function initializeLocationSelector() {
     if (cityInput) cityInput.value = 'Augsburg';
     if (locationSummary) locationSummary.textContent = 'Aktuell: Augsburg (Bayern)';
     if (cityMenu) cityMenu.style.display = 'none';
-    if (cityLabel) cityLabel.textContent = 'Ort ausw├ñhlen';
+    if (cityLabel) cityLabel.textContent = 'Ort auswählen';
     if (stateGrid) {
         stateGrid.innerHTML = '';
         Object.keys(window.locationOptions).forEach((state) => {
@@ -4278,7 +4278,7 @@ function selectState(state) {
     if (locationInput && cities.length) locationInput.value = `${cities[0]} (${state})`;
     if (locationButton && cities.length) locationButton.textContent = `${cities[0]} (${state})`;
     if (cityMenu) cityMenu.style.display = 'block';
-    if (cityLabel) cityLabel.textContent = `${state} - Ort ausw├ñhlen`;
+    if (cityLabel) cityLabel.textContent = `${state} - Ort auswählen`;
     if (cityGrid) {
         cityGrid.innerHTML = '';
         cities.forEach((city) => {
@@ -4315,9 +4315,9 @@ function updateLocationSummary() {
     summary.textContent = `Aktuell: ${city} (${state})`;
 }
 
-// ===== WANDSCHICHTEN-SYSTEM (├ûKOBAUDAT Schichtenaufbau) =====
+// ===== WANDSCHICHTEN-SYSTEM (ÖKOBAUDAT Schichtenaufbau) =====
 
-// Materialien je Schichttyp ÔÇô ╬╗-Werte nach DIN 4108-4 / ISO 10077
+// Materialien je Schichttyp – λ-Werte nach DIN 4108-4 / ISO 10077
 const WALL_LAYER_PRESETS = {
     innenputz: { label: 'Innenputz', materials: [
         { id: 'gipsputz',      name: 'Gipsputz',              lambda: 0.35 },
@@ -4333,27 +4333,27 @@ const WALL_LAYER_PRESETS = {
         { id: 'holz_mass', name: 'Holz (Massiv, Fichte/Tanne)',  lambda: 0.13 },
     ]},
     kleber: { label: 'Kleber / WDVS-Kleber', materials: [
-        { id: 'kleber_wdvs', name: 'WDVS-Kleber (Zementm├Ârtel)', lambda: 0.70 },
+        { id: 'kleber_wdvs', name: 'WDVS-Kleber (Zementmörtel)', lambda: 0.70 },
     ]},
-    daemmung: { label: 'D├ñmmung / Isolierung', materials: [
+    daemmung: { label: 'Dämmung / Isolierung', materials: [
         { id: 'eps',       name: 'EPS (Polystyrol-Hartschaum)',    lambda: 0.035 },
         { id: 'xps',       name: 'XPS (extrudiertes Polystyrol)',  lambda: 0.035 },
         { id: 'mw',        name: 'Mineralwolle (MW/SW)',           lambda: 0.035 },
-        { id: 'pur',       name: 'PUR/PIR-D├ñmmung',               lambda: 0.025 },
-        { id: 'holzfaser', name: 'Holzfaserd├ñmmplatte',           lambda: 0.048 },
-        { id: 'hanf',      name: 'Hanf- / Juted├ñmmung',           lambda: 0.040 },
+        { id: 'pur',       name: 'PUR/PIR-Dämmung',               lambda: 0.025 },
+        { id: 'holzfaser', name: 'Holzfaserdämmplatte',           lambda: 0.048 },
+        { id: 'hanf',      name: 'Hanf- / Jutedämmung',           lambda: 0.040 },
     ]},
-    armierung: { label: 'Armierung (Gewebe + M├Ârtel)', materials: [
-        { id: 'armier', name: 'Armierungsm├Ârtel + Glasfasergewebe', lambda: 0.70 },
+    armierung: { label: 'Armierung (Gewebe + Mörtel)', materials: [
+        { id: 'armier', name: 'Armierungsmörtel + Glasfasergewebe', lambda: 0.70 },
     ]},
-    aussenputz: { label: 'Au├ƒenputz', materials: [
+    aussenputz: { label: 'Außenputz', materials: [
         { id: 'silikat',    name: 'Silikatputz (mineralisch)',    lambda: 0.70 },
         { id: 'kunstharz',  name: 'Kunstharzputz',               lambda: 0.70 },
         { id: 'kratzputz',  name: 'Kratzputz (mineralisch)',     lambda: 0.70 },
-        { id: 'kalk_z_a',   name: 'Kalk-Zementputz (Au├ƒen)',     lambda: 0.87 },
+        { id: 'kalk_z_a',   name: 'Kalk-Zementputz (Außen)',     lambda: 0.87 },
     ]},
-    sonstiges: { label: 'ÔÇö Sonstiges / eigener ╬╗-Wert ÔÇö', materials: [
-        { id: 'custom', name: 'Eigener ╬╗-Wert eingeben', lambda: null },
+    sonstiges: { label: '— Sonstiges / eigener λ-Wert —', materials: [
+        { id: 'custom', name: 'Eigener λ-Wert eingeben', lambda: null },
     ]},
 };
 
@@ -4362,9 +4362,9 @@ let _wlCounter = 0;
 function _buildMatOptions(layerType, selectedId) {
     const preset = WALL_LAYER_PRESETS[layerType];
     if (!preset) return '';
-    return '<option value="">-- Material w├ñhlen --</option>' +
+    return '<option value="">-- Material wählen --</option>' +
         preset.materials.map(m =>
-            `<option value="${m.id}" data-lambda="${m.lambda ?? ''}" ${m.id === selectedId ? 'selected' : ''}>${m.name}${m.lambda ? ' (╬╗=' + m.lambda + ')' : ''}</option>`
+            `<option value="${m.id}" data-lambda="${m.lambda ?? ''}" ${m.id === selectedId ? 'selected' : ''}>${m.name}${m.lambda ? ' (λ=' + m.lambda + ')' : ''}</option>`
         ).join('');
 }
 
@@ -4388,9 +4388,9 @@ function addWallLayer(presetType, presetMatId, presetThickMm) {
         <select class="wl-type-sel" onchange="onWlTypeChange(this)">${typeOpts}</select>
         <input  class="wl-thick" type="number" min="1" step="1" placeholder="mm" value="${presetThickMm || ''}" oninput="recalcWallU()">
         <select class="wl-mat-sel" onchange="onWlMatChange(this)">${matOpts}</select>
-        <div class="wl-lambda value-display">ÔÇö</div>
-        <div class="wl-r value-display">ÔÇö</div>
-        <button class="btn-remove-layer" onclick="removeWallLayer(this)" title="Schicht entfernen">Ô£ò</button>`;
+        <div class="wl-lambda value-display">—</div>
+        <div class="wl-r value-display">—</div>
+        <button class="btn-remove-layer" onclick="removeWallLayer(this)" title="Schicht entfernen">✕</button>`;
     container.appendChild(row);
 
     // Auto-select single-option materials (e.g. Kleber, Armierung)
@@ -4423,13 +4423,13 @@ function onWlMatChange(sel) {
     const chosen    = sel.options[sel.selectedIndex];
     const lambdaVal = chosen ? parseFloat(chosen.dataset.lambda) : NaN;
 
-    // Custom ╬╗ input
+    // Custom λ input
     let customInput = row.querySelector('.wl-custom-lambda');
     if (isNaN(lambdaVal) && sel.value === 'custom') {
         if (!customInput) {
             customInput = document.createElement('input');
             customInput.type = 'number'; customInput.step = '0.001'; customInput.min = '0.001';
-            customInput.placeholder = '╬╗ W/mK'; customInput.className = 'wl-custom-lambda';
+            customInput.placeholder = 'λ W/mK'; customInput.className = 'wl-custom-lambda';
             customInput.oninput = () => recalcWallU();
             lambdaEl.before(customInput);
         }
@@ -4438,7 +4438,7 @@ function onWlMatChange(sel) {
     } else {
         if (customInput) customInput.style.display = 'none';
         lambdaEl.style.display = '';
-        lambdaEl.textContent = isNaN(lambdaVal) ? 'ÔÇö' : lambdaVal.toString();
+        lambdaEl.textContent = isNaN(lambdaVal) ? '—' : lambdaVal.toString();
     }
     recalcWallU();
 }
@@ -4481,7 +4481,7 @@ function recalcWallU() {
             totalMm += mm;
             if (rEl) rEl.textContent = R.toFixed(4);
         } else {
-            if (rEl) rEl.textContent = 'ÔÇö';
+            if (rEl) rEl.textContent = '—';
             if (mm || matSel?.value) allValid = false; // only flag invalid if partially filled
         }
     });
@@ -4492,29 +4492,29 @@ function recalcWallU() {
 
     const rowCount = document.querySelectorAll('#wall_layers_container .wall-layer-row').length;
     if (rowCount === 0) {
-        uDisplay.textContent = 'ÔÇö'; if (thDisplay) thDisplay.textContent = 'ÔÇö'; return;
+        uDisplay.textContent = '—'; if (thDisplay) thDisplay.textContent = '—'; return;
     }
 
     if (thDisplay) thDisplay.textContent = totalMm + ' mm';
 
     if (totalR > R_SI + R_SE) {
         const U = 1 / totalR;
-        uDisplay.textContent = U.toFixed(3) + ' W/m┬▓K';
+        uDisplay.textContent = U.toFixed(3) + ' W/m²K';
         // Alle 4 Orientierungen auf den gleichen U-Wert setzen
         ['north','south','east','west'].forEach(ori => {
             window.wallMaterialData[ori].manualU    = U;
             window.wallMaterialData[ori].calculatedU = U;
             const disp = document.getElementById(`${ori}_u_display`);
-            if (disp) disp.textContent = U.toFixed(3) + ' W/m┬▓K';
+            if (disp) disp.textContent = U.toFixed(3) + ' W/m²K';
         });
     } else {
-        uDisplay.textContent = 'ÔÇö';
+        uDisplay.textContent = '—';
     }
     renderWallViz();
 }
 
-// === Wandaufbau-Visualisierung (ma├ƒstabsgetreu) ===
-// Farb-/Mustertabelle je Schichttyp ÔÇô grobe Anlehnung an Bautechnik-Konventionen
+// === Wandaufbau-Visualisierung (maßstabsgetreu) ===
+// Farb-/Mustertabelle je Schichttyp – grobe Anlehnung an Bautechnik-Konventionen
 const WALL_VIZ_STYLES = {
     innenputz:     { fill: '#ece4d4', stroke: '#b9ad8a', pattern: 'dots'   },
     tragende_wand: { fill: '#e7ecef', stroke: '#7d8a93', pattern: 'brick'  },
@@ -4548,7 +4548,7 @@ function renderWallViz() {
     if (layers.length === 0) {
         svg.innerHTML = `<rect x="0" y="0" width="${VB_W}" height="${VB_H}" fill="none"/>
             <text x="${VB_W/2}" y="${VB_H/2}" text-anchor="middle" fill="#6b7785" font-size="12" font-family="Inter,sans-serif">Keine Schichten</text>`;
-        if (scaleEl) scaleEl.textContent = 'ÔÇö';
+        if (scaleEl) scaleEl.textContent = '—';
         return;
     }
 
@@ -4570,7 +4570,7 @@ function renderWallViz() {
         </pattern>`);
     }
     if (usedPatterns.has('wave')) {
-        // Wellenmuster (D├ñmmung) ÔÇô ├ñhnlich der Skizze
+        // Wellenmuster (Dämmung) – ähnlich der Skizze
         defs.push(`<pattern id="pat-wave" width="14" height="14" patternUnits="userSpaceOnUse">
             <rect width="14" height="14" fill="#ffd54a"/>
             <path d="M0 7 Q 3.5 1, 7 7 T 14 7" stroke="#c79b1a" stroke-width="1" fill="none"/>
@@ -4600,19 +4600,19 @@ function renderWallViz() {
         return r;
     }).join('');
 
-    // Innen/Au├ƒen-Marker (kleine Pfeile/Text am oberen Rand)
+    // Innen/Außen-Marker (kleine Pfeile/Text am oberen Rand)
     const labels = `
         <text x="${PAD+2}" y="${PAD+10}" fill="#22d3ee" font-size="9" font-family="Inter,sans-serif">innen</text>
-        <text x="${VB_W-PAD-2}" y="${PAD+10}" text-anchor="end" fill="#22d3ee" font-size="9" font-family="Inter,sans-serif">au├ƒen</text>
+        <text x="${VB_W-PAD-2}" y="${PAD+10}" text-anchor="end" fill="#22d3ee" font-size="9" font-family="Inter,sans-serif">außen</text>
     `;
 
     svg.innerHTML = `<defs>${defs.join('')}</defs>${rects}${labels}`;
-    if (scaleEl) scaleEl.textContent = `Gesamtdicke: ${totalMm} mm ┬À Ma├ƒstab 1 mm Ôëê ${pxPerMm.toFixed(2)} px`;
+    if (scaleEl) scaleEl.textContent = `Gesamtdicke: ${totalMm} mm · Maßstab 1 mm ≈ ${pxPerMm.toFixed(2)} px`;
 
     // Legende aktualisieren
     const legendEl = document.getElementById('wall_viz_legend');
     if (legendEl) {
-        const seen = new Map(); // type ÔåÆ erster Schichtname
+        const seen = new Map(); // type → erster Schichtname
         document.querySelectorAll('#wall_layers_container .wall-layer-row').forEach(row => {
             const typeSel = row.querySelector('.wl-type-sel');
             const matSel  = row.querySelector('.wl-mat-sel');
@@ -4633,7 +4633,7 @@ function renderWallViz() {
 
 function loadStandardWallBuild() {
     document.getElementById('wall_layers_container').innerHTML = '';
-    // WDVS-Standardaufbau von innen nach au├ƒen
+    // WDVS-Standardaufbau von innen nach außen
     [
         ['innenputz',     'gipsputz',      15],
         ['tragende_wand', '8',            365],
@@ -4646,7 +4646,7 @@ function loadStandardWallBuild() {
 
 // Ersetzt die alte API-basierende Funktion - Schichtenaufbau wird lokal verwaltet
 async function populateWallMaterials() {
-    // Layer-System braucht keine API ÔÇô ╬╗-Werte sind in WALL_LAYER_PRESETS hinterlegt
+    // Layer-System braucht keine API – λ-Werte sind in WALL_LAYER_PRESETS hinterlegt
     // Standard-Aufbau laden (wird nur beim ersten Laden gesetzt)
     if (document.querySelectorAll('#wall_layers_container .wall-layer-row').length === 0) {
         loadStandardWallBuild();
@@ -4654,12 +4654,12 @@ async function populateWallMaterials() {
 }
 
 async function populatePlasterMaterials() {
-    // Putz ist jetzt Teil des Schichtenaufbaus ÔÇô kein separater Dropdown mehr n├Âtig
-    // Funktion bleibt f├╝r Abw├ñrtskompatibilit├ñt (wird von handleEkobaudatUpload aufgerufen)
+    // Putz ist jetzt Teil des Schichtenaufbaus – kein separater Dropdown mehr nötig
+    // Funktion bleibt für Abwärtskompatibilität (wird von handleEkobaudatUpload aufgerufen)
 }
 
 
-// Update U-Wert wenn Material ausgew├ñhlt wird
+// Update U-Wert wenn Material ausgewählt wird
 async function updateWallMaterial(orientation) {
     const select = document.getElementById(`${orientation}_material`);
     const thicknessField = document.getElementById(`${orientation}_thickness_field`);
@@ -4667,7 +4667,7 @@ async function updateWallMaterial(orientation) {
     const thicknessInput = document.getElementById(`${orientation}_thickness_mm`);
     
     if (!select || !select.value) {
-        document.getElementById(`${orientation}_u_display`).innerText = 'ÔÇö';
+        document.getElementById(`${orientation}_u_display`).innerText = '—';
         window.wallMaterialData[orientation].materialId = null;
         window.wallMaterialData[orientation].material = null;
         window.wallMaterialData[orientation].thicknessMm = null;
@@ -4685,7 +4685,7 @@ async function updateWallMaterial(orientation) {
         return;
     }
 
-    // Pr├╝fe auf "custom" - Benutzer gibt U-Wert manuell ein
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
     if (select.value === 'custom') {
         window.wallMaterialData[orientation].materialId = null;
         window.wallMaterialData[orientation].material = null;
@@ -4753,7 +4753,7 @@ function updateWallManualU(orientation) {
     updateWallUValue(orientation);
 }
 
-// Update wenn Putz-Checkbox ge├ñndert wird
+// Update wenn Putz-Checkbox geändert wird
 function updateWallPlaster(orientation) {
     const checkbox = document.getElementById(`${orientation}_plaster_check`);
     const select = document.getElementById(`${orientation}_plaster`);
@@ -4779,7 +4779,7 @@ async function updateWallUValue(orientation) {
     const data = window.wallMaterialData[orientation];
     let uValue = null;
 
-    // Priorit├ñt: Manuelle Eingabe > Material U-Wert > Fallback
+    // Priorität: Manuelle Eingabe > Material U-Wert > Fallback
     if (data.manualU !== null && data.manualU !== undefined) {
         uValue = data.manualU;
     } else if (data.materialId) {
@@ -4813,16 +4813,16 @@ async function updateWallUValue(orientation) {
         }
     }
 
-    // F├╝ge Putz hinzu wenn vorhanden
+    // Füge Putz hinzu wenn vorhanden
     if (uValue !== null && data.plaster && data.plaster.u_value) {
         uValue += data.plaster.u_value;
     }
 
     // Zeige Ergebnis
     if (uValue !== null && uValue > 0) {
-        document.getElementById(`${orientation}_u_display`).innerText = uValue.toFixed(3) + ' W/m┬▓K';
+        document.getElementById(`${orientation}_u_display`).innerText = uValue.toFixed(3) + ' W/m²K';
     } else {
-        document.getElementById(`${orientation}_u_display`).innerText = 'ÔÇö';
+        document.getElementById(`${orientation}_u_display`).innerText = '—';
     }
 
     return uValue;
@@ -4840,15 +4840,15 @@ function updateRoofType() {
         uField.style.display = 'none';
         displayField.style.display = 'none';
         window.roofMaterialData = { type: null, materialId: null, material: null, manualU: null };
-        document.getElementById('roof_u_display').innerText = 'ÔÇö';
-        document.getElementById('roof_result').innerText = 'ÔÇö';
+        document.getElementById('roof_u_display').innerText = '—';
+        document.getElementById('roof_result').innerText = '—';
         return;
     }
 
     window.roofMaterialData.type = select.value;
     materialField.style.display = 'block';
     displayField.style.display = 'block';
-    // uField bleibt versteckt bis "custom" Material ausgew├ñhlt wird
+    // uField bleibt versteckt bis "custom" Material ausgewählt wird
     uField.style.display = 'none';
 }
 
@@ -4866,13 +4866,13 @@ function updateFloorBoundary() {
         uField.style.display = 'none';
         displayField.style.display = 'none';
         window.floorMaterialData = { boundary: null, materialId: null, material: null, manualU: null, unheatedTemp: null };
-        document.getElementById('floor_u_display').innerText = 'ÔÇö';
-        document.getElementById('floor_result').innerText = 'ÔÇö';
+        document.getElementById('floor_u_display').innerText = '—';
+        document.getElementById('floor_result').innerText = '—';
         return;
     }
 
     window.floorMaterialData.boundary = select.value;
-    // uField bleibt versteckt bis "custom" Material ausgew├ñhlt wird
+    // uField bleibt versteckt bis "custom" Material ausgewählt wird
     uField.style.display = 'none';
     displayField.style.display = 'block';
 
@@ -4913,7 +4913,7 @@ async function populateRoofFloorMaterials() {
             }
             const roofSelect = document.getElementById('roof_material');
             if (roofSelect) {
-                roofSelect.innerHTML = '<option value="">-- W├ñhlen --</option><option value="custom">-- Custom (manuell) --</option>';
+                roofSelect.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
                 roofData.forEach(preset => {
                     const option = document.createElement('option');
                     option.value = preset.id;
@@ -4946,7 +4946,7 @@ async function populateRoofFloorMaterials() {
             }
             const floorSelect = document.getElementById('floor_material');
             if (floorSelect) {
-                floorSelect.innerHTML = '<option value="">-- W├ñhlen --</option><option value="custom">-- Custom (manuell) --</option>';
+                floorSelect.innerHTML = '<option value="">-- Wählen --</option><option value="custom">-- Custom (manuell) --</option>';
                 floorData.forEach(preset => {
                     const option = document.createElement('option');
                     option.value = preset.id;
@@ -4969,13 +4969,13 @@ async function populateRoofFloorMaterials() {
     }
 }
 
-// Update wenn Dach-Material ausgew├ñhlt wird
+// Update wenn Dach-Material ausgewählt wird
 async function updateRoofMaterial() {
     const select = document.getElementById('roof_material');
     const uField = document.getElementById('roof_u_field');
     
     if (!select || !select.value) {
-        document.getElementById('roof_u_display').innerText = 'ÔÇö';
+        document.getElementById('roof_u_display').innerText = '—';
         window.roofMaterialData = { type: window.roofMaterialData?.type || null, materialId: null, material: null, manualU: null, calculatedU: null };
         if (uField) {
             uField.style.display = 'none';
@@ -4983,7 +4983,7 @@ async function updateRoofMaterial() {
         return;
     }
 
-    // Pr├╝fe auf "custom" - Benutzer gibt U-Wert manuell ein
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
     if (select.value === 'custom') {
         window.roofMaterialData = { type: window.roofMaterialData?.type || null, materialId: null, material: null, manualU: null, calculatedU: null };
         if (uField) {
@@ -5040,7 +5040,7 @@ function updateRoofUValue() {
     const data = window.roofMaterialData || {};
     let uValue = null;
 
-    // Priorit├ñt: Manuelle Eingabe > Material U-Wert
+    // Priorität: Manuelle Eingabe > Material U-Wert
     if (data.manualU !== null && data.manualU !== undefined) {
         uValue = data.manualU;
     } else if (data.calculatedU !== null && data.calculatedU !== undefined) {
@@ -5051,19 +5051,19 @@ function updateRoofUValue() {
 
     // Zeige Ergebnis
     if (uValue !== null && uValue > 0) {
-        document.getElementById('roof_u_display').innerText = uValue.toFixed(3) + ' W/m┬▓K';
+        document.getElementById('roof_u_display').innerText = uValue.toFixed(3) + ' W/m²K';
     } else {
-        document.getElementById('roof_u_display').innerText = 'ÔÇö';
+        document.getElementById('roof_u_display').innerText = '—';
     }
 }
 
-// Update wenn Boden-Material ausgew├ñhlt wird
+// Update wenn Boden-Material ausgewählt wird
 async function updateFloorMaterial() {
     const select = document.getElementById('floor_material');
     const uField = document.getElementById('floor_u_field');
     
     if (!select || !select.value) {
-        document.getElementById('floor_u_display').innerText = 'ÔÇö';
+        document.getElementById('floor_u_display').innerText = '—';
         window.floorMaterialData = { boundary: window.floorMaterialData?.boundary || null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: window.floorMaterialData?.unheatedTemp || null };
         if (uField) {
             uField.style.display = 'none';
@@ -5071,7 +5071,7 @@ async function updateFloorMaterial() {
         return;
     }
 
-    // Pr├╝fe auf "custom" - Benutzer gibt U-Wert manuell ein
+    // Prüfe auf "custom" - Benutzer gibt U-Wert manuell ein
     if (select.value === 'custom') {
         window.floorMaterialData = { boundary: window.floorMaterialData?.boundary || null, materialId: null, material: null, manualU: null, calculatedU: null, unheatedTemp: window.floorMaterialData?.unheatedTemp || null };
         if (uField) {
@@ -5128,7 +5128,7 @@ function updateFloorUValue() {
     const data = window.floorMaterialData || {};
     let uValue = null;
 
-    // Priorit├ñt: Manuelle Eingabe > Material U-Wert
+    // Priorität: Manuelle Eingabe > Material U-Wert
     if (data.manualU !== null && data.manualU !== undefined) {
         uValue = data.manualU;
     } else if (data.calculatedU !== null && data.calculatedU !== undefined) {
@@ -5139,34 +5139,34 @@ function updateFloorUValue() {
 
     // Zeige Ergebnis
     if (uValue !== null && uValue > 0) {
-        document.getElementById('floor_u_display').innerText = uValue.toFixed(3) + ' W/m┬▓K';
+        document.getElementById('floor_u_display').innerText = uValue.toFixed(3) + ' W/m²K';
     } else {
-        document.getElementById('floor_u_display').innerText = 'ÔÇö';
+        document.getElementById('floor_u_display').innerText = '—';
     }
 }
 
 // Hilfsfunktion: Dach U-Wert auslesen
 function getRoofUValue() {
     const uDisplay = document.getElementById('roof_u_display');
-    if (uDisplay && uDisplay.innerText !== 'ÔÇö') {
+    if (uDisplay && uDisplay.innerText !== '—') {
         return parseFloat(uDisplay.innerText);
     }
     if (window.roofMaterialData && window.roofMaterialData.calculatedU !== null && window.roofMaterialData.calculatedU !== undefined) {
         return window.roofMaterialData.calculatedU;
     }
-    return 0.20; // Fallback Default f├╝r Dach
+    return 0.20; // Fallback Default für Dach
 }
 
 // Hilfsfunktion: Boden U-Wert auslesen
 function getFloorUValue() {
     const uDisplay = document.getElementById('floor_u_display');
-    if (uDisplay && uDisplay.innerText !== 'ÔÇö') {
+    if (uDisplay && uDisplay.innerText !== '—') {
         return parseFloat(uDisplay.innerText);
     }
     if (window.floorMaterialData && window.floorMaterialData.calculatedU !== null && window.floorMaterialData.calculatedU !== undefined) {
         return window.floorMaterialData.calculatedU;
     }
-    return 0.25; // Fallback Default f├╝r Boden
+    return 0.25; // Fallback Default für Boden
 }
 
 async function calculateEnvelope() {
@@ -5174,7 +5174,7 @@ async function calculateEnvelope() {
 
     await Promise.all(['north', 'south', 'east', 'west'].map((orientation) => updateWallUValue(orientation)));
 
-    // Nutze berechnete Wand-Fl├ñchen statt manueller Eingabe
+    // Nutze berechnete Wand-Flächen statt manueller Eingabe
     const wallAreas = window.wallAreas || {
         north: parseFloat(document.getElementById('north_area') || {value: 0}).value,
         south: parseFloat(document.getElementById('south_area') || {value: 0}).value,
@@ -5192,7 +5192,7 @@ async function calculateEnvelope() {
             return data.calculatedU;
         }
         const uDisplay = document.getElementById(`${orientation}_u_display`);
-        if (uDisplay && uDisplay.innerText !== 'ÔÇö') {
+        if (uDisplay && uDisplay.innerText !== '—') {
             return parseFloat(uDisplay.innerText);
         }
         return 0.28; // Fallback Default
@@ -5205,7 +5205,7 @@ async function calculateEnvelope() {
             bgf: document.getElementById('bgf').value,
             gradstunden: document.getElementById('gradstunden').value,
 
-            // ----- Nutzung / Personen / Klima (Geb├ñudedaten-Tab) -----
+            // ----- Nutzung / Personen / Klima (Gebäudedaten-Tab) -----
             building_type: document.getElementById('building_type')?.value || 'wohngebaeude',
             building_type_variant: document.getElementById('building_type_variant')?.value || '',
             project_state: document.getElementById('project_state')?.value || '',
@@ -5271,7 +5271,7 @@ async function calculateEnvelope() {
         document.getElementById('solar_gain_result').innerText = data.solar_gain_kwh + ' kWh/a';
         document.getElementById('annual_heat_result').innerText = data.annual_heat_demand_kwh + ' kWh/a';
         document.getElementById('adjusted_heat_result').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
-        document.getElementById('specific_heat_result').innerText = data.specific_heat_demand + ' kWh/m┬▓a';
+        document.getElementById('specific_heat_result').innerText = data.specific_heat_demand + ' kWh/m²a';
 
         updateRating(data.rating_color, data.rating_label, data.rating_message);
 
@@ -5279,11 +5279,11 @@ async function calculateEnvelope() {
         syncHtTable();
 
         document.getElementById('bilanz_heat').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
-        document.getElementById('bilanz_specific').innerText = data.specific_heat_demand + ' kWh/m┬▓a';
+        document.getElementById('bilanz_specific').innerText = data.specific_heat_demand + ' kWh/m²a';
         document.getElementById('bilanz_h').innerText = data.envelope_total + ' W/K';
         document.getElementById('bilanz_rating').innerText = data.rating_label;
 
-        // Backend hat das Nutzungsprofil / Klima aufgel├Âst ÔåÆ Live-Stats angleichen
+        // Backend hat das Nutzungsprofil / Klima aufgelöst → Live-Stats angleichen
         const elN = document.getElementById('usage_n_persons');
         if (elN && data.n_persons != null) elN.innerText = data.n_persons.toFixed(1);
         const elG = document.getElementById('usage_internal_gains');
@@ -5292,10 +5292,10 @@ async function calculateEnvelope() {
         if (elV && data.occupancy_hours != null) elV.innerText = Math.round(data.occupancy_hours);
         const elP = document.getElementById('usage_profile_label');
         if (elP && data.usage_label) elP.innerText = data.usage_label
-            + (data.building_type_variant ? ' ÔÇô ' + data.building_type_variant : '');
+            + (data.building_type_variant ? ' – ' + data.building_type_variant : '');
         const elC = document.getElementById('climate_region_display');
         if (elC && data.climate_location_label) elC.value = data.climate_location_label
-            + (data.elevation_delta_k ? `  (H├Âhenkorrektur ${data.elevation_delta_k > 0 ? '-' : '+'}${Math.abs(data.elevation_delta_k).toFixed(1)} K)` : '');
+            + (data.elevation_delta_k ? `  (Höhenkorrektur ${data.elevation_delta_k > 0 ? '-' : '+'}${Math.abs(data.elevation_delta_k).toFixed(1)} K)` : '');
     })
     .catch(err => {
         if (err.errors) {
@@ -5315,7 +5315,7 @@ function calculateSystem() {
     );
 
     if (isNaN(heatDemandNet)) {
-        showSystemErrors(['Bitte zuerst die Geb├ñudeh├╝lle auswerten, damit ein Heizw├ñrmebedarf netto vorliegt.']);
+        showSystemErrors(['Bitte zuerst die Gebäudehülle auswerten, damit ein Heizwärmebedarf netto vorliegt.']);
         return;
     }
 
@@ -5331,7 +5331,7 @@ function calculateSystem() {
             hotwater_demand: document.getElementById('hotwater_demand').value,
             auxiliary_electricity: document.getElementById('auxiliary_electricity').value,
             ventilation_air_change_rate: parseFloat(document.getElementById('ventilation_system').value) || 0.5,
-            volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m┬│', '').trim()) || 0
+            volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m³', '').trim()) || 0
         })
     })
     .then(async res => {
@@ -5347,8 +5347,8 @@ function calculateSystem() {
         document.getElementById('system_consumption').innerText = data.total_end_energy + ' kWh/a';
         document.getElementById('system_primary').innerText = data.primary_energy + ' kWh/a';
         document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
-        document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m┬▓a';
-        document.getElementById('system_spec_primary').innerText = data.specific_primary_energy + ' kWh/m┬▓a';
+        document.getElementById('system_spec_end').innerText = data.specific_end_energy + ' kWh/m²a';
+        document.getElementById('system_spec_primary').innerText = data.specific_primary_energy + ' kWh/m²a';
         document.getElementById('system_ventilation').innerText = data.ventilation_loss_kwh + ' kWh/a';
         document.getElementById('system_heat_adjusted').innerText = data.adjusted_heat_demand_net + ' kWh/a';
 
@@ -5399,28 +5399,28 @@ function updateVentilationControls() {
     };
 
     switch (selectedLabel) {
-        case 'ohne L├╝ftungsanlage':
+        case 'ohne Lüftungsanlage':
             // Alles bleibt disabled
             break;
-        case 'zentrale Abluftanlage ohne W├ñrmer├╝ckgewinnung':
-        case 'Abluft/Zuluftanlage ohne W├ñrmer├╝ckgewinnung':
+        case 'zentrale Abluftanlage ohne Wärmerückgewinnung':
+        case 'Abluft/Zuluftanlage ohne Wärmerückgewinnung':
             allDisabled.fanType = false;
             break;
-        case 'Abluft/Zuluftanlage mit W├ñrmer├╝ckgewinnung':
+        case 'Abluft/Zuluftanlage mit Wärmerückgewinnung':
             allDisabled.heatRecovery = false;
             allDisabled.distribution = false;
             break;
-        case 'dezentrale Abluft/Zuluftanlage mit W├ñrmer├╝ckgewinnung':
+        case 'dezentrale Abluft/Zuluftanlage mit Wärmerückgewinnung':
             allDisabled.heatRecovery = false;
             break;
-        case 'Abluft/Zuluft-W├ñrmepumpe ohne W├ñrme├╝bertrager':
+        case 'Abluft/Zuluft-Wärmepumpe ohne Wärmeübertrager':
             allDisabled.fanType = false;
             allDisabled.distribution = false;
             allDisabled.roomControl = false;
             allDisabled.precontrol = false;
             allDisabled.outletArrangement = false;
             break;
-        case 'Abluft/Zuluft-W├ñrmepumpe mit W├ñrme├╝bertrager':
+        case 'Abluft/Zuluft-Wärmepumpe mit Wärmeübertrager':
             allDisabled.fanType = false;
             allDisabled.heatRecovery = false;
             allDisabled.distribution = false;
@@ -5446,7 +5446,7 @@ function showPvErrors(errors) {
     errorBox.className = 'alert-box error';
     const listItems = errors.map(error => `<li>${error}</li>`).join('');
     errorBox.innerHTML = `
-        <span class="alert-title">Bitte PV-Eingaben pr├╝fen</span>
+        <span class="alert-title">Bitte PV-Eingaben prüfen</span>
         <ul class="alert-list">${listItems}</ul>
     `;
 }
@@ -5471,37 +5471,37 @@ function updatePVAreaCalculations() {
     const nsArea = nsAvailable * nsPct;
     const ewArea = ewAvailable * ewPct;
 
-    document.getElementById('pv_roof_area').innerText = roofArea.toFixed(1) + ' m┬▓';
-    document.getElementById('pv_ns_facade_area').innerText = nsArea.toFixed(1) + ' m┬▓';
-    document.getElementById('pv_ew_facade_area').innerText = ewArea.toFixed(1) + ' m┬▓';
+    document.getElementById('pv_roof_area').innerText = roofArea.toFixed(1) + ' m²';
+    document.getElementById('pv_ns_facade_area').innerText = nsArea.toFixed(1) + ' m²';
+    document.getElementById('pv_ew_facade_area').innerText = ewArea.toFixed(1) + ' m²';
 }
 
 function updatePVModuleData() {
     const moduleType = document.getElementById('pv_module_type').value;
-    let modulePower = 190;  // Wp/m┬▓ - Standard
+    let modulePower = 190;  // Wp/m² - Standard
     
     switch (moduleType) {
         case 'standard':
-            modulePower = 190;  // ~380 Wp / 2m┬▓ = 190 Wp/m┬▓
+            modulePower = 190;  // ~380 Wp / 2m² = 190 Wp/m²
             break;
         case 'high_eff':
-            modulePower = 220;  // ~440 Wp / 2m┬▓ = 220 Wp/m┬▓
+            modulePower = 220;  // ~440 Wp / 2m² = 220 Wp/m²
             break;
         case 'thin_film':
-            modulePower = 150;  // ~300 Wp / 2m┬▓ = 150 Wp/m┬▓
+            modulePower = 150;  // ~300 Wp / 2m² = 150 Wp/m²
             break;
         case 'bifacial':
-            modulePower = 240;  // ~450 Wp / 2m┬▓ = 240 Wp/m┬▓ (mit Ertrag von hinten)
+            modulePower = 240;  // ~450 Wp / 2m² = 240 Wp/m² (mit Ertrag von hinten)
             break;
     }
     
-    document.getElementById('pv_module_power').innerText = modulePower.toFixed(0) + ' Wp/m┬▓';
+    document.getElementById('pv_module_power').innerText = modulePower.toFixed(0) + ' Wp/m²';
 }
 
 function calculatePV() {
     hidePvErrors();
 
-    // Fl├ñchen berechnen
+    // Flächen berechnen
     updatePVAreaCalculations();
 
     const roofAvailable = parseFloat(document.getElementById('pv_roof_available_area').value) || 0;
@@ -5513,7 +5513,7 @@ function calculatePV() {
 
     const totalArea = (roofAvailable * roofPct) + (nsAvailable * nsPct) + (ewAvailable * ewPct);
     const moduleType = document.getElementById('pv_module_type').value;
-    let modulePower = 190;  // Wp/m┬▓
+    let modulePower = 190;  // Wp/m²
     let ertragsfaktor = 950; // kWh/kWp*a (Reference)
     
     switch (moduleType) {
@@ -5531,7 +5531,7 @@ function calculatePV() {
             break;
         case 'bifacial':
             modulePower = 240;
-            ertragsfaktor = 1050;  // +10% durch R├╝ckseiteneintrag
+            ertragsfaktor = 1050;  // +10% durch Rückseiteneintrag
             break;
     }
 
@@ -5544,7 +5544,7 @@ function calculatePV() {
     const errors = [];
     
     if (totalArea <= 0) {
-        errors.push('Gesamte PV-Fl├ñche muss > 0 m┬▓ sein.');
+        errors.push('Gesamte PV-Fläche muss > 0 m² sein.');
     }
     
     if (systemEfficiency <= 0.5 || systemEfficiency > 1) {
@@ -5581,7 +5581,7 @@ function calculatePV() {
     document.getElementById('pv_self_kwh').innerText = selfConsumption.toFixed(0) + ' kWh/a';
     document.getElementById('pv_feed_in_kwh').innerText = feedIn.toFixed(0) + ' kWh/a';
     document.getElementById('pv_co2_savings').innerText = co2Savings.toFixed(0) + ' kg/a';
-    document.getElementById('pv_total_benefit').innerText = totalBenefit.toFixed(2) + ' Ôé¼/a';
+    document.getElementById('pv_total_benefit').innerText = totalBenefit.toFixed(2) + ' €/a';
 
     lastPvSelfConsumptionKwh = selfConsumption;
     document.getElementById('bilanz_pv_self').innerText = selfConsumption.toFixed(0) + ' kWh/a';
@@ -5589,14 +5589,14 @@ function calculatePV() {
 }
 
 function calculateBalance() {
-    // Heizw├ñrmebedarf netto aus Geb├ñudeh├╝lle
+    // Heizwärmebedarf netto aus Gebäudehülle
     const heatDemandText = document.getElementById('adjusted_heat_result').innerText;
     const heatDemandNet = parseFloat(
         heatDemandText.replace('kWh/a', '').replace(',', '.').trim()
     );
 
     if (isNaN(heatDemandNet)) {
-        showSystemErrors(['Bitte zuerst die Geb├ñudeh├╝lle auswerten (Heizw├ñrmebedarf netto fehlt).']);
+        showSystemErrors(['Bitte zuerst die Gebäudehülle auswerten (Heizwärmebedarf netto fehlt).']);
         return;
     }
 
@@ -5633,7 +5633,7 @@ function calculateBalance() {
 
         // falls PV noch nicht gerechnet wurde:
         const pvBox = document.getElementById('bilanz_pv_self');
-        if (pvBox && (pvBox.innerText === 'ÔÇö' || pvBox.innerText.trim() === '')) {
+        if (pvBox && (pvBox.innerText === '—' || pvBox.innerText.trim() === '')) {
             pvBox.innerText = lastPvSelfConsumptionKwh + ' kWh/a';
         }
     })
@@ -5649,10 +5649,10 @@ window.addEventListener('load', function () {
     updatePVModuleData();
     updatePVAreaCalculations();
     updateGeometryStats();
-    populateWallMaterials();  // Lade ├ûKOBAUDAT Wandmaterialien
-    populateRoofFloorMaterials();  // Lade ├ûKOBAUDAT Dach & Boden Materialien
+    populateWallMaterials();  // Lade ÖKOBAUDAT Wandmaterialien
+    populateRoofFloorMaterials();  // Lade ÖKOBAUDAT Dach & Boden Materialien
     populateWindowTypes(); // Lade Fenstertypen
-    populateDoorTypes(); // Lade T├╝rtypen
+    populateDoorTypes(); // Lade Türtypen
     initializeBuildingTypeSelector();
     if (typeof updateUsageStats === 'function') updateUsageStats();
     initializeLocationSelector();
@@ -5750,7 +5750,7 @@ async function updateWindowType() {
     gInput.readOnly = false;
 }
 
-// T├╝ren: Populate und Auswahl
+// Türen: Populate und Auswahl
 async function populateDoorTypes() {
     try {
         const resp = await fetch('/api/ekobaudat-material/popular_doors/');
@@ -5773,7 +5773,7 @@ async function populateDoorTypes() {
             });
         }
     } catch (err) {
-        console.error('Fehler beim Laden der T├╝rtypen:', err);
+        console.error('Fehler beim Laden der Türtypen:', err);
     }
 }
 
