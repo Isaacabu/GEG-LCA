@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-# Importiere zentrale Hilfsfunktionen und Konstanten
+# Zentrale Hilfsfunktionen und Konstanten
 from .utils import safe_float, validate_non_negative, validate_u_value, get_rating
 from .csv_utils import import_materials_from_uploaded_file
 from .constants import (
@@ -13,7 +13,15 @@ from .constants import (
     DEFAULT_GRADSTUNDEN, DEFAULT_G_VALUE, VALID_HEATING_SYSTEMS,
     DEFAULT_HOTWATER_DEMAND, DEFAULT_AUXILIARY_ELECTRICITY,
     MAX_U_VALUE, MAX_G_VALUE, MIN_G_VALUE, MIN_EFFICIENCY, MIN_COP,
-    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP, VENTILATION_CONSTANT
+    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP, VENTILATION_CONSTANT,
+    CLIMATE_LOCATIONS, DEFAULT_CLIMATE_LOCATION,
+)
+
+# Fachliche Berechnungsengine (DIN V 18599 / EN ISO 13790, GEG 2024)
+from .services.din_v18599 import (
+    calculate_envelope_profile,
+    calculate_system_profile,
+    calculate_reference_building,
 )
 
 
@@ -46,179 +54,24 @@ def upload_ekobaudat(request):
 
 @csrf_exempt
 def calculate(request):
+    """Hüllen-/Heizwärmebedarf via Monatsbilanzverfahren (DIN EN ISO 13790).
+
+    Delegiert an services.din_v18599.calculate_envelope_profile.
+    Optionaler Vergleich mit GEG-Referenzgebäude (data['include_reference']=true).
+    """
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=400)
 
     try:
         data = json.loads(request.body)
+        result = calculate_envelope_profile(data)
+        if not result.get("ok"):
+            return JsonResponse(result, status=400)
 
-        bgf = safe_float(data.get("bgf"), 0)
-        gradstunden = safe_float(data.get("gradstunden"), DEFAULT_GRADSTUNDEN)
+        if data.get("include_reference"):
+            result["geg_reference_comparison"] = calculate_reference_building(data)
 
-        north_area = safe_float(data.get("north_area"))
-        north_u = safe_float(data.get("north_u"))
-
-        south_area = safe_float(data.get("south_area"))
-        south_u = safe_float(data.get("south_u"))
-
-        east_area = safe_float(data.get("east_area"))
-        east_u = safe_float(data.get("east_u"))
-
-        west_area = safe_float(data.get("west_area"))
-        west_u = safe_float(data.get("west_u"))
-
-        roof_area = safe_float(data.get("roof_area"))
-        roof_u = safe_float(data.get("roof_u"))
-
-        floor_area = safe_float(data.get("floor_area"))
-        floor_u = safe_float(data.get("floor_u"))
-
-        window_north_area = safe_float(data.get("window_north_area"))
-        window_south_area = safe_float(data.get("window_south_area"))
-        window_east_area = safe_float(data.get("window_east_area"))
-        window_west_area = safe_float(data.get("window_west_area"))
-
-        window_u = safe_float(data.get("window_u"))
-        g_value = safe_float(data.get("g_value"), DEFAULT_G_VALUE)
-
-        door_north_count = safe_float(data.get("door_north_count"), 0)
-        door_south_count = safe_float(data.get("door_south_count"), 0)
-        door_east_count = safe_float(data.get("door_east_count"), 0)
-        door_west_count = safe_float(data.get("door_west_count"), 0)
-        door_area_per_unit = safe_float(data.get("door_area_per_unit"), 2.0)
-        door_u = safe_float(data.get("door_u"))
-
-        errors = []
-
-        validate_non_negative("BGF", bgf, errors)
-        validate_non_negative("Gradstunden", gradstunden, errors)
-
-        validate_non_negative("Nord Fläche", north_area, errors)
-        validate_non_negative("Süd Fläche", south_area, errors)
-        validate_non_negative("Ost Fläche", east_area, errors)
-        validate_non_negative("West Fläche", west_area, errors)
-
-        validate_u_value("Nord U-Wert", north_u, errors)
-        validate_u_value("Süd U-Wert", south_u, errors)
-        validate_u_value("Ost U-Wert", east_u, errors)
-        validate_u_value("West U-Wert", west_u, errors)
-
-        validate_non_negative("Dachfläche", roof_area, errors)
-        validate_non_negative("Bodenfläche", floor_area, errors)
-        validate_u_value("Dach U-Wert", roof_u, errors)
-        validate_u_value("Boden U-Wert", floor_u, errors)
-
-        validate_non_negative("Fenster Nord", window_north_area, errors)
-        validate_non_negative("Fenster Süd", window_south_area, errors)
-        validate_non_negative("Fenster Ost", window_east_area, errors)
-        validate_non_negative("Fenster West", window_west_area, errors)
-        validate_u_value("Fenster U-Wert", window_u, errors)
-
-        if g_value < MIN_G_VALUE or g_value > MAX_G_VALUE:
-            errors.append(f"g-Wert muss zwischen {MIN_G_VALUE} und {MAX_G_VALUE} liegen.")
-
-        validate_non_negative("Türen Nord", door_north_count, errors)
-        validate_non_negative("Türen Süd", door_south_count, errors)
-        validate_non_negative("Türen Ost", door_east_count, errors)
-        validate_non_negative("Türen West", door_west_count, errors)
-        validate_non_negative("Türfläche pro Unit", door_area_per_unit, errors)
-        validate_u_value("Tür U-Wert", door_u, errors)
-
-        if bgf == 0:
-            errors.append("BGF darf nicht 0 sein, da sonst kein spezifischer Wert berechnet werden kann.")
-
-        if errors:
-            return JsonResponse({"ok": False, "errors": errors}, status=400)
-
-        north_loss = north_area * north_u
-        south_loss = south_area * south_u
-        east_loss = east_area * east_u
-        west_loss = west_area * west_u
-        wall_total = north_loss + south_loss + east_loss + west_loss
-
-        roof_loss = roof_area * roof_u
-        floor_loss = floor_area * floor_u
-        roof_floor_total = roof_loss + floor_loss
-
-        window_north_loss = window_north_area * window_u
-        window_south_loss = window_south_area * window_u
-        window_east_loss = window_east_area * window_u
-        window_west_loss = window_west_area * window_u
-        window_total = (
-            window_north_loss
-            + window_south_loss
-            + window_east_loss
-            + window_west_loss
-        )
-
-        envelope_total = wall_total + roof_floor_total + window_total
-
-        door_north_area = door_north_count * door_area_per_unit
-        door_south_area = door_south_count * door_area_per_unit
-        door_east_area = door_east_count * door_area_per_unit
-        door_west_area = door_west_count * door_area_per_unit
-
-        door_north_loss = door_north_area * door_u
-        door_south_loss = door_south_area * door_u
-        door_east_loss = door_east_area * door_u
-        door_west_loss = door_west_area * door_u
-        door_total = (
-            door_north_loss
-            + door_south_loss
-            + door_east_loss
-            + door_west_loss
-        )
-
-        envelope_total = envelope_total + door_total
-
-        solar_gain_kwh = (
-            window_north_area * g_value * SOLAR_FACTORS['north']
-            + window_south_area * g_value * SOLAR_FACTORS['south']
-            + window_east_area * g_value * SOLAR_FACTORS['east']
-            + window_west_area * g_value * SOLAR_FACTORS['west']
-        )
-
-        annual_heat_demand_kwh = (envelope_total * gradstunden) / 1000
-        adjusted_heat_demand_kwh = max(annual_heat_demand_kwh - solar_gain_kwh, 0)
-        specific_heat_demand = adjusted_heat_demand_kwh / bgf
-
-        rating = get_rating(specific_heat_demand)
-
-        return JsonResponse({
-            "ok": True,
-            "north_loss": round(north_loss, 2),
-            "south_loss": round(south_loss, 2),
-            "east_loss": round(east_loss, 2),
-            "west_loss": round(west_loss, 2),
-            "wall_total": round(wall_total, 2),
-
-            "roof_loss": round(roof_loss, 2),
-            "floor_loss": round(floor_loss, 2),
-            "roof_floor_total": round(roof_floor_total, 2),
-
-            "window_north_loss": round(window_north_loss, 2),
-            "window_south_loss": round(window_south_loss, 2),
-            "window_east_loss": round(window_east_loss, 2),
-            "window_west_loss": round(window_west_loss, 2),
-            "window_total": round(window_total, 2),
-
-            "door_north_loss": round(door_north_loss, 2),
-            "door_south_loss": round(door_south_loss, 2),
-            "door_east_loss": round(door_east_loss, 2),
-            "door_west_loss": round(door_west_loss, 2),
-            "door_total": round(door_total, 2),
-
-            "envelope_total": round(envelope_total, 2),
-            "annual_heat_demand_kwh": round(annual_heat_demand_kwh, 2),
-            "solar_gain_kwh": round(solar_gain_kwh, 2),
-            "adjusted_heat_demand_kwh": round(adjusted_heat_demand_kwh, 2),
-            "specific_heat_demand": round(specific_heat_demand, 2),
-
-            "rating_label": rating["label"],
-            "rating_color": rating["color"],
-            "rating_message": rating["message"]
-        })
-
+        return JsonResponse(result)
     except Exception as e:
         return JsonResponse({
             "ok": False,
@@ -228,100 +81,61 @@ def calculate(request):
 
 @csrf_exempt
 def calculate_system(request):
+    """Anlagentechnik nach GEG 2024 (Endenergie, Primärenergie, CO2, PV-Abzug).
+
+    Delegiert an services.din_v18599.calculate_system_profile.
+    """
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=400)
 
     try:
         data = json.loads(request.body)
-
-        heat_demand_net = safe_float(data.get("heat_demand_net"))
-        bgf = safe_float(data.get("bgf"))
-
-        heating_system = data.get("heating_system", "gas")
-        efficiency = safe_float(data.get("efficiency"), DEFAULT_EFFICIENCY)
-        cop = safe_float(data.get("cop"), DEFAULT_COP)
-
-        hotwater_demand = safe_float(data.get("hotwater_demand"), DEFAULT_HOTWATER_DEMAND)
-        auxiliary_electricity = safe_float(data.get("auxiliary_electricity"), DEFAULT_AUXILIARY_ELECTRICITY)
-        ventilation_air_change_rate = safe_float(data.get("ventilation_air_change_rate"), 0.5)
-        volume = safe_float(data.get("volume"), 0)
-
-        errors = []
-
-        validate_non_negative("Heizwärmebedarf netto", heat_demand_net, errors)
-        validate_non_negative("BGF", bgf, errors)
-        validate_non_negative("Warmwasserbedarf", hotwater_demand, errors)
-        validate_non_negative("Hilfsstrom", auxiliary_electricity, errors)
-
-        if bgf == 0:
-            errors.append("BGF darf nicht 0 sein.")
-
-        if heating_system not in VALID_HEATING_SYSTEMS:
-            errors.append("Ungültiges Heizsystem.")
-
-        if efficiency <= MIN_EFFICIENCY or efficiency > MAX_EFFICIENCY:
-            errors.append(f"Wirkungsgrad muss > {MIN_EFFICIENCY} und plausibel sein (z. B. 0.85 bis 1.0).")
-
-        if cop <= MIN_COP or cop > MAX_COP:
-            errors.append(f"COP muss > {MIN_COP} und plausibel sein (z. B. 2.5 bis 5.0).")
-
-        if errors:
-            return JsonResponse({"ok": False, "errors": errors}, status=400)
-
-        # Calculate ventilation losses
-        ventilation_loss_kwh = (VENTILATION_CONSTANT * ventilation_air_change_rate * volume * DEFAULT_GRADSTUNDEN) / 1000 if volume > 0 else 0
-        adjusted_heat_demand_net = heat_demand_net + ventilation_loss_kwh
-
-        if heating_system == "heatpump":
-            heating_end_energy = adjusted_heat_demand_net / cop
-            hotwater_end_energy = hotwater_demand / cop
-        else:
-            heating_end_energy = adjusted_heat_demand_net / efficiency
-            hotwater_end_energy = hotwater_demand / efficiency
-
-        total_end_energy = heating_end_energy + hotwater_end_energy + auxiliary_electricity
-
-        primary_energy = total_end_energy * PRIMARY_ENERGY_FACTORS[heating_system]
-        co2_emissions = total_end_energy * CO2_FACTORS[heating_system]
-
-        specific_end_energy = total_end_energy / bgf
-        specific_primary_energy = primary_energy / bgf
-
-        if specific_primary_energy <= SYSTEM_RATING_THRESHOLDS['efficient']:
-            system_label = "Sehr effizient"
-            system_color = "green"
-            system_message = "Die Anlagentechnik arbeitet energetisch günstig."
-        elif specific_primary_energy <= SYSTEM_RATING_THRESHOLDS['medium']:
-            system_label = "Mittel"
-            system_color = "yellow"
-            system_message = "Die Anlagentechnik ist nutzbar, aber optimierbar."
-        else:
-            system_label = "Verbesserungsbedarf"
-            system_color = "red"
-            system_message = "Die Anlagentechnik verursacht hohe Primärenergieverbräuche."
-
-        return JsonResponse({
-            "ok": True,
-            "heating_end_energy": round(heating_end_energy, 2),
-            "hotwater_end_energy": round(hotwater_end_energy, 2),
-            "auxiliary_electricity": round(auxiliary_electricity, 2),
-            "total_end_energy": round(total_end_energy, 2),
-            "primary_energy": round(primary_energy, 2),
-            "co2_emissions": round(co2_emissions, 2),
-            "specific_end_energy": round(specific_end_energy, 2),
-            "specific_primary_energy": round(specific_primary_energy, 2),
-            "ventilation_loss_kwh": round(ventilation_loss_kwh, 2),
-            "adjusted_heat_demand_net": round(adjusted_heat_demand_net, 2),
-            "system_label": system_label,
-            "system_color": system_color,
-            "system_message": system_message
-        })
-
+        result = calculate_system_profile(data)
+        if not result.get("ok"):
+            return JsonResponse(result, status=400)
+        return JsonResponse(result)
     except Exception as e:
         return JsonResponse({
             "ok": False,
             "errors": [f"Unerwarteter Fehler: {str(e)}"]
         }, status=500)
+
+
+@csrf_exempt
+def calculate_reference(request):
+    """GEG-Referenzgebäude-Vergleich (Anlage 1 GEG 2024).
+
+    Berechnet Soll-Heizwärmebedarf mit Referenz-U-Werten und liefert
+    Ist/Soll-Vergleich.
+    """
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    try:
+        data = json.loads(request.body)
+        result = calculate_reference_building(data)
+        status_code = 200 if result.get("ok") else 400
+        return JsonResponse(result, status=status_code)
+    except Exception as e:
+        return JsonResponse({
+            "ok": False,
+            "errors": [f"Unerwarteter Fehler: {str(e)}"]
+        }, status=500)
+
+
+@csrf_exempt
+def get_climate_locations(request):
+    """Liefert verfügbare Klimastandorte (für Frontend-Dropdown)."""
+    if request.method != "GET":
+        return JsonResponse({"error": "Only GET allowed"}, status=400)
+    locations = [
+        {"key": key, "label": entry["label"]}
+        for key, entry in CLIMATE_LOCATIONS.items()
+    ]
+    return JsonResponse({
+        "ok": True,
+        "default": DEFAULT_CLIMATE_LOCATION,
+        "locations": locations,
+    })
 
 
 # --- NEU: Photovoltaik ---
@@ -537,14 +351,27 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
     filterset_fields = ['category']
     search_fields = ['name', 'producer', 'category']
 
+    # Wand-Presets: Einzelschicht ist physikalisch sinnvoll (Vollziegel/Mauerwerk),
+    # daher klassische Formel U = 1 / (Rsi + d/lambda + Rse).
+    #
+    # Dach- und Bodenaufbauten dagegen sind in der Praxis IMMER mehrschichtig
+    # (Dachhaut + Sparren + Dämmung bzw. Estrich + Beton + Dämmung). Für diese
+    # liefern wir ein 'assembly_u_value' = realistischer Bauteil-U-Wert eines
+    # typischen Aufbaus (Quelle: BMWi/dena Sanierungsleitfaden, ÖKOBAUDAT-
+    # Beispielaufbauten, DIN V 4108-6 Anhang C). Damit werden absurde Werte wie
+    # U_Dach = 4.4 W/m²K (10 mm Bitumenbahn solo) oder U_Boden = 4.9 W/m²K
+    # (60 mm Estrich solo) vermieden.
     THERMAL_PRESETS = {
-        8: {'lambda_value': 0.80, 'default_thickness_mm': 365},
-        354: {'lambda_value': 0.45, 'default_thickness_mm': 300},
-        1332: {'lambda_value': 0.35, 'default_thickness_mm': 240},
-        1312: {'lambda_value': 1.40, 'default_thickness_mm': 18},
-        1108: {'lambda_value': 0.17, 'default_thickness_mm': 10},
-        352: {'lambda_value': 1.90, 'default_thickness_mm': 60},
-        661: {'lambda_value': 2.10, 'default_thickness_mm': 200},
+        # --- Wände (Einzelschicht-Formel) ---
+        8:    {'lambda_value': 0.80, 'default_thickness_mm': 365},   # Ziegelmauerwerk Altbau
+        354:  {'lambda_value': 0.45, 'default_thickness_mm': 300},   # Mauerwerk gedaemmt
+        1332: {'lambda_value': 0.35, 'default_thickness_mm': 240},   # KS gedaemmt
+        # --- Daecher (Bauteilaufbau, fester U-Wert) ---
+        1312: {'assembly_u_value': 1.80, 'assembly_label': 'Steildach Altbau, ungedaemmt (Dachsteine + Sparren ohne Daemmung)'},
+        1108: {'assembly_u_value': 1.50, 'assembly_label': 'Flachdach Altbau, ungedaemmt (Bitumenbahn + Beton/Holz)'},
+        # --- Boeden gegen Erdreich (Bauteilaufbau, fester U-Wert) ---
+        352:  {'assembly_u_value': 1.20, 'assembly_label': 'Bodenplatte Altbau, ungedaemmt (Estrich auf Beton)'},
+        661:  {'assembly_u_value': 0.80, 'assembly_label': 'Bodenplatte gedaemmt (Stahlbetonsohle + Perimeterdaemmung)'},
     }
 
     WINDOW_PRESETS = {
@@ -672,6 +499,21 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
                 'default_thickness_mm': None,
                 'formula': 'not_available',
             }, status=200)
+
+        # Bauteil-Preset (Dach-/Bodenaufbau): fester realistischer U-Wert,
+        # KEINE Einzelschicht-Rechnung. Damit liefert z.B. Bitumendachbahn als
+        # "kompletter Flachdachaufbau" U = 1.5 W/m\u00b2K statt unsinnige 4.4 W/m\u00b2K.
+        if 'assembly_u_value' in thermal_preset:
+            return Response({
+                'id': material.id,
+                'name': material.name,
+                'u_value': round(thermal_preset['assembly_u_value'], 3),
+                'lambda_value': None,
+                'thickness_mm': None,
+                'default_thickness_mm': None,
+                'formula': 'assembly_preset',
+                'assembly_label': thermal_preset.get('assembly_label', ''),
+            })
 
         lambda_value = thermal_preset['lambda_value']
         thickness_mm = safe_float(request.query_params.get('thickness_mm'), thermal_preset['default_thickness_mm'])

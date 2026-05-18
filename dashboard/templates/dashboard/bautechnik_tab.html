@@ -1,203 +1,260 @@
 <!-- BAUTECHNIK SEKTION (JS-App) -->
 <div id="bautechnik" class="tab" style="display: none;">
     <style>
-        .bautechnik-container {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 20px;
-            height: calc(100vh - 300px);
-        }
-        
-        .bautechnik-sidebar {
-            background: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            overflow-y: auto;
-            padding: 0;
-        }
-        
-        .bautechnik-nav-item {
-            padding: 12px 16px;
-            border-left: 4px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            color: #333;
-            transition: 0.2s;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .bautechnik-nav-item:hover {
-            background: #efefef;
-        }
-        
-        .bautechnik-nav-item.active {
-            background: #e8f5e9;
-            border-left-color: var(--green-dark);
-            color: var(--green-dark);
-        }
-        
-        .bautechnik-content {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 24px;
-            overflow-y: auto;
-        }
-        
-        .bautechnik-content h2 {
-            margin-top: 0;
-            color: #1f2b1f;
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
-        
-        .bautechnik-toolbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .bautechnik-toolbar .btn {
-            padding: 8px 12px;
-            font-size: 12px;
-        }
-        
-        .bautechnik-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            margin-top: 16px;
-        }
-        
-        .bautechnik-table thead {
-            background: #f9f9f9;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        .bautechnik-table th,
-        .bautechnik-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .bautechnik-table tbody tr:hover {
-            background: #f5f5f5;
-        }
-        
-        .bautechnik-form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .bautechnik-form-grid.full {
-            grid-template-columns: 1fr;
-        }
-        
-        .bautechnik-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .bautechnik-modal.active {
-            display: flex;
-        }
-        
-        .bautechnik-modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .bautechnik-modal-header {
-            font-size: 18px;
-            font-weight: 800;
-            margin-bottom: 16px;
-            color: #1f2b1f;
-        }
-        
-        .bautechnik-modal-footer {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 16px;
-        }
-        
-        .bautechnik-loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .bautechnik-spinner {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            border: 3px solid #ddd;
-            border-radius: 50%;
-            border-top-color: var(--green-dark);
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .bautechnik-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-        
-        .bautechnik-error {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-        
-        .bautechnik-success {
-            background: #d4edda;
-            border: 1px solid #28a745;
-            color: #155724;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-        
-        .btn-sm {
-            padding: 6px 10px;
-            font-size: 11px;
-        }
-        
-        .btn-danger {
-            background: #d32f2f;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #b71c1c;
-        }
-    </style>
+.bautechnik-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    height: calc(100vh - 300px);
+}
+
+.bautechnik-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow-y: auto;
+    padding: 0;
+    backdrop-filter: blur(10px);
+}
+
+.bautechnik-nav-item {
+    padding: 13px 18px;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--muted);
+    transition: 0.18s ease;
+    border-bottom: 1px solid var(--line);
+}
+
+.bautechnik-nav-item:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+.bautechnik-nav-item.active {
+    background: rgba(34, 211, 238, 0.10);
+    border-left-color: var(--cyan);
+    color: var(--cyan);
+    font-weight: 600;
+}
+
+.bautechnik-content {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 26px;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+.bautechnik-content h2 {
+    margin-top: 0;
+    color: var(--text);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+}
+
+.bautechnik-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.bautechnik-toolbar .btn {
+    padding: 8px 14px;
+    font-size: 12px;
+}
+
+.bautechnik-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+    color: var(--text);
+}
+
+.bautechnik-table thead {
+    background: var(--surface-strong);
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.bautechnik-table th {
+    padding: 11px 12px;
+    text-align: left;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+}
+
+.bautechnik-table td {
+    padding: 11px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+
+.bautechnik-table tbody tr:hover {
+    background: var(--surface-hover);
+}
+
+.bautechnik-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.bautechnik-form-grid.full {
+    grid-template-columns: 1fr;
+}
+
+.bautechnik-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(2, 6, 14, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.bautechnik-modal.active {
+    display: flex;
+}
+
+.bautechnik-modal-content {
+    background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+    color: var(--text);
+}
+
+.bautechnik-modal-header {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+}
+
+.bautechnik-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+}
+
+.bautechnik-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+}
+
+.bautechnik-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--line);
+    border-radius: 50%;
+    border-top-color: var(--cyan);
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 12px var(--cyan-dim);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.bautechnik-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+}
+
+.bautechnik-error {
+    background: rgba(246, 185, 75, 0.08);
+    border: 1px solid rgba(246, 185, 75, 0.35);
+    color: #f7c770;
+    padding: 12px 14px;
+    border-radius: 9px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.bautechnik-success {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    color: #86efac;
+    padding: 12px 14px;
+    border-radius: 9px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    border: 0;
+    box-shadow: 0 4px 16px -4px rgba(239,68,68,0.45);
+}
+
+.btn-danger:hover {
+    box-shadow: 0 8px 24px -6px rgba(239,68,68,0.55);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--gold) 0%, #e8a930 100%);
+    color: #1f1405;
+    border: 0;
+}
+
+.btn-warning:hover {
+    box-shadow: 0 8px 24px -6px rgba(246,185,75,0.55);
+}
+
+.schicht-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 12px 14px;
+    border-radius: 9px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text);
+    font-size: 13px;
+}
+
+.schicht-item:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-hover);
+}
+
+</style>
     
     <div class="panel" style="height: auto;">
         <h2 class="section-title">Bautechnik</h2>
