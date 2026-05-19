@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.project_name }} - Bericht</title>
+    <style>
+        :root {
+            --bg: #f4f1ea;
+            --surface: #ffffff;
+            --line: #dad3c7;
+            --text: #1d1d1b;
+            --muted: #6a645b;
+            --accent: #3f6f46;
+            --accent-2: #5e7f69;
+            --shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #efe7da 0%, var(--bg) 100%);
+            color: var(--text);
+        }
+        .page {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 22px 50px;
+        }
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-start;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+        }
+        .hero h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+        .hero p { margin: 0; color: var(--muted); line-height: 1.5; }
+        .pill {
+            display: inline-flex;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #edf5ef;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+        .card .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .card .value { font-size: 24px; font-weight: 800; color: var(--accent); }
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+        }
+        h2 { margin: 0 0 14px; font-size: 22px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #ece7df;
+        }
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--muted);
+        }
+        .muted { color: var(--muted); }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .summary-box {
+            border-radius: 18px;
+            background: #faf8f4;
+            border: 1px solid #e7dfd1;
+            padding: 16px;
+        }
+        .summary-box h3 { margin: 0 0 10px; font-size: 16px; }
+        .summary-box ul { margin: 0; padding-left: 18px; color: var(--muted); }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        a.button {
+            display: inline-block;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-weight: 700;
+            background: var(--accent);
+            color: #fff;
+        }
+        .secondary { background: #d9c9b4; color: #31291f; }
+        @media (max-width: 1000px) {
+            .grid, .summary { grid-template-columns: 1fr 1fr; }
+            .hero { flex-direction: column; }
+        }
+        @media (max-width: 640px) {
+            .grid, .summary { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="hero">
+            <div>
+                <div class="pill">DIN V 18599-orientierter Projektbericht</div>
+                <h1>{{ project.project_name }}</h1>
+                <p>
+                    Projekt-ID: {{ project.project_id }}<br>
+                    {% if project.project_number %}Projektnummer: {{ project.project_number }}<br>{% endif %}
+                    {% if project.file_reference %}Aktenzeichen: {{ project.file_reference }}<br>{% endif %}
+                    {% if project.location %}Standort: {{ project.location }}{% endif %}
+                </p>
+            </div>
+            <div class="actions">
+                <a class="button secondary" href="/">Zurück zur Eingabe</a>
+                <a class="button" href="/projects/{{ project.project_id }}/report/">Bericht aktualisieren</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card"><div class="label">Gebäudetyp</div><div class="value">{{ project.building_kind|default:"-" }}</div></div>
+            <div class="card"><div class="label">Berechnungsbasis</div><div class="value">{{ project.energy_basis|default:"-" }}</div></div>
+            <div class="card"><div class="label">Normbasis</div><div class="value">{{ project.legal_basis|default:"-" }}</div></div>
+            <div class="card"><div class="label">Zonen</div><div class="value">{{ zones|length }}</div></div>
+        </div>
+
+        <div class="section">
+            <h2>Zonenübersicht</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Nutzungsprofil</th>
+                        <th>Fläche</th>
+                        <th>Solltemp.</th>
+                        <th>Luftwechsel</th>
+                        <th>Interne Gewinne</th>
+                        <th>Belegung</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for zone in zones %}
+                    <tr>
+                        <td>{{ zone.zone_name }}</td>
+                        <td>{{ zone.usage_profile }}</td>
+                        <td>{{ zone.area }} m²</td>
+                        <td>{{ zone.setpoint_temperature }} °C</td>
+                        <td>{{ zone.air_change_rate }} 1/h</td>
+                        <td>{{ zone.internal_gains_density }} W/m²</td>
+                        <td>{{ zone.occupancy_hours }} h/a</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="muted">Keine Zonen gespeichert.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="summary">
+            <div class="summary-box">
+                <h3>Gebäudehülle</h3>
+                <ul>
+                    <li>Heizwärmebedarf netto: {{ calculation.envelope.adjusted_heat_demand_kwh|default:"-" }} kWh/a</li>
+                    <li>Spezifisch: {{ calculation.envelope.specific_heat_demand|default:"-" }} kWh/m²a</li>
+                    <li>Ampel: {{ calculation.envelope.rating_label|default:"-" }}</li>
+                    <li>Bilanzierte Zonenfläche: {{ calculation.envelope.zone_total_area|default:"-" }} m²</li>
+                </ul>
+            </div>
+            <div class="summary-box">
+                <h3>Anlagentechnik</h3>
+                <ul>
+                    <li>Endenergie gesamt: {{ calculation.system.total_end_energy|default:"-" }} kWh/a</li>
+                    <li>Primärenergie: {{ calculation.system.primary_energy|default:"-" }} kWh/a</li>
+                    <li>CO₂: {{ calculation.system.co2_emissions|default:"-" }} kg/a</li>
+                    <li>Bewertung: {{ calculation.system.system_label|default:"-" }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Hinweis</h2>
+            <p class="muted" style="margin:0; line-height:1.6;">
+                Dieser Bericht ist als projektbezogene Zusammenfassung angelegt und kann später um PDF-Export,
+                Variantenvergleich und normgenauere DIN-V-18599-Bilanzräume erweitert werden.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
