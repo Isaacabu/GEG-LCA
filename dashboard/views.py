@@ -112,6 +112,8 @@ def calculate_pv(request):
 
         monthly = []
         annual = 0.0
+        # Jahresertrag je Orientierung getrennt mitführen (für Aufschlüsselung/Tabelle)
+        ann_roof = ann_south = ann_ew = 0.0
         for m in range(12):
             hours = _MDAYS[m] * 24.0
             # E_sol je Fläche [kWh/m² im Monat] (Gl. 66)
@@ -119,16 +121,39 @@ def calculate_pv(request):
             e_south = _I_S["south"][m] * hours / 1000.0
             e_ew = 0.5 * (_I_S["east"][m] + _I_S["west"][m]) * hours / 1000.0
             # Gl. (64): E_sol · P_pk/I_ref · f_perf  – P_pk/A = k_pk, I_ref = 1 kW/m²
-            q_m = (e_roof * area_roof + e_south * area_south + e_ew * area_ew) \
-                * k_pk * f_perf * (1.0 - shading)
+            f_sys = k_pk * f_perf * (1.0 - shading)
+            q_roof = e_roof * area_roof * f_sys
+            q_south = e_south * area_south * f_sys
+            q_ew = e_ew * area_ew * f_sys
+            q_m = q_roof + q_south + q_ew
             monthly.append(round(q_m, 1))
             annual += q_m
+            ann_roof += q_roof
+            ann_south += q_south
+            ann_ew += q_ew
 
         p_pk_total = k_pk * total_area
         self_consumption_kwh = annual * self_rate
         feed_in_kwh = max(0.0, annual - self_consumption_kwh)
         savings_eur = self_consumption_kwh * electricity_price
         feed_in_revenue_eur = feed_in_kwh * feed_in_tariff
+
+        def _orient(key, label, area, ann):
+            return {
+                "key": key,
+                "label": label,
+                "area_m2": round(area, 1),
+                "kwp": round(k_pk * area, 2),
+                "annual_kwh": round(ann, 1),
+                "specific_kwh_kwp": round(ann / (k_pk * area), 0) if area > 0 else 0,
+                "share_pct": round(ann / annual * 100, 1) if annual > 0 else 0,
+            }
+
+        by_orientation = [
+            _orient("roof", "Dach (Süd ~40°)", area_roof, ann_roof),
+            _orient("south", "Süd-Fassade (90°)", area_south, ann_south),
+            _orient("ew", "Ost/West-Fassade (90°)", area_ew, ann_ew),
+        ]
 
         return JsonResponse({
             "ok": True,
@@ -142,6 +167,9 @@ def calculate_pv(request):
             "total_benefit_eur": round(savings_eur + feed_in_revenue_eur, 2),
             "co2_savings_kg": round(annual * 0.56, 1),
             "monthly_yield_kwh": monthly,
+            "by_orientation": by_orientation,
+            "k_pk": k_pk,
+            "f_perf": f_perf,
             "calculation_basis": "DIN V 18599-9:2018-09, Gl. 64–67 + Anhang B",
         })
 
