@@ -58,9 +58,13 @@ CLIMATE_LABEL = "Referenzklima Deutschland (Potsdam)"
 # Konstanten DIN V 18599-2
 # ---------------------------------------------------------------------------
 C_AIR = 0.34          # Wärmespeicherfähigkeit Luft, Wh/(m³·K) – §6.3, Gl. (63)
-F_FRAME = 0.7         # Abminderung Rahmenanteil F_F – §6.4
-F_INCIDENCE = 0.9     # Abminderung nicht senkrechter Einfall F_V – §6.4
-F_SHADING = 0.9       # pauschale Verschattung F_S (Default ohne Verbauung) – §6.4.3
+# Abminderungsfaktoren für solare Gewinne durch Fenster (§6.4). Bezeichnungen wie in
+# der DIN/Betreuer-Referenz: F_F Rahmen · F_S bauliche Verschattung ·
+# F_W nicht senkrechter Strahlungseinfall · F_V Verschmutzung.
+F_FRAME = 0.7         # Rahmenanteil F_F (Anteil transparenter Fläche) – §6.4
+F_SHADING = 0.9       # bauliche Verschattung F_S (Default ohne Verbauung) – §6.4.3
+F_INCIDENCE = 0.9     # nicht senkrechter Strahlungseinfall F_W – §6.4
+F_SOILING = 0.9       # Verschmutzung F_V – §6.4
 TAU_0 = 16.0          # h, Monatsbilanz – §6.7.3, Gl. (144)
 A_0 = 1.0             # –, Monatsbilanz – §6.7.3, Gl. (144)
 DELTA_U_WB = 0.10     # W/(m²K) pauschaler Wärmebrückenzuschlag – Gl. (47) / GEG §24
@@ -107,6 +111,15 @@ PROFILES: Dict[str, Dict[str, Any]] = {
 N_INFILTRATION = 0.15   # h⁻¹ Grund-Luftwechsel außerhalb der Nutzungszeit (Infiltration)
 DELTA_THETA_NA = 4.0    # K zulässige Absenkung der Innentemperatur (Teil 10)
 DEFAULT_PROFILE = "wohngebaeude_efh"
+
+# Kühl-Solltemperatur θ_i,c [°C] (Teil 10, Kühlfall) je Profil und ob Kühlung im
+# Standardfall angesetzt wird. Wohngebäude: i. d. R. keine aktive Kühlung.
+COOLING_SETPOINT = {
+    "wohngebaeude_efh": 26.0, "wohngebaeude_mfh": 26.0,
+    "einzelbuero": 26.0, "gruppenbuero": 26.0, "grossraumbuero": 26.0,
+    "besprechung": 26.0, "klassenzimmer": 26.0,
+}
+COOLING_DEFAULT_ON = {"wohngebaeude_efh": False, "wohngebaeude_mfh": False}
 
 # Mapping der Frontend-Felder (building_type / building_type_variant) auf Profile.
 # Wichtig: Das Frontend sendet die Varianten aus dem Gebäudedaten-Tab wörtlich
@@ -157,6 +170,17 @@ def utilization_factor(gamma: float, tau: float) -> float:
     return (1.0 - gamma ** a) / (1.0 - gamma ** (a + 1.0))
 
 
+def cooling_utilization_factor(gamma_c: float, tau: float) -> float:
+    """Ausnutzungsgrad der Wärmesenken für die Kühlung η_c – DIN V 18599-2 (Kühlfall,
+    analog ISO 13790, Gl. 27–29). γ_c = Q_quelle,c / Q_senke,c."""
+    a = A_0 + tau / TAU_0
+    if gamma_c <= 0:
+        return 1.0
+    if abs(gamma_c - 1.0) < 1e-9:
+        return a / (a + 1.0)
+    return (1.0 - gamma_c ** (-a)) / (1.0 - gamma_c ** (-(a + 1.0)))
+
+
 def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     """Heizwärmebedarf nach DIN V 18599-2 Monatsbilanzverfahren.
 
@@ -185,6 +209,14 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     theta_i = safe_float(data.get("setpoint_temperature"), 0.0)
     if theta_i <= 0:
         theta_i = profile["theta_i"]
+
+    # Kühlung (Teil 2): Kühl-Solltemperatur + ob aktive Kühlung angesetzt wird.
+    theta_i_c = COOLING_SETPOINT.get(profile_key, 26.0)
+    ci = safe_float(data.get("cooling_setpoint_temperature"), 0.0)
+    if ci > 0:
+        theta_i_c = ci
+    cooling_enabled = bool(data.get("cooling_enabled",
+                                    COOLING_DEFAULT_ON.get(profile_key, True)))
 
     air_change = safe_float(data.get("air_change_rate"), 0.0)
     if air_change <= 0:
@@ -288,6 +320,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     # --- Monatsbilanz (Gl. 1, 24–26) ---
     months = []
     q_h_year = 0.0
+    q_c_year = 0.0
     q_sink_year = 0.0
     q_solar_year = 0.0
     q_internal_year = 0.0
@@ -325,10 +358,12 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         q_sink = h_total * dt * hours / 1000.0 if dt > 0 else 0.0
 
         # Solare Wärmequellen je Orientierung [kWh] (Gl. 112/113)
+        # A_eff = A · F_F · F_S · F_W · F_V ; Q_sol = A_eff · g · I_S
         q_solar = 0.0
         for orient in ORIENTATIONS:
             irr_kwh = I_S[orient][m] * 24.0 * days / 1000.0      # kWh/m² im Monat
-            q_solar += windows[orient] * g_value * F_FRAME * F_INCIDENCE * F_SHADING * irr_kwh
+            q_solar += (windows[orient] * g_value
+                        * F_FRAME * F_SHADING * F_INCIDENCE * F_SOILING * irr_kwh)
 
         # Interne Wärmequellen [kWh] (Teil 10): q_i je Nutzungstag
         usage_days_m = days * usage_fraction
@@ -345,7 +380,22 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
             eta = 0.0
             q_h = 0.0
 
+        # --- Kühlbedarf Q_c,b (Teil 2, Kühlfall) [kWh] ---
+        # Wärmesenke für Kühlung Q_ht,c = H·(θ_i,c − θ_e)·t (negativ bei θ_e > θ_i,c, dann
+        # Wärmeeintrag von außen). Q_c = Q_quelle − η_c·Q_senke.
+        q_c = 0.0
+        if cooling_enabled:
+            q_ht_c = h_total * (theta_i_c - theta_e) * hours / 1000.0
+            if q_source > 0:
+                if q_ht_c <= 0:
+                    q_c = q_source - q_ht_c          # Gewinne + Wärmeeintrag von außen
+                else:
+                    gamma_c = q_source / q_ht_c
+                    eta_c = cooling_utilization_factor(gamma_c, tau)
+                    q_c = max(q_source - eta_c * q_ht_c, 0.0)
+
         q_h_year += q_h
+        q_c_year += q_c
         q_sink_year += q_sink
         q_solar_year += q_solar
         q_internal_year += q_internal
@@ -359,9 +409,11 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
             "gamma": round(gamma, 3),
             "eta": round(eta, 3),
             "q_heat": round(q_h, 1),
+            "q_cool": round(q_c, 1),
         })
 
     specific = q_h_year / bgf if bgf > 0 else 0.0
+    specific_cooling = q_c_year / bgf if bgf > 0 else 0.0
     rating = get_rating(specific)
 
     # interne Gewinnleistung als Mittel über das Jahr [W/m²] (für Frontend-Anzeige)
@@ -402,6 +454,11 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "internal_gain_kwh": round(q_internal_year, 1),
         "adjusted_heat_demand_kwh": round(q_h_year, 1),         # Heizwärmebedarf netto Q_h,b,a
         "specific_heat_demand": round(specific, 2),
+        # --- Kühlung (Teil 2, Nutzkältebedarf Q_c,b) ---
+        "cooling_demand_kwh": round(q_c_year, 1),
+        "specific_cooling_demand": round(specific_cooling, 2),
+        "cooling_setpoint": theta_i_c if cooling_enabled else None,
+        "cooling_enabled": cooling_enabled,
         # --- Bewertung ---
         "rating_label": rating["label"],
         "rating_color": rating["color"],

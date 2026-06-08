@@ -226,12 +226,25 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     else:
         n_eff = N_INF + N_MECH                        # Abluft/Zu-Abluft ohne WRG
 
+    # Aufteilung Lüftung: nur die Infiltration bleibt in der Zonenbilanz (Teil 2);
+    # der maschinell geförderte Anteil wird als RLT-Luftaufbereitung (Teil 3) separat
+    # auf Raumtemperatur erwärmt (kein doppelter Lüftungs-Wärmeverlust).
+    mechanical_vent = vent_key != "none"
+    if mechanical_vent:
+        n_zone = N_INF
+        n_rlt = max(n_eff - N_INF, 0.0)
+    else:
+        n_zone = n_eff
+        n_rlt = 0.0
+
     # --- Teil-2-Bilanz (mit Lüftungskopplung) ------------------------------------
     envelope = data.get("envelope")
     theta_i = profile["theta_i"]
+    cooling_demand_year = 0.0
+    cooling_setpoint = None
     if isinstance(envelope, dict) and envelope:
         env = dict(envelope)
-        env["air_change_rate"] = n_eff
+        env["air_change_rate"] = n_zone
         base = calculate_heat_demand(env)
         if not base.get("ok"):
             return {"ok": False, "errors": ["Hüllenberechnung fehlgeschlagen: "]
@@ -240,6 +253,8 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         monthly = base["monthly"]
         q_hb_year = base["adjusted_heat_demand_kwh"]
         h_total = base["h_total"]
+        cooling_demand_year = base.get("cooling_demand_kwh", 0.0)
+        cooling_setpoint = base.get("cooling_setpoint")
         phi_max = h_total * (theta_i - THETA_E_DESIGN) / 1000.0     # kW Gebäudeheizlast
         basis = "Teil 2 Monatsbilanz (mit Lüftungsanlage neu bilanziert)"
     else:
@@ -354,7 +369,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     # Monatsschleife
     # ------------------------------------------------------------------
     sums = {k: 0.0 for k in
-            ("q_hb", "q_hce", "q_hd", "q_hs", "q_h_outg", "q_h_gen_loss", "q_h_f",
+            ("q_hb", "q_hce", "q_hd", "q_hs", "q_rlt", "q_h_outg", "q_h_gen_loss", "q_h_f",
              "q_wb", "q_wd", "q_ws", "q_w_outg", "q_w_gen_loss", "q_w_f",
              "w_pump_h", "w_boiler_aux", "el_hp_h", "el_hp_w", "q_district_loss")}
     monthly_out = []
@@ -399,7 +414,12 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
             q_hs_gross = ((THETA_S_AV - theta_i) / 45.0) * days * q_buf_p0_day * 1.2
             q_hs = q_hs_gross * (1.0 - eta_m)        # Aufstellung beheizt → großteils nutzbar
 
-        q_h_outg = q_hb + q_hce + q_hd + q_hs
+        # ---------- RLT-Luftaufbereitung (Teil 3): Zuluft auf Raumtemperatur ----------
+        # Q_RLT = n_rlt · V · c_Luft · (θ_i − θ_e) · t   [kWh]; geht über denselben Erzeuger.
+        q_rlt = (n_rlt * volume * 0.34 * max(theta_i - theta_e, 0.0) * t_month_h / 1000.0
+                 if n_rlt > 0 else 0.0)
+
+        q_h_outg = q_hb + q_hce + q_hd + q_hs + q_rlt
 
         # ---------- TWW: Verteilung (Teil 8, Gl. 13/14) ----------
         theta_w_free = 25.0 * U_PIPE_SA ** -0.2      # ≈ 32,9 °C (ohne Zirkulation)
@@ -509,7 +529,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
             w_pump_h = (p_hydr_h / 1000.0) * beta_d * t_month_h * e_aux_h
 
         # ---------- Summen ----------
-        vals = {"q_hb": q_hb, "q_hce": q_hce, "q_hd": q_hd, "q_hs": q_hs,
+        vals = {"q_hb": q_hb, "q_hce": q_hce, "q_hd": q_hd, "q_hs": q_hs, "q_rlt": q_rlt,
                 "q_h_outg": q_h_outg, "q_h_gen_loss": q_h_gen_loss,
                 "q_h_f": q_h_f if heating_system != "heatpump" else 0.0,
                 "q_wb": q_wb, "q_wd": q_wd, "q_ws": q_ws, "q_w_outg": q_w_outg,
@@ -561,7 +581,17 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         electricity_end = aux_electricity + lighting_end
         jaz = None
 
-    total_end = heating_end + hotwater_end + aux_electricity + lighting_end
+    # --- Kühlung (Teil 7): Nutzkälte über elektrische Kältemaschine (EER) ---
+    cooling_eer = safe_float(data.get("cooling_eer"), 3.0) or 3.0
+    cooling_end = cooling_demand_year / cooling_eer if cooling_demand_year > 0 else 0.0
+    electricity_end += cooling_end          # Kälteerzeugung ist immer Strom
+
+    # Heizungs-Endenergie in Raum- und RLT-Anteil aufteilen (nur Darstellung)
+    rlt_share = sums["q_rlt"] / sums["q_h_outg"] if sums["q_h_outg"] > 0 else 0.0
+    heating_rlt_end = heating_end * rlt_share
+    heating_space_end = heating_end - heating_rlt_end
+
+    total_end = (heating_end + hotwater_end + aux_electricity + lighting_end + cooling_end)
     carrier_key = {"gas": "gas", "pellet": "pellet", "district": "district",
                    "heatpump": "electricity"}[heating_system]
     primary = (fuel_end * F_PRIMARY[carrier_key] if heating_system != "heatpump" else 0.0) \
@@ -587,9 +617,14 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         "ok": True,
         # --- Frontend-kompatible Kernfelder ---
         "heating_end_energy": round(heating_end, 2),
+        "heating_space_end_energy": round(heating_space_end, 2),   # „Heizen Raum"
+        "heating_rlt_end_energy": round(heating_rlt_end, 2),       # „Heizen RLT" (Teil 3)
         "hotwater_end_energy": round(hotwater_end, 2),
         "lighting_end_energy": round(lighting_end, 2),
         "auxiliary_electricity": round(aux_electricity, 2),
+        "cooling_demand_kwh": round(cooling_demand_year, 1),       # Nutzkälte Q_c,b (Teil 2)
+        "cooling_end_energy": round(cooling_end, 2),               # „Kühlen Raum" Endenergie
+        "cooling_eer": cooling_eer,
         "total_end_energy": round(total_end, 2),
         "primary_energy": round(primary, 2),
         "co2_emissions": round(co2, 2),
@@ -612,6 +647,9 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
             "q_h_ce": round(sums["q_hce"], 1),
             "q_h_d": round(sums["q_hd"], 1),
             "q_h_s": round(sums["q_hs"], 1),
+            "q_rlt": round(sums["q_rlt"], 1),                 # RLT-Luftaufbereitung (Teil 3)
+            "cooling_setpoint": cooling_setpoint,
+            "cooling_demand_kwh": round(cooling_demand_year, 1),
             "q_h_outg": round(sums["q_h_outg"], 1),
             "q_h_gen_loss": round(sums["q_h_gen_loss"], 1),
             "q_w_b": round(sums["q_wb"], 1),

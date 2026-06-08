@@ -3,16 +3,10 @@ from django.shortcuts import render
 from django.http import JsonResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 
-# Importiere zentrale Hilfsfunktionen und Konstanten
+# Importiere zentrale Hilfsfunktionen. Die GEG-/DIN-Faktoren (Primärenergie, CO₂) liegen
+# bewusst in den Service-Modulen (din18599_anlage.py: F_PRIMARY/F_CO2), nicht in constants.py –
+# die dortigen Faktor-Tabellen sind eine ältere, hier nicht genutzte Vereinfachung.
 from .utils import safe_float, validate_non_negative, validate_u_value, get_rating
-from .constants import (
-    SOLAR_FACTORS, PRIMARY_ENERGY_FACTORS, CO2_FACTORS,
-    RATING_THRESHOLDS, SYSTEM_RATING_THRESHOLDS,
-    DEFAULT_GRADSTUNDEN, DEFAULT_G_VALUE, VALID_HEATING_SYSTEMS,
-    DEFAULT_HOTWATER_DEMAND, DEFAULT_AUXILIARY_ELECTRICITY,
-    MAX_U_VALUE, MAX_G_VALUE, MIN_G_VALUE,
-    DEFAULT_EFFICIENCY, DEFAULT_COP, MAX_EFFICIENCY, MAX_COP, MIN_EFFICIENCY, MIN_COP
-)
 from .services.din18599 import calculate_heat_demand
 from .services.din18599_anlage import calculate_system_din
 

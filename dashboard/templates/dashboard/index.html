@@ -618,6 +618,14 @@ body {
     gap: 6px;
 }
 
+/* Eingabefelder einer Zeile unten ausrichten, auch wenn Labels unterschiedlich
+   viele Zeilen haben (Label bleibt oben, Feld wird nach unten geschoben). */
+.field-bottom .field input,
+.field-bottom .field select,
+.field-bottom .field .value-display {
+    margin-top: auto;
+}
+
 .field label {
     display: block;
     margin-bottom: 0;
@@ -1754,7 +1762,7 @@ input[type="checkbox"], input[type="radio"] {
 
                 <div class="card">
                     <h3>Klimadaten und Randbedingungen</h3>
-                    <div class="grid-3">
+                    <div class="grid-3 field-bottom">
                         <div class="field">
                             <label>Klimaregion (auto. aus Standort)</label>
                             <input id="climate_region_display" type="text" value="Region 3 (Süddeutschland)" readonly>
@@ -2069,8 +2077,6 @@ input[type="checkbox"], input[type="radio"] {
                     </div>
                 </div>
 
-                <button class="btn btn-primary" style="margin-top:18px;" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
-
                 <div class="result-row" style="margin-top:14px;">
                     <div class="result-chip"><span class="small">Nord (W/K)</span><strong id="north_result">—</strong></div>
                     <div class="result-chip"><span class="small">Süd (W/K)</span><strong id="south_result">—</strong></div>
@@ -2280,6 +2286,9 @@ input[type="checkbox"], input[type="radio"] {
                     <div style="display:none;"><strong id="floor_result">—</strong></div>
                 </div>
             </div>
+
+            <!-- Abschluss-Button: gesamte Gebäudehülle auswerten (unten links) -->
+            <button class="btn btn-primary" style="margin-top:18px;" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
 
             <!-- ④ H_T Wärmeverlustkoeffizienten -->
             <div class="card ht-table" style="margin-top:18px;">
@@ -3683,8 +3692,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="label">Hilfsenergie Strom (W_f)</div>
                             <div class="value" id="system_aux">—</div>
                         </div>
+                        <div class="stat-box" id="system_rlt_box" style="display:none;">
+                            <span class="info-i" data-tip="Endenergie für die RLT-Luftaufbereitung (DIN V 18599-3): Erwärmung der maschinell geförderten Zuluft auf Raumtemperatur (nach Wärmerückgewinnung). Wird über denselben Wärmeerzeuger gedeckt. Nur bei mechanischer Lüftung.">i</span>
+                            <div class="label">Endenergie RLT-Heizung (Teil 3)</div>
+                            <div class="value" id="system_rlt_end">—</div>
+                        </div>
+                        <div class="stat-box" id="system_cooling_box" style="display:none;">
+                            <span class="info-i" data-tip="Endenergie Kühlung: Nutzkältebedarf Q_c,b (DIN V 18599-2) gedeckt über eine elektrische Kältemaschine mit Leistungszahl EER (Standard 3,0). Nur bei Nichtwohngebäuden mit aktiver Kühlung.">i</span>
+                            <div class="label">Endenergie Kühlung (Q_c,f)</div>
+                            <div class="value" id="system_cooling_end">—</div>
+                        </div>
                         <div class="stat-box">
-                            <span class="info-i" data-tip="Summe der Endenergie: Heizung + Warmwasser + Hilfsstrom. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
+                            <span class="info-i" data-tip="Summe der Endenergie: Heizung + RLT + Warmwasser + Hilfsstrom + Kühlung. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
                             <div class="label">Endenergie gesamt (Q_f)</div>
                             <div class="value" id="system_total_end">—</div>
                         </div>
@@ -7258,9 +7277,24 @@ function calculateSystem() {
         // Für den Energiebilanz-Tab merken (Energieträger-Aufteilung Brennstoff/Strom)
         window.lastSystemResult = data;
 
-        document.getElementById('system_heating_end').innerText = data.heating_end_energy + ' kWh/a';
+        // „Endenergie Heizung" = Raum-Anteil (ohne RLT); RLT/Kühlung als eigene Kategorien
+        document.getElementById('system_heating_end').innerText =
+            (data.heating_space_end_energy != null ? data.heating_space_end_energy : data.heating_end_energy) + ' kWh/a';
         document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
         document.getElementById('system_aux').innerText = data.auxiliary_electricity + ' kWh/a';
+
+        // RLT-Heizung (Teil 3) und Kühlung – nur anzeigen, wenn vorhanden
+        const rltBox = document.getElementById('system_rlt_box');
+        const rltEnd = data.heating_rlt_end_energy || 0;
+        if (rltBox) rltBox.style.display = rltEnd > 0 ? '' : 'none';
+        if (rltEnd > 0) document.getElementById('system_rlt_end').innerText = rltEnd + ' kWh/a';
+
+        const coolBox = document.getElementById('system_cooling_box');
+        const coolEnd = data.cooling_end_energy || 0;
+        if (coolBox) coolBox.style.display = coolEnd > 0 ? '' : 'none';
+        if (coolEnd > 0) document.getElementById('system_cooling_end').innerText =
+            coolEnd + ' kWh/a  (Q_c,b ' + (data.cooling_demand_kwh || 0) + ' kWh · EER ' + (data.cooling_eer || 3) + ')';
+
         document.getElementById('system_total_end').innerText = data.total_end_energy + ' kWh/a';
         document.getElementById('system_primary').innerText = data.primary_energy + ' kWh/a';
         document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
@@ -8075,8 +8109,9 @@ function calculateBalance() {
     const heatEnd = parseFloat(sys.heating_end_energy) || 0;
     const dhwEnd = parseFloat(sys.hotwater_end_energy) || 0;
     const aux = parseFloat(sys.auxiliary_electricity) || 0;
+    const coolEnd = parseFloat(sys.cooling_end_energy) || 0;   // Kühlung ist immer Strom
     const fuelEnd = isHeatpump ? 0 : (heatEnd + dhwEnd);
-    const systemElectricity = aux + (isHeatpump ? (heatEnd + dhwEnd) : 0);
+    const systemElectricity = aux + coolEnd + (isHeatpump ? (heatEnd + dhwEnd) : 0);
 
     const household = parseFloat(document.getElementById('household_electricity')?.value) || 2000;
 
@@ -8164,8 +8199,9 @@ function renderBilanzViz() {
     const heatEnd = parseFloat(sys.heating_end_energy) || 0;
     const dhwEnd = parseFloat(sys.hotwater_end_energy) || 0;
     const aux = parseFloat(sys.auxiliary_electricity) || 0;
+    const coolEnd = parseFloat(sys.cooling_end_energy) || 0;   // Kühlung ist immer Strom
     const fuelEnd = isHeatpump ? 0 : (heatEnd + dhwEnd);
-    const sysEl = aux + (isHeatpump ? (heatEnd + dhwEnd) : 0);
+    const sysEl = aux + coolEnd + (isHeatpump ? (heatEnd + dhwEnd) : 0);
     const household = parseFloat(document.getElementById('household_electricity')?.value) || 2000;
 
     const elGross = sysEl + household;

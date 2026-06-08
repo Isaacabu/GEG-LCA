@@ -11,20 +11,23 @@ SOLAR_FACTORS = {
     'west': 50,       # Westen: Mittlere Solargewinne (Nachmittag)
 }
 
-# ===== PRIMÄRENERGIEFAKTOREN (nach Energieträger) =====
+# ===== PRIMÄRENERGIE- & CO2-FAKTOREN (GEG 2024, Anlage 4 / Anlage 9) =====
+# HINWEIS: Maßgeblich für die Berechnung sind die Faktoren in
+# services/din18599_anlage.py (F_PRIMARY / F_CO2). Die folgenden Tabellen werden
+# aktuell nicht verwendet; sie sind hier nur zur Referenz GEG-konform gehalten.
 PRIMARY_ENERGY_FACTORS = {
-    'gas': 1.1,       # Erdgas (konventionell)
-    'heatpump': 1.8,  # Wärmepumpe (Strom mit deutschem Mix)
-    'district': 0.7,  # Fernwärme (effizienter)
-    'pellet': 0.2,    # Pellets/Biomasse (erneuerbar)
+    'gas': 1.1,       # Erdgas
+    'heatpump': 1.8,  # Strom (Wärmepumpe)
+    'district': 0.7,  # Fernwärme (Standardannahme)
+    'pellet': 0.2,    # Holz/Biomasse
 }
 
-# ===== CO2-EMISSIONSFAKTOREN (kg/kWh) =====
+# CO2-Emissionsfaktoren (kg CO₂/kWh Endenergie, GEG Anlage 9)
 CO2_FACTORS = {
     'gas': 0.24,      # Erdgas
-    'heatpump': 0.40, # Wärmepumpe (abhängig von Strommix)
+    'heatpump': 0.56, # Strom (Wärmepumpe) – GEG-Wert, vorher fälschlich 0,40
     'district': 0.18, # Fernwärme
-    'pellet': 0.04,   # Pellets/Biomasse
+    'pellet': 0.02,   # Holz/Biomasse – GEG-Wert, vorher fälschlich 0,04
 }
 
 # ===== HEIZWÄRMEBEDARF BEWERTUNGSGRENZEN (kWh/m²a) =====
@@ -75,7 +78,7 @@ DEFAULT_FEED_IN_TARIFF = 0.08          # €/kWh Einspeisevergütung
 
 # ===== ENERGIEBILANZ =====
 DEFAULT_HOUSEHOLD_ELECTRICITY = 2000   # kWh/a Haushaltsstrom
-DEFAULT_ELECTRICITY_CO2_FACTOR = 0.40  # kg/kWh (deutscher Strommix)
+DEFAULT_ELECTRICITY_CO2_FACTOR = 0.56  # kg/kWh Netzstrom (GEG Anlage 9; vorher fälschlich 0,40)
 
 # ===== GÜLTIGE SYSTEME =====
 VALID_HEATING_SYSTEMS = ["gas", "heatpump", "district", "pellet"]
