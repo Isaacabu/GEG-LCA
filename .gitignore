@@ -1,0 +1,34 @@
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+db.sqlite3
+*.log
+.env
+venv/
+.venv/
+
+# --- Node (TypeScript-Monorepo) ---
+node_modules/
+apps/frontend/dist/
+
+# --- Urheberrechtlich geschützte DIN-Normdaten: NIEMALS pushen! ---
+# (liegen lokal eine Ebene über dem Repo: ../DIN V 18599/ und ../din_texts/)
+output/
+din_texts/
+*18599*.pdf
+scripts/_din_render/
+docs/din_pdfs/*
+!docs/din_pdfs/README.md
+
+# --- Altlasten / große Duplikate ---
+GEG-LCA-mainNeu.zip
+OBD_2024_I_2026-05-17T20_51_57.csv
+dashboard/templates/dashboard/data
+dashboard/data~*
+*.bak
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEG & LCA Projekt</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>GEG & LCA Projekt</h1>
+        <p>Digitale Übersicht zu Gebäudeenergiegesetz und Lebenszyklusanalyse</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>Was ist GEG?</h2>
+            <p>
+                Das Gebäudeenergiegesetz (GEG) regelt Anforderungen an die energetische Qualität
+                von Gebäuden. Ziel ist es, den Energieverbrauch zu senken und nachhaltiges Bauen
+                zu fördern.
+            </p>
+        </section>
+
+        <section class="card">
+            <h2>Was ist LCA?</h2>
+            <p>
+                Die Lebenszyklusanalyse (LCA) bewertet die Umweltauswirkungen eines Gebäudes über
+                seinen gesamten Lebensweg – von Herstellung über Nutzung bis Rückbau.
+            </p>
+        </section>
+
+        <section class="card">
+            <h2>Vergleich GEG und LCA</h2>
+            <ul>
+                <li><strong>GEG:</strong> Fokus auf Energieeffizienz und gesetzliche Anforderungen</li>
+                <li><strong>LCA:</strong> Fokus auf ökologische Gesamtbewertung eines Gebäudes</li>
+                <li><strong>Gemeinsam:</strong> Beide unterstützen nachhaltiges Bauen</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>Kleine Beispielberechnung</h2>
+            <label for="area">Gebäudefläche (m²):</label>
+            <input type="number" id="area" placeholder="z. B. 120">
+
+            <label for="energy">Energieverbrauch (kWh/m²a):</label>
+            <input type="number" id="energy" placeholder="z. B. 95">
+
+            <button onclick="calculateEnergy()">Berechnen</button>
+
+            <p id="result"></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>Projektteam: Ken Truong, Berke Bozdogan, Ahmet Yetisir, Yunus Cevik</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

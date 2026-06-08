@@ -1,0 +1,484 @@
+<!-- BAUTECHNIK SEKTION (JS-App) -->
+<div id="bautechnik" class="tab" style="display: none;">
+    <style>
+        .bautechnik-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: calc(100vh - 300px);
+        }
+        
+        .bautechnik-sidebar {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .bautechnik-nav-item {
+            padding: 12px 16px;
+            border-left: 4px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            transition: 0.2s;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-nav-item:hover {
+            background: #efefef;
+        }
+        
+        .bautechnik-nav-item.active {
+            background: #e8f5e9;
+            border-left-color: var(--green-dark);
+            color: var(--green-dark);
+        }
+        
+        .bautechnik-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .bautechnik-content h2 {
+            margin-top: 0;
+            color: #1f2b1f;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-toolbar .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .bautechnik-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        
+        .bautechnik-table thead {
+            background: #f9f9f9;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        .bautechnik-table th,
+        .bautechnik-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .bautechnik-table tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .bautechnik-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .bautechnik-form-grid.full {
+            grid-template-columns: 1fr;
+        }
+        
+        .bautechnik-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bautechnik-modal.active {
+            display: flex;
+        }
+        
+        .bautechnik-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .bautechnik-modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: #1f2b1f;
+        }
+        
+        .bautechnik-modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+        }
+        
+        .bautechnik-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .bautechnik-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+            border-top-color: var(--green-dark);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .bautechnik-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .bautechnik-error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .bautechnik-success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 11px;
+        }
+        
+        .btn-danger {
+            background: #d32f2f;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #b71c1c;
+        }
+    </style>
+    
+    <div class="panel" style="height: auto;">
+        <h2 class="section-title">Bautechnik</h2>
+        <div class="section-divider"></div>
+        
+        <div class="bautechnik-container">
+            <!-- SIDEBAR NAVIGATION -->
+            <div class="bautechnik-sidebar">
+                <div class="bautechnik-nav-item active" onclick="switchBautechnikSection('materialien')">
+                    📋 Materialien
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('konstruktionen')">
+                    🏗️ Konstruktionen
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('fenster')">
+                    🪟 Fenster
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('tueren')">
+                    🚪 Türen/Tore
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('sonnenschutz')">
+                    ☀️ Sonnenschutz
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('gebaeude')">
+                    🏢 Gebäude
+                </div>
+                <div class="bautechnik-nav-item" onclick="switchBautechnikSection('bauteile')">
+                    📐 Bauteile
+                </div>
+            </div>
+            
+            <!-- CONTENT AREA -->
+            <div class="bautechnik-content">
+                <div id="materialien-section" class="bautechnik-section">
+                    <h2>Materialien</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openMaterialForm()">+ Neues Material</button>
+                    </div>
+                    <div id="materialien-list"></div>
+                </div>
+                
+                <div id="konstruktionen-section" class="bautechnik-section" style="display:none;">
+                    <h2>Konstruktionen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openKonstruktionForm()">+ Neue Konstruktion</button>
+                    </div>
+                    <div id="konstruktionen-list"></div>
+                </div>
+                
+                <div id="fenster-section" class="bautechnik-section" style="display:none;">
+                    <h2>Fenstertypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openFensterForm()">+ Neuer Fenstertyp</button>
+                    </div>
+                    <div id="fenster-list"></div>
+                </div>
+                
+                <div id="tueren-section" class="bautechnik-section" style="display:none;">
+                    <h2>Tür- & Tortypen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openTürForm()">+ Neuer Türtyp</button>
+                    </div>
+                    <div id="tueren-list"></div>
+                </div>
+                
+                <div id="sonnenschutz-section" class="bautechnik-section" style="display:none;">
+                    <h2>Sonnenschutzvorrichtungen</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openSonnenschutzForm()">+ Neue Vorrichtung</button>
+                    </div>
+                    <div id="sonnenschutz-list"></div>
+                </div>
+                
+                <div id="gebaeude-section" class="bautechnik-section" style="display:none;">
+                    <h2>Gebäude</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openGebäudeForm()">+ Neues Gebäude</button>
+                    </div>
+                    <div id="gebaeude-list"></div>
+                </div>
+                
+                <div id="bauteile-section" class="bautechnik-section" style="display:none;">
+                    <h2>Bauteile</h2>
+                    <div class="bautechnik-toolbar">
+                        <button class="btn btn-primary btn-sm" onclick="openBauteilForm()">+ Neues Bauteil</button>
+                    </div>
+                    <div id="bauteile-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS -->
+<div id="materialModal" class="bautechnik-modal">
+    <div class="bautechnik-modal-content">
+        <div class="bautechnik-modal-header">Material</div>
+        <div class="bautechnik-form-grid full">
+            <div class="field">
+                <label>Name</label>
+                <input id="materialName" type="text">
+            </div>
+            <div class="field">
+                <label>Rohdichte (kg/m³)</label>
+                <input id="materialRohdichte" type="number" min="0" step="10">
+            </div>
+            <div class="field">
+                <label>Wärmeleitfähigkeit λ (W/mK)</label>
+                <input id="materialLambda" type="number" min="0" step="0.01">
+            </div>
+            <div class="field">
+                <label>Spez. Wärmekapazität (kJ/kgK)</label>
+                <input id="materialC" type="number" min="0" step="0.1">
+            </div>
+        </div>
+        <div class="bautechnik-modal-footer">
+            <button class="btn btn-primary" onclick="saveMaterial()">Speichern</button>
+            <button class="btn" onclick="closeMaterialModal()" style="background:#ccc;">Abbrechen</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let bautechnikState = {
+    currentSection: 'materialien',
+    materialien: [],
+    konstruktionen: [],
+    fenster: [],
+    tueren: [],
+    sonnenschutz: [],
+    gebaeude: [],
+    bauteile: [],
+};
+
+function switchBautechnikSection(section) {
+    // Hide all sections
+    document.querySelectorAll('.bautechnik-section').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.bautechnik-nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Show selected
+    document.getElementById(section + '-section').style.display = 'block';
+    event.target.classList.add('active');
+    
+    bautechnikState.currentSection = section;
+    loadBautechnikData(section);
+}
+
+function loadBautechnikData(section) {
+    const listId = section + '-list';
+    const container = document.getElementById(listId);
+    container.innerHTML = '<div class="bautechnik-loading"><div class="bautechnik-spinner"></div></div>';
+    
+    let apiUrl = '';
+    switch(section) {
+        case 'materialien': apiUrl = '/api/material/'; break;
+        case 'konstruktionen': apiUrl = '/api/konstruktion/'; break;
+        case 'fenster': apiUrl = '/api/fenster-typ/'; break;
+        case 'tueren': apiUrl = '/api/tür-typ/'; break;
+        case 'sonnenschutz': apiUrl = '/api/sonnenschutz-typ/'; break;
+        case 'gebaeude': apiUrl = '/api/gebäude/'; break;
+        case 'bauteile': apiUrl = '/api/bauteil/'; break;
+    }
+    
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+            bautechnikState[section] = data.results || data;
+            renderBautechnikTable(section, bautechnikState[section]);
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="bautechnik-error">Fehler beim Laden der Daten</div>';
+            console.error(err);
+        });
+}
+
+function renderBautechnikTable(section, items) {
+    const container = document.getElementById(section + '-list');
+    
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="bautechnik-empty">Keine Einträge vorhanden</div>';
+        return;
+    }
+    
+    let html = '<table class="bautechnik-table"><thead><tr>';
+    
+    // Dynamic header based on section
+    if (section === 'materialien') {
+        html += '<th>Name</th><th>ρ (kg/m³)</th><th>λ (W/mK)</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(m => {
+            html += `<tr>
+                <td>${m.name}</td>
+                <td>${m.rohdichte}</td>
+                <td>${m.lambda_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteMaterial(${m.id})">Löschen</button></td>
+            </tr>`;
+        });
+    } else if (section === 'fenster') {
+        html += '<th>Name</th><th>Uw (W/m²K)</th><th>g-Wert</th><th>Aktion</th></tr></thead><tbody>';
+        items.forEach(f => {
+            html += `<tr>
+                <td>${f.name}</td>
+                <td>${f.u_w}</td>
+                <td>${f.g_value}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteFenster(${f.id})">Löschen</button></td>
+            </tr>`;
+        });
+    }
+    
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function openMaterialForm() {
+    document.getElementById('materialModal').classList.add('active');
+}
+
+function closeMaterialModal() {
+    document.getElementById('materialModal').classList.remove('active');
+    document.getElementById('materialName').value = '';
+    document.getElementById('materialRohdichte').value = '';
+    document.getElementById('materialLambda').value = '';
+    document.getElementById('materialC').value = '1.0';
+}
+
+function saveMaterial() {
+    const data = {
+        name: document.getElementById('materialName').value,
+        rohdichte: parseFloat(document.getElementById('materialRohdichte').value),
+        lambda_value: parseFloat(document.getElementById('materialLambda').value),
+        c_specific: parseFloat(document.getElementById('materialC').value) || 1.0,
+        mu_value: 1.0,
+    };
+    
+    if (!data.name || !data.rohdichte || !data.lambda_value) {
+        alert('Bitte alle Felder ausfüllen');
+        return;
+    }
+    
+    fetch('/api/material/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        closeMaterialModal();
+        loadBautechnikData('materialien');
+    })
+    .catch(err => {
+        alert('Fehler beim Speichern');
+        console.error(err);
+    });
+}
+
+function deleteMaterial(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/material/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('materialien'))
+            .catch(err => console.error(err));
+    }
+}
+
+function deleteFenster(id) {
+    if (confirm('Wirklich löschen?')) {
+        fetch(`/api/fenster-typ/${id}/`, { method: 'DELETE' })
+            .then(() => loadBautechnikData('fenster'))
+            .catch(err => console.error(err));
+    }
+}
+
+function openKonstruktionForm() { alert('Kommt bald'); }
+function openFensterForm() { alert('Kommt bald'); }
+function openTürForm() { alert('Kommt bald'); }
+function openSonnenschutzForm() { alert('Kommt bald'); }
+function openGebäudeForm() { alert('Kommt bald'); }
+function openBauteilForm() { alert('Kommt bald'); }
+
+// Load data on tab switch
+window.addEventListener('load', function() {
+    if (document.getElementById('bautechnik').style.display !== 'none') {
+        loadBautechnikData('materialien');
+    }
+});
+</script>
