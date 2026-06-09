@@ -69,9 +69,50 @@ PV_K_PK = {"mono": 0.182, "poly": 0.166}
 PV_F_PERF = {"integrated": 0.70, "ventilated": 0.75, "free": 0.80}
 
 # Monatliche Strahlung auf PV-Flächen (Teil 10 Tab. E.6, 24-h-Mittel W/m²).
-# Dach Süd ~40°: Näherung 0,72·horizontal + 0,48·Süd-90° (Jahressumme ≈ 1 170 kWh/m²a,
-# entspricht der Süd-45°-Zeile der Norm); Fassaden = exakte 90°-Werte.
+# Fassaden = exakte 90°-Werte. Geneigte Dachflächen werden aus realer Neigung und
+# Ausrichtung interpoliert (siehe _tilted_irradiation).
 from .services.din18599 import I_S as _I_S, MONTH_DAYS as _MDAYS
+from .services.climate import resolve_region as _resolve_region
+import math as _math
+
+# --- Strahlung auf beliebig geneigte/ausgerichtete Flächen (DIN-verankert) ---
+# Reihenfolge der 8 vertikalen Referenzorientierungen im Uhrzeigersinn ab Nord.
+_VERT_ORDER = ["north", "northeast", "east", "southeast",
+               "south", "southwest", "west", "northwest"]
+
+
+def _vertical_irradiation(month, azimuth_from_south):
+    """Monatl. Strahlung auf eine VERTIKALE Fläche (90°) für beliebigen Azimut,
+    linear interpoliert zwischen den 8 DIN-Referenzorientierungen (Teil 10 Tab. E.6).
+    azimuth_from_south: 0=Süd, negativ=Ost, positiv=West [Grad]."""
+    comp = (180.0 + azimuth_from_south) % 360.0      # Kompass: 0=N … 180=S
+    idx = comp / 45.0
+    lo = int(_math.floor(idx)) % 8
+    hi = (lo + 1) % 8
+    frac = idx - _math.floor(idx)
+    return (_I_S[_VERT_ORDER[lo]][month] * (1.0 - frac)
+            + _I_S[_VERT_ORDER[hi]][month] * frac)
+
+
+def _tilt_weights(tilt_deg):
+    """Gewichte a (Horizontal-Anteil) und b (Vertikal-Anteil) der Strahlung auf eine
+    geneigte Fläche – stückweise linear durch die Stützstellen (0°: 1/0),
+    (40°: 0,72/0,48) und (90°: 0/1). Der 40°-Punkt ist der DIN-kalibrierte
+    Dach-Süd-Wert (Jahressumme ≈ Süd-45°-Zeile der Norm)."""
+    t = max(0.0, min(90.0, tilt_deg))
+    if t <= 40.0:
+        f = t / 40.0
+        return (1.0 + (0.72 - 1.0) * f, 0.48 * f)
+    f = (t - 40.0) / 50.0
+    return (0.72 * (1.0 - f), 0.48 + (1.0 - 0.48) * f)
+
+
+def _tilted_irradiation(month, tilt_deg, azimuth_from_south):
+    """Monatl. Strahlung [W/m²] auf eine Fläche mit Neigung tilt_deg (0=flach,
+    90=senkrecht) und Ausrichtung azimuth_from_south (0=Süd)."""
+    a, b = _tilt_weights(tilt_deg)
+    return (a * _I_S["horizontal"][month]
+            + b * _vertical_irradiation(month, azimuth_from_south))
 
 
 @csrf_exempt
@@ -88,6 +129,10 @@ def calculate_pv(request):
         cell = str(data.get("cell_type", "mono")).strip().lower()
         mounting = str(data.get("mounting", "ventilated")).strip().lower()
         shading = min(max(safe_float(data.get("shading"), 0.05), 0.0), 0.5)
+        # Dach-Geometrie: Neigung 0–90° (Default 35° ≈ optimal DE) und Ausrichtung als
+        # Abweichung von Süd (−180…180°, negativ=Ost, positiv=West).
+        roof_tilt = min(max(safe_float(data.get("roof_tilt_deg"), 35.0), 0.0), 90.0)
+        roof_azimuth = min(max(safe_float(data.get("roof_azimuth_deg"), 0.0), -180.0), 180.0)
         self_rate = safe_float(data.get("self_consumption_rate"), 0.30)
         electricity_price = safe_float(data.get("electricity_price"), 0.35)
         feed_in_tariff = safe_float(data.get("feed_in_tariff"), 0.08)
@@ -104,16 +149,23 @@ def calculate_pv(request):
         k_pk = PV_K_PK.get(cell, PV_K_PK["mono"])
         f_perf = PV_F_PERF.get(mounting, PV_F_PERF["ventilated"])
 
+        # Klimaregion aus dem Standort (Bundesland): regionaler Strahlungsfaktor
+        # skaliert die Potsdam-Referenzstrahlung auf das lokale Niveau → wirkt
+        # direkt auf Monats- und Jahresertrag.
+        region = _resolve_region(data.get("project_state"))
+        radiation_factor = float(region["radiation_factor"])
+
         monthly = []
         annual = 0.0
         # Jahresertrag je Orientierung getrennt mitführen (für Aufschlüsselung/Tabelle)
         ann_roof = ann_south = ann_ew = 0.0
         for m in range(12):
             hours = _MDAYS[m] * 24.0
-            # E_sol je Fläche [kWh/m² im Monat] (Gl. 66)
-            e_roof = (0.72 * _I_S["horizontal"][m] + 0.48 * _I_S["south"][m]) * hours / 1000.0
-            e_south = _I_S["south"][m] * hours / 1000.0
-            e_ew = 0.5 * (_I_S["east"][m] + _I_S["west"][m]) * hours / 1000.0
+            # E_sol je Fläche [kWh/m² im Monat] (Gl. 66), regional skaliert.
+            # Dach: reale Neigung + Ausrichtung; Fassaden: vertikal (90°).
+            e_roof = _tilted_irradiation(m, roof_tilt, roof_azimuth) * radiation_factor * hours / 1000.0
+            e_south = _I_S["south"][m] * radiation_factor * hours / 1000.0
+            e_ew = 0.5 * (_I_S["east"][m] + _I_S["west"][m]) * radiation_factor * hours / 1000.0
             # Gl. (64): E_sol · P_pk/I_ref · f_perf  – P_pk/A = k_pk, I_ref = 1 kW/m²
             f_sys = k_pk * f_perf * (1.0 - shading)
             q_roof = e_roof * area_roof * f_sys
@@ -164,6 +216,10 @@ def calculate_pv(request):
             "by_orientation": by_orientation,
             "k_pk": k_pk,
             "f_perf": f_perf,
+            "climate_region_label": region["label"],
+            "climate_radiation_factor": round(radiation_factor, 2),
+            "roof_tilt_deg": round(roof_tilt, 0),
+            "roof_azimuth_deg": round(roof_azimuth, 0),
             "calculation_basis": "DIN V 18599-9:2018-09, Gl. 64–67 + Anhang B",
         })
 

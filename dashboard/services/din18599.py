@@ -21,6 +21,7 @@ from typing import Any, Dict, List
 
 from ..utils import safe_float, validate_non_negative, validate_u_value, get_rating
 from ..constants import DEFAULT_G_VALUE, MAX_G_VALUE, MIN_G_VALUE
+from .climate import resolve_region
 
 # ---------------------------------------------------------------------------
 # Referenzklima Deutschland / Potsdam – DIN V 18599-10, Tabelle E.6
@@ -307,7 +308,13 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     wb_area += roof_area * _area_fx("roof_fx", roof_u)
     wb_area += floor_area * _area_fx("floor_fx", floor_u)
     envelope_area = wb_area
-    h_bridges = DELTA_U_WB * wb_area
+    # Wärmebrückenzuschlag ΔU_WB (GEG §24 / DIN V 18599-2 Gl. 47): 0,10 pauschal ohne
+    # Nachweis · 0,05 mit Gleichwertigkeitsnachweis (DIN 4108 Beiblatt 2) · 0,03
+    # wärmebrückenoptimiert (Passivhaus). Eingabe hat Vorrang, sonst Default 0,10.
+    delta_u_wb = safe_float(data.get("delta_u_wb"), DELTA_U_WB)
+    if not (0.0 <= delta_u_wb <= 0.15):
+        delta_u_wb = DELTA_U_WB
+    h_bridges = delta_u_wb * wb_area
 
     h_t = wall_total + roof_loss + floor_loss + window_total + door_total + h_bridges  # [W/K]
     h_v = air_change * volume * C_AIR                                                  # [W/K] (Gl. 63)
@@ -332,6 +339,12 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     elevation_delta = (max(elevation_m - STATION_ELEVATION_M, 0.0) * LAPSE_RATE_K_PER_M
                        if elevation_m > 0 else 0.0)
 
+    # Klimaregion aus dem Standort (Bundesland): regionaler Strahlungsfaktor wirkt
+    # auf die solaren Gewinne, der Temperatur-Offset auf die Außentemperatur.
+    region = resolve_region(data.get("project_state"))
+    radiation_factor = float(region["radiation_factor"])
+    temp_offset = float(region["temp_offset_k"])
+
     # Reduzierter Nachtbetrieb (Teil 2, Gl. 28–30): Korrekturfaktor f_NA aus
     # Auskühlzeitkonstante τ; EFH = Heizungsabschaltung (0,26), sonst Absenkung (0,13).
     import math as _math
@@ -345,7 +358,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     for m in range(12):
         days = MONTH_DAYS[m]
         hours = days * 24.0
-        theta_e = THETA_E[m] - elevation_delta
+        theta_e = THETA_E[m] - elevation_delta + temp_offset
 
         # Bilanz-Innentemperatur mit Nachtabsenkung (Gl. 28), gekappt bei Δθ_i,NA
         theta_i_m = theta_i
@@ -361,7 +374,8 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # A_eff = A · F_F · F_S · F_W · F_V ; Q_sol = A_eff · g · I_S
         q_solar = 0.0
         for orient in ORIENTATIONS:
-            irr_kwh = I_S[orient][m] * 24.0 * days / 1000.0      # kWh/m² im Monat
+            # I_S der Potsdam-Referenz, regional skaliert (Globalstrahlungsniveau)
+            irr_kwh = I_S[orient][m] * radiation_factor * 24.0 * days / 1000.0   # kWh/m² im Monat
             q_solar += (windows[orient] * g_value
                         * F_FRAME * F_SHADING * F_INCIDENCE * F_SOILING * irr_kwh)
 
@@ -420,6 +434,38 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     internal_gains_density = profile["q_i"] * usage_fraction / 24.0
     n_persons = bgf / profile["occ_area"] if profile.get("occ_area") else None
 
+    # --- Aufschlüsselung der Wärmebilanz (kWh/a) für die Diagramm-Visualisierung ---
+    # Q_h = (H_T + H_V)·(θ_i − θ_e) − η·(Q_S + Q_i). Jede H-Komponente sieht in jedem
+    # Monat dieselbe Temperaturdifferenz und Zeit → ihr Anteil an den Brutto-Wärmesenken
+    # Q_Senke ist exakt ihr Anteil an H_gesamt. So summieren die Posten genau auf Q_Senke.
+    def _sink_share(h_component: float) -> float:
+        return (h_component / h_total * q_sink_year) if h_total > 0 else 0.0
+
+    usable_gains = max(q_sink_year - q_h_year, 0.0)   # η·(Q_S + Q_i), tatsächlich genutzt
+    heat_balance = {
+        # Verluste – Wärmesenken Q_Senke (Transmission je Bauteil + Lüftung)
+        "transmission": {
+            "walls": round(_sink_share(wall_total), 1),
+            "roof": round(_sink_share(roof_loss), 1),
+            "floor": round(_sink_share(floor_loss), 1),
+            "windows": round(_sink_share(window_total), 1),
+            "doors": round(_sink_share(door_total), 1),
+            "thermal_bridges": round(_sink_share(h_bridges), 1),
+        },
+        "transmission_total_kwh": round(_sink_share(h_t), 1),
+        "ventilation_kwh": round(_sink_share(h_v), 1),
+        "sinks_total_kwh": round(q_sink_year, 1),
+        # Gewinne – Wärmequellen Q_Quelle
+        "gains": {
+            "solar": round(q_solar_year, 1),
+            "internal": round(q_internal_year, 1),
+        },
+        "gains_total_kwh": round(q_solar_year + q_internal_year, 1),
+        "usable_gains_kwh": round(usable_gains, 1),
+        # Ergebnis Stufe 1
+        "heat_demand_kwh": round(q_h_year, 1),
+    }
+
     return {
         "ok": True,
         # --- Bauteil-/Hüllkennwerte (W/K) – unverändertes Anzeigeformat ---
@@ -443,6 +489,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # H_T (Transmission) wie bisher als "envelope_total" (W/K); zusätzlich H gesamt.
         "envelope_total": round(h_t, 2),
         "thermal_bridge_loss": round(h_bridges, 2),     # ΔU_WB·A_Hülle [W/K]
+        "delta_u_wb": delta_u_wb,                        # angesetzter Wärmebrückenzuschlag [W/m²K]
         "envelope_area_m2": round(envelope_area, 1),
         "h_transmission": round(h_t, 2),
         "h_ventilation": round(h_v, 2),
@@ -454,6 +501,8 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "internal_gain_kwh": round(q_internal_year, 1),
         "adjusted_heat_demand_kwh": round(q_h_year, 1),         # Heizwärmebedarf netto Q_h,b,a
         "specific_heat_demand": round(specific, 2),
+        # Aufschlüsselung Wärmesenken/-quellen (kWh/a) für die Bilanz-Visualisierung
+        "heat_balance": heat_balance,
         # --- Kühlung (Teil 2, Nutzkältebedarf Q_c,b) ---
         "cooling_demand_kwh": round(q_c_year, 1),
         "specific_cooling_demand": round(specific_cooling, 2),
@@ -468,7 +517,11 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "building_type_variant": data.get("building_type_variant", ""),
         "internal_gains_density": round(internal_gains_density, 2),
         "n_persons": round(n_persons, 1) if n_persons is not None else None,
-        "climate_location_label": CLIMATE_LABEL,
+        "climate_location_label": region["label"],
+        "climate_region_key": region["key"],
+        "climate_radiation_factor": round(radiation_factor, 2),
+        "climate_temp_offset_k": round(temp_offset, 1),
+        "elevation_m": round(elevation_m, 0),
         "elevation_delta_k": round(elevation_delta, 1),
         "setpoint_temperature": theta_i,
         "air_change_rate": round(air_change, 2),

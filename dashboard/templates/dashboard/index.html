@@ -1487,8 +1487,6 @@ input[type="checkbox"], input[type="radio"] {
 .eff-pointer-bubble { background: #0e1622; border: 1px solid var(--cyan); color: #fff; font-weight: 800; font-size: 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; border-radius: 7px; padding: 2px 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
 .eff-pointer-tip { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid var(--cyan); margin-top: -1px; }
 
-.bilanz-gauge-wrap { display: flex; flex-direction: column; gap: 12px; }
-.bilanz-gauge { display: block; width: 100%; height: auto; }
 .bilanz-flow { margin-top: 14px; }
 
 /* === Anlagentechnik === */
@@ -1780,6 +1778,16 @@ input[type="checkbox"], input[type="radio"] {
                     <div class="field">
                         <label>BGF für spezifische Kennwerte (m²)</label>
                         <input id="bgf" type="number" value="360">
+                    </div>
+                    <div class="field">
+                        <label>Wärmebrückenzuschlag ΔU_WB (GEG §24)
+                            <span class="info-i" data-tip="Pauschaler Wärmebrückenzuschlag auf die gesamte Hüllfläche (DIN V 18599-2, Gl. 47).&#10;0,10 W/m²K: ohne Nachweis (GEG-Standard).&#10;0,05 W/m²K: mit Gleichwertigkeitsnachweis nach DIN 4108 Beiblatt 2.&#10;0,03 W/m²K: wärmebrückenoptimiert (Passivhaus).">i</span>
+                        </label>
+                        <select id="delta_u_wb">
+                            <option value="0.10">0,10 W/m²K – pauschal ohne Nachweis (GEG-Standard)</option>
+                            <option value="0.05">0,05 W/m²K – mit Gleichwertigkeitsnachweis (Beiblatt 2)</option>
+                            <option value="0.03">0,03 W/m²K – wärmebrückenoptimiert (Passivhaus)</option>
+                        </select>
                     </div>
                     <!-- Gradstunden: versteckt, Standardwert 66000 Kh/a (Augsburg/Süddeutschland) -->
                     <input id="gradstunden" type="hidden" value="66000">
@@ -2298,6 +2306,7 @@ input[type="checkbox"], input[type="radio"] {
                 <div class="ht-row"><span>Türen</span><span id="ht_door">—</span></div>
                 <div class="ht-row"><span>Dach</span><span id="ht_roof">—</span></div>
                 <div class="ht-row"><span>Boden</span><span id="ht_floor">—</span></div>
+                <div class="ht-row"><span>Wärmebrücken (ΔU_WB·A)</span><span id="ht_bridges">—</span></div>
                 <div class="ht-row ht-total"><span>H_T gesamt</span><span id="ht_total">—</span></div>
             </div>
 
@@ -2326,6 +2335,7 @@ input[type="checkbox"], input[type="radio"] {
             <div style="display:none;">
                 <div id="envelope_total_result">—</div>
                 <div id="solar_gain_result">—</div>
+                <div id="thermal_bridge_result">—</div>
             </div>
         </div>
     </div>
@@ -3543,6 +3553,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         </select>
                     </div>
 
+                    <div class="field">
+                        <label>Lage der Heizungs-Verteilleitungen (DIN V 18599-5)
+                            <span class="info-i" data-tip="Bestimmt, ob die Wärmeverluste der Verteilleitungen rückgewinnbar sind. Im beheizten Bereich (z. B. Neubau ohne unbeheizten Keller) gehen sie fast vollständig in die Raumheizung zurück; im unbeheizten Keller gehen sie verloren. Beeinflusst Endenergie und CO₂ deutlich.">i</span>
+                        </label>
+                        <select id="heat_distribution_location">
+                            <option value="inside">überwiegend im beheizten Bereich (Neubau-Standard)</option>
+                            <option value="outside">im unbeheizten Bereich (z. B. Keller)</option>
+                        </select>
+                    </div>
+
                     <div class="field" id="cop_field">
                         <label>COP am Prüfpunkt A2/W35 (Wärmepumpe)</label>
                         <input id="cop" type="number" step="0.1" value="3.5">
@@ -3800,12 +3820,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label>PV-Anteil (%)</label>
                         <input id="pv_roof_percentage" type="number" step="1" min="0" max="100" value="80">
                     </div>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label>Dachneigung (°)
+                                <span class="info-i" data-tip="Neigung der Dachfläche gegen die Horizontale. 0° = Flachdach, 90° = senkrecht. In Deutschland liegt das Ertragsoptimum bei ~30–35°. Geht direkt in die Strahlung auf die Dachfläche ein (DIN V 18599-9).">i</span>
+                            </label>
+                            <input id="pv_roof_tilt" type="number" step="1" min="0" max="90" value="35" oninput="pvUpdateGeometryHint()">
+                        </div>
+                        <div class="field">
+                            <label>Ausrichtung (Abw. Süd, °)
+                                <span class="info-i" data-tip="Abweichung der Dachausrichtung von Süden. 0° = Süd (optimal), negativ = nach Osten, positiv = nach Westen, ±90° = Ost/West, ±180° = Nord. Geht direkt in den Dachertrag ein.">i</span>
+                            </label>
+                            <input id="pv_roof_azimuth" type="number" step="5" min="-180" max="180" value="0" oninput="pvUpdateGeometryHint()">
+                        </div>
+                    </div>
+                    <div class="note" id="pv_geometry_hint" style="margin-top:2px;font-size:11px;"></div>
                     <div class="field">
                         <label style="color: #999;">PV-Fläche (auto)</label>
                         <div class="value-display" id="pv_roof_area">—</div>
                     </div>
 
-                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Süd-Fassade (senkrecht, ~70 % Dachertrag)</h4>
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Süd-Fassade (senkrecht, Süd)</h4>
                     <div class="field">
                         <label>Verfügbare Fläche (m²)</label>
                         <input id="pv_ns_facade_available" type="number" step="0.1" value="30">
@@ -3819,7 +3854,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="value-display" id="pv_ns_facade_area">—</div>
                     </div>
 
-                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade (senkrecht, ~55 % Dachertrag)</h4>
+                    <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade (senkrecht)</h4>
                     <div class="field">
                         <label>Verfügbare Fläche (m²)</label>
                         <input id="pv_ew_facade_available" type="number" step="0.1" value="20">
@@ -3897,7 +3932,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="value" id="pv_installed_kwp">—</div>
                     </div>
                     <div class="stat-box">
-                        <span class="info-i" data-tip="kWp × spezifischer Ertrag × Orientierungsfaktor (Dach 1,0 · Süd-Fassade 0,70 · O/W-Fassade 0,55) × (1 − Verschattung). Der spezifische Ertrag enthält bereits die Systemverluste.">i</span>
+                        <span class="info-i" data-tip="Je Fläche: kWp × monatliche Strahlung × Systemleistungsfaktor × (1 − Verschattung), aufsummiert übers Jahr (DIN V 18599-9). Die Dach-Strahlung folgt aus Neigung und Ausrichtung; Fassaden sind senkrecht (Süd bzw. Ost/West).">i</span>
                         <div class="label">Jahresertrag (PV-Strom)</div>
                         <div class="value" id="pv_annual_yield">—</div>
                     </div>
@@ -3964,7 +3999,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Ertrag nach Orientierung</h3>
                 <div class="pv-table-wrap">
                     <table class="bautechnik-table pv-table" id="pv_orient_table">
-                        <thead><tr><th>Orientierung</th><th class="num">Fläche</th><th class="num">Leistung</th><th class="num">Spez. Ertrag</th><th class="num">Jahresertrag</th><th class="num">Anteil</th></tr></thead>
+                        <thead><tr><th>Orientierung</th><th class="num">Fläche</th><th class="num">Leistung</th><th class="num">Spez. Ertrag (kWh/kWp·a)</th><th class="num">Jahresertrag</th><th class="num">Anteil</th></tr></thead>
                         <tbody><tr><td colspan="6" class="pv-empty">Noch keine Auswertung – bitte „PV auswerten" klicken.</td></tr></tbody>
                     </table>
                 </div>
@@ -4003,6 +4038,61 @@ document.addEventListener('DOMContentLoaded', function() {
             <h2 class="section-title">Energiebilanz</h2>
             <p class="note">Die Bilanz fasst die drei Schritte zusammen: ① Gebäudehülle → ② Anlagentechnik
                → ③ Strom &amp; PV. Bitte vorher die Tabs „Gebäudehülle" und „Anlagentechnik" auswerten.</p>
+            <div class="note" style="border-left:3px solid var(--primary,#10b981);background:rgba(16,185,129,.06);
+                 border-radius:8px;padding:10px 14px;margin:10px 0 4px;">
+                <strong>Hinweis:</strong> Zwei normgerechte Annahmen beeinflussen Ergebnis und Bewertung deutlich –
+                der <strong>Wärmebrückenzuschlag ΔU_WB</strong> (Tab „Gebäudedaten", Stufe 1, DIN&nbsp;V&nbsp;18599-2)
+                und die <strong>Lage der Heizungs-Verteilleitungen</strong> (Tab „Anlagentechnik", Stufe 2,
+                DIN&nbsp;V&nbsp;18599-5). ΔU_WB steht standardmäßig auf dem konservativen GEG-Wert 0,10 (ohne Nachweis);
+                mit Gleichwertigkeitsnachweis nach Beiblatt&nbsp;2 (0,05) sinkt der Heizwärmebedarf spürbar. Die
+                Leitungslage steht auf dem Neubau-Standard „beheizter Bereich"; ein unbeheizter Keller erhöht die
+                nicht rückgewinnbaren Verteilverluste und damit Endenergie und CO₂.
+            </div>
+
+            <!-- Wärmebilanz Q_h,b: Verluste (Wärmesenken) vs. Gewinne (Wärmequellen), DIN V 18599-2 -->
+            <style>
+                .hb-formula{font-family:'JetBrains Mono',monospace;font-size:13px;color:#c4cfdc;
+                    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+                    border-radius:8px;padding:8px 12px;margin:4px 0 12px;text-align:center;}
+                .hb-col{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;}
+                .hb-loss{background:rgba(239,68,68,.05);}
+                .hb-gain{background:rgba(16,185,129,.05);}
+                .hb-col-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+                    font-weight:700;color:#c4cfdc;font-size:13px;}
+                .hb-col-head strong{font-family:'JetBrains Mono',monospace;font-size:15px;color:#fff;}
+                .hb-result{margin-top:16px;text-align:center;}
+                .hb-eq{font-size:14px;color:#cbd5e1;line-height:1.6;}
+                .hb-eq .hb-sink{color:#f6b94b;} .hb-eq .hb-gain-t{color:#34d399;}
+                .hb-eq .hb-qh strong,.hb-eq .hb-qh{color:#fff;font-weight:700;}
+                .hb-arrow{margin:8px 0 6px;color:#94a3b6;font-size:12px;}
+                .hb-stufe2{font-size:13px;color:#cbd5e1;}
+                .hb-stufe2 strong{color:#fff;font-family:'JetBrains Mono',monospace;}
+                .hb-muted{color:#94a3b6;font-style:italic;}
+            </style>
+            <div class="card" id="heatbalance_card" style="margin-top:6px;">
+                <h3>Wärmebilanz Q_h,b – Verluste &amp; Gewinne (DIN&nbsp;V&nbsp;18599-2)</h3>
+                <div class="hb-formula">Q_h = (H_T + H_V)·(θ_i − θ_e) − η·(Q_S + Q_i)</div>
+                <div id="heatbalance_empty" class="note" style="padding:10px 0;color:var(--muted);">
+                    Sobald die Gebäudehülle ausgewertet ist, erscheint hier die Aufteilung in
+                    Wärmesenken (Verluste) und Wärmequellen (Gewinne) mit den realen Rechenwerten.
+                </div>
+                <div id="heatbalance_body" style="display:none;">
+                    <div class="grid-2" style="margin-top:6px;">
+                        <div class="hb-col hb-loss">
+                            <div class="hb-col-head"><span>Verluste — Wärmesenken Q_Senke</span><strong id="hb_sinks_total">—</strong></div>
+                            <div class="es-bar" id="hb_sinks_bar" style="margin-top:8px;"></div>
+                            <div class="es-bar-legend" id="hb_sinks_legend"></div>
+                        </div>
+                        <div class="hb-col hb-gain">
+                            <div class="hb-col-head"><span>Gewinne — Wärmequellen Q_Quelle</span><strong id="hb_gains_total">—</strong></div>
+                            <div class="es-bar" id="hb_gains_bar" style="margin-top:8px;"></div>
+                            <div class="es-bar-legend" id="hb_gains_legend"></div>
+                            <div class="note" id="hb_gains_note" style="margin-top:8px;"></div>
+                        </div>
+                    </div>
+                    <div class="hb-result" id="hb_result"></div>
+                </div>
+            </div>
 
             <!-- Visuelle Gesamtübersicht -->
             <div id="bilanz_viz">
@@ -4042,20 +4132,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
 
-                    <!-- CO₂-Bilanz + Einordnung je m² -->
-                    <div class="grid-2" style="margin-top:16px;">
-                        <div class="card">
-                            <h3>CO₂-Bilanz</h3>
-                            <svg id="bilanz_co2_donut" class="pv-chart" viewBox="0 0 360 230" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
-                            <div class="pv-split-legend" id="bilanz_co2_legend"></div>
-                        </div>
-                        <div class="card">
-                            <h3>Einordnung je m²</h3>
-                            <div class="bilanz-gauge-wrap">
-                                <svg id="bilanz_gauge_end" class="bilanz-gauge" viewBox="0 0 360 100" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
-                                <svg id="bilanz_gauge_co2" class="bilanz-gauge" viewBox="0 0 360 100" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
-                            </div>
-                        </div>
+                    <!-- CO₂-Bilanz (Einordnung je m² steht unten als Benchmark-Bänder) -->
+                    <div class="card" style="margin-top:16px;">
+                        <h3>CO₂-Bilanz</h3>
+                        <svg id="bilanz_co2_donut" class="pv-chart" viewBox="0 0 360 230" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+                        <div class="pv-split-legend" id="bilanz_co2_legend"></div>
                     </div>
 
                     <!-- Zusammenfassungstabelle -->
@@ -4071,61 +4152,76 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
 
-            <div class="bilanz-section-title" style="margin-top:24px;">Stromrechnung &amp; Endergebnis</div>
+            <div class="bilanz-section-title" style="margin-top:24px;">Stromverrechnung &amp; Einordnung</div>
             <p class="note" style="margin:-4px 0 10px;">
-                Wärmebedarf (Gebäudehülle) sowie Endenergie/Primärenergie der Anlagentechnik stehen grafisch oben
-                und in der Tabelle „Bilanz auf einen Blick" – und ausführlich in ihren eigenen Tabs. Hier folgt die
-                Stromverrechnung inkl. Haushaltsstrom und das Endergebnis in Zahlen.
+                Wärmebedarf und Endenergie/Primärenergie stehen oben und in „Bilanz auf einen Blick".
+                Hier: die Stromverrechnung (Netzbezug vs. PV) und die Einordnung des Endergebnisses je m².
             </p>
 
-            <div class="bilanz-section-title">Strom &amp; Photovoltaik (Verrechnung)</div>
-            <div class="big-summary">
-                <div class="summary-box">
-                    <span class="info-i" data-tip="Selbst genutzter PV-Strom (aus dem PV-Tab). Er ersetzt Netzstrom und senkt damit Strombezug und CO₂.">i</span>
-                    <div class="label">PV‑Eigenverbrauch</div>
-                    <div class="value" id="bilanz_pv_self">—</div>
-                </div>
-                <div class="summary-box">
-                    <span class="info-i" data-tip="Strom der Anlagentechnik (Hilfsstrom; bei Wärmepumpe auch Heiz-/Warmwasserstrom) + Haushaltsstrom.">i</span>
-                    <div class="label">Strombedarf gesamt</div>
-                    <div class="value" id="bilanz_el_gross">—</div>
-                </div>
-                <div class="summary-box">
-                    <span class="info-i" data-tip="Strom, der nach Abzug des PV-Eigenverbrauchs noch aus dem Netz bezogen werden muss.">i</span>
-                    <div class="label">Netzbezug (nach PV)</div>
-                    <div class="value" id="bilanz_el_net">—</div>
-                </div>
-                <div class="summary-box" style="display:flex; flex-direction:column; justify-content:center;">
+            <!-- Stromverrechnung: Eingabe Haushaltsstrom + Mini-Bilanzbalken -->
+            <div class="card">
+                <div class="grid-2" style="gap:18px; align-items:center;">
                     <div class="field" style="margin:0;">
-                        <label>Haushaltsstrom (kWh/a)</label>
-                        <input id="household_electricity" type="number" min="0" step="100" value="2000"
-                               title="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 000–1 500 kWh je Person und Jahr."
-                               onchange="calculateBalance()">
+                        <label>Haushaltsstrom (kWh/a)
+                            <span class="info-i" data-tip="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 000–1 500 kWh je Person und Jahr.">i</span>
+                        </label>
+                        <input id="household_electricity" type="number" min="0" step="100" value="2000" onchange="calculateBalance()">
+                        <div class="note" id="bilanz_strom_note" style="font-size:11px; margin-top:6px;">Energiebilanz auswerten für die Stromverrechnung.</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; font-weight:700; color:#c4cfdc; margin-bottom:6px;">Strombilanz – Netzbezug vs. PV-Eigenverbrauch</div>
+                        <div class="es-bar" id="bilanz_strom_minibar"></div>
+                        <div class="es-bar-legend" id="bilanz_strom_minilegend"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="bilanz-section-title">Gesamtbilanz – Endergebnis (inkl. Haushaltsstrom &amp; PV)</div>
-            <div class="big-summary">
-                <div class="summary-box">
-                    <span class="info-i" data-tip="Gesamte Endenergie: Brennstoff/Fernwärme + gesamter Strombedarf (Anlage + Haushalt), vor PV-Abzug.">i</span>
-                    <div class="label">Endenergie gesamt</div>
-                    <div class="value" id="bilanz_total_end">—</div>
+            <!-- Endergebnis je m²: Kennzahl + Benchmark-Einordnung -->
+            <div class="grid-2" style="margin-top:14px;">
+                <div class="card">
+                    <h3>Endenergie gesamt – Einordnung je m²</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin:2px 0 4px;">
+                        <div><div class="es-lab">Endenergie gesamt</div><div class="es-val" id="bilanz_end_total">—</div></div>
+                        <div style="text-align:right;"><div class="es-lab">je m² (inkl. Haushalt)</div><div class="es-val" id="bilanz_end_perm2_v">—</div></div>
+                    </div>
+                    <svg id="bilanz_bench_end" viewBox="0 0 380 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; margin-top:4px;"></svg>
                 </div>
-                <div class="summary-box">
-                    <span class="info-i" data-tip="Gesamte Endenergie je m² – inkl. Haushaltsstrom, daher höher als der GEG-Wert der Anlagentechnik.&#10;Effizienter Neubau mit WP ~40–60 · Gas-Bestand ~120–180.">i</span>
-                    <div class="label">Endenergie gesamt je m²</div>
-                    <div class="value" id="bilanz_end_per_m2">—</div>
+                <div class="card">
+                    <h3>CO₂-Emissionen – Einordnung je m²</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin:2px 0 4px;">
+                        <div><div class="es-lab">CO₂ gesamt (netto)</div><div class="es-val" id="bilanz_co2_total">—</div></div>
+                        <div style="text-align:right;"><div class="es-lab">je m² und Jahr</div><div class="es-val" id="bilanz_co2_perm2_v">—</div></div>
+                    </div>
+                    <svg id="bilanz_bench_co2" viewBox="0 0 380 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; margin-top:4px;"></svg>
                 </div>
-                <div class="summary-box">
-                    <span class="info-i" data-tip="CO₂ gesamt = Anlagentechnik + Haushaltsstrom × 0,56 − PV-Eigenverbrauch × 0,56 kg/kWh (GEG Anlage 9).">i</span>
-                    <div class="label">CO₂ gesamt</div>
-                    <div class="value" id="bilanz_el_co2">—</div>
+            </div>
+
+            <div class="bilanz-section-title" style="margin-top:22px;">Energiefluss &amp; Kosten</div>
+            <div class="grid-2" style="margin-top:6px;">
+                <div class="card">
+                    <h3>Energiefluss – Quellen → Verbraucher</h3>
+                    <p class="note" style="margin:2px 0 6px;">Endenergie nach Energieträger (links) und Verwendung (rechts);
+                       Bandbreite ∝ kWh/a. Strom (Netz + PV) deckt die elektrischen Verbraucher anteilig.</p>
+                    <svg id="bilanz_sankey" viewBox="0 0 720 330" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;"></svg>
+                    <div class="es-bar-legend" id="bilanz_sankey_legend"></div>
                 </div>
-                <div class="summary-box">
-                    <span class="info-i" data-tip="CO₂ je m² Wohn-/Nutzfläche und Jahr.&#10;≤10 sehr gut (WP + PV) · 10–25 mittel · >25 hoch (fossil, unsaniert).">i</span>
-                    <div class="label">CO₂ je m²</div>
-                    <div class="value" id="bilanz_co2_per_m2">—</div>
+                <div class="card">
+                    <h3>Jahres-Energiekosten (Schätzung)</h3>
+                    <div class="field" style="margin:4px 0 8px;">
+                        <label>Brennstoff-/Wärmepreis (€/kWh)
+                            <span class="info-i" data-tip="Arbeitspreis des Wärme-Energieträgers (Erdgas ~0,10 · Pellets ~0,07 · Fernwärme ~0,12 €/kWh). Strompreis und Einspeisevergütung stammen aus dem PV-Tab.">i</span>
+                        </label>
+                        <input id="bilanz_fuel_price" type="number" min="0" step="0.01" value="0.10" onchange="calculateBalance()">
+                    </div>
+                    <div class="pv-table-wrap">
+                        <table class="bautechnik-table pv-table" id="bilanz_cost_table">
+                            <thead><tr><th>Posten</th><th class="num">Menge</th><th class="num">Preis</th><th class="num">€/a</th></tr></thead>
+                            <tbody><tr><td colspan="4" class="pv-empty">Energiebilanz auswerten – dann erscheint die Kostenschätzung.</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="es-bar" id="bilanz_cost_bar" style="margin-top:10px;"></div>
+                    <div class="es-bar-legend" id="bilanz_cost_legend"></div>
+                    <p class="note" style="margin-top:8px;font-size:11px;">Grobe Schätzung auf Basis der Jahres-Endenergie und konstanter Arbeitspreise – ohne Grundgebühren, Preissteigerung oder Lastgang.</p>
                 </div>
             </div>
 
@@ -4904,7 +5000,7 @@ function showTab(id, btn) {
 
     // PV-Tab: Modell/Modul-Kennwert beim Anzeigen zeichnen; aktives 3D an Größe anpassen
     if (id === 'pv') {
-        try { updatePVModuleData(); pvDrawModel(); } catch (e) {}
+        try { updatePVModuleData(); pvUpdateGeometryHint(); pvDrawModel(); } catch (e) {}
         if (pvVizMode === '3d' && pvSlab) {
             requestAnimationFrame(function () {
                 const w = pvSlab.mount.clientWidth, h = pvSlab.mount.clientHeight;
@@ -5018,6 +5114,7 @@ function syncHtTable() {
     copyVal('door_total_result', 'ht_door');
     copyVal('roof_result', 'ht_roof');
     copyVal('floor_result', 'ht_floor');
+    copyVal('thermal_bridge_result', 'ht_bridges');
     copyVal('envelope_total_result', 'ht_total');
 }
 
@@ -5346,6 +5443,92 @@ window.buildingTypeOptions = {
     nicht_wohngebaeude: ['Bürogebäude', 'Schulgebäude', 'Krankenhaus', 'Hotel', 'Einzelhandel', 'Lagerhalle', 'Produktionshalle']
 };
 
+// ===== KLIMA & STANDORT =====
+// Klimaregion je Bundesland (muss zu dashboard/services/climate.py passen).
+// radiation_factor skaliert die Potsdam-Referenzstrahlung → wirkt auf solare
+// Gewinne (Heizbilanz) und PV-Ertrag. temp_offset = Jahres-Temperaturoffset.
+window.stateClimate = {
+    'Schleswig-Holstein': 'nord', 'Hamburg': 'nord', 'Bremen': 'nord',
+    'Niedersachsen': 'nord', 'Mecklenburg-Vorpommern': 'nord',
+    'Berlin': 'ost', 'Brandenburg': 'ost', 'Sachsen-Anhalt': 'ost',
+    'Sachsen': 'ost', 'Thüringen': 'ost',
+    'Nordrhein-Westfalen': 'west', 'Rheinland-Pfalz': 'west',
+    'Saarland': 'west', 'Hessen': 'west',
+    'Bayern': 'sued', 'Baden-Württemberg': 'sued'
+};
+window.climateRegions = {
+    nord: { label: 'Region Nord (Küste/Norddeutschland)', radiation: 0.93 },
+    ost:  { label: 'Region Ost (Referenzklima Potsdam)', radiation: 1.00 },
+    west: { label: 'Region West (Rheinland/mild)', radiation: 1.00 },
+    sued: { label: 'Region Süd (Süddeutschland)', radiation: 1.10 }
+};
+// Repräsentative Höhenlage je Ort [m ü. NN] – füllt das Feld „Höhenlage" automatisch.
+window.cityElevation = {
+    // Bayern
+    'Augsburg': 494, 'München': 519, 'Nürnberg': 309, 'Regensburg': 337,
+    'Ingolstadt': 374, 'Würzburg': 177, 'Bamberg': 262, 'Passau': 312,
+    // Baden-Württemberg
+    'Stuttgart': 245, 'Mannheim': 97, 'Karlsruhe': 115, 'Freiburg': 278,
+    'Heidelberg': 114, 'Ulm': 478, 'Tübingen': 341, 'Konstanz': 405,
+    // Berlin
+    'Mitte': 34, 'Charlottenburg': 35, 'Kreuzberg': 35, 'Prenzlauer Berg': 50,
+    'Spandau': 34, 'Neukölln': 50, 'Pankow': 50, 'Treptow-Köpenick': 35,
+    // Brandenburg
+    'Potsdam': 81, 'Cottbus': 75, 'Brandenburg an der Havel': 32,
+    'Frankfurt (Oder)': 19, 'Oranienburg': 37, 'Eberswalde': 31,
+    'Falkensee': 38, 'Königs Wusterhausen': 38,
+    // Bremen
+    'Bremen': 11, 'Bremerhaven': 2, 'Vegesack': 4, 'Hemelingen': 8,
+    'Burglesum': 5, 'Walle': 5, 'Huchting': 4, 'Blumenthal': 5,
+    // Hamburg
+    'Hamburg-Mitte': 6, 'Altona': 25, 'Eimsbüttel': 15, 'Wandsbek': 20,
+    'Hamburg-Nord': 15, 'Bergedorf': 6, 'Harburg': 4, 'Winterhude': 8,
+    // Hessen
+    'Frankfurt am Main': 112, 'Wiesbaden': 115, 'Kassel': 167, 'Darmstadt': 144,
+    'Offenbach': 98, 'Marburg': 186, 'Gießen': 159, 'Fulda': 261,
+    // Mecklenburg-Vorpommern
+    'Schwerin': 43, 'Rostock': 14, 'Neubrandenburg': 19, 'Stralsund': 9,
+    'Greifswald': 6, 'Wismar': 12, 'Güstrow': 12, 'Ribnitz-Damgarten': 5,
+    // Niedersachsen
+    'Hannover': 55, 'Braunschweig': 70, 'Oldenburg': 4, 'Osnabrück': 64,
+    'Wolfsburg': 63, 'Göttingen': 150, 'Salzgitter': 80, 'Hildesheim': 89,
+    // Nordrhein-Westfalen
+    'Köln': 37, 'Düsseldorf': 38, 'Dortmund': 86, 'Essen': 116,
+    'Bochum': 100, 'Bonn': 60, 'Münster': 60, 'Aachen': 173,
+    // Rheinland-Pfalz
+    'Mainz': 89, 'Ludwigshafen': 96, 'Koblenz': 73, 'Trier': 137,
+    'Kaiserslautern': 251, 'Worms': 92, 'Neuwied': 62, 'Bad Kreuznach': 104,
+    // Saarland
+    'Saarbrücken': 230, 'Neunkirchen': 250, 'Homburg': 233, 'Völklingen': 175,
+    'St. Ingbert': 227, 'Merzig': 178, 'Saarlouis': 182, 'Püttlingen': 240,
+    // Sachsen
+    'Dresden': 113, 'Leipzig': 113, 'Chemnitz': 298, 'Zwickau': 267,
+    'Plauen': 412, 'Görlitz': 201, 'Riesa': 98, 'Freiberg': 412,
+    // Sachsen-Anhalt
+    'Magdeburg': 55, 'Halle (Saale)': 87, 'Dessau-Roßlau': 61, 'Wittenberg': 67,
+    'Halberstadt': 122, 'Stendal': 32, 'Bitterfeld-Wolfen': 80, 'Merseburg': 100,
+    // Schleswig-Holstein
+    'Kiel': 5, 'Lübeck': 13, 'Flensburg': 18, 'Neumünster': 22,
+    'Norderstedt': 26, 'Elmshorn': 5, 'Itzehoe': 8, 'Rendsburg': 6,
+    // Thüringen
+    'Erfurt': 194, 'Jena': 155, 'Gera': 194, 'Weimar': 208,
+    'Gotha': 300, 'Nordhausen': 185, 'Eisenach': 215, 'Suhl': 450
+};
+
+// Setzt Klimaregion-Anzeige + Höhenlage automatisch aus dem Standort und löst
+// (falls bereits gerechnet) eine Neuberechnung der Energiebilanz aus.
+function applyClimateForLocation(state, city) {
+    const regionKey = window.stateClimate[state] || 'ost';
+    const region = window.climateRegions[regionKey] || window.climateRegions.ost;
+    const regionDisplay = document.getElementById('climate_region_display');
+    if (regionDisplay) regionDisplay.value = region.label;
+
+    const elevInput = document.getElementById('elevation_m');
+    if (elevInput && window.cityElevation[city] != null) {
+        elevInput.value = window.cityElevation[city];
+    }
+}
+
 function initializeBuildingTypeSelector() {
     const buildingTypeButton = document.getElementById('building_type_button');
     const buildingTypeInput = document.getElementById('building_type');
@@ -5470,6 +5653,8 @@ function initializeLocationSelector() {
     if (locationSummary) locationSummary.textContent = 'Aktuell: Augsburg (Bayern)';
     if (cityMenu) cityMenu.style.display = 'none';
     if (cityLabel) cityLabel.textContent = 'Ort auswählen';
+    // Default-Standort Augsburg → Klimaregion (Süd) + Höhenlage (494 m) setzen
+    applyClimateForLocation('Bayern', 'Augsburg');
     if (stateGrid) {
         stateGrid.innerHTML = '';
         Object.keys(window.locationOptions).forEach((state) => {
@@ -5550,6 +5735,8 @@ function selectState(state) {
             cityGrid.appendChild(button);
         });
     }
+    // Erste Stadt der Liste ist vorausgewählt → Klima/Höhe dazu setzen
+    if (cities.length) applyClimateForLocation(state, cities[0]);
     updateLocationSummary();
 }
 
@@ -5562,6 +5749,7 @@ function selectCity(state, city) {
     if (cityInput) cityInput.value = city;
     if (locationInput) locationInput.value = `${city} (${state})`;
     if (locationButton) locationButton.textContent = `${city} (${state})`;
+    applyClimateForLocation(state, city);
     updateLocationSummary();
 }
 
@@ -7063,6 +7251,7 @@ async function calculateEnvelope() {
     const envelopePayload = {
             bgf: document.getElementById('bgf').value,
             gradstunden: document.getElementById('gradstunden').value,
+            delta_u_wb: parseFloat(document.getElementById('delta_u_wb')?.value) || 0.10,
 
             // ----- Nutzung / Personen / Klima (Gebäudedaten-Tab) -----
             building_type: document.getElementById('building_type')?.value || 'wohngebaeude',
@@ -7166,6 +7355,9 @@ async function calculateEnvelope() {
 
         document.getElementById('window_total_result').innerText = data.window_total + ' W/K';
         document.getElementById('envelope_total_result').innerText = data.envelope_total + ' W/K';
+        if (data.thermal_bridge_loss !== undefined) {
+            document.getElementById('thermal_bridge_result').innerText = data.thermal_bridge_loss + ' W/K';
+        }
 
         if (data.door_total !== undefined) {
             document.getElementById('door_total_result').innerText = data.door_total + ' W/K';
@@ -7186,6 +7378,8 @@ async function calculateEnvelope() {
         // Hüllen-Ergebnis global merken; Wärmebedarf wird in der Energiebilanz grafisch
         // (Übersicht + Tabelle „Bilanz auf einen Blick") und im Hülle-Tab selbst gezeigt.
         window.lastEnvelopeResult = data;
+        // Wärmebilanz-Visual (Senken/Quellen) sofort zeigen; Gesamtbilanz erst mit Stufe 2.
+        try { renderHeatBalance(); } catch (e) {}
         try { if (window.lastSystemResult) renderBilanzViz(); } catch (e) {}
 
         // Backend hat das Nutzungsprofil / Klima aufgelöst → Live-Stats angleichen
@@ -7259,6 +7453,7 @@ function calculateSystem() {
             volume: window.geometryVolume || parseFloat((document.getElementById('geometry_volume').innerText || '0').replace('m³', '').trim()) || 0,
             heating_system: document.getElementById('heating_system').value,
             heat_emission: document.getElementById('heat_emission')?.value || '',
+            heating_distribution_inside: (document.getElementById('heat_distribution_location')?.value || 'inside') === 'inside',
             cop: document.getElementById('cop').value,
             ventilation_system_type: ventKey,
             ventilation_fan_type: fanType,
@@ -7625,6 +7820,12 @@ function calculatePV() {
             area_roof_m2: roofArea,
             area_south_m2: southArea,
             area_ew_m2: ewArea,
+            // Standort → Klimaregion (Strahlungsfaktor) im Backend
+            project_state: document.getElementById('project_state')?.value || '',
+            project_city: document.getElementById('project_city')?.value || '',
+            // Dach-Geometrie → reale Strahlung auf die geneigte/ausgerichtete Fläche
+            roof_tilt_deg: parseFloat(document.getElementById('pv_roof_tilt')?.value),
+            roof_azimuth_deg: parseFloat(document.getElementById('pv_roof_azimuth')?.value),
             cell_type: document.getElementById('pv_module_type').value,
             mounting: document.getElementById('pv_mounting')?.value || 'ventilated',
             shading: (parseFloat(document.getElementById('pv_losses').value) || 0) / 100,
@@ -7641,14 +7842,13 @@ function calculatePV() {
     .then(data => {
         document.getElementById('pv_installed_kwp').innerText = data.installed_kwp + ' kWp';
         document.getElementById('pv_annual_yield').innerText =
-            data.annual_yield_kwh + ' kWh/a  (' + data.specific_yield_kwh_kwp + ' kWh/kWp)';
+            data.annual_yield_kwh + ' kWh/a  (' + data.specific_yield_kwh_kwp + ' kWh/kWp·a)';
         document.getElementById('pv_self_kwh').innerText = data.self_consumption_kwh + ' kWh/a';
         document.getElementById('pv_feed_in_kwh').innerText = data.feed_in_kwh + ' kWh/a';
         document.getElementById('pv_co2_savings').innerText = data.co2_savings_kg + ' kg/a';
         document.getElementById('pv_total_benefit').innerText = data.total_benefit_eur + ' €/a';
 
         lastPvSelfConsumptionKwh = data.self_consumption_kwh;
-        document.getElementById('bilanz_pv_self').innerText = data.self_consumption_kwh + ' kWh/a';
 
         // Hero, Diagramme, Tabellen und Modell mit den Ergebnissen füllen
         pvLastResult = data;
@@ -7694,7 +7894,7 @@ function pvRenderResults(data) {
     // Stat-Boxen (Kennzahlen)
     document.getElementById('pv_installed_kwp').innerText = pvNum(data.installed_kwp, 2) + ' kWp';
     document.getElementById('pv_annual_yield').innerText =
-        pvNum(data.annual_yield_kwh, 0) + ' kWh/a  (' + pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/kWp)';
+        pvNum(data.annual_yield_kwh, 0) + ' kWh/a  (' + pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/kWp·a)';
     document.getElementById('pv_self_kwh').innerText = pvNum(data.self_consumption_kwh, 0) + ' kWh/a';
     document.getElementById('pv_feed_in_kwh').innerText = pvNum(data.feed_in_kwh, 0) + ' kWh/a';
     document.getElementById('pv_co2_savings').innerText = pvNum(data.co2_savings_kg, 0) + ' kg/a';
@@ -7732,10 +7932,46 @@ function pvDrawModel() {
 }
 
 // Ertragswerte je Orientierung (falls vorhanden) für die Modell-Legende
-function pvYieldByKey(key) {
+function pvOrientResult(key) {
     if (!pvLastResult || !pvLastResult.by_orientation) return null;
-    const o = pvLastResult.by_orientation.find(function (x) { return x.key === key; });
-    return o ? o.annual_kwh : null;
+    return pvLastResult.by_orientation.find(function (x) { return x.key === key; }) || null;
+}
+
+// spez. Ertrag [kWh/kWp·a] → Heatmap-Farbe (rot niedrig → amber → grün hoch)
+function pvYieldColor(spec) {
+    if (spec == null) return '#3a6ea8';
+    const t = Math.max(0, Math.min(1, (spec - 550) / (950 - 550)));
+    const lerp = function (a, b, f) { return Math.round(a + (b - a) * f); };
+    let r, g, b;
+    if (t < 0.5) { const f = t / 0.5; r = lerp(239, 246, f); g = lerp(107, 185, f); b = 75; }
+    else { const f = (t - 0.5) / 0.5; r = lerp(246, 16, f); g = lerp(185, 185, f); b = lerp(75, 129, f); }
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+// Azimut (Abweichung von Süd) → Himmelsrichtungsname
+function pvAzimuthName(az) {
+    az = Math.max(-180, Math.min(180, az || 0));
+    const tbl = [[-180, 'Nord'], [-135, 'Nordost'], [-90, 'Ost'], [-45, 'Südost'],
+                 [0, 'Süd'], [45, 'Südwest'], [90, 'West'], [135, 'Nordwest'], [180, 'Nord']];
+    let best = tbl[0];
+    tbl.forEach(function (e) { if (Math.abs(e[0] - az) < Math.abs(best[0] - az)) best = e; });
+    return best[1];
+}
+
+// Live-Hinweis unter den Geometrie-Eingaben (ohne Neuberechnung)
+function pvUpdateGeometryHint() {
+    const el = document.getElementById('pv_geometry_hint');
+    if (!el) return;
+    const tilt = parseFloat(document.getElementById('pv_roof_tilt')?.value);
+    const az = parseFloat(document.getElementById('pv_roof_azimuth')?.value);
+    if (isNaN(tilt) || isNaN(az)) { el.innerText = ''; return; }
+    const nearOpt = (tilt >= 25 && tilt <= 40 && Math.abs(az) <= 30);
+    el.innerHTML = 'Dach: <strong>' + tilt + '°</strong> Neigung · <strong>' + pvAzimuthName(az) + '</strong> (' +
+        (az > 0 ? '+' : '') + az + '°). ' +
+        (nearOpt ? '<span style="color:#34d399;">nahe Ertragsoptimum (~30–35° Süd)</span>'
+                 : '<span style="color:#f6b94b;">Optimum ~30–35° Süd</span>') +
+        ' Modell aktualisiert sich beim „PV auswerten".';
+    try { if (pvVizMode === '2d') pvDrawDiagram2D(pvAreas()); } catch (e) {}
 }
 
 function pvFillVizLegend(A) {
@@ -7743,25 +7979,44 @@ function pvFillVizLegend(A) {
         ['roof', 'Dach', A.roof], ['south', 'Süd-Fassade', A.south], ['ew', 'Ost/West-Fassade', A.ew]
     ];
     document.getElementById('pv_viz_legend').innerHTML = items.map(function (it) {
-        const y = pvYieldByKey(it[0]);
-        const yTxt = (y != null) ? ' · ' + pvNum(y, 0) + ' kWh/a' : '';
-        return '<span class="pv-leg"><i style="background:' + PV_ORIENT_COL[it[0]] + '"></i>' +
-            it[1] + ' ' + pvNum(it[2].area, 1) + ' m²' + yTxt + '</span>';
+        const o = pvOrientResult(it[0]);
+        const col = o ? pvYieldColor(o.specific_kwh_kwp) : PV_ORIENT_COL[it[0]];
+        let txt = it[1] + ' ' + pvNum(it[2].area, 1) + ' m²';
+        if (o) txt += ' · ' + pvNum(o.annual_kwh, 0) + ' kWh/a · ' + pvNum(o.specific_kwh_kwp, 0) + ' kWh/kWp·a · ' + pvNum(o.share_pct, 0) + ' %';
+        return '<span class="pv-leg"><i style="background:' + col + '"></i>' + txt + '</span>';
     }).join('');
 }
 
-/* ---------- 2D: 2.5D-Hausschema mit PV-Belegung ---------- */
+/* ---------- 2D: 2.5D-Hausschema mit Ertrags-Heatmap + Solar-Geometrie ---------- */
 function pvDrawDiagram2D(A) {
     const svg = document.getElementById('pv_viz_svg');
     if (!svg) return;
 
-    // Eckpunkte des Hauses (2.5D)
+    // Reale Dachneigung & Ausrichtung aus den Eingaben (Default 35°/Süd)
+    const tilt = Math.max(0, Math.min(90, parseFloat(document.getElementById('pv_roof_tilt')?.value) || 35));
+    const az = Math.max(-180, Math.min(180, parseFloat(document.getElementById('pv_roof_azimuth')?.value) || 0));
+
+    // Firsthöhe spiegelt die Neigung (flach → niedrig, steil → hoch)
+    const rise = Math.max(6, Math.min(96, tilt / 45 * 70));
     const FA = [200, 190], FB = [400, 190], FC = [400, 330], FD = [200, 330];   // Süd-Fassade (vorne)
     const d = [110, -55];                                                        // Tiefe nach hinten-rechts
     const EB = [FB[0] + d[0], FB[1] + d[1]], EC = [FC[0] + d[0], FC[1] + d[1]];   // Ost-Wand
-    const Fr = [300, 130];                                                        // First vorne
+    const Fr = [300, 190 - rise];                                                 // First (Höhe ∝ Neigung)
+
+    // Ertragsfarben je Fläche (Heatmap nach spez. Ertrag; neutral ohne Ergebnis)
+    const roofRes = pvOrientResult('roof'), southRes = pvOrientResult('south'), ewRes = pvOrientResult('ew');
+    const roofCol = roofRes ? pvYieldColor(roofRes.specific_kwh_kwp) : '#13335f';
+    const southCol = southRes ? pvYieldColor(southRes.specific_kwh_kwp) : '#13335f';
+    const ewCol = ewRes ? pvYieldColor(ewRes.specific_kwh_kwp) : '#0f2747';
+
+    function shade(hex, k) { // einfache Abdunklung des Panel-Fills
+        const m = /rgb\((\d+),(\d+),(\d+)\)/.exec(hex);
+        if (m) return 'rgb(' + Math.round(m[1] * k) + ',' + Math.round(m[2] * k) + ',' + Math.round(m[3] * k) + ')';
+        return hex;
+    }
+
     // Hilfsfunktion: belegte Parallelogramm-Fläche mit Modulraster
-    function face(P0, P1, P3, cols, rowsMax, cover, planeFill, planeStroke) {
+    function face(P0, P1, P3, cols, rowsMax, cover, planeFill, planeStroke, panelFill) {
         const uS = [P1[0] - P0[0], P1[1] - P0[1]], uT = [P3[0] - P0[0], P3[1] - P0[1]];
         const P2 = [P0[0] + uS[0] + uT[0], P0[1] + uS[1] + uT[1]];
         const pt = function (s, t) { return [P0[0] + s * uS[0] + t * uT[0], P0[1] + s * uS[1] + t * uT[1]]; };
@@ -7774,57 +8029,82 @@ function pvDrawDiagram2D(A) {
             const s0 = pad, s1 = 1 - pad;
             const t0 = pad, t1 = pad + (1 - 2 * pad) * cover;
             const cw = (s1 - s0) / cols, ch = (t1 - t0) / rows;
+            const fill = shade(panelFill, 0.55), stroke = panelFill;
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < rows; j++) {
                     const sa = s0 + i * cw + gS, sb = s0 + (i + 1) * cw - gS;
                     const ta = t0 + j * ch + gT, tb = t0 + (j + 1) * ch - gT;
                     const c = [pt(sa, ta), pt(sb, ta), pt(sb, tb), pt(sa, tb)];
                     out += '<polygon points="' + c.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') +
-                        '" fill="#13335f" stroke="#5d8fdb" stroke-width="0.5"/>';
+                        '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.6"/>';
                 }
             }
         }
         return out;
     }
 
-    // Sonne (oben rechts) mit Strahlen
-    let sun = '<g opacity="0.95"><circle cx="560" cy="66" r="26" fill="#f6b94b"/>';
+    // Sonne: Position aus Azimut (Süd=oben Mitte, Ost=links/morgens, West=rechts/abends,
+    // Höhe sinkt zu den Rändern → Sonnenbahn-Andeutung)
+    const sx = Math.max(70, Math.min(600, 335 + az / 180 * 250));
+    const sy = 58 + Math.abs(az) / 180 * 46;
+    let sun = '<g opacity="0.95"><circle cx="' + sx.toFixed(0) + '" cy="' + sy.toFixed(0) + '" r="24" fill="#f6b94b"/>';
     for (let a = 0; a < 12; a++) {
-        const ang = a * Math.PI / 6, x1 = 560 + Math.cos(ang) * 33, y1 = 66 + Math.sin(ang) * 33;
-        const x2 = 560 + Math.cos(ang) * 44, y2 = 66 + Math.sin(ang) * 44;
-        sun += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#f6b94b" stroke-width="2.2" stroke-linecap="round"/>';
+        const ang = a * Math.PI / 6;
+        sun += '<line x1="' + (sx + Math.cos(ang) * 30).toFixed(1) + '" y1="' + (sy + Math.sin(ang) * 30).toFixed(1) +
+            '" x2="' + (sx + Math.cos(ang) * 40).toFixed(1) + '" y2="' + (sy + Math.sin(ang) * 40).toFixed(1) +
+            '" stroke="#f6b94b" stroke-width="2.2" stroke-linecap="round"/>';
     }
-    sun += '</g>';
+    sun += '<text x="' + sx.toFixed(0) + '" y="' + (sy + 4).toFixed(0) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#5a3a00" font-family="Inter">☀</text></g>';
 
-    // Boden
     const ground = '<line x1="120" y1="330" x2="600" y2="330" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>';
 
-    // Flächen: Ost-Wand (hinten, dunkler) zuerst, dann Süd-Fassade, dann Dach
-    const eastWall = face(EC, FC, EB, 4, 3, A.ew.pct, '#2f3e58', '#1f2b40');
-    const southWall = face(FD, FC, FA, 6, 3, A.south.pct, '#46587a', '#2a3650');
-    // Giebel-Dreieck (Süd-Giebel, ohne PV)
+    // Flächen (Ost-Wand hinten, dann Süd-Fassade, Giebel, Dach) – Panels in Ertragsfarbe
+    const eastWall = face(EC, FC, EB, 4, 3, A.ew.pct, '#2f3e58', '#1f2b40', ewCol);
+    const southWall = face(FD, FC, FA, 6, 3, A.south.pct, '#46587a', '#2a3650', southCol);
     const gable = '<polygon points="' + [FA, FB, Fr].map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') +
         '" fill="#3a4a66" stroke="#27324a" stroke-width="1.4" stroke-linejoin="round"/>';
-    // Dachfläche (rechte Dachhälfte, sonnenzugewandt) mit PV
-    const roof = face(FB, EB, Fr, 6, 4, A.roof.pct, '#41506a', '#27324a');
+    const roof = face(FB, EB, Fr, 6, 4, A.roof.pct, '#41506a', '#27324a', roofCol);
 
-    // kleine Flächentags
-    function tag(p, text, col) {
-        return '<text x="' + p[0].toFixed(0) + '" y="' + p[1].toFixed(0) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + col +
-            '" font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#0a1a30;stroke-width:3px;">' + text + '</text>';
+    // Flächen-Beschriftung: Name + Ertrag (kWh/a) + Anteil (%)
+    function tag(p, name, res, col) {
+        let s = '<text x="' + p[0].toFixed(0) + '" y="' + p[1].toFixed(0) + '" text-anchor="middle" font-size="11" font-weight="800" fill="' + col +
+            '" font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#0a1a30;stroke-width:3px;">' + name + '</text>';
+        if (res) s += '<text x="' + p[0].toFixed(0) + '" y="' + (p[1] + 13).toFixed(0) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0"' +
+            ' font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#0a1a30;stroke-width:3px;">' +
+            pvNum(res.annual_kwh, 0) + ' kWh · ' + pvNum(res.share_pct, 0) + '%</text>';
+        return s;
     }
     const tags =
-        tag([355, 150], 'DACH', PV_ORIENT_COL.roof) +
-        tag([300, 268], 'SÜD', PV_ORIENT_COL.south) +
-        tag([462, 250], 'O/W', PV_ORIENT_COL.ew);
+        tag([348, 150 - rise * 0.35], 'DACH', roofRes, '#ffd98a') +
+        tag([300, 262], 'SÜD', southRes, '#bff3da') +
+        tag([462, 248], 'O/W', ewRes, '#bff3da');
 
-    // Kompass
-    const compass = '<g transform="translate(150,300)"><circle r="20" fill="rgba(4,12,24,0.55)" stroke="rgba(255,255,255,0.2)"/>' +
-        '<text y="-7" text-anchor="middle" font-size="9" font-weight="700" fill="#fca5a5" font-family="Inter">N</text>' +
-        '<text y="15" text-anchor="middle" font-size="9" font-weight="700" fill="#34d399" font-family="Inter">S</text>' +
-        '<line x1="0" y1="6" x2="0" y2="-3" stroke="#fca5a5" stroke-width="2"/></g>';
+    // Kompass mit Nadel in Dach-Ausrichtung (Abweichung von Süd)
+    const needleA = (180 + az) * Math.PI / 180;   // 0=N oben → S unten
+    const nx = Math.sin(needleA) * 13, ny = -Math.cos(needleA) * 13;
+    const compass = '<g transform="translate(150,295)"><circle r="22" fill="rgba(4,12,24,0.6)" stroke="rgba(255,255,255,0.2)"/>' +
+        '<text y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fca5a5" font-family="Inter">N</text>' +
+        '<text y="17" text-anchor="middle" font-size="9" font-weight="700" fill="#34d399" font-family="Inter">S</text>' +
+        '<line x1="0" y1="0" x2="' + nx.toFixed(1) + '" y2="' + ny.toFixed(1) + '" stroke="#f6b94b" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<circle r="2" fill="#f6b94b"/></g>';
 
-    svg.innerHTML = '<defs></defs>' + ground + eastWall + southWall + gable + roof + sun + tags + compass;
+    // Geometrie-Readout (oben links)
+    const roofSpec = roofRes ? pvNum(roofRes.specific_kwh_kwp, 0) + ' kWh/kWp·a' : '— PV auswerten';
+    const readout = '<g font-family="Inter,sans-serif">' +
+        '<rect x="16" y="16" width="232" height="56" rx="8" fill="rgba(4,12,24,0.55)" stroke="rgba(255,255,255,0.12)"/>' +
+        '<text x="28" y="36" font-size="12" font-weight="800" fill="#ffd98a">Dachfläche · Solar-Geometrie</text>' +
+        '<text x="28" y="52" font-size="11" fill="#cbd5e1">Neigung ' + tilt.toFixed(0) + '° · ' + pvAzimuthName(az) + ' (' + (az > 0 ? '+' : '') + az.toFixed(0) + '°)</text>' +
+        '<text x="28" y="66" font-size="11" fill="#cbd5e1">spez. Ertrag Dach: ' + roofSpec + '</text></g>';
+
+    // Farbskala (unten links): niedriger → hoher spez. Ertrag
+    let scale = '<g font-family="Inter,sans-serif"><text x="20" y="350" font-size="9" fill="#94a3b6">geringer Ertrag</text>';
+    for (let i = 0; i < 24; i++) {
+        const spec = 550 + i / 23 * 400;
+        scale += '<rect x="' + (108 + i * 4).toFixed(1) + '" y="343" width="4" height="8" fill="' + pvYieldColor(spec) + '"/>';
+    }
+    scale += '<text x="208" y="350" font-size="9" fill="#94a3b6">hoher Ertrag</text></g>';
+
+    svg.innerHTML = '<defs></defs>' + ground + eastWall + southWall + gable + roof + sun + tags + compass + readout + scale;
 }
 
 /* ---------- Diagramm: monatlicher Ertrag (Balken) ---------- */
@@ -8014,10 +8294,18 @@ function pvInitSlab3D(mountId) {
     return pvSlab;
 }
 
+// spez. Ertrag → THREE-Farbe (Integer) über die 2D-Heatmap
+function pvYieldHex(spec) {
+    if (spec == null) return 0x0f2d5e;
+    const m = /rgb\((\d+),(\d+),(\d+)\)/.exec(pvYieldColor(spec));
+    if (!m) return 0x0f2d5e;
+    return (parseInt(m[1]) << 16) | (parseInt(m[2]) << 8) | parseInt(m[3]);
+}
+
 // Ein PV-Modulfeld (Ebene mit Rasterlinien) als Gruppe
-function pvPanelGroup(w, h, cols, rows) {
+function pvPanelGroup(w, h, cols, rows, color) {
     const g = new THREE.Group();
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: 0x0f2d5e, side: THREE.DoubleSide }));
+    const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: (color != null ? color : 0x0f2d5e), side: THREE.DoubleSide }));
     g.add(plane);
     const edge = new THREE.LineSegments(new THREE.EdgesGeometry(plane.geometry), new THREE.LineBasicMaterial({ color: 0x6ea8ff }));
     g.add(edge);
@@ -8042,8 +8330,14 @@ function pvBuildScene(A) {
     wall.position.y = BH / 2; grp.add(wall);
     wall.add(new THREE.LineSegments(new THREE.EdgesGeometry(wall.geometry), new THREE.LineBasicMaterial({ color: 0x0c1830 })));
 
+    // Dach-Geometrie aus den Eingaben: Firsthöhe so, dass die Neigung der Süd-
+    // Dachfläche exakt der eingegebenen Dachneigung entspricht.
+    const tiltDeg = Math.max(0, Math.min(90, parseFloat(document.getElementById('pv_roof_tilt')?.value) || 35));
+    const azDeg = Math.max(-180, Math.min(180, parseFloat(document.getElementById('pv_roof_azimuth')?.value) || 0));
+    const roofRes = pvOrientResult('roof'), southRes = pvOrientResult('south'), ewRes = pvOrientResult('ew');
     // Satteldach: zwei geneigte Ebenen, First entlang X
-    const eaveZ = BD / 2, ridgeY = BH + 0.9;
+    const eaveZ = BD / 2;
+    const ridgeY = BH + Math.max(0.1, Math.min(2.6, eaveZ * Math.tan(tiltDeg * Math.PI / 180)));
     const slopeLen = Math.sqrt(eaveZ * eaveZ + (ridgeY - BH) * (ridgeY - BH));
     const tilt = Math.atan2(ridgeY - BH, eaveZ);   // Neigung
     function roofPlane(sign) {
@@ -8065,9 +8359,9 @@ function pvBuildScene(A) {
         grp.add(gm);
     });
 
-    // PV-Feld auf Süd-Dach (gleiche Neigung wie die Süd-Dachfläche)
+    // PV-Feld auf Süd-Dach (gleiche Neigung wie die Süd-Dachfläche), in Ertragsfarbe
     if (A.roof.pct > 0.001) {
-        const pg = pvPanelGroup(BW * 0.9, slopeLen * 0.88 * A.roof.pct, 6, Math.max(1, Math.round(4 * A.roof.pct)));
+        const pg = pvPanelGroup(BW * 0.9, slopeLen * 0.88 * A.roof.pct, 6, Math.max(1, Math.round(4 * A.roof.pct)), pvYieldHex(roofRes ? roofRes.specific_kwh_kwp : null));
         pg.rotation.x = -(Math.PI / 2 - tilt);
         // an der Traufe ansetzen
         const cz = eaveZ - (slopeLen * 0.44 * A.roof.pct) * Math.cos(tilt);
@@ -8075,25 +8369,27 @@ function pvBuildScene(A) {
         pg.position.set(0, cy + 0.02, cz + 0.02);
         grp.add(pg);
     }
-    // PV-Feld auf Süd-Fassade (+Z)
+    // PV-Feld auf Süd-Fassade (+Z), in Ertragsfarbe
     if (A.south.pct > 0.001) {
         const ph = BH * 0.8 * A.south.pct;
-        const pg = pvPanelGroup(BW * 0.8, ph, 6, Math.max(1, Math.round(3 * A.south.pct)));
+        const pg = pvPanelGroup(BW * 0.8, ph, 6, Math.max(1, Math.round(3 * A.south.pct)), pvYieldHex(southRes ? southRes.specific_kwh_kwp : null));
         pg.position.set(0, 0.15 + ph / 2, BD / 2 + 0.02);
         grp.add(pg);
     }
-    // PV-Feld auf Ost-Fassade (+X)
+    // PV-Feld auf Ost-Fassade (+X), in Ertragsfarbe
     if (A.ew.pct > 0.001) {
         const ph = BH * 0.8 * A.ew.pct;
-        const pg = pvPanelGroup(BD * 0.8, ph, 5, Math.max(1, Math.round(3 * A.ew.pct)));
+        const pg = pvPanelGroup(BD * 0.8, ph, 5, Math.max(1, Math.round(3 * A.ew.pct)), pvYieldHex(ewRes ? ewRes.specific_kwh_kwp : null));
         pg.rotation.y = Math.PI / 2;
         pg.position.set(BW / 2 + 0.02, 0.15 + ph / 2, 0);
         grp.add(pg);
     }
 
-    // Sonne
+    // Sonne: Position nach Dach-Azimut (Süd vorne +Z; höher bei Süd, tiefer an den Rändern)
+    const azR = azDeg * Math.PI / 180;
     const sun = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), new THREE.MeshBasicMaterial({ color: 0xf6b94b }));
-    sun.position.set(4.6, 5.0, 4.2); grp.add(sun);
+    sun.position.set(Math.sin(azR) * 5.2, 5.2 - Math.abs(azDeg) / 180 * 2.2, Math.cos(azR) * 5.2);
+    grp.add(sun);
 }
 
 function calculateBalance() {
@@ -8133,30 +8429,8 @@ function calculateBalance() {
         return data;
     })
     .then(data => {
-        document.getElementById('bilanz_el_gross').innerText = data.total_electricity_gross_kwh + ' kWh/a';
-        document.getElementById('bilanz_el_net').innerText = data.grid_electricity_net_kwh + ' kWh/a';
-        // CO₂ GESAMT (Anlagentechnik + Haushalt − PV), nicht nur Strom
-        document.getElementById('bilanz_el_co2').innerText = data.co2_total_kg + ' kg/a';
-
-        // Gesamtbilanz-KPIs mit Ampel-Bewertung (bezogen auf BGF)
-        const bgf = parseFloat(document.getElementById('bgf')?.value) || 0;
-        document.getElementById('bilanz_total_end').innerText = data.total_end_energy_kwh + ' kWh/a';
-        if (bgf > 0) {
-            setKpi('bilanz_end_per_m2', data.total_end_energy_kwh / bgf, 'kWh/m²a', {
-                good: 75, mid: 150, bench: 'WP-Neubau ~40–60 · Gas-Bestand ~120–180'
-            });
-            setKpi('bilanz_co2_per_m2', data.co2_total_kg / bgf, 'kg/m²a', {
-                good: 10, mid: 25, bench: '≤10 sehr gut · 10–25 mittel · >25 hoch'
-            });
-        }
-
-        // falls PV noch nicht gerechnet wurde:
-        const pvBox = document.getElementById('bilanz_pv_self');
-        if (pvBox && (pvBox.innerText === '—' || pvBox.innerText.trim() === '')) {
-            pvBox.innerText = lastPvSelfConsumptionKwh + ' kWh/a';
-        }
-
-        // Grafische Gesamtbilanz aufbauen
+        // Gesamte Darstellung (Kacheln, Mini-Visuals, Benchmark, Sankey, Kosten)
+        // übernimmt renderBilanzViz aus den konsistenten Werten.
         window.lastBalanceResult = data;
         try { renderBilanzViz(); } catch (e) { console.error('Bilanz-Viz:', e); }
     })
@@ -8184,7 +8458,67 @@ function bilanzEffClass(v) {
     return BILANZ_EFF[BILANZ_EFF.length - 1];
 }
 
+// Wärmebilanz Q_h,b: Verluste (Wärmesenken) vs. nutzbare Gewinne (Wärmequellen).
+// Spiegelt die DIN-V-18599-2-Struktur des Energie-im-Gebäude-Diagramms mit den
+// realen Rechenwerten aus /calculate/ (data.heat_balance).
+function renderHeatBalance() {
+    const env = window.lastEnvelopeResult;
+    const empty = document.getElementById('heatbalance_empty');
+    const body = document.getElementById('heatbalance_body');
+    if (!env || !env.heat_balance) {
+        if (empty) empty.style.display = '';
+        if (body) body.style.display = 'none';
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (body) body.style.display = '';
+
+    const hb = env.heat_balance;
+    const t = hb.transmission || {};
+
+    // Verluste – Wärmesenken Q_Senke (Transmission je Bauteil + Lüftung)
+    bilanzStackBar('hb_sinks_bar', 'hb_sinks_legend', [
+        { label: 'Wände (A·U)', val: t.walls, col: '#f59e0b' },
+        { label: 'Dach (A·U)', val: t.roof, col: '#fb923c' },
+        { label: 'Boden (A·U, F_x)', val: t.floor, col: '#f97316' },
+        { label: 'Fenster (je Orient.)', val: t.windows, col: '#facc15' },
+        { label: 'Türen (n·A·U)', val: t.doors, col: '#eab308' },
+        { label: 'Wärmebrücken ΔU_WB·A', val: t.thermal_bridges, col: '#fdba74' },
+        { label: 'Lüftung H_V = n·V·0,34', val: hb.ventilation_kwh, col: '#60a5fa' }
+    ], hb.sinks_total_kwh, 'kWh/a');
+    document.getElementById('hb_sinks_total').textContent = pvNum(hb.sinks_total_kwh, 0) + ' kWh/a';
+
+    // Gewinne – Wärmequellen Q_Quelle (solar + intern)
+    bilanzStackBar('hb_gains_bar', 'hb_gains_legend', [
+        { label: 'Solare Gewinne Q_S', val: hb.gains.solar, col: '#fbbf24' },
+        { label: 'Interne Gewinne Q_i', val: hb.gains.internal, col: '#f87171' }
+    ], hb.gains_total_kwh, 'kWh/a');
+    document.getElementById('hb_gains_total').textContent = pvNum(hb.gains_total_kwh, 0) + ' kWh/a';
+
+    const etaPct = hb.gains_total_kwh > 0 ? Math.round(hb.usable_gains_kwh / hb.gains_total_kwh * 100) : 0;
+    document.getElementById('hb_gains_note').innerHTML =
+        'Davon nutzbar (Ausnutzungsgrad η): <strong>' + pvNum(hb.usable_gains_kwh, 0) + ' kWh/a</strong> (' + etaPct +
+        ' %). Überschüssige Gewinne im Sommer senken den Heizbedarf nicht.';
+
+    // Ergebnis Stufe 1 → Stufe 2
+    const spec = env.specific_heat_demand;
+    const sys = window.lastSystemResult;
+    let stufe2 = '<span class="hb-muted">Anlagentechnik auswerten für Endenergie / Primärenergie / CO₂</span>';
+    if (sys) {
+        stufe2 = 'Endenergie <strong>' + pvNum(sys.total_end_energy, 0) + '</strong> · Primärenergie <strong>' +
+            pvNum(sys.primary_energy, 0) + '</strong> kWh/a · CO₂ <strong>' + pvNum(sys.co2_emissions, 0) + '</strong> kg/a';
+    }
+    document.getElementById('hb_result').innerHTML =
+        '<div class="hb-eq"><span class="hb-sink">Wärmesenken ' + pvNum(hb.sinks_total_kwh, 0) + '</span> − ' +
+        '<span class="hb-gain-t">nutzbare Gewinne ' + pvNum(hb.usable_gains_kwh, 0) + '</span> = ' +
+        '<span class="hb-qh">Heizwärmebedarf Q_h,b ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a' +
+        (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/m²a' : '') + '</span></div>' +
+        '<div class="hb-arrow">↓ Stufe 2 (Teil 5/6/8): Übergabe → Verteilung → Speicherung → Erzeugung</div>' +
+        '<div class="hb-stufe2">' + stufe2 + '</div>';
+}
+
 function renderBilanzViz() {
+    try { renderHeatBalance(); } catch (e) { console.error('Wärmebilanz-Viz:', e); }
     const sys = window.lastSystemResult;
     const empty = document.getElementById('bilanz_viz_empty');
     const body = document.getElementById('bilanz_viz_body');
@@ -8226,11 +8560,207 @@ function renderBilanzViz() {
     bilanzRenderFlow(totalEnd, primaryAnlage, co2Total);
     bilanzRenderElBar(pvOffset, gridNet, elGross);
     bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total);
-    bilanzGauge('bilanz_gauge_end', endPerM2, 'kWh/m²·a', 75, 150, 250, 'Endenergie gesamt je m²');
-    bilanzGauge('bilanz_gauge_co2', co2PerM2, 'kg/m²·a', 10, 25, 50, 'CO₂ je m²');
     bilanzRenderTable({ env: env, sys: sys, heat: env ? env.adjusted_heat_demand_kwh : null,
         spec: env ? env.specific_heat_demand : null, totalEnd: totalEnd, primaryAnlage: primaryAnlage,
         co2Total: co2Total, pvOffset: pvOffset, gridNet: gridNet, endPerM2: endPerM2, co2PerM2: co2PerM2 });
+    bilanzRenderSankey({ fuelEnd: fuelEnd, gridNet: gridNet, pvOffset: pvOffset, elGross: elGross,
+        heatEnd: heatEnd, dhwEnd: dhwEnd, aux: aux, coolEnd: coolEnd, household: household, isHeatpump: isHeatpump });
+    bilanzRenderCosts({ gridNet: gridNet, fuelEnd: fuelEnd });
+    bilanzRenderResult({ pvOffset: pvOffset, gridNet: gridNet, elGross: elGross, totalEnd: totalEnd,
+        co2Total: co2Total, endPerM2: endPerM2, co2PerM2: co2PerM2 });
+}
+
+// kWh → lesbare Endenergie-Angabe (große Werte als MWh)
+function bilanzEnergyFmt(kwh) {
+    return kwh >= 10000 ? pvNum(kwh / 1000, 2) + ' MWh/a' : pvNum(kwh, 0) + ' kWh/a';
+}
+
+// Stromverrechnung (Mini-Bilanzbalken) + Endergebnis-Kennzahlen + Benchmark-Bänder
+function bilanzRenderResult(d) {
+    // Strombilanz: PV-Eigenverbrauch vs. Netzbezug
+    bilanzStackBar('bilanz_strom_minibar', 'bilanz_strom_minilegend', [
+        { label: 'PV-Eigenverbrauch', val: d.pvOffset, col: '#10b981' },
+        { label: 'Netzbezug', val: d.gridNet, col: '#64748b' }
+    ], d.elGross, 'kWh/a');
+    const note = document.getElementById('bilanz_strom_note');
+    if (note) {
+        const pct = d.elGross > 0 ? Math.round(d.pvOffset / d.elGross * 100) : 0;
+        note.innerHTML = 'Strombedarf gesamt <strong>' + pvNum(d.elGross, 0) + ' kWh/a</strong>' +
+            (d.pvOffset > 0 ? ' · PV deckt <strong>' + pct + '%</strong>, Netzbezug ' + pvNum(d.gridNet, 0) + ' kWh/a'
+                            : ' · noch kein PV-Eigenverbrauch (im PV-Tab auswerten)');
+    }
+
+    // Endergebnis-Kennzahlen
+    const setTxt = function (id, t) { const el = document.getElementById(id); if (el) el.innerText = t; };
+    setTxt('bilanz_end_total', bilanzEnergyFmt(d.totalEnd));
+    setTxt('bilanz_end_perm2_v', d.endPerM2 != null ? pvNum(d.endPerM2, 0) + ' kWh/m²a' : '—');
+    setTxt('bilanz_co2_total', pvNum(d.co2Total, 0) + ' kg/a');
+    setTxt('bilanz_co2_perm2_v', d.co2PerM2 != null ? pvNum(d.co2PerM2, 1) + ' kg/m²a' : '—');
+
+    // Benchmark-Bänder (Klassen mit benannten Stützstellen + Marker)
+    bilanzRenderBenchmark('bilanz_bench_end', d.endPerM2, 'kWh/m²a', 250, [
+        { at: 30, label: 'Passivhaus' }, { at: 70, label: 'GEG-Neubau' },
+        { at: 120, label: 'saniert' }, { at: 190, label: 'Bestand' }
+    ]);
+    bilanzRenderBenchmark('bilanz_bench_co2', d.co2PerM2, 'kg/m²a', 60, [
+        { at: 6, label: 'sehr gut' }, { at: 16, label: 'Neubau' },
+        { at: 28, label: 'mittel' }, { at: 45, label: 'hoch' }
+    ]);
+}
+
+// Benchmark-Band: farbige Klassenzonen, benannte Stützstellen + Gebäude-Marker
+function bilanzRenderBenchmark(svgId, value, unit, scaleMax, anchors) {
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    const x0 = 12, x1 = 368, y = 30, h = 16;
+    const sx = function (v) { return x0 + Math.max(0, Math.min(scaleMax, v)) / scaleMax * (x1 - x0); };
+    const cols = ['#10b981', '#84cc16', '#f6b94b', '#ef8a4b', '#ef4444'];
+    let prev = 0, bar = '';
+    anchors.forEach(function (a, i) {
+        bar += '<rect x="' + sx(prev).toFixed(1) + '" y="' + y + '" width="' + (sx(a.at) - sx(prev)).toFixed(1) + '" height="' + h + '" fill="' + cols[i] + '" opacity="0.85"/>';
+        prev = a.at;
+    });
+    bar += '<rect x="' + sx(prev).toFixed(1) + '" y="' + y + '" width="' + (x1 - sx(prev)).toFixed(1) + '" height="' + h + '" fill="' + cols[anchors.length] + '" opacity="0.85"/>';
+    bar += '<rect x="' + x0 + '" y="' + y + '" width="' + (x1 - x0) + '" height="' + h + '" fill="none" stroke="rgba(255,255,255,0.18)" rx="3"/>';
+    // Stützstellen-Ticks + Namen darunter
+    anchors.forEach(function (a) {
+        const x = sx(a.at);
+        bar += '<line x1="' + x.toFixed(1) + '" y1="' + (y - 2) + '" x2="' + x.toFixed(1) + '" y2="' + (y + h + 2) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>';
+        bar += '<text x="' + x.toFixed(1) + '" y="' + (y + h + 14) + '" text-anchor="middle" font-size="8.5" fill="#94a3b6" font-family="Inter">' + a.label + '</text>';
+        bar += '<text x="' + x.toFixed(1) + '" y="' + (y - 5) + '" text-anchor="middle" font-size="8" fill="#64748b" font-family="JetBrains Mono,monospace">' + a.at + '</text>';
+    });
+    // Gebäude-Marker
+    let marker = '', valText = '— (BGF/Bilanz fehlt)';
+    if (value != null && isFinite(value)) {
+        const mx = sx(value);
+        marker = '<polygon points="' + mx.toFixed(1) + ',' + (y - 7) + ' ' + (mx - 5).toFixed(1) + ',' + (y - 15) + ' ' + (mx + 5).toFixed(1) + ',' + (y - 15) + '" fill="#fff"/>' +
+            '<line x1="' + mx.toFixed(1) + '" y1="' + (y - 7) + '" x2="' + mx.toFixed(1) + '" y2="' + (y + h + 1) + '" stroke="#fff" stroke-width="1.5"/>';
+        valText = pvNum(value, value < 20 ? 1 : 0) + ' ' + unit;
+    }
+    const head = '<text x="' + x1 + '" y="14" text-anchor="end" font-size="13" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' + valText + '</text>';
+    svg.innerHTML = head + bar + marker;
+}
+
+// --- Energiefluss-Diagramm (Sankey): Energieträger → Verwendung ---
+function bilanzRenderSankey(d) {
+    const svg = document.getElementById('bilanz_sankey');
+    if (!svg) return;
+    const W = 720, H = 330, top = 22, botPad = 14, leftX = 150, rightX = 570, nodeW = 18;
+    const gap = 14;   // Lücke zwischen gestapelten Knoten
+
+    // Quellen (links) und Verbraucher (rechts)
+    const srcDefs = [
+        { key: 'fuel', label: 'Brennstoff/Fernwärme', col: '#f6b94b', val: d.fuelEnd },
+        { key: 'grid', label: 'Netzbezug', col: '#64748b', val: d.gridNet },
+        { key: 'pv', label: 'PV-Eigenverbrauch', col: '#10b981', val: d.pvOffset }
+    ].filter(function (n) { return n.val > 0.5; });
+    const heatTotal = d.heatEnd + d.dhwEnd;
+    const dstDefs = [
+        { key: 'heat', label: 'Heizung + Warmwasser', col: '#fb923c', val: heatTotal },
+        { key: 'aux', label: 'Hilfsstrom (Anlage)', col: '#8b7cf6', val: d.aux },
+        { key: 'cool', label: 'Kühlung', col: '#22d3ee', val: d.coolEnd },
+        { key: 'house', label: 'Haushaltsstrom', col: '#34d399', val: d.household }
+    ].filter(function (n) { return n.val > 0.5; });
+
+    const totalLeft = srcDefs.reduce(function (s, n) { return s + n.val; }, 0);
+    if (totalLeft <= 0) { svg.innerHTML = '<text x="360" y="165" text-anchor="middle" fill="#94a3b6" font-size="13" font-family="Inter">Energiebilanz auswerten</text>'; document.getElementById('bilanz_sankey_legend').innerHTML = ''; return; }
+
+    // Maßstab: höhere Gesamtsumme (links/rechts identisch = Endenergie) auf verfügbare Höhe
+    const availH = H - top - botPad - gap * (Math.max(srcDefs.length, dstDefs.length) - 1);
+    const scale = availH / totalLeft;
+
+    // Knotenpositionen (gestapelt) + Cursor für die Bänder
+    function place(defs, x) {
+        let y = top, out = [];
+        defs.forEach(function (n) {
+            const h = Math.max(2, n.val * scale);
+            out.push({ key: n.key, label: n.label, col: n.col, val: n.val, x: x, y0: y, y1: y + h, cur: y });
+            y += h + gap;
+        });
+        return out;
+    }
+    const src = place(srcDefs, leftX), dst = place(dstDefs, rightX);
+    const byKey = function (arr, k) { return arr.find(function (n) { return n.key === k; }); };
+
+    // Flussmatrix: Brennstoff→Wärme direkt; Strom (Netz+PV) anteilig auf elektr. Verbraucher
+    const elGross = d.elGross || (d.gridNet + d.pvOffset) || 1;
+    const gShare = d.gridNet / elGross, pShare = d.pvOffset / elGross;
+    const elecUse = [
+        { key: 'heat', amt: d.isHeatpump ? heatTotal : 0 },
+        { key: 'aux', amt: d.aux }, { key: 'cool', amt: d.coolEnd }, { key: 'house', amt: d.household }
+    ];
+    const flows = [];   // {src,dst,val,col}
+    if (!d.isHeatpump && d.fuelEnd > 0.5) flows.push({ s: 'fuel', t: 'heat', val: d.fuelEnd, col: '#f6b94b' });
+    elecUse_loop:
+    for (let i = 0; i < elecUse.length; i++) {
+        const u = elecUse[i];
+        if (u.amt <= 0.5) continue elecUse_loop;
+        if (d.gridNet > 0.5) flows.push({ s: 'grid', t: u.key, val: u.amt * gShare, col: '#64748b' });
+        if (d.pvOffset > 0.5) flows.push({ s: 'pv', t: u.key, val: u.amt * pShare, col: '#10b981' });
+    }
+
+    // Bänder zeichnen – Reihenfolge: Quelle (oben→unten), je Quelle Ziel (oben→unten)
+    function ribbon(a, b, w, col) {
+        const sx = a.x + nodeW, sy0 = a.cur, sy1 = a.cur + w; a.cur = sy1;
+        const ex = b.x, ey0 = b.cur, ey1 = b.cur + w; b.cur = ey1;
+        const mx = (sx + ex) / 2;
+        return '<path d="M' + sx + ',' + sy0.toFixed(1) + ' C' + mx + ',' + sy0.toFixed(1) + ' ' + mx + ',' + ey0.toFixed(1) + ' ' + ex + ',' + ey0.toFixed(1) +
+            ' L' + ex + ',' + ey1.toFixed(1) + ' C' + mx + ',' + ey1.toFixed(1) + ' ' + mx + ',' + sy1.toFixed(1) + ' ' + sx + ',' + sy1.toFixed(1) +
+            ' Z" fill="' + col + '" opacity="0.32"/>';
+    }
+    let bands = '';
+    src.forEach(function (s) {
+        dst.forEach(function (t) {
+            const f = flows.find(function (x) { return x.s === s.key && x.t === t.key; });
+            if (f && f.val > 0.5) bands += ribbon(s, t, f.val * scale, f.col);
+        });
+    });
+
+    // Knoten + Beschriftung
+    function nodes(arr, anchor, tx) {
+        return arr.map(function (n) {
+            const h = n.y1 - n.y0, cy = (n.y0 + n.y1) / 2;
+            return '<rect x="' + n.x + '" y="' + n.y0.toFixed(1) + '" width="' + nodeW + '" height="' + h.toFixed(1) + '" rx="3" fill="' + n.col + '"/>' +
+                '<text x="' + tx + '" y="' + (cy - 2).toFixed(1) + '" text-anchor="' + anchor + '" font-size="11" font-weight="700" fill="#e2e8f0" font-family="Inter">' + n.label + '</text>' +
+                '<text x="' + tx + '" y="' + (cy + 11).toFixed(1) + '" text-anchor="' + anchor + '" font-size="10" fill="#94a3b6" font-family="JetBrains Mono,monospace">' + pvNum(n.val, 0) + ' kWh/a</text>';
+        }).join('');
+    }
+    svg.innerHTML = bands + nodes(src, 'end', leftX - 8) + nodes(dst, 'start', rightX + nodeW + 8);
+    document.getElementById('bilanz_sankey_legend').innerHTML =
+        '<span><i style="background:#f6b94b"></i>Brennstoff/Fernwärme</span><span><i style="background:#64748b"></i>Netzstrom</span><span><i style="background:#10b981"></i>PV-Eigenverbrauch</span>';
+}
+
+// --- Jahres-Energiekosten (Schätzung) ---
+function bilanzRenderCosts(d) {
+    const tb = document.querySelector('#bilanz_cost_table tbody');
+    if (!tb) return;
+    const elPrice = parseFloat(document.getElementById('pv_electricity_price')?.value) || 0.35;
+    const feedTariff = parseFloat(document.getElementById('pv_feed_in_tariff')?.value) || 0.08;
+    const fuelPrice = parseFloat(document.getElementById('bilanz_fuel_price')?.value);
+    const fp = isNaN(fuelPrice) ? 0.10 : fuelPrice;
+    const feedKwh = (pvLastResult && pvLastResult.feed_in_kwh) ? pvLastResult.feed_in_kwh : 0;
+
+    const cGrid = d.gridNet * elPrice;
+    const cFuel = d.fuelEnd * fp;
+    const cFeed = feedKwh * feedTariff;          // Gutschrift (Einspeisung)
+    const net = cGrid + cFuel - cFeed;
+
+    const row = function (label, kwh, price, eur, cls) {
+        return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td>' +
+            '<td class="num">' + (kwh != null ? pvNum(kwh, 0) + ' kWh' : '—') + '</td>' +
+            '<td class="num">' + (price != null ? pvNum(price, 2) + ' €' : '—') + '</td>' +
+            '<td class="num">' + (eur >= 0 ? '' : '−') + pvNum(Math.abs(eur), 0) + ' €</td></tr>';
+    };
+    tb.innerHTML =
+        row('Netzstrombezug', d.gridNet, elPrice, cGrid) +
+        row('Brennstoff/Fernwärme', d.fuelEnd, fp, cFuel) +
+        row('− PV-Einspeisevergütung', feedKwh, feedTariff, -cFeed) +
+        '<tr class="pv-total"><td>Jahreskosten netto</td><td class="num"></td><td class="num"></td><td class="num">' + pvNum(net, 0) + ' €/a</td></tr>';
+
+    bilanzStackBar('bilanz_cost_bar', 'bilanz_cost_legend', [
+        { label: 'Netzstrom', val: cGrid, col: '#64748b' },
+        { label: 'Brennstoff/Fernwärme', val: cFuel, col: '#f6b94b' }
+    ], cGrid + cFuel, '€/a');
 }
 
 // --- Effizienzklasse-Band ---
@@ -8359,42 +8889,23 @@ function bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total) {
     document.getElementById('bilanz_co2_legend').innerHTML = leg;
 }
 
-// --- Gauge mit Benchmark-Zonen ---
-function bilanzGauge(svgId, value, unit, good, mid, scaleMax, caption) {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    const W = 360, x0 = 14, x1 = 346, y = 52, h = 16;
-    const sx = function (v) { return x0 + Math.max(0, Math.min(scaleMax, v)) / scaleMax * (x1 - x0); };
-    const zones = [[0, good, '#10b981'], [good, mid, '#f6b94b'], [mid, scaleMax, '#ef4444']];
-    let bar = zones.map(function (z) {
-        return '<rect x="' + sx(z[0]).toFixed(1) + '" y="' + y + '" width="' + (sx(z[1]) - sx(z[0])).toFixed(1) + '" height="' + h + '" fill="' + z[2] + '" opacity="0.85"/>';
-    }).join('');
-    // Rahmen + Schwellen-Ticks
-    bar += '<rect x="' + x0 + '" y="' + y + '" width="' + (x1 - x0) + '" height="' + h + '" fill="none" stroke="rgba(255,255,255,0.18)" rx="4"/>';
-    [good, mid].forEach(function (t) {
-        bar += '<line x1="' + sx(t).toFixed(1) + '" y1="' + (y - 3) + '" x2="' + sx(t).toFixed(1) + '" y2="' + (y + h + 3) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>';
-        bar += '<text x="' + sx(t).toFixed(1) + '" y="' + (y + h + 15) + '" text-anchor="middle" font-size="9" fill="#94a3b6" font-family="JetBrains Mono,monospace">' + t + '</text>';
-    });
-    let marker = '', valText;
-    if (value != null && isFinite(value)) {
-        const mx = sx(value);
-        marker = '<polygon points="' + mx.toFixed(1) + ',' + (y - 5) + ' ' + (mx - 5).toFixed(1) + ',' + (y - 13) + ' ' + (mx + 5).toFixed(1) + ',' + (y - 13) + '" fill="#fff"/>' +
-            '<line x1="' + mx.toFixed(1) + '" y1="' + (y - 5) + '" x2="' + mx.toFixed(1) + '" y2="' + (y + h + 1) + '" stroke="#fff" stroke-width="1.5"/>';
-        valText = pvNum(value, 1) + ' ' + unit;
-    } else { valText = '— (BGF fehlt)'; }
-    const head = '<text x="' + x0 + '" y="20" font-size="12" font-weight="700" fill="#c4cfdc" font-family="Inter">' + caption + '</text>' +
-        '<text x="' + x1 + '" y="20" text-anchor="end" font-size="13" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' + valText + '</text>';
-    svg.innerHTML = head + bar + marker;
-}
-
 // --- Zusammenfassungstabelle ---
 function bilanzRenderTable(d) {
     const tb = document.querySelector('#bilanz_summary_table tbody');
     if (!tb) return;
     const sys = d.sys || {};
     const heatTxt = d.heat != null ? pvNum(d.heat, 0) + ' kWh/a' + (d.spec != null ? ' · ' + pvNum(d.spec, 0) + ' kWh/m²a' : '') : '— (Hülle auswerten)';
+    // Wärmebilanz-Zeile (DIN V 18599-2): Wärmesenken − nutzbare Gewinne = Q_h,b
+    const hb = d.env && d.env.heat_balance;
+    const balanceTxt = hb
+        ? pvNum(hb.sinks_total_kwh, 0) + ' − ' + pvNum(hb.usable_gains_kwh, 0) + ' = ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a'
+        : '— (Hülle auswerten)';
+    const balanceVerdict = hb
+        ? 'Senken ' + pvNum(hb.sinks_total_kwh, 0) + ' · Gewinne ' + pvNum(hb.gains_total_kwh, 0) + ' kWh/a'
+        : '—';
     const rows = [
         ['① Gebäudehülle', 'Heizwärmebedarf Q_h,b', heatTxt, (d.env && d.env.rating_label) ? d.env.rating_label : '—'],
+        ['└ Wärmebilanz', 'Wärmesenken − nutzbare Gewinne', balanceTxt, balanceVerdict],
         ['② Anlagentechnik', 'Endenergie / Primärenergie', pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' kWh/a', sys.system_label || '—'],
         ['③ Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug', pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' kWh/a', d.pvOffset > 0 ? 'PV aktiv' : '—'],
         ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg/a',
