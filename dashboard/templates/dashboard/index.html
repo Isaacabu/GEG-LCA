@@ -1091,7 +1091,8 @@ input[type="checkbox"], input[type="radio"] {
     .grid-4,
     .result-row,
     .stats,
-    .big-summary {
+    .big-summary,
+    .bilanz-co2-row {
         grid-template-columns: 1fr;
     }
 
@@ -1448,6 +1449,14 @@ input[type="checkbox"], input[type="radio"] {
 .pv-viz-legend .pv-leg i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,.25); }
 
 .pv-chart { display: block; width: 100%; height: auto; }
+/* CO₂-Bilanz: kompakter Donut links, Zusammenfassungstabelle rechts */
+.bilanz-co2-row {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) 1fr;
+    gap: 16px;
+    align-items: start;
+}
+.bilanz-co2-donut { max-width: 280px; margin: 0 auto; }
 .pv-chart .pv-bar { transition: opacity .12s ease; }
 .pv-chart .pv-bar:hover { opacity: .82; }
 .pv-split-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 10px; font-size: 12.5px; color: var(--muted); justify-content: center; }
@@ -4132,21 +4141,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
 
-                    <!-- CO₂-Bilanz (Einordnung je m² steht unten als Benchmark-Bänder) -->
-                    <div class="card" style="margin-top:16px;">
-                        <h3>CO₂-Bilanz</h3>
-                        <svg id="bilanz_co2_donut" class="pv-chart" viewBox="0 0 360 230" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
-                        <div class="pv-split-legend" id="bilanz_co2_legend"></div>
-                    </div>
+                    <!-- CO₂-Bilanz (links, kompakt) + Zusammenfassungstabelle (rechts) -->
+                    <div class="bilanz-co2-row" style="margin-top:16px;">
+                        <!-- CO₂-Bilanz (Einordnung je m² steht unten als Benchmark-Bänder) -->
+                        <div class="card">
+                            <h3>CO₂-Bilanz</h3>
+                            <svg id="bilanz_co2_donut" class="pv-chart bilanz-co2-donut" viewBox="0 0 360 230" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
+                            <div class="pv-split-legend" id="bilanz_co2_legend"></div>
+                        </div>
 
-                    <!-- Zusammenfassungstabelle -->
-                    <div class="card" style="margin-top:16px;">
-                        <h3>Bilanz auf einen Blick</h3>
-                        <div class="pv-table-wrap">
-                            <table class="bautechnik-table pv-table" id="bilanz_summary_table">
-                                <thead><tr><th>Schritt</th><th>Kennzahl</th><th class="num">Wert</th><th>Bewertung</th></tr></thead>
-                                <tbody></tbody>
-                            </table>
+                        <!-- Zusammenfassungstabelle -->
+                        <div class="card">
+                            <h3>Bilanz auf einen Blick</h3>
+                            <div class="pv-table-wrap">
+                                <table class="bautechnik-table pv-table" id="bilanz_summary_table">
+                                    <thead><tr><th>Schritt</th><th>Kennzahl</th><th class="num">Wert</th><th>Bewertung</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
