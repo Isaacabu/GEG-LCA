@@ -21,6 +21,12 @@ urlpatterns = [
     path("calculate-system/", views.calculate_system),
     path("calculate-pv/", views.calculate_pv),
     path("calculate-balance/", views.calculate_balance),
+    # DIN 4108 – bauphysikalische Nachweise
+    path("calculate-mindestwaermeschutz/", views.calculate_mindestwaermeschutz),
+    path("calculate-sommerlicher-waermeschutz/", views.calculate_sommerlicher_waermeschutz),
+    path("calculate-tauwasser/", views.calculate_tauwasser),
+    path("calculate-luftdichtheit/", views.calculate_luftdichtheit),
+    path("din4108-materialien/", views.din4108_materialien),
     path("upload-ekobaudat-csv/", views.upload_ekobaudat_csv, name="upload-ekobaudat-csv"),
     
     # REST API Routes

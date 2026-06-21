@@ -23,6 +23,9 @@ sowie die CO₂-Bilanz – und ordnet das Ergebnis in Effizienzklassen ein.
   Einordnung in Effizienzklassen und Benchmark-Bänder.
 - **Ökobaudat-Integration** – echte LCA-Kennwerte (GWP A1–A3, Dichte) aus dem offiziellen
   ÖKOBAUDAT-Export (~2.600 Datensätze) für die graue Energie der Wandaufbauten.
+- **DIN 4108 (Bauphysik)** – Mindestwärmeschutz (Teil 2, Tab. 3), sommerlicher Wärmeschutz
+  (Sonneneintragskennwert, Teil 2 §8.4), Tauwasser-/Glaser-Nachweis (Teil 3 + Teil 4) und
+  Wärmebrücken-/Luftdichtheits-Nachweis (Beiblatt 2 / Teil 7); Details in `docs/DIN4108_Umsetzung.md`.
 
 ## Screenshots
 
@@ -36,17 +39,16 @@ sowie die CO₂-Bilanz – und ordnet das Ergebnis in Effizienzklassen ein.
 
 ## Architektur
 
-Das Repository enthält **zwei eigenständige Implementierungen** desselben Rechners:
+Eine eigenständige **Django-Anwendung** (Python/Django): server-gerendertes Single-Page-UI plus
+JSON- und DRF-API. Das ist die Anwendung, die das `Dockerfile` startet.
+→ Ordner: `manage.py`, `geglca/`, `dashboard/`
 
-1. **Django-Monolith** *(primäre App)* – Python/Django, server-gerendertes Single-Page-UI plus
-   JSON- und DRF-API. Das ist die Anwendung, die das `Dockerfile` startet.
-   → Ordner: `manage.py`, `geglca/`, `dashboard/`
-2. **TypeScript-Monorepo** *(neuere Neufassung)* – React + Vite Frontend und Express Backend mit
-   gemeinsamer, unit-getesteter Berechnungsbibliothek.
-   → Ordner: `apps/` (`backend`, `frontend`), `packages/shared`
+Der Rechenkern liegt in `dashboard/services/` (`din18599*.py` für die Energiebilanz, `din4108.py`
+für die Bauphysik-Nachweise); die normative Herleitung ist in `docs/DIN18599_Umsetzung.md` und
+`docs/DIN4108_Umsetzung.md` dokumentiert.
 
-Der eigentliche Rechenkern des Django-Teils liegt in `dashboard/services/din18599*.py`; die
-normative Herleitung ist in `docs/DIN18599_Umsetzung.md` dokumentiert.
+> Hinweis: Eine frühere React/TypeScript-Neufassung (`apps/`, `packages/`) diente nur als
+> Design-Referenz und wurde entfernt (nachweislich unabhängig von der Django-App).
 
 ---
 
@@ -83,15 +85,13 @@ docker build -t geglca .
 docker run -p 8000:8000 geglca
 ```
 
-### TypeScript-Monorepo (alternativ)
+### End-to-End-Test (optional)
 
-Voraussetzung: **Node.js** (npm workspaces)
+Voraussetzung: **Node.js** (nur für den Browser-Test; läuft gegen den laufenden Dev-Server).
 
 ```bash
-npm install
-npm run dev      # Backend (Express, :4001) + Frontend (Vite, :5173) parallel
-npm test         # Unit-Tests (vitest) in packages/shared
-npm run build    # Frontend bauen
+npm install                 # installiert Playwright
+npm run smoke               # klickt alle Tabs durch, prüft auf Konsolen-/Netzwerkfehler
 ```
 
 ---
@@ -100,12 +100,11 @@ npm run build    # Frontend bauen
 
 ```
 .
-├── manage.py, geglca/, dashboard/   # Django-App (primär)
-│   └── dashboard/services/          # DIN-V-18599-Rechenkern
-├── apps/ , packages/shared/         # TypeScript-Monorepo (React/Vite + Express)
+├── manage.py, geglca/, dashboard/   # Django-App
+│   └── dashboard/services/          # Rechenkern: DIN V 18599 + DIN 4108
 ├── docs/                            # DIN-Umsetzung & Dokumentation
-├── scripts/                         # Diagnose-/Recherche-Skripte (kein Laufzeitcode)
-├── Dockerfile, requirements.txt
+├── scripts/                         # Norm-Verifikation, PDF-Extraktion, Playwright-Smoke-Test
+├── Dockerfile, requirements.txt, package.json (nur Playwright)
 └── Screenshots für Frontend|Backend/
 ```
 
@@ -113,7 +112,9 @@ npm run build    # Frontend bauen
 
 ```bash
 python manage.py test dashboard      # Django-Tests
-npm test                             # TypeScript: vitest (packages/shared)
+python scripts/verify_din18599.py    # Norm-Verifikation DIN V 18599
+python scripts/verify_din4108.py     # Norm-Verifikation DIN 4108
+npm run smoke                        # Browser-End-to-End-Test (Dev-Server muss laufen)
 ```
 
 ---

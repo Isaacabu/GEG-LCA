@@ -1,19 +1,12 @@
 {
-  "name": "geg-aaa-clean",
+  "name": "geglca-devtools",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
+  "description": "Dev-Tooling für die Django-App GEG/LCA (Playwright-Smoke-Test). Die frühere React-/TypeScript-Monorepo wurde entfernt.",
   "scripts": {
-    "dev": "npm-run-all -p dev:*",
-    "dev:backend": "npm --workspace @geg/backend run dev",
-    "dev:frontend": "npm --workspace @geg/frontend run dev",
-    "test": "npm --workspace @geg/shared run test",
-    "build": "npm --workspace @geg/frontend run build"
+    "smoke": "node scripts/smoke_app.js"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5"
+    "playwright": "^1.61.0"
   }
 }
