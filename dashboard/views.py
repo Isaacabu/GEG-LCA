@@ -18,6 +18,11 @@ from .services.din4108 import (
 )
 
 
+def home(request):
+    """Dashboard-Startseite: gespeicherte Projekte ansehen + neues Projekt anlegen."""
+    return render(request, "dashboard/dashboard_home.html")
+
+
 def index(request):
     return render(request, "dashboard/index.html")
 
@@ -868,6 +873,9 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
             mat = EkobaudatMaterial.objects.filter(uuid=uuid).first() if uuid else None
             if mat is None or mat.gwp_a1a3 is None:
                 missing.append(key or '(leer)')
+                # Ergebnis-Eintrag trotzdem anhängen (Reihenfolge 1:1 zu den Eingabe-Schichten,
+                # damit das Frontend den Wert je Zeile zuordnen kann).
+                results.append({'material': key, 'dataset': None, 'dataset_type': None, 'uuid': uuid or None, 'gwp_per_m2': None})
                 continue
             qty = mat.ref_quantity or 1.0
             unit = (mat.ref_unit or '').lower()
@@ -880,6 +888,7 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
                 gwp_per_m2 = mat.gwp_a1a3 / qty
             if gwp_per_m2 is None:
                 missing.append(key)
+                results.append({'material': key, 'dataset': mat.name, 'dataset_type': mat.dataset_type, 'uuid': mat.uuid, 'gwp_per_m2': None})
                 continue
             total_per_m2 += gwp_per_m2
             results.append({

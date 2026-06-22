@@ -9,7 +9,7 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
 
-const BASE = process.env.BASE_URL || "http://localhost:8000/";
+const BASE = process.env.BASE_URL || "http://localhost:8000/projekt/";
 const OUT = path.join(__dirname, "_smoke");
 fs.mkdirSync(OUT, { recursive: true });
 

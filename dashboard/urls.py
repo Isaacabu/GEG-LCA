@@ -16,7 +16,8 @@ router.register(r'api/bauteil', views.BauteilViewSet, basename='bauteil')
 router.register(r'api/ekobaudat-material', views.EkobaudatMaterialViewSet, basename='ekobaudat-material')
 
 urlpatterns = [
-    path("", views.index),
+    path("", views.home),
+    path("projekt/", views.index),
     path("calculate/", views.calculate),
     path("calculate-system/", views.calculate_system),
     path("calculate-pv/", views.calculate_pv),
