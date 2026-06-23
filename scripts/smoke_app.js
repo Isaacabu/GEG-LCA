@@ -65,10 +65,14 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     await page.click('button:has-text("Anlagentechnik auswerten")');
     await waitResult("system_spec_end", "Anlagentechnik (Endenergie)", "11_anlage.png");
 
-    // 4) Photovoltaik
+    // 4) Photovoltaik – PV ist standardmäßig deaktiviert (Ja/Nein-Gate), erst „Ja" wählen
     await openTab("pv");
+    await page.click('#pv_gate_yes');
+    await page.waitForSelector('#pv_body', { state: "visible", timeout: 5000 });
+    await page.waitForTimeout(250);
     await page.click('button:has-text("PV auswerten")');
     await waitResult("pv_annual_yield", "Photovoltaik (Jahresertrag)", "12_pv.png");
+    step(true, "PV-Gate: Ja zeigt PV-Inhalt + Modell");
 
     // 5) Energiebilanz
     await openTab("bilanz");

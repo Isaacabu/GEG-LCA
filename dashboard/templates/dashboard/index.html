@@ -2564,7 +2564,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <h2 class="section-title">Anlagentechnik</h2>
             <div id="systemErrorBox" class="alert-box"></div>
 
-            <div class="grid-2">
+            <div>
                 <div class="card">
                     <h3>Systemauswahl</h3>
 
@@ -2710,117 +2710,6 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                 </div>
 
-                <div class="card">
-                    <h3>Ergebnisse Anlagentechnik</h3>
-
-                    <div class="sys-hero" id="sys_hero">
-                        <div class="ea-head">
-                            <div class="ea-title">Endenergiebedarf des Gebäudes</div>
-                            <div class="ea-value"><span id="ea_value">—</span> <span class="ea-unit">kWh/(m²·a)</span></div>
-                        </div>
-                        <div class="ea-band-wrap">
-                            <div class="ea-pointer" id="ea_pointer" style="left:0">
-                                <span class="ea-pointer-val" id="ea_pointer_val"></span>
-                                <span class="ea-pointer-tip"></span>
-                            </div>
-                            <div class="ea-band">
-                                <div class="ea-seg" style="background:#009b4d"><b>A+</b><small>≤30</small></div>
-                                <div class="ea-seg" style="background:#4caf3f"><b>A</b><small>50</small></div>
-                                <div class="ea-seg" style="background:#8bc53f"><b>B</b><small>75</small></div>
-                                <div class="ea-seg" style="background:#c3d52b;color:#3a3000;text-shadow:none"><b>C</b><small>100</small></div>
-                                <div class="ea-seg" style="background:#f7e400;color:#3a3000;text-shadow:none"><b>D</b><small>130</small></div>
-                                <div class="ea-seg" style="background:#f9b000"><b>E</b><small>160</small></div>
-                                <div class="ea-seg" style="background:#f3791f"><b>F</b><small>200</small></div>
-                                <div class="ea-seg" style="background:#e63329"><b>G</b><small>250</small></div>
-                                <div class="ea-seg" style="background:#b71c1c"><b>H</b><small>&gt;250</small></div>
-                            </div>
-                        </div>
-                        <div class="ea-foot">
-                            <span class="ea-class-label">Energieeffizienzklasse</span>
-                            <span class="ea-class-badge" id="ea_class">—</span>
-                            <span class="ea-foot-note" id="ea_rating">Noch nicht berechnet</span>
-                        </div>
-                    </div>
-
-                    <div class="sys-flow-card">
-                        <div class="sys-flow-title">Energie auf einen Blick <span class="wall-viz-sub">vom Verbrauch über die Umweltbewertung bis CO₂</span></div>
-                        <div id="sys_flow"><div class="sys-flow-empty">Nach „Anlagentechnik auswerten" erscheint hier die Energie-Übersicht.</div></div>
-                    </div>
-
-                    <div class="sys-detail-head">Detail-Kennwerte</div>
-                    <div class="stats" id="sys_stats">
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Endenergie nach DIN V 18599-5: gekaufte Energie (Gas, Pellets, Strom …) für die Raumheizung – inklusive aller Verluste von Übergabe, Verteilung, Speicher und Wärmeerzeuger.">i</span>
-                            <div class="label">Endenergie Heizung (Q_f)</div>
-                            <div class="value" id="system_heating_end">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Endenergie für Trinkwarmwasser nach DIN V 18599-8. Der Warmwasserbedarf selbst kommt aus dem Nutzungsprofil (DIN V 18599-10), dazu Verteil-, Speicher- und Erzeugerverluste.">i</span>
-                            <div class="label">Endenergie Warmwasser (Q_f,w)</div>
-                            <div class="value" id="system_hotwater_end">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Hilfsenergie nach DIN V 18599-5/-6/-8: Strom für Heizungspumpe, Kesselgebläse/Regelung, Zirkulationspumpe und Lüftungs-Ventilatoren.&#10;Richtwert EFH: ~200–600 kWh/a.">i</span>
-                            <div class="label">Hilfsenergie Strom (W_f)</div>
-                            <div class="value" id="system_aux">—</div>
-                        </div>
-                        <div class="stat-box" id="system_rlt_box" style="display:none;">
-                            <span class="info-i" data-tip="Endenergie für die RLT-Luftaufbereitung (DIN V 18599-3): Erwärmung der maschinell geförderten Zuluft auf Raumtemperatur (nach Wärmerückgewinnung). Wird über denselben Wärmeerzeuger gedeckt. Nur bei mechanischer Lüftung.">i</span>
-                            <div class="label">Endenergie RLT-Heizung (Teil 3)</div>
-                            <div class="value" id="system_rlt_end">—</div>
-                        </div>
-                        <div class="stat-box" id="system_cooling_box" style="display:none;">
-                            <span class="info-i" data-tip="Endenergie Kühlung: Nutzkältebedarf Q_c,b (DIN V 18599-2) gedeckt über eine elektrische Kältemaschine mit Leistungszahl EER (Standard 3,0). Nur bei Nichtwohngebäuden mit aktiver Kühlung.">i</span>
-                            <div class="label">Endenergie Kühlung (Q_c,f)</div>
-                            <div class="value" id="system_cooling_end">—</div>
-                        </div>
-                        <div class="stat-box" id="system_total_end_box">
-                            <span class="info-i" data-tip="Summe der Endenergie: Heizung + RLT + Warmwasser + Hilfsstrom + Kühlung. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
-                            <div class="label">Endenergiebedarf (Q_f)</div>
-                            <div class="value" id="system_total_end">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Primärenergie Q_p = Endenergie × Primärenergiefaktor (GEG 2024: Erdgas 1,1 · Strom 1,8 · Pellets 0,2 · Fernwärme 0,7). Bewertet die Umweltwirkung der Energieträger.">i</span>
-                            <div class="label">Primärenergie (Q_p)</div>
-                            <div class="value" id="system_primary">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="CO₂-Äquivalente nach GEG Anlage 9: Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg je kWh Endenergie.">i</span>
-                            <div class="label">CO₂-Emissionen</div>
-                            <div class="value" id="system_co2">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Endenergie pro m² und Jahr – Vergleichswert je nach Energieträger:&#10;Wärmepumpe ~25–45 · Gas-Brennwert ~80–120 · unsanierter Altbau >200 kWh/(m²·a).">i</span>
-                            <div class="label">Endenergie je m²</div>
-                            <div class="value" id="system_spec_end">—</div>
-                        </div>
-                        <div class="stat-box">
-                            <span class="info-i" data-tip="Wärmeverluste der Verteilleitungen (Q_h,d / Q_w,d) und Speicher (Q_h,s / Q_w,s) nach DIN V 18599-5/-8 – mit Norm-Standardlängen, daher eher konservativ.">i</span>
-                            <div class="label">Verteil- &amp; Speicherverluste (Q_d + Q_s)</div>
-                            <div class="value" id="system_ventilation">—</div>
-                        </div>
-                        <div class="stat-box" id="system_heat_adjusted_box">
-                            <span class="info-i" data-tip="Heizwärmebedarf Q_h,b – bei Lüftungsanlage mit Wärmerückgewinnung wird die Teil-2-Bilanz hier neu gerechnet (effektiver Luftwechsel nach DIN V 18599-6), daher ggf. niedriger als im Hülle-Tab.">i</span>
-                            <div class="label">Heizwärmebedarf (Q_h,b)</div>
-                            <div class="value" id="system_heat_adjusted">—</div>
-                        </div>
-                        <div class="stat-box" id="system_jaz_box">
-                            <span class="info-i" data-tip="Jahresarbeitszahl der Wärmepumpe: gelieferte Wärme ÷ eingesetzter Strom übers Jahr.&#10;≥4,0 sehr gut · 3–4 üblich · <3 unwirtschaftlich. Nur bei Wärmepumpe gefüllt.">i</span>
-                            <div class="label">Jahresarbeitszahl (JAZ)</div>
-                            <div class="value" id="system_jaz">—</div>
-                        </div>
-                        <div class="stat-box" id="system_lighting_box">
-                            <span class="info-i" data-tip="Endenergie Beleuchtung Q_l,f nach DIN V 18599-4 (Tabellenverfahren) – nur bei Nichtwohngebäuden.&#10;Richtwerte: LED + Tageslichtregelung ~3–8 · Leuchtstoff ~10–25 kWh/(m²·a).">i</span>
-                            <div class="label">Endenergie Beleuchtung (Q_l,f)</div>
-                            <div class="value" id="system_lighting">—</div>
-                        </div>
-                    </div>
-
-                    <div id="systemRatingBox" class="rating-box">
-                        <div id="systemRatingTitle" class="rating-title">—</div>
-                        <div id="systemRatingText" class="rating-text">—</div>
-                    </div>
-                </div>
             </div>
 
             <div class="footer-note">
@@ -2835,6 +2724,18 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         <div class="panel">
             <h2 class="section-title">Photovoltaik</h2>
             <div class="section-divider"></div>
+
+            <!-- Gate: zuerst fragen, ob das Gebäude überhaupt eine PV-Anlage hat -->
+            <div id="pv_gate" class="pv-gate">
+                <div class="pv-gate-q">☀️ Hat Ihr Gebäude eine Photovoltaikanlage?</div>
+                <div class="pv-gate-opts">
+                    <button type="button" id="pv_gate_yes" class="pv-gate-btn" onclick="setPvEnabled(true)">Ja, PV vorhanden</button>
+                    <button type="button" id="pv_gate_no" class="pv-gate-btn" onclick="setPvEnabled(false)">Nein, keine PV</button>
+                </div>
+                <div class="pv-gate-hint" id="pv_gate_hint">Bitte wählen – erst bei „Ja" erscheinen die PV-Werte und die Module im 3D-Modell.</div>
+            </div>
+
+            <div id="pv_body" style="display:none;">
             <p class="note" style="margin-bottom:18px;">
                 Ertragsberechnung nach <strong>DIN&nbsp;V&nbsp;18599-9</strong> – monatliche Solarstrahlung je
                 Orientierung (Referenzklima Potsdam), Peakleistungskoeffizient k<sub>pk</sub> (Tab.&nbsp;B.2) und
@@ -3088,6 +2989,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 Grundlage: DIN&nbsp;V&nbsp;18599-9:2018-09, Gl.&nbsp;64–67 + Anhang&nbsp;B · CO₂-Faktor 0,56&nbsp;kg/kWh
                 (verdrängter Netzstrom, GEG&nbsp;Anlage&nbsp;9). Eigenverbrauch fließt in die Energiebilanz ein.
             </div>
+            </div><!-- /#pv_body -->
         </div>
     </div>
 
@@ -3126,6 +3028,120 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div id="ratingTitle" class="rating-title">—</div>
                         <div id="ratingText" class="rating-text" style="font-size:11px;">—</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ② Ergebnis Anlagentechnik (verschoben aus dem Anlagentechnik-Tab) -->
+            <div class="sys-detail-head" style="margin-top:14px;">② Ergebnis Anlagentechnik</div>
+            <div class="card">
+                <h3>Ergebnisse Anlagentechnik</h3>
+
+                <div class="sys-hero" id="sys_hero">
+                    <div class="ea-head">
+                        <div class="ea-title">Endenergiebedarf des Gebäudes</div>
+                        <div class="ea-value"><span id="ea_value">—</span> <span class="ea-unit">kWh/(m²·a)</span></div>
+                    </div>
+                    <div class="ea-band-wrap">
+                        <div class="ea-pointer" id="ea_pointer" style="left:0">
+                            <span class="ea-pointer-val" id="ea_pointer_val"></span>
+                            <span class="ea-pointer-tip"></span>
+                        </div>
+                        <div class="ea-band">
+                            <div class="ea-seg" style="background:#009b4d"><b>A+</b><small>≤30</small></div>
+                            <div class="ea-seg" style="background:#4caf3f"><b>A</b><small>50</small></div>
+                            <div class="ea-seg" style="background:#8bc53f"><b>B</b><small>75</small></div>
+                            <div class="ea-seg" style="background:#c3d52b;color:#3a3000;text-shadow:none"><b>C</b><small>100</small></div>
+                            <div class="ea-seg" style="background:#f7e400;color:#3a3000;text-shadow:none"><b>D</b><small>130</small></div>
+                            <div class="ea-seg" style="background:#f9b000"><b>E</b><small>160</small></div>
+                            <div class="ea-seg" style="background:#f3791f"><b>F</b><small>200</small></div>
+                            <div class="ea-seg" style="background:#e63329"><b>G</b><small>250</small></div>
+                            <div class="ea-seg" style="background:#b71c1c"><b>H</b><small>&gt;250</small></div>
+                        </div>
+                    </div>
+                    <div class="ea-foot">
+                        <span class="ea-class-label">Energieeffizienzklasse</span>
+                        <span class="ea-class-badge" id="ea_class">—</span>
+                        <span class="ea-foot-note" id="ea_rating">Noch nicht berechnet</span>
+                    </div>
+                </div>
+
+                <div class="sys-flow-card">
+                    <div class="sys-flow-title">Energie auf einen Blick <span class="wall-viz-sub">vom Verbrauch über die Umweltbewertung bis CO₂</span></div>
+                    <div id="sys_flow"><div class="sys-flow-empty">Nach „Anlagentechnik auswerten" erscheint hier die Energie-Übersicht.</div></div>
+                </div>
+
+                <div class="sys-detail-head">Detail-Kennwerte</div>
+                <div class="stats" id="sys_stats">
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Endenergie nach DIN V 18599-5: gekaufte Energie (Gas, Pellets, Strom …) für die Raumheizung – inklusive aller Verluste von Übergabe, Verteilung, Speicher und Wärmeerzeuger.">i</span>
+                        <div class="label">Endenergie Heizung (Q_f)</div>
+                        <div class="value" id="system_heating_end">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Endenergie für Trinkwarmwasser nach DIN V 18599-8. Der Warmwasserbedarf selbst kommt aus dem Nutzungsprofil (DIN V 18599-10), dazu Verteil-, Speicher- und Erzeugerverluste.">i</span>
+                        <div class="label">Endenergie Warmwasser (Q_f,w)</div>
+                        <div class="value" id="system_hotwater_end">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Hilfsenergie nach DIN V 18599-5/-6/-8: Strom für Heizungspumpe, Kesselgebläse/Regelung, Zirkulationspumpe und Lüftungs-Ventilatoren.&#10;Richtwert EFH: ~200–600 kWh/a.">i</span>
+                        <div class="label">Hilfsenergie Strom (W_f)</div>
+                        <div class="value" id="system_aux">—</div>
+                    </div>
+                    <div class="stat-box" id="system_rlt_box" style="display:none;">
+                        <span class="info-i" data-tip="Endenergie für die RLT-Luftaufbereitung (DIN V 18599-3): Erwärmung der maschinell geförderten Zuluft auf Raumtemperatur (nach Wärmerückgewinnung). Wird über denselben Wärmeerzeuger gedeckt. Nur bei mechanischer Lüftung.">i</span>
+                        <div class="label">Endenergie RLT-Heizung (Teil 3)</div>
+                        <div class="value" id="system_rlt_end">—</div>
+                    </div>
+                    <div class="stat-box" id="system_cooling_box" style="display:none;">
+                        <span class="info-i" data-tip="Endenergie Kühlung: Nutzkältebedarf Q_c,b (DIN V 18599-2) gedeckt über eine elektrische Kältemaschine mit Leistungszahl EER (Standard 3,0). Nur bei Nichtwohngebäuden mit aktiver Kühlung.">i</span>
+                        <div class="label">Endenergie Kühlung (Q_c,f)</div>
+                        <div class="value" id="system_cooling_end">—</div>
+                    </div>
+                    <div class="stat-box" id="system_total_end_box">
+                        <span class="info-i" data-tip="Summe der Endenergie: Heizung + RLT + Warmwasser + Hilfsstrom + Kühlung. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
+                        <div class="label">Endenergiebedarf (Q_f)</div>
+                        <div class="value" id="system_total_end">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Primärenergie Q_p = Endenergie × Primärenergiefaktor (GEG 2024: Erdgas 1,1 · Strom 1,8 · Pellets 0,2 · Fernwärme 0,7). Bewertet die Umweltwirkung der Energieträger.">i</span>
+                        <div class="label">Primärenergie (Q_p)</div>
+                        <div class="value" id="system_primary">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="CO₂-Äquivalente nach GEG Anlage 9: Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg je kWh Endenergie.">i</span>
+                        <div class="label">CO₂-Emissionen</div>
+                        <div class="value" id="system_co2">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Endenergie pro m² und Jahr – Vergleichswert je nach Energieträger:&#10;Wärmepumpe ~25–45 · Gas-Brennwert ~80–120 · unsanierter Altbau >200 kWh/(m²·a).">i</span>
+                        <div class="label">Endenergie je m²</div>
+                        <div class="value" id="system_spec_end">—</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="info-i" data-tip="Wärmeverluste der Verteilleitungen (Q_h,d / Q_w,d) und Speicher (Q_h,s / Q_w,s) nach DIN V 18599-5/-8 – mit Norm-Standardlängen, daher eher konservativ.">i</span>
+                        <div class="label">Verteil- &amp; Speicherverluste (Q_d + Q_s)</div>
+                        <div class="value" id="system_ventilation">—</div>
+                    </div>
+                    <div class="stat-box" id="system_heat_adjusted_box">
+                        <span class="info-i" data-tip="Heizwärmebedarf Q_h,b – bei Lüftungsanlage mit Wärmerückgewinnung wird die Teil-2-Bilanz hier neu gerechnet (effektiver Luftwechsel nach DIN V 18599-6), daher ggf. niedriger als im Hülle-Tab.">i</span>
+                        <div class="label">Heizwärmebedarf (Q_h,b)</div>
+                        <div class="value" id="system_heat_adjusted">—</div>
+                    </div>
+                    <div class="stat-box" id="system_jaz_box">
+                        <span class="info-i" data-tip="Jahresarbeitszahl der Wärmepumpe: gelieferte Wärme ÷ eingesetzter Strom übers Jahr.&#10;≥4,0 sehr gut · 3–4 üblich · <3 unwirtschaftlich. Nur bei Wärmepumpe gefüllt.">i</span>
+                        <div class="label">Jahresarbeitszahl (JAZ)</div>
+                        <div class="value" id="system_jaz">—</div>
+                    </div>
+                    <div class="stat-box" id="system_lighting_box">
+                        <span class="info-i" data-tip="Endenergie Beleuchtung Q_l,f nach DIN V 18599-4 (Tabellenverfahren) – nur bei Nichtwohngebäuden.&#10;Richtwerte: LED + Tageslichtregelung ~3–8 · Leuchtstoff ~10–25 kWh/(m²·a).">i</span>
+                        <div class="label">Endenergie Beleuchtung (Q_l,f)</div>
+                        <div class="value" id="system_lighting">—</div>
+                    </div>
+                </div>
+
+                <div id="systemRatingBox" class="rating-box">
+                    <div id="systemRatingTitle" class="rating-title">—</div>
+                    <div id="systemRatingText" class="rating-text">—</div>
                 </div>
             </div>
 
@@ -3593,12 +3609,23 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
     .win-modal { display:none; position:fixed; inset:0; background:rgba(4,10,22,.66); z-index:1000; align-items:center; justify-content:center; padding:20px; }
     .win-modal.show { display:flex; }
     .win-modal-box { background:#0f2138; border:1px solid #21456d; border-radius:14px; padding:22px; width:min(460px,94vw); box-shadow:0 18px 60px rgba(0,0,0,.5); }
+    .pos-edit-head { margin:16px 0 0; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); font-weight:700; font-size:13px; color:#c4cfdc; }
+    .pos-edit-sub { display:block; font-weight:400; font-size:11px; color:#8aa1b8; margin-top:2px; }
+    .pv-gate { background:linear-gradient(135deg, rgba(246,185,75,.10), rgba(16,185,129,.06)); border:1px solid #21456d; border-radius:14px; padding:20px 22px; margin-bottom:18px; }
+    .pv-gate-q { font-size:17px; font-weight:800; color:#e7edf5; }
+    .pv-gate-opts { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .pv-gate-btn { border:1px solid #21456d; background:#0f2138; color:#e7edf5; border-radius:10px; padding:10px 18px; font-size:14px; font-weight:700; cursor:pointer; transition:border-color .15s, background .15s, transform .1s; }
+    .pv-gate-btn:hover { border-color:#38bdf8; }
+    .pv-gate-btn:active { transform:translateY(1px); }
+    .pv-gate-btn#pv_gate_yes.active { background:linear-gradient(135deg,#10b981,#0ea5b7); border-color:transparent; color:#06231c; }
+    .pv-gate-btn#pv_gate_no.active { background:#7f1d1d; border-color:#7f1d1d; color:#fff; }
+    .pv-gate-hint { color:#9bb4c8; font-size:12.5px; margin-top:12px; }
 </style>
 <div id="win_modal" class="win-modal" onclick="if(event.target===this)closeWindowEditor()">
     <div class="win-modal-box">
         <h3 id="win_edit_title" style="margin:0 0 14px;">Fenster bearbeiten</h3>
         <input type="hidden" id="win_edit_id">
-        <div class="field"><label>Orientierung</label><select id="win_edit_ori"></select></div>
+        <div class="field"><label>Orientierung</label><select id="win_edit_ori" onchange="updateWinPosNote()"></select></div>
         <div class="grid-2" style="margin-top:8px;">
             <div class="field"><label>Breite (m)</label><input id="win_edit_w" type="number" step="0.05" min="0.2" value="1.0" oninput="updateWinEditArea()"></div>
             <div class="field"><label>Höhe (m)</label><input id="win_edit_h" type="number" step="0.05" min="0.2" value="1.4" oninput="updateWinEditArea()"></div>
@@ -3608,6 +3635,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <div class="field"><label>U-Wert (W/m²K)</label><input id="win_edit_u" type="number" step="0.01" min="0.1" value="1.10"></div>
             <div class="field"><label>g-Wert (0–1)</label><input id="win_edit_g" type="number" step="0.01" min="0" max="1" value="0.55"></div>
         </div>
+        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">Eingabe in Metern – alternativ im Modell mit der Maus ziehen.</span></div>
+        <div class="grid-2" style="margin-top:6px;">
+            <div class="field"><label>Horizontal (0 = Mitte, − links / + rechts)</label><input id="win_edit_posu" type="number" step="0.05" value="0"></div>
+            <div class="field"><label>Höhe Mitte über Boden</label><input id="win_edit_posv" type="number" step="0.05" value="1.2"></div>
+        </div>
+        <div class="note" id="win_edit_posnote" style="font-size:11px;margin-top:2px;"></div>
         <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
             <button type="button" class="btn" style="background:#7f1d1d;border-color:#7f1d1d;color:#fff;" onclick="deleteWindowFromEditor()">🗑 Löschen</button>
             <div style="display:flex;gap:8px;">
@@ -3623,13 +3656,19 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
     <div class="win-modal-box">
         <h3 id="door_edit_title" style="margin:0 0 14px;">Tür bearbeiten</h3>
         <input type="hidden" id="door_edit_id">
-        <div class="field"><label>Orientierung</label><select id="door_edit_ori"></select></div>
+        <div class="field"><label>Orientierung</label><select id="door_edit_ori" onchange="updateDoorPosNote()"></select></div>
         <div class="grid-2" style="margin-top:8px;">
             <div class="field"><label>Breite (m)</label><input id="door_edit_w" type="number" step="0.05" min="0.4" value="1.0" oninput="updateDoorEditArea()"></div>
             <div class="field"><label>Höhe (m)</label><input id="door_edit_h" type="number" step="0.05" min="0.8" value="2.1" oninput="updateDoorEditArea()"></div>
         </div>
         <div class="field" style="margin-top:8px;"><label>Fläche (B × H)</label><div class="value-display" id="door_edit_area">—</div></div>
         <div class="field" style="margin-top:8px;"><label>U-Wert (W/m²K)</label><input id="door_edit_u" type="number" step="0.01" min="0.1" value="2.5"></div>
+        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">Eingabe in Metern – alternativ im Modell mit der Maus ziehen.</span></div>
+        <div class="grid-2" style="margin-top:6px;">
+            <div class="field"><label>Horizontal (0 = Mitte, − links / + rechts)</label><input id="door_edit_posu" type="number" step="0.05" value="0"></div>
+            <div class="field"><label>Höhe Mitte über Boden</label><input id="door_edit_posv" type="number" step="0.05" value="1.05"></div>
+        </div>
+        <div class="note" id="door_edit_posnote" style="font-size:11px;margin-top:2px;"></div>
         <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
             <button type="button" class="btn" style="background:#7f1d1d;border-color:#7f1d1d;color:#fff;" onclick="deleteDoorFromEditor()">🗑 Löschen</button>
             <div style="display:flex;gap:8px;">
@@ -3654,6 +3693,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <div class="field"><label>Neigung (°)</label><input id="pv_edit_tilt" type="number" step="1" min="0" max="90" value="35"></div>
             <div class="field"><label>Ausrichtung (Abw. Süd, °)</label><input id="pv_edit_az" type="number" step="5" min="-180" max="180" value="0"></div>
         </div>
+        <div class="pos-edit-head">📍 Position auf dem Dach (m) <span class="pos-edit-sub">Eingabe in Metern – alternativ im Modell mit der Maus ziehen.</span></div>
+        <div class="grid-2" style="margin-top:6px;">
+            <div class="field"><label>Quer (0 = Mitte)</label><input id="pv_edit_posx" type="number" step="0.05" value="0"></div>
+            <div class="field"><label>Längs (0 = Mitte)</label><input id="pv_edit_posz" type="number" step="0.05" value="0"></div>
+        </div>
+        <div class="note" id="pv_edit_posnote" style="font-size:11px;margin-top:2px;"></div>
         <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
             <button type="button" class="btn" style="background:#7f1d1d;border-color:#7f1d1d;color:#fff;" onclick="deletePvFromEditor()">🗑 Löschen</button>
             <div style="display:flex;gap:8px;">
@@ -6917,6 +6962,11 @@ function calculateSystem() {
             ventilation_system_type: ventKey,
             ventilation_fan_type: fanType,
             ventilation_heat_recovery_eff: hrEff,
+            // Bedarfsregelung & Verteilung/Übergabe der Lüftung (DIN V 18599-6)
+            ventilation_room_control: document.querySelector('input[name="ventilation_room_control"]:checked')?.value || 'without',
+            ventilation_precontrol: document.querySelector('input[name="ventilation_precontrol"]:checked')?.value || 'without',
+            ventilation_distribution: document.getElementById('ventilation_distribution')?.value || 'innerhalb',
+            ventilation_outlet_arrangement: document.querySelector('input[name="ventilation_outlet_arrangement"]:checked')?.value || 'outer',
             lighting_lamp: document.getElementById('lighting_lamp')?.value || 'led_leuchte',
             lighting_daylight: document.getElementById('lighting_daylight')?.value || 'manual',
             lighting_presence_control: document.getElementById('lighting_presence')?.checked || false
@@ -7304,6 +7354,14 @@ function updatePVModuleData() {
 function calculatePV() {
     hidePvErrors();
     if (typeof clearStale === 'function') clearStale('pv');
+
+    // Gate: keine PV-Anlage gewählt → Ertrag 0, Bilanz ohne PV, kein Backend-Aufruf
+    if (window.pvEnabled === false) {
+        pvLastResult = null;
+        lastPvSelfConsumptionKwh = 0;
+        try { calculateBalance(); } catch (e) {}
+        return;
+    }
 
     // Flächen berechnen
     updatePVAreaCalculations();
@@ -8935,7 +8993,7 @@ async function updateDoorType() {
         clearHouse();
         const W = a.W, D = a.D, halfW = W / 2, halfD = D / 2;
         const H = a.floors * a.fh, wallTop = floorTop + H;
-        window._geo3d = { W: W, D: D, halfW: halfW, halfD: halfD, wallTop: wallTop };
+        window._geo3d = { W: W, D: D, halfW: halfW, halfD: halfD, wallTop: wallTop, floorTop: floorTop };
 
         const slab = addMesh(new THREE.BoxGeometry(W + 0.7, 0.3, D + 0.7), COL.floor, 'floor', { rough: 0.95 });
         slab.position.y = 0;
@@ -8949,7 +9007,7 @@ async function updateDoorType() {
 
         buildDoors(a, W, D, halfW, halfD);
 
-        if (a.pv) buildPV(a, W, D, wallTop, info);
+        if (a.pv && window.pvEnabled === true) buildPV(a, W, D, wallTop, info);
 
         const totalH = wallTop + info.height;
         fitView(Math.max(W, D, totalH), totalH * 0.45);
@@ -9556,6 +9614,19 @@ async function updateDoorType() {
         else buildSimple();
     };
 
+    // Aktuelle Position eines platzierten Objekts auslesen (für die Koordinaten-Eingabe
+    // im Editor). Liefert Fassaden-Koordinaten {u,v} für Fenster/Tür bzw. Dachebenen-
+    // Koordinaten {x,z} für PV – egal ob per Maus gezogen oder automatisch platziert.
+    window._itemPos = function (part, id) {
+        for (let i = 0; i < clickable.length; i++) {
+            const o = clickable[i], ud = o.userData || {};
+            if (part === 'window' && ud.windowId === id) { const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y }; }
+            if (part === 'door' && ud.doorId === id) { const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y }; }
+            if (part === 'pv' && ud.pvId === id) { return { x: o.position.x, z: o.position.z }; }
+        }
+        return null;
+    };
+
     // Haustyp-Auswähler aufbauen und Standardhaus rendern
     initPicker();
 
@@ -9604,9 +9675,25 @@ async function updateDoorType() {
         if (typeof window.renderElementLists === 'function') window.renderElementLists();
     };
 
+    // Erlaubter Positionsbereich (m) für die aktuelle Orientierung + Fenstergröße
+    function winPosRange() {
+        const g = window._geo3d || {};
+        const ori = byId('win_edit_ori').value;
+        const ns = (ori === 'south' || ori === 'north');
+        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
+        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const w = num(byId('win_edit_w').value, 1), h = num(byId('win_edit_h').value, 1.4);
+        return { ft: ft, uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, wallTop - h / 2 - ft) };
+    }
+    window.updateWinPosNote = function () {
+        const r = winPosRange(), el = byId('win_edit_posnote');
+        if (el) el.textContent = 'Erlaubt: horizontal ±' + r.uMax.toFixed(2) + ' m · Höhe ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m (wird sonst auf den Rand begrenzt)';
+    };
     window.updateWinEditArea = function () {
         const a = num(byId('win_edit_w').value, 0) * num(byId('win_edit_h').value, 0);
         const el = byId('win_edit_area'); if (el) el.textContent = (Math.round(a * 100) / 100).toString() + ' m²';
+        window.updateWinPosNote();
     };
 
     window.openWindowEditor = function (id) {
@@ -9621,6 +9708,13 @@ async function updateDoorType() {
         byId('win_edit_h').value = w.height;
         byId('win_edit_u').value = w.u;
         byId('win_edit_g').value = w.g;
+        // aktuelle Position (gezogen oder automatisch platziert) in die Felder schreiben
+        const ft = (window._geo3d && window._geo3d.floorTop != null) ? window._geo3d.floorTop : 0.2;
+        const pos = (typeof window._itemPos === 'function') ? window._itemPos('window', id) : null;
+        const pu = (pos && pos.u != null) ? pos.u : (w.posU != null ? w.posU : 0);
+        const pv = (pos && pos.v != null) ? pos.v : (w.posV != null ? w.posV : (ft + 1.2));
+        byId('win_edit_posu').value = Math.round(pu * 100) / 100;
+        byId('win_edit_posv').value = Math.round((pv - ft) * 100) / 100;
         window.updateWinEditArea();
         byId('win_modal').classList.add('show');
     };
@@ -9635,6 +9729,18 @@ async function updateDoorType() {
         w.height = Math.max(0.2, num(byId('win_edit_h').value, w.height));
         w.u = Math.max(0.1, num(byId('win_edit_u').value, w.u));
         w.g = Math.min(1, Math.max(0, num(byId('win_edit_g').value, w.g)));
+        // Position per Koordinate übernehmen (auf die Fassade begrenzt)
+        const g = window._geo3d || {};
+        const ns = (w.orientation === 'south' || w.orientation === 'north');
+        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
+        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        let pu = num(byId('win_edit_posu').value, (w.posU != null ? w.posU : 0));
+        let pv = num(byId('win_edit_posv').value, (w.posV != null ? w.posV - ft : 1.2)) + ft;
+        const uLim = Math.max(0, halfAxis - w.width / 2);
+        pu = Math.max(-uLim, Math.min(uLim, pu));
+        pv = Math.max(ft + w.height / 2, Math.min(wallTop - w.height / 2, pv));
+        w.posU = pu; w.posV = pv;
         window.aggregateWindows();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
         window.closeWindowEditor();
@@ -9715,9 +9821,24 @@ async function updateDoorType() {
         if (typeof window.renderElementLists === 'function') window.renderElementLists();
     };
 
+    function doorPosRange() {
+        const g = window._geo3d || {};
+        const ori = $('door_edit_ori').value;
+        const ns = (ori === 'south' || ori === 'north');
+        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
+        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const w = num($('door_edit_w').value, 1), h = num($('door_edit_h').value, 2.1);
+        return { ft: ft, uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, wallTop - h / 2 - ft) };
+    }
+    window.updateDoorPosNote = function () {
+        const r = doorPosRange(), el = $('door_edit_posnote');
+        if (el) el.textContent = 'Erlaubt: horizontal ±' + r.uMax.toFixed(2) + ' m · Höhe ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m (wird sonst auf den Rand begrenzt)';
+    };
     window.updateDoorEditArea = function () {
         const a = num($('door_edit_w').value, 0) * num($('door_edit_h').value, 0);
         const el = $('door_edit_area'); if (el) el.textContent = (Math.round(a * 100) / 100) + ' m²';
+        window.updateDoorPosNote();
     };
     window.openDoorEditor = function (id) {
         const d = findDoor(id); if (!d) return;
@@ -9726,6 +9847,12 @@ async function updateDoorType() {
         const sel = $('door_edit_ori');
         sel.innerHTML = ['north', 'south', 'east', 'west'].map(function (o) { return '<option value="' + o + '"' + (o === d.orientation ? ' selected' : '') + '>' + ORI[o] + '</option>'; }).join('');
         $('door_edit_w').value = d.width; $('door_edit_h').value = d.height; $('door_edit_u').value = d.u;
+        const ft = (window._geo3d && window._geo3d.floorTop != null) ? window._geo3d.floorTop : 0.2;
+        const pos = (typeof window._itemPos === 'function') ? window._itemPos('door', id) : null;
+        const pu = (pos && pos.u != null) ? pos.u : (d.posU != null ? d.posU : 0);
+        const pv = (pos && pos.v != null) ? pos.v : (d.posV != null ? d.posV : (ft + d.height / 2));
+        $('door_edit_posu').value = Math.round(pu * 100) / 100;
+        $('door_edit_posv').value = Math.round((pv - ft) * 100) / 100;
         window.updateDoorEditArea();
         $('door_modal').classList.add('show');
     };
@@ -9733,12 +9860,22 @@ async function updateDoorType() {
     window.applyDoorEditor = function () {
         const id = parseInt($('door_edit_id').value, 10);
         const d = findDoor(id); if (!d) { window.closeDoorEditor(); return; }
-        const newOri = $('door_edit_ori').value;
-        if (newOri !== d.orientation) { d.posU = null; d.posV = null; }   // andere Fassade → Position zurücksetzen
-        d.orientation = newOri;
+        d.orientation = $('door_edit_ori').value;
         d.width = Math.max(0.4, num($('door_edit_w').value, d.width));
         d.height = Math.max(0.8, num($('door_edit_h').value, d.height));
         d.u = Math.max(0.1, num($('door_edit_u').value, d.u));
+        // Position per Koordinate übernehmen (auf die Fassade begrenzt)
+        const g = window._geo3d || {};
+        const ns = (d.orientation === 'south' || d.orientation === 'north');
+        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
+        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        let pu = num($('door_edit_posu').value, (d.posU != null ? d.posU : 0));
+        let pv = num($('door_edit_posv').value, (d.posV != null ? d.posV - ft : d.height / 2)) + ft;
+        const uLim = Math.max(0, halfAxis - d.width / 2);
+        pu = Math.max(-uLim, Math.min(uLim, pu));
+        pv = Math.max(ft + d.height / 2, Math.min(wallTop - d.height / 2, pv));
+        d.posU = pu; d.posV = pv;
         window.aggregateDoors();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
         window.closeDoorEditor();
@@ -9798,15 +9935,30 @@ async function updateDoorType() {
         if (typeof window.renderElementLists === 'function') window.renderElementLists();
     };
 
+    function pvPosRange() {
+        const b = window._pvBounds || { halfX: 6, halfZ: 6 };
+        const pw = num($('pv_edit_w').value, 1.7), ph = num($('pv_edit_h').value, 1.0);
+        return { xMax: Math.max(0, b.halfX - pw / 2), zMax: Math.max(0, b.halfZ - ph / 2) };
+    }
+    window.updatePvPosNote = function () {
+        const r = pvPosRange(), el = $('pv_edit_posnote');
+        if (el) el.textContent = 'Erlaubt: quer ±' + r.xMax.toFixed(2) + ' m · längs ±' + r.zMax.toFixed(2) + ' m (wird sonst auf den Dachrand begrenzt)';
+    };
     window.updatePvEditArea = function () {
         const a = num($('pv_edit_w').value, 0) * num($('pv_edit_h').value, 0);
         const el = $('pv_edit_area'); if (el) el.textContent = (Math.round(a * 100) / 100) + ' m²';
+        window.updatePvPosNote();
     };
     window.openPvEditor = function (id) {
         const p = findPv(id); if (!p) return;
         $('pv_edit_id').value = id;
         $('pv_edit_w').value = p.width; $('pv_edit_h').value = p.height;
         $('pv_edit_tilt').value = p.tilt; $('pv_edit_az').value = p.azimuth;
+        const pos = (typeof window._itemPos === 'function') ? window._itemPos('pv', id) : null;
+        const px = (pos && pos.x != null) ? pos.x : (p.posX != null ? p.posX : 0);
+        const pz = (pos && pos.z != null) ? pos.z : (p.posZ != null ? p.posZ : 0);
+        $('pv_edit_posx').value = Math.round(px * 100) / 100;
+        $('pv_edit_posz').value = Math.round(pz * 100) / 100;
         window.updatePvEditArea();
         $('pv_modal').classList.add('show');
     };
@@ -9818,6 +9970,13 @@ async function updateDoorType() {
         p.height = Math.max(0.3, num($('pv_edit_h').value, p.height));
         p.tilt = Math.max(0, Math.min(90, num($('pv_edit_tilt').value, p.tilt)));
         p.azimuth = Math.max(-180, Math.min(180, num($('pv_edit_az').value, p.azimuth)));
+        // Position auf dem Dach per Koordinate übernehmen (auf den Dachrand begrenzt)
+        const b = window._pvBounds || { halfX: 6, halfZ: 6 };
+        const xLim = Math.max(0, b.halfX - p.width / 2), zLim = Math.max(0, b.halfZ - p.height / 2);
+        let px = num($('pv_edit_posx').value, (p.posX != null ? p.posX : 0));
+        let pz = num($('pv_edit_posz').value, (p.posZ != null ? p.posZ : 0));
+        p.posX = Math.max(-xLim, Math.min(xLim, px));
+        p.posZ = Math.max(-zLim, Math.min(zLim, pz));
         window.aggregatePV();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
         window.closePvEditor();
@@ -9846,6 +10005,43 @@ async function updateDoorType() {
         setTimeout(function () { if (Array.isArray(window.pvList) && typeof window.aggregatePV === 'function') window.aggregatePV({ recalc: false }); }, 1000);
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { const m = $('pv_modal'); if (m && m.classList.contains('show')) window.closePvEditor(); } });
+})();
+</script>
+
+<!-- ===================== Photovoltaik vorhanden? (Ja/Nein-Gate) ===================== -->
+<script>
+(function () {
+    "use strict";
+    // Standard: noch keine Auswahl → wie „Nein" (keine PV im Modell, Inhalt verborgen).
+    if (typeof window.pvEnabled === 'undefined') window.pvEnabled = false;
+
+    // Nur die Gate-Oberfläche (Buttons, Inhalt, Hinweis) an window.pvEnabled angleichen.
+    window._pvGateUI = function () {
+        const on = window.pvEnabled === true;
+        const body = document.getElementById('pv_body');
+        if (body) body.style.display = on ? '' : 'none';
+        const yes = document.getElementById('pv_gate_yes'), no = document.getElementById('pv_gate_no');
+        if (yes) yes.classList.toggle('active', on);
+        if (no) no.classList.toggle('active', !on);
+        const hint = document.getElementById('pv_gate_hint');
+        if (hint) hint.textContent = on
+            ? '✓ PV aktiv – Werte unten und Module im 3D-Modell sichtbar.'
+            : 'Keine PV – im 3D-Modell wird keine Anlage angezeigt und sie zählt nicht zur Energiebilanz.';
+    };
+
+    // Auswahl setzen: Oberfläche, 3D-Modell und Bilanz aktualisieren.
+    window.setPvEnabled = function (on) {
+        window.pvEnabled = !!on;
+        window._pvGateUI();
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();   // PV im Modell ein/aus
+        if (typeof window.markStale === 'function') window.markStale('pv');
+        if (typeof calculatePV === 'function') { try { calculatePV(); } catch (e) {} }
+    };
+
+    // Anfangszustand herstellen (Inhalt verborgen, kein PV im Modell).
+    window.addEventListener('load', function () {
+        setTimeout(function () { if (typeof window._pvGateUI === 'function') window._pvGateUI(); }, 300);
+    });
 })();
 </script>
 
@@ -9895,7 +10091,7 @@ async function updateDoorType() {
     let models = [];
     function loadModels() { try { const raw = localStorage.getItem(LS); models = raw ? JSON.parse(raw) : []; } catch (e) { models = []; } if (!Array.isArray(models)) models = []; }
     function persistModels() { try { localStorage.setItem(LS, JSON.stringify(models)); } catch (e) {} }
-    function capture() { return { windowsList: window.windowsList || [], doorsList: window.doorsList || [], pvList: window.pvList || [], winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0 }; }
+    function capture() { return { windowsList: window.windowsList || [], doorsList: window.doorsList || [], pvList: window.pvList || [], winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0, pvEnabled: window.pvEnabled === true }; }
     function apply(o) {
         if (!o) return;
         if (Array.isArray(o.windowsList)) window.windowsList = o.windowsList;
@@ -9904,11 +10100,14 @@ async function updateDoorType() {
         if (o.winSeq) window._winSeq = Math.max(window._winSeq || 0, o.winSeq);
         if (o.doorSeq) window._doorSeq = Math.max(window._doorSeq || 0, o.doorSeq);
         if (o.pvSeq) window._pvSeq = Math.max(window._pvSeq || 0, o.pvSeq);
+        // PV-Ja/Nein wiederherstellen (alte Stände ohne Feld → aus PV-Liste ableiten)
+        window.pvEnabled = (typeof o.pvEnabled === 'boolean') ? o.pvEnabled : (Array.isArray(o.pvList) && o.pvList.length > 0);
     }
     function syncAll() {
         if (window.aggregateWindows) window.aggregateWindows();
         if (window.aggregateDoors) window.aggregateDoors();
         if (window.aggregatePV) window.aggregatePV({ recalc: false });
+        if (window._pvGateUI) window._pvGateUI();
         if (window._rebuild3D) window._rebuild3D();
         window.renderElementLists();
     }
@@ -9990,7 +10189,8 @@ async function updateDoorType() {
             fields: fields,
             wall_layers: layerDump('wall_layers_container'), roof_layers: layerDump('roof_layers_container'), floor_layers: layerDump('floor_layers_container'),
             windowsList: window.windowsList || [], doorsList: window.doorsList || [], pvList: window.pvList || [],
-            winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0
+            winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0,
+            pvEnabled: window.pvEnabled === true
         };
     }
     function restoreLayers(kind, arr) {
@@ -10019,9 +10219,12 @@ async function updateDoorType() {
         window._winSeq = Math.max(window._winSeq || 0, s.winSeq || 0);
         window._doorSeq = Math.max(window._doorSeq || 0, s.doorSeq || 0);
         window._pvSeq = Math.max(window._pvSeq || 0, s.pvSeq || 0);
+        // PV-Ja/Nein wiederherstellen (alte Projekte ohne Feld → aus PV-Liste ableiten)
+        window.pvEnabled = (typeof s.pvEnabled === 'boolean') ? s.pvEnabled : ((s.pvList || []).length > 0);
         if (window.aggregateWindows) window.aggregateWindows();
         if (window.aggregateDoors) window.aggregateDoors();
         if (window.aggregatePV) window.aggregatePV({ recalc: false });
+        if (window._pvGateUI) window._pvGateUI();
         if (window._rebuild3D) window._rebuild3D();
         if (window.renderElementLists) window.renderElementLists();
     }
