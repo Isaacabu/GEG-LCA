@@ -16,6 +16,8 @@ output/
 din_texts/
 *18599*.pdf
 DIN_4108/
+Din En ISO/
+*ISO 140*.pdf
 scripts/_din_render/
 scripts/_din4108_text/
 docs/din_pdfs/*

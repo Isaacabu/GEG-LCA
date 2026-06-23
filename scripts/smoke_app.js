@@ -97,7 +97,7 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     await page.click('[data-d48="tau"]');
     await page.click('button:has-text("Tauwasser berechnen")');
     await page.waitForSelector("#d48-tau-res .d48-badge", { timeout: 5000 });
-    step((await page.textContent("#d48-tau-res")).includes("U ="), "DIN 4108: Tauwasser (Glaser)");
+    step((await page.textContent("#d48-tau-res")).includes("Tauwasser M_c"), "DIN 4108: Tauwasser (Glaser)");
     await page.click('[data-d48="wbl"]');
     await page.click('button:has-text("Luftdichtheit prüfen")');
     await page.waitForSelector("#d48-n50-res .d48-badge", { timeout: 5000 });

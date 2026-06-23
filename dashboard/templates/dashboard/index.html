@@ -1369,6 +1369,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
   align-items: start;
 }
 .wall-layers-table { min-width: 0; }
+.layer-bc { display: flex; align-items: stretch; gap: 8px; margin: 0 0 10px; font-size: 12px; }
+.layer-bc-side { border-radius: 7px; padding: 6px 12px; text-align: center; font-weight: 800; line-height: 1.25; white-space: nowrap; }
+.layer-bc-side small { display: block; font-weight: 600; font-size: 10.5px; opacity: .9; }
+.layer-bc-in { background: rgba(246,185,75,.16); border: 1px solid #b5882f; color: #f6b94b; }
+.layer-bc-out { background: rgba(56,189,248,.14); border: 1px solid #2a6f97; color: #7fd0f8; }
+.layer-bc-mid { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #9bb4c8; font-weight: 700; letter-spacing: .02em; border-bottom: 1px dashed #2a4a73; }
 .layer-saver { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 10px; }
 .layer-saver .btn { padding: 6px 12px; font-size: 13px; }
 .layer-saver .layer-save-btn { background: linear-gradient(135deg, #10b981, #0ea5b7); border: 0; color: #06231c; font-weight: 800; padding: 9px 18px; font-size: 14px; }
@@ -2073,6 +2079,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <select id="wall_saved_select" class="layer-saver-sel" onchange="loadLayerBuild('wall', this.value)"><option value="">📂 Gespeicherten Aufbau laden …</option></select>
                         <button type="button" class="btn" onclick="deleteLayerBuild('wall')" title="Ausgewählten gespeicherten Aufbau löschen">🗑</button>
                     </div>
+                    <div class="layer-bc" title="Wärmeübergangswiderstände nach DIN EN ISO 6946 / DIN 4108: innen R_si, außen R_se">
+                        <span class="layer-bc-side layer-bc-in">INNEN<small>R_si 0,13</small></span>
+                        <span class="layer-bc-mid">Reihenfolge: oben = innen → unten = außen</span>
+                        <span class="layer-bc-side layer-bc-out">AUSSEN<small>R_se 0,04</small></span>
+                    </div>
                     <div class="wall-layers-header">
                         <span class="wl-col-num">#</span>
                         <span class="wl-col-type">Schichttyp</span>
@@ -2166,6 +2177,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <option value="aussenluft" selected>Außenluft</option>
                                 <option value="erdreich">Erdreich</option>
                                 <option value="unbeheizt">Unbeheizter Raum</option>
+                                <option value="niedrig_beheizt">Niedrig beheizter Raum (~16 °C)</option>
                                 <option value="beheizt">Beheizter Raum</option>
                             </select>
                             <input type="number" id="north_boundary_temp" style="display:none;margin-top:6px;" step="0.5" placeholder="Temp °C" oninput="onWallBoundaryTempChange('north')">
@@ -2177,6 +2189,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <option value="aussenluft" selected>Außenluft</option>
                                 <option value="erdreich">Erdreich</option>
                                 <option value="unbeheizt">Unbeheizter Raum</option>
+                                <option value="niedrig_beheizt">Niedrig beheizter Raum (~16 °C)</option>
                                 <option value="beheizt">Beheizter Raum</option>
                             </select>
                             <input type="number" id="south_boundary_temp" style="display:none;margin-top:6px;" step="0.5" placeholder="Temp °C" oninput="onWallBoundaryTempChange('south')">
@@ -2188,6 +2201,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <option value="aussenluft" selected>Außenluft</option>
                                 <option value="erdreich">Erdreich</option>
                                 <option value="unbeheizt">Unbeheizter Raum</option>
+                                <option value="niedrig_beheizt">Niedrig beheizter Raum (~16 °C)</option>
                                 <option value="beheizt">Beheizter Raum</option>
                             </select>
                             <input type="number" id="east_boundary_temp" style="display:none;margin-top:6px;" step="0.5" placeholder="Temp °C" oninput="onWallBoundaryTempChange('east')">
@@ -2199,6 +2213,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <option value="aussenluft" selected>Außenluft</option>
                                 <option value="erdreich">Erdreich</option>
                                 <option value="unbeheizt">Unbeheizter Raum</option>
+                                <option value="niedrig_beheizt">Niedrig beheizter Raum (~16 °C)</option>
                                 <option value="beheizt">Beheizter Raum</option>
                             </select>
                             <input type="number" id="west_boundary_temp" style="display:none;margin-top:6px;" step="0.5" placeholder="Temp °C" oninput="onWallBoundaryTempChange('west')">
@@ -2379,6 +2394,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <select id="roof_saved_select" class="layer-saver-sel" onchange="loadLayerBuild('roof', this.value)"><option value="">📂 Gespeicherten Aufbau laden …</option></select>
                                 <button type="button" class="btn" onclick="deleteLayerBuild('roof')" title="Ausgewählten gespeicherten Aufbau löschen">🗑</button>
                             </div>
+                            <div class="layer-bc" title="Wärmeübergangswiderstände nach DIN EN ISO 6946 / DIN 4108 (Wärmestrom aufwärts): innen R_si, außen R_se">
+                                <span class="layer-bc-side layer-bc-in">INNEN<small>R_si 0,10</small></span>
+                                <span class="layer-bc-mid">Reihenfolge: oben = innen (Raum) → unten = außen</span>
+                                <span class="layer-bc-side layer-bc-out">AUSSEN<small>R_se 0,04</small></span>
+                            </div>
                             <div class="wall-layers-header">
                                 <span class="wl-col-num">#</span>
                                 <span class="wl-col-type">Schichttyp</span>
@@ -2464,6 +2484,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <button type="button" class="btn layer-save-btn" onclick="saveLayerBuild('floor')">💾 Aufbau speichern</button>
                                 <select id="floor_saved_select" class="layer-saver-sel" onchange="loadLayerBuild('floor', this.value)"><option value="">📂 Gespeicherten Aufbau laden …</option></select>
                                 <button type="button" class="btn" onclick="deleteLayerBuild('floor')" title="Ausgewählten gespeicherten Aufbau löschen">🗑</button>
+                            </div>
+                            <div class="layer-bc" title="Wärmeübergangswiderstände nach DIN EN ISO 6946 / DIN 4108 (Wärmestrom abwärts): innen R_si, außen/Erdreich R_se">
+                                <span class="layer-bc-side layer-bc-in">INNEN<small>R_si 0,17</small></span>
+                                <span class="layer-bc-mid">Reihenfolge: oben = innen (Raum) → unten = außen/Erdreich</span>
+                                <span class="layer-bc-side layer-bc-out">AUSSEN<small>R_se 0,04</small></span>
                             </div>
                             <div class="wall-layers-header">
                                 <span class="wl-col-num">#</span>
@@ -2786,6 +2811,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             </label>
                             <input id="pv_roof_azimuth" type="number" step="5" min="-180" max="180" value="0" oninput="pvUpdateGeometryHint()" onchange="applyGlobalPvTiltAz()">
                         </div>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <button type="button" class="btn" onclick="pvSetOptimalAngle()" title="Setzt Neigung 32° und Ausrichtung Süd – das Jahres-Ertragsoptimum für Deutschland (DIN V 18599-9). Besonders fürs Flachdach (aufgeständerte Module)." style="padding:5px 12px;background:linear-gradient(135deg,#10b981,#0ea5b7);border:0;color:#06231c;font-weight:700;">↗ Optimaler Winkel (32° Süd)</button>
+                        <span class="small" style="color:#7fb4d8;margin-left:8px;">Ertragsoptimum für alle Module</span>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
                         <button type="button" class="btn" onclick="addPvPanel()" style="padding:4px 10px;">＋ PV-Modul</button>
@@ -3369,6 +3398,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             #din4108 .d48-addbtn{background:#e0e7ff;border:1px solid #a5b4fc;color:#3730a3;border-radius:7px;cursor:pointer;padding:7px 12px;font-size:13px;margin-top:4px}
             #din4108 .d48-bar{height:10px;border-radius:5px;background:#e2e8f0;overflow:hidden;margin-top:4px}
             #din4108 .d48-bar>span{display:block;height:100%}
+            #din4108 .d48-chart{margin-top:14px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}
+            #din4108 .d48-chart-t{font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px;line-height:1.4}
+            #din4108 .d48-chart svg{display:block;width:100%;height:auto;max-width:520px}
+            #din4108 .d48-chart .lg{font-size:10px;fill:#475569}
+            #din4108 .d48-chart-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#475569}
+            #din4108 .d48-chart-legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
             #din4108 .d48-src{font-size:11px;color:#94a3b8;margin-top:6px}
             /* Info-Box mit ℹ️ in der Ecke je Feature */
             #din4108 .d48-panel{position:relative}
@@ -3508,6 +3543,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="d48-field"><label>&nbsp;</label><button class="btn" onclick="d48ApplyDeltaUwb()" style="width:100%">In Heizbedarf übernehmen</button></div>
                 </div>
                 <div id="d48-wb-info" class="d48-src"></div>
+                <div id="d48-wb-chart"></div>
                 <hr style="margin:18px 0;border:none;border-top:1px solid #e2e8f0">
                 <div class="d48-grid">
                     <div class="d48-field"><label>n₅₀ gemessen [h⁻¹]</label><input id="d48-n50" type="number" step="0.1" value="2.0"></div>
@@ -3516,50 +3552,225 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
                 <div style="margin-top:6px"><button class="btn btn-primary" onclick="d48RunN50()">Luftdichtheit prüfen</button></div>
                 <div id="d48-n50-res"></div>
-                <div class="d48-src">Quelle: DIN 4108 Bbl 2:2019-06, §5; DIN 4108-7:2026-04, §5.</div>
+
+                <hr style="margin:20px 0;border:none;border-top:1px solid #e2e8f0">
+                <h4 style="margin:0 0 4px;color:#0f172a;font-size:15px;">🌡️ 2D-Temperaturfeld einer Wärmebrücke (Finite Elemente)</h4>
+                <p style="margin:2px 0 8px;">Echte 2D-Wärmeleitungsrechnung durch den Bauteilquerschnitt (Finite-Differenzen-Solver, ∇·(λ∇T)=0). Liefert das <b>Temperaturfeld mit Isothermen</b>, die niedrigste raumseitige <b>Oberflächentemperatur θ<sub>si,min</sub></b> und den Temperaturfaktor <b>f<sub>Rsi</sub></b> (Schimmel-/Tauwasser-Kriterium <b>≥ 0,70</b> nach DIN&nbsp;4108-2, mit R<sub>si</sub>=0,25&nbsp;m²K/W).</p>
+                <div class="d48-grid">
+                    <div class="d48-field"><label>Wärmebrücken-Typ</label><select id="fem-type">
+                        <option value="balkon">Auskragende Betonplatte / Balkon</option>
+                        <option value="sturz">Stahlbeton-Sturz / Ringanker</option>
+                        <option value="ecke">Außenwandecke</option>
+                    </select></div>
+                    <div class="d48-field"><label>Tragschicht-Dicke (cm)</label><input id="fem-d-struct" type="number" step="0.5" value="17.5"></div>
+                    <div class="d48-field"><label>λ Tragschicht (W/mK)</label><input id="fem-l-struct" type="number" step="0.05" value="0.99"></div>
+                    <div class="d48-field"><label>Dämmung-Dicke (cm)</label><input id="fem-d-ins" type="number" step="0.5" value="14"></div>
+                    <div class="d48-field"><label>λ Dämmung (W/mK)</label><input id="fem-l-ins" type="number" step="0.005" value="0.035"></div>
+                    <div class="d48-field"><label>λ Beton (Brücke, W/mK)</label><input id="fem-l-conc" type="number" step="0.1" value="2.3"></div>
+                    <div class="d48-field"><label>θ innen (°C)</label><input id="fem-ti" type="number" step="0.5" value="20"></div>
+                    <div class="d48-field"><label>θ außen (°C)</label><input id="fem-te" type="number" step="0.5" value="-5"></div>
+                </div>
+                <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="femRun()">Temperaturfeld berechnen</button>
+                    <button class="d48-addbtn" onclick="femPrefillFromWall()" title="λ und Dicken aus dem Wand-Schichtaufbau im Hülle-Tab übernehmen">↻ Werte aus Wand übernehmen</button>
+                </div>
+                <div id="fem-res"></div>
+                <div id="fem-canvas-wrap" style="display:none;margin-top:12px;">
+                    <canvas id="fem-canvas" style="max-width:100%;height:auto;border:1px solid #cbd5e1;border-radius:8px;background:#fff;"></canvas>
+                    <div id="fem-legend" style="margin-top:6px;"></div>
+                </div>
+                <div class="d48-infobox open" style="margin-top:12px;">
+                    <b>Was zeigt dieses Bild?</b> Eine <b>Wärmebrücke</b> ist eine Stelle im Bauteil, an der die Wärme
+                    leichter nach außen entweicht als in der ungestörten Fläche – z. B. eine durchlaufende Betonplatte
+                    (Balkon), ein Sturz oder eine Gebäudeecke. Das farbige Bild ist das <b>berechnete Temperaturfeld</b>
+                    im Querschnitt: <b style="color:#c0392b;">rot/gelb = warm (innen)</b>, <b style="color:#1d4ed8;">blau = kalt (außen)</b>.
+                    Die Linien (<b>Isothermen</b>) verbinden Punkte gleicher Temperatur.
+                    <br><br>
+                    Entscheidend ist die <b>niedrigste Temperatur an der Raumoberfläche θ<sub>si,min</sub></b> (schwarzer Punkt).
+                    Wird sie zu kalt, schlägt sich dort Luftfeuchte nieder → <b>Schimmelgefahr</b>. Gemessen wird das mit dem
+                    <b>Temperaturfaktor f<sub>Rsi</sub></b> = (θ<sub>si</sub> − θ<sub>außen</sub>) / (θ<sub>innen</sub> − θ<sub>außen</sub>).
+                    Er muss <b>≥ 0,70</b> sein – dann bleibt die Oberfläche bei üblichem Raumklima (20 °C / 50 % Luftfeuchte) trocken
+                    und schimmelfrei. Berührt eine Isotherme die kritische rote Linie nicht, ist alles im grünen Bereich.
+                    <span class="src">Kriterium: DIN 4108-2:2026-05, §6.</span>
+                </div>
+                <div class="d48-src" style="margin-top:10px;">Solver: stationäre 2D-Wärmeleitung (Finite-Differenzen, Gauss-Seidel/SOR) mit Oberflächenwiderständen R<sub>si</sub>/R<sub>se</sub>. Bewertung f<sub>Rsi</sub> nach DIN&nbsp;4108-2:2026-05, §6 (Mindest-Oberflächentemperatur / Schimmelfreiheit).</div>
+
+                <div class="d48-src">Quelle: DIN 4108 Bbl 2:2019-06, §5; DIN 4108-7:2026-04, §5; f_Rsi nach DIN 4108-2:2026-05, §6.</div>
             </div>
         </div>
     </div>
 
     <!-- ===================== Ökobilanz (LCA) ===================== -->
     <div id="lca" class="tab">
+        <style>
+            #lca .lca-i{background:#13243d;border:1px solid #2a4a73;color:#cfe0f2;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;margin:6px 0 4px}
+            #lca .lca-i:hover{border-color:#38bdf8}
+            #lca .lca-infobox{display:none;margin:4px 0 8px;padding:14px 16px;border-radius:10px;background:rgba(56,189,248,.06);border:1px solid #21456d;color:#cfe0f2;font-size:13px;line-height:1.55}
+            #lca .lca-infobox.open{display:block}
+            #lca .lca-infobox b{color:#fff}
+            #lca .lca-infobox .src{display:block;margin-top:8px;color:#8aa7c4;font-size:11px}
+            #lca .lca-cycle{margin:12px 0 2px}
+            #lca .lca-cyc-row{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+            #lca .lca-cyc-box{flex:1 1 0;min-width:120px;background:#0f2138;border:1px solid #2a4a73;border-radius:9px;padding:9px 11px;font-size:12.5px;font-weight:600;color:#e7edf5;text-align:center;display:flex;align-items:center;justify-content:center}
+            #lca .lca-cyc-arr{display:flex;align-items:center;color:#7fb4d8;font-size:16px;font-weight:700}
+            #lca .lca-cyc-down{text-align:center;color:#7fb4d8;font-size:12px;margin:7px 0}
+            #lca .lca-cyc-wide{background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(56,189,248,.10));border-color:#10b981}
+            #lca .lca-phase{margin-top:18px}
+            #lca .lca-phase-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+            #lca .lca-phase-no{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10b981,#0ea5b7);color:#06231c;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
+            #lca .lca-phase-t{font-size:16px;font-weight:800;color:#e7edf5}
+            #lca .lca-phase-src{font-size:11px;color:#8aa7c4;margin-top:1px}
+            #lca .lca-scope{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+            #lca .lca-scope th,#lca .lca-scope td{text-align:left;padding:6px 8px;border-bottom:1px solid #16314d}
+            #lca .lca-scope th{color:#9bb4c8;font-weight:600;border-bottom:2px solid #21456d}
+            #lca .lca-scope .yes{color:#34d399;font-weight:700}
+            #lca .lca-scope .no{color:#f08a8a}
+            #lca .lca-scope .opt{color:#f6b94b}
+            #lca .lca-def{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+            #lca .lca-def>div{flex:1 1 220px;background:#0f2138;border:1px solid #21456d;border-radius:9px;padding:10px 12px}
+            #lca .lca-def .k{font-size:11px;color:#9bb4c8;text-transform:uppercase;letter-spacing:.04em}
+            #lca .lca-def .v{font-size:13.5px;color:#e7edf5;margin-top:3px;line-height:1.5}
+            #lca .lca-interpret h4{margin:2px 0 4px;font-size:13px;color:#7fb4d8}
+            #lca .lca-interpret ul{margin:0 0 10px 18px;padding:0;font-size:13.5px;color:#dbe6f2;line-height:1.55}
+            #lca .lca-int-part{background:#0f2138;border:1px solid #21456d;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+            #lca .lca-int-head{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+            #lca .lca-int-head .field{margin:0}
+            #lca .lca-int-head label{font-size:11px;color:#9bb4c8;display:block;margin-bottom:3px}
+            #lca .lca-int-head input{background:#0a1830;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:6px 8px}
+            #lca .lca-int-name{width:200px} #lca .lca-int-area{width:120px}
+            #lca .lca-int-del{margin-left:auto;background:#7f1d1d;border:1px solid #7f1d1d;color:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;height:34px}
+            #lca .lca-int-gwp{font-size:12.5px;color:#cfe0f2;margin-top:6px}
+            #lca .lca-int-gwp b{color:#f6b94b}
+        </style>
         <div class="panel">
             <h2 class="section-title">🌍 Ökobilanz (LCA)</h2>
-            <p class="note">Lebenszyklus-Treibhausgase des Gebäudes (Ansatz <strong>DIN EN 15978</strong>): <strong>Herstellung A1–A3</strong> (graue Emissionen aus ÖKOBAUDAT) + <strong>Betrieb B6</strong> (Betriebs-CO₂ aus der Energiebilanz) über den Betrachtungszeitraum, optional <strong>Lebensende C</strong> als Zuschlag.</p>
+            <p class="note">Lebenszyklus-Treibhausgase des Gebäudes nach dem Ökobilanz-Rahmenwerk
+               <strong>DIN&nbsp;EN&nbsp;ISO&nbsp;14040/14044</strong>. Bilanziert werden die Lebenswegmodule nach
+               <strong>DIN&nbsp;EN&nbsp;15978</strong>: <strong>Herstellung A1–A3</strong> (graue Emissionen aus ÖKOBAUDAT)
+               + <strong>Betrieb B6</strong> (Betriebs-CO₂ aus der Energiebilanz), optional <strong>Lebensende C</strong>.</p>
+
+            <button class="lca-i" onclick="lcaToggleInfo(this)">ℹ️ Methodik – die vier Phasen einer Ökobilanz (ISO 14040/14044)</button>
+            <div class="lca-infobox">
+                <b>Eine Ökobilanz läuft nach ISO 14040 (Bild 1) in vier Phasen ab</b>, die sich gegenseitig
+                bedingen und iterativ durchlaufen werden:
+                <div class="lca-cycle">
+                    <div class="lca-cyc-row">
+                        <div class="lca-cyc-box">1 · Ziel &amp; Untersuchungs&shy;rahmen</div>
+                        <div class="lca-cyc-arr">⇄</div>
+                        <div class="lca-cyc-box">2 · Sachbilanz<br>(LCI)</div>
+                        <div class="lca-cyc-arr">⇄</div>
+                        <div class="lca-cyc-box">3 · Wirkungs&shy;abschätzung (LCIA)</div>
+                    </div>
+                    <div class="lca-cyc-down">↕ &nbsp;iterativ – jede Phase wirkt auf die Auswertung&nbsp; ↕</div>
+                    <div class="lca-cyc-box lca-cyc-wide">4 · Auswertung (Interpretation)</div>
+                </div>
+                Dieser Tab bildet genau diese vier Phasen ab: Du legst Ziel &amp; Rahmen (funktionelle Einheit,
+                Systemgrenze) fest, das Tool stellt die Sachbilanz aus Materialmengen und Energieflüssen
+                zusammen, rechnet die Wirkungskategorie <b>Treibhauspotenzial (GWP)</b> aus und liefert die
+                Auswertung mit den signifikanten Parametern.
+                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #21456d;">
+                    <b>Warum drei Normen?</b> Sie ergänzen sich: <b>DIN&nbsp;EN&nbsp;ISO&nbsp;14040/14044</b> liefert
+                    den allgemeinen LCA-Rahmen (die vier Phasen oben). <b>DIN&nbsp;EN&nbsp;15978</b> wendet ihn auf
+                    <b>Gebäude</b> an und legt die Lebenswegmodule (A1–A3, B6, C, D) der Systemgrenze fest.
+                    <b>DIN&nbsp;EN&nbsp;15804</b> liefert die Produkt-Kennwerte (EPDs) – die Datenbasis von ÖKOBAUDAT.
+                </div>
+                <span class="src">Quelle: DIN&nbsp;EN&nbsp;ISO&nbsp;14040:2021-02 §4.2/§5; DIN&nbsp;EN&nbsp;ISO&nbsp;14044:2021-02 §4. Module nach DIN&nbsp;EN&nbsp;15978; Produktdaten nach DIN&nbsp;EN&nbsp;15804.</span>
+            </div>
 
             <div class="card" style="margin-top:14px;">
                 <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="calculateLCA(true)" style="padding:10px 18px;font-weight:700;">🌍 LCA auswerten</button>
-                    <div class="field" style="max-width:180px;"><label>Betrachtungszeitraum (Jahre)</label><input id="lca_years" type="number" min="1" max="100" value="50" onchange="calculateLCA()"></div>
-                    <div class="field" style="max-width:210px;"><label>Lebensende C (% von A1–A3)</label><input id="lca_eol_pct" type="number" min="0" max="100" value="0" onchange="calculateLCA()" title="Grober Zuschlag für Entsorgung/Recycling (Module C) als Anteil der Herstellungsemissionen"></div>
+                    <div id="lca_status" class="small" style="color:#7fb4d8;"></div>
                 </div>
-                <div id="lca_status" class="small" style="margin-top:8px;color:#7fb4d8;"></div>
             </div>
 
-            <div class="card" id="lca_hero" style="margin-top:16px;text-align:center;">
-                <div class="small" style="color:#9bb;">Lebenszyklus-CO₂ gesamt (über <span id="lca_hero_years">50</span> Jahre)</div>
-                <div style="font-size:34px;font-weight:800;color:#f6b94b;font-family:'JetBrains Mono',ui-monospace,monospace;margin:6px 0;" id="lca_hero_total">—</div>
-                <div class="small" style="color:#cfe0f2;" id="lca_hero_spec">Auf „🌍 LCA auswerten" klicken.</div>
+            <!-- ===== PHASE 1: Ziel & Untersuchungsrahmen ===== -->
+            <div class="lca-phase">
+                <div class="lca-phase-head"><span class="lca-phase-no">1</span><div>
+                    <div class="lca-phase-t">Festlegung von Ziel &amp; Untersuchungsrahmen</div>
+                    <div class="lca-phase-src">DIN EN ISO 14040 §5.2 · DIN EN ISO 14044 §4.2</div></div></div>
+                <div class="card">
+                    <div class="lca-def">
+                        <div><div class="k">Ziel der Studie</div><div class="v">Treibhausgas-Bilanz (GWP) des Gebäudes über seinen Lebensweg – Vergleich von Herstellung und Betrieb zur Optimierung.</div></div>
+                        <div><div class="k">Funktionelle Einheit</div><div class="v" id="lca_fu_val">Das gesamte Gebäude über den Betrachtungszeitraum (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr).</div></div>
+                    </div>
+                    <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-top:12px;">
+                        <div class="field" style="max-width:200px;margin:0;"><label>Betrachtungszeitraum (Jahre)</label><input id="lca_years" type="number" min="1" max="100" value="50" onchange="calculateLCA()"></div>
+                        <div class="field" style="max-width:230px;margin:0;"><label>Lebensende C (% von A1–A3)</label><input id="lca_eol_pct" type="number" min="0" max="100" value="0" onchange="calculateLCA()" title="Grober Zuschlag für Entsorgung/Recycling (Module C) als Anteil der Herstellungsemissionen"></div>
+                    </div>
+                    <h3 style="margin:16px 0 4px;font-size:14px;">Systemgrenze (Module nach DIN EN 15978)</h3>
+                    <table class="lca-scope">
+                        <thead><tr><th>Modul</th><th>Lebenswegabschnitt</th><th>im Bilanzraum?</th></tr></thead>
+                        <tbody>
+                            <tr><td>A1–A3</td><td>Herstellung (Rohstoffe → Werk)</td><td class="yes">✓ enthalten · ÖKOBAUDAT 2024</td></tr>
+                            <tr><td>A4–A5</td><td>Transport &amp; Einbau auf der Baustelle</td><td class="no">– nicht bilanziert</td></tr>
+                            <tr><td>B1–B5</td><td>Instandhaltung, Reparatur, Austausch</td><td class="no">– nicht bilanziert</td></tr>
+                            <tr><td>B6</td><td>Betriebliche Energie</td><td class="yes">✓ enthalten · DIN V 18599</td></tr>
+                            <tr><td>B7</td><td>Betriebliches Wasser</td><td class="no">– nicht bilanziert</td></tr>
+                            <tr><td>C1–C4</td><td>Lebensende (Rückbau, Entsorgung)</td><td class="opt">○ optional (pauschaler %-Zuschlag)</td></tr>
+                            <tr><td>D</td><td>Gutschriften / Recyclingpotenzial</td><td class="no">– nicht bilanziert</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="lca-def" style="margin-top:12px;">
+                        <div><div class="k">Datenquellen &amp; Datenqualität (§5.2.4)</div><div class="v">Herstellung: generische ÖKOBAUDAT-2024-Datensätze (Modul A1–A3, GWP-total), repräsentativ für Deutschland. Betrieb: Betriebs-CO₂ aus der DIN-V-18599-Energiebilanz (GEG-2024-Faktoren).</div></div>
+                        <div><div class="k">Abschneidekriterien (§5.2.3)</div><div class="v">Bauteile ohne hinterlegten ÖKOBAUDAT-Datensatz (z. B. manche Fenster/PV-Module) bleiben in A1–A3 unberücksichtigt; Wirkung auf das Gesamtergebnis i. d. R. gering.</div></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="stats" id="lca_stats" style="margin-top:16px;">
-                <div class="stat-box"><div class="label">Herstellung A1–A3 (einmalig)</div><div class="value" id="lca_embodied">—</div></div>
-                <div class="stat-box"><div class="label">Betrieb B6 pro Jahr</div><div class="value" id="lca_op_year">—</div></div>
-                <div class="stat-box"><div class="label">Betrieb über Zeitraum</div><div class="value" id="lca_op_period">—</div></div>
-                <div class="stat-box" id="lca_eol_box" style="display:none;"><div class="label">Lebensende C (Schätzung)</div><div class="value" id="lca_eol">—</div></div>
+            <!-- ===== PHASE 2: Sachbilanz (LCI) ===== -->
+            <div class="lca-phase">
+                <div class="lca-phase-head"><span class="lca-phase-no">2</span><div>
+                    <div class="lca-phase-t">Sachbilanz (LCI)</div>
+                    <div class="lca-phase-src">DIN EN ISO 14040 §5.3 · DIN EN ISO 14044 §4.3</div></div></div>
+                <div class="card">
+                    <h3>Materialinventar – graue Emissionen je Bauteil (A1–A3)</h3>
+                    <p class="note" style="margin:2px 0 8px;">Erhebung der Inputs: Materialmengen aus den Schichtaufbauten (Wand/Dach/Boden + Tür) × ÖKOBAUDAT-Kennwert. Der Energiefluss für den Betrieb (B6) stammt als zweiter Inventarstrom aus der Energiebilanz.</p>
+                    <div id="lca_breakdown" style="overflow-x:auto;margin-top:6px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+                </div>
+
+                <div class="card" style="margin-top:14px;">
+                    <h3>Interne Bauteile (nur LCA)</h3>
+                    <p class="note" style="margin:2px 0 10px;">Innenwände, Treppenhaus, Geschossdecken usw. zählen <strong>nicht</strong> zur Wärmehülle (GEG/Heizwärmebedarf), verursachen aber Material-Emissionen. Sie fließen <strong>nur</strong> in die graue-Emissionen-Summe (A1–A3) ein. Pro Bauteil: Name, Fläche und vollständiger Schichtaufbau (wie bei der Wand).</p>
+                    <div id="lca_internal_list"></div>
+                    <button type="button" class="btn btn-primary" onclick="addInternalPart()" style="margin-top:6px;padding:7px 14px;">＋ Internes Bauteil</button>
+                </div>
             </div>
 
-            <div class="card" style="margin-top:16px;">
-                <h3>Verteilung über den Lebenszyklus</h3>
-                <div id="lca_bar" style="margin-top:10px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+            <!-- ===== PHASE 3: Wirkungsabschätzung (LCIA) ===== -->
+            <div class="lca-phase">
+                <div class="lca-phase-head"><span class="lca-phase-no">3</span><div>
+                    <div class="lca-phase-t">Wirkungsabschätzung (LCIA)</div>
+                    <div class="lca-phase-src">DIN EN ISO 14040 §5.4 · DIN EN ISO 14044 §4.4</div></div></div>
+                <p class="note" style="margin:0 0 8px;">Wirkungskategorie: <strong>Treibhauspotenzial (GWP, kg CO₂-Äquivalent)</strong>. Weitere Kategorien (Versauerung, Eutrophierung, Primärenergie …) sind methodisch möglich, hier aber nicht ausgewertet.</p>
+                <div class="card" id="lca_hero" style="text-align:center;">
+                    <div class="small" style="color:#9bb;">Lebenszyklus-CO₂ gesamt (über <span id="lca_hero_years">50</span> Jahre)</div>
+                    <div style="font-size:34px;font-weight:800;color:#f6b94b;font-family:'JetBrains Mono',ui-monospace,monospace;margin:6px 0;" id="lca_hero_total">—</div>
+                    <div class="small" style="color:#cfe0f2;" id="lca_hero_spec">Auf „🌍 LCA auswerten" klicken.</div>
+                </div>
+                <div class="stats" id="lca_stats" style="margin-top:14px;">
+                    <div class="stat-box"><div class="label">Herstellung A1–A3 (einmalig)</div><div class="value" id="lca_embodied">—</div></div>
+                    <div class="stat-box"><div class="label">Betrieb B6 pro Jahr</div><div class="value" id="lca_op_year">—</div></div>
+                    <div class="stat-box"><div class="label">Betrieb über Zeitraum</div><div class="value" id="lca_op_period">—</div></div>
+                    <div class="stat-box" id="lca_eol_box" style="display:none;"><div class="label">Lebensende C (Schätzung)</div><div class="value" id="lca_eol">—</div></div>
+                </div>
+                <div class="card" style="margin-top:14px;">
+                    <h3>Verteilung über den Lebenszyklus</h3>
+                    <div id="lca_bar" style="margin-top:10px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+                </div>
             </div>
 
-            <div class="card" style="margin-top:16px;">
-                <h3>Graue Emissionen je Bauteil (A1–A3)</h3>
-                <div id="lca_breakdown" style="overflow-x:auto;margin-top:10px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+            <!-- ===== PHASE 4: Auswertung (Interpretation) ===== -->
+            <div class="lca-phase">
+                <div class="lca-phase-head"><span class="lca-phase-no">4</span><div>
+                    <div class="lca-phase-t">Auswertung (Interpretation)</div>
+                    <div class="lca-phase-src">DIN EN ISO 14040 §5.5 · DIN EN ISO 14044 §4.5</div></div></div>
+                <div class="card">
+                    <div id="lca_interpret" class="lca-interpret"><div class="small" style="color:#9bb;">Nach „🌍 LCA auswerten" erscheint hier die normgerechte Auswertung: signifikante Parameter, Beurteilung (Vollständigkeit/Konsistenz/Sensitivität) sowie Schlussfolgerungen und Einschränkungen.</div></div>
+                </div>
             </div>
 
-            <p class="note" style="margin-top:10px;">Herstellung A1–A3 aus ÖKOBAUDAT 2024 (Schichtaufbauten Wand/Dach/Boden + Tür). Betrieb B6 = Betriebs-CO₂ aus der Energiebilanz × Jahre. Bauteile ohne hinterlegten Datensatz (z. B. manche Fenster/Module) fließen nicht in A1–A3 ein. Vereinfachter Ansatz – keine vollständige Ökobilanz über alle Module (A4/A5, B1–B5, D nicht enthalten).</p>
+            <p class="note" style="margin-top:14px;">Vereinfachte Ökobilanz nach ISO 14040/14044 mit der Wirkungskategorie GWP. Herstellung A1–A3 aus ÖKOBAUDAT 2024, Betrieb B6 aus der DIN-V-18599-Energiebilanz × Jahre, Lebensende C als pauschaler Zuschlag. Nicht enthalten: Module A4/A5, B1–B5, B7, D. Eine vollständige, kritisch geprüfte Ökobilanz (ISO 14044 §6) erfordert zusätzlich diese Module und ggf. weitere Wirkungskategorien.</p>
         </div>
     </div>
 
@@ -6181,6 +6392,14 @@ function aggregateRoofs() {
     });
     const pv = document.getElementById('pv_roof_tilt');
     if (pv && best && best.tilt != null) { pv.value = best.tilt; if (typeof pvUpdateGeometryHint === 'function') pvUpdateGeometryHint(); }
+    // Flachdach (kein Steildach erkannt): flache/0°-Neigung ist ertragsschwach → auf das
+    // Optimum 32° (Süd) aufständern. Eine bewusst gesetzte Neigung (>5°) bleibt erhalten.
+    else if (pv && !best && (parseFloat(pv.value) || 0) <= 5) {
+        pv.value = 32;
+        const az = document.getElementById('pv_roof_azimuth'); if (az && !az.value) az.value = 0;
+        if (typeof applyGlobalPvTiltAz === 'function') applyGlobalPvTiltAz();
+        if (typeof pvUpdateGeometryHint === 'function') pvUpdateGeometryHint();
+    }
 
     const sum = document.getElementById('roof_total_summary');
     if (sum) {
@@ -6586,6 +6805,7 @@ const WALL_BOUNDARY_DEFAULT_TEMP = {
     erdreich:    10,
     grundwasser: 10,
     unbeheizt:   10,
+    niedrig_beheizt: 16,
     beheizt:     20,
 };
 
@@ -6606,8 +6826,9 @@ function getWallFxFactor(orientation) {
         case 'erdreich':     return 0.60;
         case 'grundwasser':  return 0.80;
         case 'unbeheizt':
+        case 'niedrig_beheizt':
         case 'beheizt': {
-            // Für unbeheizten und beheizten Nachbarraum: F_x aus Nachbartemperatur berechnen.
+            // Für (niedrig) beheizten/unbeheizten Nachbarraum: F_x aus Nachbartemperatur berechnen.
             const fallback = WALL_BOUNDARY_DEFAULT_TEMP[entry.type];
             const tAdj = (entry.temp !== undefined && entry.temp !== null && !isNaN(entry.temp)) ? entry.temp : fallback;
             const fx = (tIn - tAdj) / dT;
@@ -6624,7 +6845,7 @@ function onWallBoundaryTypeChange(orientation) {
     const tempInput = document.getElementById(`${orientation}_boundary_temp`);
     if (!select) return;
     const type = select.value;
-    const needsTemp = (type === 'unbeheizt' || type === 'beheizt');
+    const needsTemp = (type === 'unbeheizt' || type === 'niedrig_beheizt' || type === 'beheizt');
     if (tempInput) {
         tempInput.style.display = needsTemp ? 'block' : 'none';
         if (needsTemp) {
@@ -8922,7 +9143,7 @@ async function updateDoorType() {
         window._pvSeq = window._pvSeq || 0;
         const tilt0 = parseFloat((document.getElementById('pv_roof_tilt') || {}).value);
         const az0 = parseFloat((document.getElementById('pv_roof_azimuth') || {}).value);
-        const t = isFinite(tilt0) ? tilt0 : (info.type === 'flat' ? 15 : Math.round(info.pitch * 180 / Math.PI));
+        const t = isFinite(tilt0) ? tilt0 : (info.type === 'flat' ? 32 : Math.round(info.pitch * 180 / Math.PI));
         const a0 = isFinite(az0) ? az0 : 0;
         const list = [];
         const sz = 1.3;
@@ -8952,6 +9173,16 @@ async function updateDoorType() {
             const geo = new THREE.BoxGeometry(pw, 0.06, ph);
             const p = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: COL.pv, emissive: 0x0a2a4a, emissiveIntensity: 0.22, roughness: 0.3, metalness: 0.45 }));
             p.position.set(panel.posX != null ? panel.posX : 0, 0, panel.posZ != null ? panel.posZ : 0);
+            // Flachdach: Module sind aufgeständert → einzeln nach Neigung/Ausrichtung kippen,
+            // damit die Darstellung zur Ertragsrechnung (DIN V 18599-9) passt.
+            if (info.type === 'flat') {
+                const tRad = Math.PI / 180 * Math.max(0, Math.min(80, +panel.tilt || 0));
+                const aRad = Math.PI / 180 * (+panel.azimuth || 0);
+                p.rotation.order = 'YXZ';
+                p.rotation.y = aRad;
+                p.rotation.x = -tRad;
+                p.position.y = Math.sin(tRad) * ph / 2 + 0.04;   // anheben, Unterkante nicht im Dach
+            }
             p.userData.part = 'pv'; p.userData.pvId = panel.id;
             p.userData.baseEmissiveHex = 0x0a2a4a; p.userData.baseEmInt = 0.22;
             clickable.push(p);
@@ -10000,6 +10231,17 @@ async function updateDoorType() {
         const t = num(($('pv_roof_tilt') || {}).value, 35), a = num(($('pv_roof_azimuth') || {}).value, 0);
         (window.pvList || []).forEach(function (p) { p.tilt = t; p.azimuth = a; });
         window.aggregatePV();
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();   // Neigung im 3D zeigen
+    };
+    // „Optimaler Winkel": Ertragsoptimum DE (32° Süd) auf alle Module – v. a. fürs Flachdach.
+    window.pvSetOptimalAngle = function () {
+        const tEl = $('pv_roof_tilt'), aEl = $('pv_roof_azimuth');
+        if (tEl) tEl.value = 32;
+        if (aEl) aEl.value = 0;
+        (window.pvList || []).forEach(function (p) { p.tilt = 32; p.azimuth = 0; });
+        if (typeof pvUpdateGeometryHint === 'function') pvUpdateGeometryHint();
+        window.aggregatePV();
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();
     };
     window.addEventListener('load', function () {
         setTimeout(function () { if (Array.isArray(window.pvList) && typeof window.aggregatePV === 'function') window.aggregatePV({ recalc: false }); }, 1000);
@@ -10042,6 +10284,40 @@ async function updateDoorType() {
     window.addEventListener('load', function () {
         setTimeout(function () { if (typeof window._pvGateUI === 'function') window._pvGateUI(); }, 300);
     });
+})();
+</script>
+
+<!-- ===================== Geschoss reduziert → Fenster/Türen entfernter Geschosse löschen ===================== -->
+<script>
+(function () {
+    "use strict";
+    // Fenster/Türen, die durch eine niedrigere Geschosszahl über dem Gebäude „schweben"
+    // (Geschoss-Index ≥ aktuelle Geschosszahl), werden gelöscht. Automatisch platzierte
+    // Öffnungen (ohne feste Höhe posV) fließen nach und bleiben erhalten.
+    window._pruneFloatingOpenings = function () {
+        const floors = Math.max(1, Math.round(parseFloat((document.getElementById('building_floors') || {}).value) || 1));
+        const fh = parseFloat((document.getElementById('building_floor_height') || {}).value) || 3.0;
+        const ft = (window._geo3d && window._geo3d.floorTop != null) ? window._geo3d.floorTop : 0.2;
+        const onRemovedFloor = function (it) { return (it && it.posV != null) && (Math.floor((it.posV - ft) / fh) >= floors); };
+        let n = 0;
+        if (Array.isArray(window.windowsList)) { const b = window.windowsList.length; window.windowsList = window.windowsList.filter(function (w) { return !onRemovedFloor(w); }); n += b - window.windowsList.length; }
+        if (Array.isArray(window.doorsList)) { const b = window.doorsList.length; window.doorsList = window.doorsList.filter(function (d) { return !onRemovedFloor(d); }); n += b - window.doorsList.length; }
+        if (n > 0) {
+            if (window.aggregateWindows) window.aggregateWindows();
+            if (window.aggregateDoors) window.aggregateDoors();
+            if (window.renderElementLists) window.renderElementLists();
+        }
+        return n;
+    };
+    function wire() {
+        const el = document.getElementById('building_floors');
+        if (!el) return;
+        el.addEventListener('change', function () {
+            const n = window._pruneFloatingOpenings();
+            if (n > 0 && typeof window._rebuild3D === 'function') window._rebuild3D();
+        });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 })();
 </script>
 
@@ -10108,6 +10384,7 @@ async function updateDoorType() {
         if (window.aggregateDoors) window.aggregateDoors();
         if (window.aggregatePV) window.aggregatePV({ recalc: false });
         if (window._pvGateUI) window._pvGateUI();
+        if (window._pruneFloatingOpenings) window._pruneFloatingOpenings();   // geladene Schweber entfernen
         if (window._rebuild3D) window._rebuild3D();
         window.renderElementLists();
     }
@@ -10190,7 +10467,9 @@ async function updateDoorType() {
             wall_layers: layerDump('wall_layers_container'), roof_layers: layerDump('roof_layers_container'), floor_layers: layerDump('floor_layers_container'),
             windowsList: window.windowsList || [], doorsList: window.doorsList || [], pvList: window.pvList || [],
             winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0,
-            pvEnabled: window.pvEnabled === true
+            pvEnabled: window.pvEnabled === true,
+            internal_parts: (typeof window._captureInternalParts === 'function') ? window._captureInternalParts() : [],
+            lca_periods: window.lcaPeriods || {}
         };
     }
     function restoreLayers(kind, arr) {
@@ -10221,10 +10500,13 @@ async function updateDoorType() {
         window._pvSeq = Math.max(window._pvSeq || 0, s.pvSeq || 0);
         // PV-Ja/Nein wiederherstellen (alte Projekte ohne Feld → aus PV-Liste ableiten)
         window.pvEnabled = (typeof s.pvEnabled === 'boolean') ? s.pvEnabled : ((s.pvList || []).length > 0);
+        if (typeof window._restoreInternalParts === 'function') window._restoreInternalParts(s.internal_parts);
+        if (s.lca_periods && typeof s.lca_periods === 'object') window.lcaPeriods = s.lca_periods;
         if (window.aggregateWindows) window.aggregateWindows();
         if (window.aggregateDoors) window.aggregateDoors();
         if (window.aggregatePV) window.aggregatePV({ recalc: false });
         if (window._pvGateUI) window._pvGateUI();
+        if (window._pruneFloatingOpenings) window._pruneFloatingOpenings();   // geladene Schweber entfernen
         if (window._rebuild3D) window._rebuild3D();
         if (window.renderElementLists) window.renderElementLists();
     }
@@ -10468,7 +10750,72 @@ async function updateDoorType() {
         try { if (typeof LAYER_KINDS !== 'undefined' && LAYER_KINDS) { for (const k of Object.keys(LAYER_KINDS)) { if (k === 'roof' || k === 'floor' || k.indexOf('roof') !== 0) continue; const cfg = LAYER_KINDS[k]; const cont = (cfg && cfg.container) ? cfg.container : (k + '_layers_container'); bd.roof += await gwpTotal(readLayers(cont), areaOf(k + '_area_display')); } } } catch (e) {}
         bd.floor = await gwpTotal(readLayers('floor_layers_container'), areaOf('floor_area_display'));
         try { if (typeof _doorObd !== 'undefined' && _doorObd && _doorObd.uuid) { const mm = parseFloat(($('door_frame_thickness') || {}).value) || 0; const per = parseFloat(($('door_area_per_unit') || {}).value) || 0; const cnt = ['north', 'south', 'east', 'west'].reduce((s, o) => s + (parseFloat(($('door_' + o + '_count') || {}).value) || 0), 0); bd.door = await gwpTotal([{ uuid: _doorObd.uuid, thickness_mm: mm }], per * cnt); } } catch (e) {}
-        return { total: bd.wall + bd.roof + bd.floor + bd.door, bd: bd };
+        // Interne Bauteile (nur LCA): je Bauteil voller Schichtaufbau × Fläche
+        const internal = [];
+        try {
+            for (const pt of (window.internalParts || [])) {
+                const area = areaOf(pt.kind + '_area_display');
+                const nameEl = document.querySelector('#card_' + pt.id + ' .lca-int-name');
+                const name = (nameEl && nameEl.value.trim()) || 'Internes Bauteil';
+                const g = await gwpTotal(readLayers(pt.kind + '_layers_container'), area);
+                internal.push({ key: pt.id, name: name, gwp: g });
+            }
+        } catch (e) {}
+        const internalTotal = internal.reduce((s, x) => s + (x.gwp || 0), 0);
+        return { total: bd.wall + bd.roof + bd.floor + bd.door + internalTotal, bd: bd, internal: internal };
+    }
+
+    window.lcaToggleInfo = function (btn) {
+        const box = btn.nextElementSibling;
+        if (box && box.classList.contains('lca-infobox')) box.classList.toggle('open');
+    };
+
+    // Eigene Nutzungsdauer je Bauteil (Punkt 6): nur Anzeige der jährlichen Einordnung,
+    // ändert die Gesamt-Herstellung nicht. Aktualisiert die „pro Jahr"-Zelle + Summe.
+    window.onLcaPeriod = function (inp) {
+        const key = inp.dataset.key, emb = parseFloat(inp.dataset.emb) || 0, p = parseFloat(inp.value) || 0;
+        window.lcaPeriods = window.lcaPeriods || {};
+        window.lcaPeriods[key] = p > 0 ? p : 0;
+        const cell = inp.closest('tr').querySelector('.lca-peryear');
+        if (cell) cell.textContent = fmtKg(emb / (p > 0 ? p : 1));
+        let sum = 0;
+        document.querySelectorAll('#lca_breakdown .lca-period').forEach(function (el) {
+            const e = parseFloat(el.dataset.emb) || 0, pp = parseFloat(el.value) || 0;
+            sum += e / (pp > 0 ? pp : 1);
+        });
+        const sEl = document.getElementById('lca_peryear_sum'); if (sEl) sEl.textContent = fmtKg(sum);
+    };
+
+    // Phase 4 – Auswertung (Interpretation) nach ISO 14044 §4.5: signifikante Parameter,
+    // Beurteilung (Vollständigkeit/Konsistenz/Sensitivität), Schlussfolgerungen & Einschränkungen.
+    function lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct) {
+        if (!(total > 0)) return '<div class="small" style="color:#9bb;">Keine Ergebnisse – bitte Gebäudehülle, Anlagentechnik und Schichtaufbauten ausfüllen.</div>';
+        const matBound = emb.total + eol;          // herstellungs-/materialgebunden (A1–A3 + C)
+        const shareOp = Math.round(opPeriod / total * 100);
+        const shareMat = 100 - shareOp;
+        const dominant = (opPeriod >= matBound) ? 'der Gebäudebetrieb (B6)' : 'die Herstellung (A1–A3' + (eol > 0 ? ' + Lebensende C' : '') + ')';
+        const comps = [['Außenwand', emb.bd.wall], ['Dach', emb.bd.roof], ['Boden', emb.bd.floor], ['Tür', emb.bd.door]].sort((a, b) => b[1] - a[1]);
+        const topComp = comps[0];
+        const topPct = emb.total > 0 ? Math.round(topComp[1] / emb.total * 100) : 0;
+        const breakeven = (opYear > 0) ? (emb.total / opYear) : null;
+        let html = '';
+        html += '<h4>a) Signifikante Parameter (§4.5.2)</h4><ul>';
+        html += '<li>Über ' + years + ' Jahre dominiert <b>' + dominant + '</b> die Bilanz: Betrieb ' + shareOp + ' % gegenüber materialgebunden ' + shareMat + ' %.</li>';
+        html += '<li>Größter Posten der grauen Emissionen: <b>' + topComp[0] + '</b> (' + fmtKg(topComp[1]) + ', ' + topPct + ' % von A1–A3).</li>';
+        if (breakeven && isFinite(breakeven)) html += '<li>Amortisation: Der kumulierte Betrieb übersteigt die Herstellung rechnerisch nach <b>≈ ' + Math.round(breakeven) + ' Jahren</b>.</li>';
+        html += '</ul>';
+        html += '<h4>b) Beurteilung – Vollständigkeit, Konsistenz, Sensitivität (§4.5.3)</h4><ul>';
+        html += '<li><b>Vollständigkeit:</b> enthalten sind A1–A3 und B6' + (eolPct > 0 ? ' sowie ein C-Zuschlag' : '') + '; nicht enthalten A4/A5, B1–B5, B7 und D.</li>';
+        html += '<li><b>Konsistenz:</b> alle grauen Emissionen aus derselben Datenbasis (ÖKOBAUDAT 2024), Betriebs-CO₂ durchgängig mit GEG-2024-Faktoren.</li>';
+        html += '<li><b>Sensitivität:</b> das Ergebnis hängt stark vom Betrachtungszeitraum (' + years + ' a) und von den Energieträger-/CO₂-Faktoren ab – längere Zeiträume erhöhen den Betriebsanteil.</li>';
+        html += '</ul>';
+        html += '<h4>c) Schlussfolgerungen &amp; Einschränkungen (§4.5.4)</h4><ul>';
+        html += (opPeriod >= matBound)
+            ? '<li>Hebel mit der größten Wirkung ist die <b>Senkung des Betriebsenergiebedarfs</b> (Dämmung, Anlagentechnik, PV).</li>'
+            : '<li>Hebel mit der größten Wirkung ist die <b>Materialwahl</b> (CO₂-arme Aufbauten, v. a. ' + topComp[0] + ').</li>';
+        html += '<li><b>Einschränkung:</b> vereinfachte Ökobilanz (eine Wirkungskategorie GWP, reduzierter Modulsatz); für eine belastbare Aussage nach ISO 14044 sind die fehlenden Module und eine kritische Prüfung (§6) zu ergänzen.</li>';
+        html += '</ul>';
+        return html;
     }
 
     window.calculateLCA = async function (force) {
@@ -10492,6 +10839,9 @@ async function updateDoorType() {
     };
 
     function render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct) {
+        const fu = $('lca_fu_val');
+        if (fu) fu.innerHTML = 'Das gesamte Gebäude über <b>' + years + ' Jahre</b> Betrachtungszeitraum'
+            + (bgf > 0 ? ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr; Gebäude-BGF ' + Math.round(bgf).toLocaleString('de-DE') + '&nbsp;m²).' : ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr).');
         $('lca_hero_years').textContent = years;
         $('lca_hero_total').textContent = fmtKg(total);
         $('lca_hero_spec').textContent = bgf > 0 ? ('≈ ' + (Math.round(total / bgf / years * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/m²·a   ·   ' + Math.round(total / bgf).toLocaleString('de-DE') + ' kg CO₂e/m² gesamt') : 'BGF nicht gesetzt – pro-m²-Werte nicht verfügbar.';
@@ -10509,13 +10859,354 @@ async function updateDoorType() {
             '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:#cfe0f2;">' +
             segs.map(s => '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + s[2] + ';margin-right:6px;"></span>' + s[0] + ': <b style="color:#fff;">' + fmtKg(s[1]) + '</b> (' + Math.round((s[1] || 0) / sum * 100) + '%)</span>').join('') + '</div>';
 
-        const rows = [['Außenwand', emb.bd.wall], ['Dach', emb.bd.roof], ['Boden', emb.bd.floor], ['Tür', emb.bd.door]];
-        let h = '<table style="width:100%;border-collapse:collapse;font-size:13.5px;"><thead><tr><th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;">Bauteil</th><th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">A1–A3</th><th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">Anteil</th></tr></thead><tbody>';
-        rows.forEach(function (r) { const pct = emb.total > 0 ? Math.round(r[1] / emb.total * 100) : 0; h += '<tr><td style="padding:7px;border-bottom:1px solid #16314d;">' + r[0] + '</td><td style="padding:7px;text-align:right;border-bottom:1px solid #16314d;font-family:JetBrains Mono,monospace;color:#f6b94b;">' + fmtKg(r[1]) + '</td><td style="padding:7px;text-align:right;border-bottom:1px solid #16314d;color:#9bb;">' + pct + '%</td></tr>'; });
-        h += '<tr><td style="padding:7px;font-weight:700;">Summe</td><td style="padding:7px;text-align:right;font-weight:700;font-family:JetBrains Mono,monospace;color:#fff;">' + fmtKg(emb.total) + '</td><td style="padding:7px;text-align:right;color:#9bb;">100 %</td></tr>';
+        window.lcaPeriods = window.lcaPeriods || {};
+        const per = function (k) { const v = window.lcaPeriods[k]; return (v > 0) ? v : years; };
+        const rows = [['wall', 'Außenwand', emb.bd.wall], ['roof', 'Dach', emb.bd.roof], ['floor', 'Boden', emb.bd.floor], ['door', 'Tür', emb.bd.door]];
+        (emb.internal || []).forEach(function (it) { rows.push([it.key, it.name + ' (intern)', it.gwp]); });
+        const tdL = 'padding:7px;border-bottom:1px solid #16314d;', tdR = tdL + 'text-align:right;';
+        let perYearSum = 0;
+        let h = '<table style="width:100%;border-collapse:collapse;font-size:13.5px;"><thead><tr>'
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;">Bauteil</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">A1–A3</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">Anteil</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;" title="Eigene Nutzungsdauer je Bauteil für die jährliche Einordnung – ändert die Gesamt-Herstellung nicht.">Nutzungsdauer (a)</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">pro Jahr</th></tr></thead><tbody>';
+        rows.forEach(function (r) {
+            const k = r[0], gwp = r[2] || 0, pct = emb.total > 0 ? Math.round(gwp / emb.total * 100) : 0;
+            const p = per(k), py = gwp / p; perYearSum += py;
+            h += '<tr><td style="' + tdL + '">' + r[1] + '</td>'
+                + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#f6b94b;">' + fmtKg(gwp) + '</td>'
+                + '<td style="' + tdR + 'color:#9bb;">' + pct + '%</td>'
+                + '<td style="' + tdR + '"><input class="lca-period" type="number" min="1" step="1" value="' + p + '" data-key="' + k + '" data-emb="' + gwp + '" oninput="onLcaPeriod(this)" style="width:62px;text-align:right;background:#0a1830;border:1px solid #2a4a73;color:#e7edf5;border-radius:5px;padding:3px 5px;"></td>'
+                + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#cfe0f2;"><span class="lca-peryear">' + fmtKg(py) + '</span>/a</td></tr>';
+        });
+        h += '<tr><td style="padding:7px;font-weight:700;">Summe</td>'
+            + '<td style="padding:7px;text-align:right;font-weight:700;font-family:JetBrains Mono,monospace;color:#fff;">' + fmtKg(emb.total) + '</td>'
+            + '<td style="padding:7px;text-align:right;color:#9bb;">100 %</td><td></td>'
+            + '<td style="padding:7px;text-align:right;font-weight:700;font-family:JetBrains Mono,monospace;color:#fff;"><span id="lca_peryear_sum">' + fmtKg(perYearSum) + '</span>/a</td></tr>';
         h += '</tbody></table>';
         $('lca_breakdown').innerHTML = h;
+
+        const interp = $('lca_interpret');
+        if (interp) interp.innerHTML = lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct);
     }
+})();
+</script>
+
+<!-- ===================== Interne Bauteile (nur LCA) ===================== -->
+<script>
+(function () {
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    // Presets – Material-IDs sind im Backend (LAYER_OBD_MAP) hinterlegt; zusätzlich immer ÖKOBAUDAT-Suche.
+    const INTERNAL_PRESETS = {
+        mauerwerk: { label: 'Mauerwerk', materials: [{ id: '8', name: 'Mauerziegel' }, { id: '1332', name: 'Kalksandstein' }, { id: '354', name: 'Leichtbetonstein' }] },
+        beton:     { label: 'Beton', materials: [{ id: 'stahlbeton', name: 'Stahlbeton C25/30' }] },
+        putz:      { label: 'Putz', materials: [{ id: 'gipsputz', name: 'Gipsputz', lambda: 0.51 }, { id: 'kalk_zement_i', name: 'Kalkzementputz', lambda: 1.0 }] },
+        gipsplatte:{ label: 'Gipsplatte', materials: [{ id: 'gipsputz', name: 'Gipswerkstoff', lambda: 0.25 }] },
+        daemmung:  { label: 'Dämmung', materials: [{ id: 'mw', name: 'Mineralwolle', lambda: 0.035 }, { id: 'eps', name: 'EPS', lambda: 0.035 }, { id: 'holzfaser', name: 'Holzfaser', lambda: 0.045 }] },
+        holz:      { label: 'Holz', materials: [{ id: 'holz_mass', name: 'Konstruktionsvollholz' }] },
+        sonstiges: { label: 'Sonstiges (ÖKOBAUDAT)', materials: [] }
+    };
+    window.internalParts = window.internalParts || [];
+    let _seq = 0;
+
+    function register(kind) {
+        if (typeof LAYER_KINDS === 'undefined') return;
+        LAYER_KINDS[kind] = {
+            presets: INTERNAL_PRESETS, rsi: 0, rse: 0,
+            container: kind + '_layers_container', uDisp: kind + '_u', thDisp: kind + '_th',
+            apply: function () {}, standard: []
+        };
+    }
+
+    window.addInternalPart = function (name, area, layers) {
+        if (typeof addLayer !== 'function') return null;
+        _seq += 1;
+        const id = 'int' + _seq, kind = id;
+        register(kind);
+        window.internalParts.push({ id: id, kind: kind });
+        const esc = (s) => (s == null ? '' : String(s)).replace(/"/g, '&quot;');
+        const card = document.createElement('div');
+        card.className = 'lca-int-part'; card.id = 'card_' + id; card.setAttribute('data-layer-kind', kind);
+        card.innerHTML =
+            '<div class="lca-int-head">' +
+              '<div class="field"><label>Bezeichnung</label><input class="lca-int-name" type="text" value="' + esc(name) + '" placeholder="z. B. Innenwand EG"></div>' +
+              '<div class="field"><label>Fläche (m²)</label><input class="lca-int-area" id="' + kind + '_area_display" type="number" min="0" step="0.1" value="' + (area != null ? area : '') + '" oninput="fetchLayerGwp(\'' + kind + '\')"></div>' +
+              '<button type="button" class="lca-int-del" onclick="removeInternalPart(\'' + id + '\')">🗑 Bauteil</button>' +
+            '</div>' +
+            '<div id="' + kind + '_layers_container"></div>' +
+            '<button type="button" class="d48-addbtn" style="margin-top:4px;" onclick="addLayer(\'' + kind + '\')">+ Schicht</button>' +
+            '<div class="lca-int-gwp">Graue Emissionen: <b><span id="' + kind + '_gwp_display">—</span></b></div>';
+        $('lca_internal_list').appendChild(card);
+        if (Array.isArray(layers) && layers.length) {
+            layers.forEach(function (l) {
+                addLayer(kind, l.type, (l.obdUuid ? null : l.material), l.thickness_mm);
+                const cont = document.getElementById(kind + '_layers_container');
+                const row = cont && cont.lastElementChild;
+                if (row && l.obdUuid) {
+                    row.dataset.obdUuid = l.obdUuid; if (l.obdName) row.dataset.obdName = l.obdName;
+                    const ms = row.querySelector('.wl-mat-sel');
+                    if (ms) { const o = document.createElement('option'); o.value = 'obd:' + l.obdUuid; o.textContent = '🔍 ' + (l.obdName || 'ÖKOBAUDAT'); o.selected = true; if (l.lambda) o.dataset.lambda = l.lambda; ms.appendChild(o); }
+                }
+                if (row && l.lambda) { const le = row.querySelector('.wl-lambda'); if (le) le.value = l.lambda; }
+            });
+            if (typeof recalcLy === 'function') recalcLy(kind);
+        } else {
+            addLayer(kind, 'mauerwerk', '8', 115);
+        }
+        return id;
+    };
+
+    window.removeInternalPart = function (id) {
+        const card = $('card_' + id); if (card) card.remove();
+        window.internalParts = (window.internalParts || []).filter(function (p) { return p.id !== id; });
+        const kind = id; if (typeof LAYER_KINDS !== 'undefined') { try { delete LAYER_KINDS[kind]; } catch (e) {} }
+    };
+
+    // Snapshot-Helfer für die Projekt-Persistenz
+    function dumpLayers(cid) {
+        return Array.from(document.querySelectorAll('#' + cid + ' .wall-layer-row')).map(function (r) {
+            return { type: (r.querySelector('.wl-type-sel') || {}).value, thickness_mm: parseFloat((r.querySelector('.wl-thick') || {}).value) || 0, material: (r.querySelector('.wl-mat-sel') || {}).value, lambda: parseFloat((r.querySelector('.wl-lambda') || {}).value) || null, obdUuid: r.dataset.obdUuid || null, obdName: r.dataset.obdName || null };
+        });
+    }
+    window._captureInternalParts = function () {
+        return (window.internalParts || []).map(function (pt) {
+            const nameEl = document.querySelector('#card_' + pt.id + ' .lca-int-name');
+            const areaEl = document.getElementById(pt.kind + '_area_display');
+            return {
+                name: nameEl ? nameEl.value : '',
+                area: areaEl ? (parseFloat(areaEl.value) || 0) : 0,
+                layers: dumpLayers(pt.kind + '_layers_container')
+            };
+        });
+    };
+    window._restoreInternalParts = function (arr) {
+        (window.internalParts || []).slice().forEach(function (pt) { window.removeInternalPart(pt.id); });
+        (arr || []).forEach(function (ip) { window.addInternalPart(ip.name, ip.area, ip.layers); });
+    };
+})();
+</script>
+
+<!-- ===================== 2D-FEM Wärmebrücke (Finite Differenzen) ===================== -->
+<script>
+(function () {
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const PIN = 0.010, LAM_PIN = 0.70;   // Innenputz
+    const POUT = 0.008, LAM_POUT = 0.87; // Außenputz
+    const H_CELL = 0.005;                 // Zellgröße 5 mm
+    const RSI = 0.25, RSE = 0.04;         // Oberflächenwiderstände (f_Rsi-Bewertung, DIN 4108-2)
+    const IN = -1, OUT = -2, VOID = -3;   // Sentinels im λ-Gitter
+
+    function num(id, d) { const v = parseFloat(($(id) || {}).value); return isFinite(v) ? v : d; }
+
+    // λ nach Abstand von der Innenoberfläche (0 = innen … t = außen)
+    function layerLambda(dist, t, P) {
+        if (dist < PIN) return LAM_PIN;
+        if (dist < PIN + P.dStruct) return P.lStruct;
+        if (dist < PIN + P.dStruct + P.dIns) return P.lIns;
+        return LAM_POUT;
+    }
+
+    // ---- Geometrieaufbau: cell[j][i] = λ>0 (fest) | IN | OUT | VOID ----
+    function buildGeometry(type, P) {
+        const t = PIN + P.dStruct + P.dIns + POUT;
+        const h = H_CELL;
+        if (type === 'ecke') {
+            const e = 0.30, D = t + e;
+            const N = Math.round(D / h) + 1;        // +1 für OUT-Rand bei i=0/j=0
+            const cell = [];
+            for (let j = 0; j <= N; j++) {
+                cell[j] = [];
+                for (let i = 0; i <= N; i++) {
+                    if (i === 0 || j === 0) { cell[j][i] = OUT; continue; }
+                    const x = (i - 1) * h, y = (j - 1) * h;
+                    if (x >= t && y >= t) { cell[j][i] = IN; continue; }
+                    let dist;
+                    if (x < t && y >= t) dist = t - x;                       // vertikale Wand: senkrecht
+                    else if (y < t && x >= t) dist = t - y;                   // horizontale Wand: senkrecht
+                    else dist = Math.sqrt((t - x) * (t - x) + (t - y) * (t - y)); // Überlappung: Abstand zur Innenecke (Schichten konzentrisch)
+                    cell[j][i] = layerLambda(dist, t, P);
+                }
+            }
+            return { cell: cell, h: h, label: 'Außenwandecke' };
+        }
+        // balkon / sturz: vertikale Wand (x: innen→außen), Betonband horizontal
+        const Ht = 0.50;
+        const nx = Math.round(t / h) + 2;           // +IN-Spalte links, +OUT-Spalte rechts
+        const ny = Math.round(Ht / h) + 2;          // +VOID oben/unten
+        const dSlab = (type === 'sturz') ? 0.20 : 0.18;
+        const y0 = Ht / 2 - dSlab / 2, y1 = Ht / 2 + dSlab / 2;
+        const cell = [];
+        for (let j = 0; j < ny; j++) {
+            cell[j] = [];
+            for (let i = 0; i < nx; i++) {
+                if (i === 0) { cell[j][i] = IN; continue; }
+                if (i === nx - 1) { cell[j][i] = OUT; continue; }
+                if (j === 0 || j === ny - 1) { cell[j][i] = VOID; continue; }
+                const x = (i - 1) * h, y = (j - 1) * h;
+                const inBand = (y >= y0 && y <= y1);
+                if (inBand && x > PIN) {
+                    // Sturz: Beton ersetzt Trag+Dämmung, Außenputz bleibt; Balkon: bis außen durch
+                    if (type === 'sturz' && x > PIN + P.dStruct + P.dIns) cell[j][i] = LAM_POUT;
+                    else cell[j][i] = P.lConc;
+                } else {
+                    cell[j][i] = layerLambda(x, t, P);
+                }
+            }
+        }
+        return { cell: cell, h: h, label: type === 'sturz' ? 'Stahlbeton-Sturz' : 'Auskragende Betonplatte' };
+    }
+
+    function harm(a, b) { return (a + b > 0) ? (2 * a * b / (a + b)) : 0; }
+
+    // ---- Stationärer Solver (Gauss-Seidel + SOR) ----
+    function solve(geo, ti, te) {
+        const cell = geo.cell, h = geo.h, ny = cell.length, nx = cell[0].length;
+        const T = [], solid = [];
+        for (let j = 0; j < ny; j++) { T[j] = []; solid[j] = []; for (let i = 0; i < nx; i++) { const v = cell[j][i]; solid[j][i] = (v > 0); T[j][i] = (v > 0) ? (ti + te) / 2 : (v === IN ? ti : (v === OUT ? te : (ti + te) / 2)); } }
+        const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        const omega = 1.85;
+        for (let it = 0; it < 4000; it++) {
+            let maxd = 0;
+            for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+                if (!solid[j][i]) continue;
+                const lam = cell[j][i];
+                let sumG = 0, sumGT = 0;
+                for (const [di, dj] of nb) {
+                    const nj = j + dj, ni = i + di;
+                    if (nj < 0 || nj >= ny || ni < 0 || ni >= nx) continue;
+                    const nv = cell[nj][ni]; let G = 0, Tn = 0;
+                    if (nv > 0) { G = harm(lam, nv); Tn = T[nj][ni]; }
+                    else if (nv === IN) { G = 1 / (1 / (2 * lam) + RSI / h); Tn = ti; }
+                    else if (nv === OUT) { G = 1 / (1 / (2 * lam) + RSE / h); Tn = te; }
+                    else continue; // VOID → adiabat
+                    sumG += G; sumGT += G * Tn;
+                }
+                if (sumG <= 0) continue;
+                const tNew = sumGT / sumG;
+                const upd = T[j][i] + omega * (tNew - T[j][i]);
+                const d = Math.abs(upd - T[j][i]); if (d > maxd) maxd = d;
+                T[j][i] = upd;
+            }
+            if (maxd < 1e-4 && it > 50) break;
+        }
+        // Innenoberflächen-Temperatur θ_si (Min) – Zellen mit IN-Nachbar
+        let thetaSiMin = Infinity, minPt = null;
+        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+            if (!solid[j][i]) continue;
+            let touchesIn = false;
+            for (const [di, dj] of nb) { const nj = j + dj, ni = i + di; if (nj >= 0 && nj < ny && ni >= 0 && ni < nx && cell[nj][ni] === IN) touchesIn = true; }
+            if (!touchesIn) continue;
+            const lam = cell[j][i], Rhalf = 1 / (2 * lam), Rtot = Rhalf + RSI / h;
+            const thetaSi = T[j][i] - (T[j][i] - ti) * (Rhalf / Rtot);
+            if (thetaSi < thetaSiMin) { thetaSiMin = thetaSi; minPt = { i, j }; }
+        }
+        return { T, nx, ny, cell, solid, thetaSiMin, minPt };
+    }
+
+    function tempColor(v, te, ti) {
+        let f = (v - te) / (ti - te); f = Math.max(0, Math.min(1, f));
+        // blau → cyan → grün → gelb → rot
+        const stops = [[30, 60, 150], [40, 150, 200], [90, 190, 120], [240, 210, 70], [220, 70, 50]];
+        const x = f * (stops.length - 1), k = Math.min(stops.length - 2, Math.floor(x)), tt = x - k;
+        const a = stops[k], b = stops[k + 1];
+        return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * tt) + ',' + Math.round(a[1] + (b[1] - a[1]) * tt) + ',' + Math.round(a[2] + (b[2] - a[2]) * tt) + ')';
+    }
+
+    function render(sol, ti, te) {
+        const { T, nx, ny, cell, solid, minPt } = sol;
+        const wrap = $('fem-canvas-wrap'), cv = $('fem-canvas'); if (!cv) return;
+        const target = 460, px = Math.max(2, Math.floor(target / nx));
+        cv.width = nx * px; cv.height = ny * px;
+        const ctx = cv.getContext('2d');
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        // Hintergrund Luft
+        for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+            const v = cell[j][i];
+            if (v === IN) ctx.fillStyle = '#fdeccd';
+            else if (v === OUT) ctx.fillStyle = '#dbeefb';
+            else if (v === VOID) continue;
+            else ctx.fillStyle = tempColor(T[j][i], te, ti);
+            ctx.fillRect(i * px, (ny - 1 - j) * px, px, px);   // y nach oben
+        }
+        // Isothermen (Marching-Squares) für kritische Linien
+        const critF = te + 0.70 * (ti - te);   // f_Rsi = 0,70 → θ_crit (Schimmel)
+        const levels = [[0, '#1d4ed8', '0 °C'], [10, '#0891b2', '10 °C'], [critF, '#b91c1c', 'θ_crit ' + critF.toFixed(1) + ' °C']];
+        const val = (i, j) => (solid[j] && solid[j][i]) ? T[j][i] : NaN;
+        levels.forEach(function (L) {
+            ctx.strokeStyle = L[1]; ctx.lineWidth = (L[0] === critF) ? 2.2 : 1.2; ctx.beginPath();
+            for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) {
+                const a = val(i, j), b = val(i + 1, j), c = val(i + 1, j + 1), d = val(i, j + 1);
+                if (isNaN(a) || isNaN(b) || isNaN(c) || isNaN(d)) continue;
+                const lv = L[0]; const pts = [];
+                const X = i * px, Y = (ny - 1 - j) * px;
+                const ip = (t1, t2, p1, p2) => { const f = (lv - t1) / (t2 - t1); return p1 + (p2 - p1) * f; };
+                // Kanten des Zellquadrats (unten a-b, rechts b-c, oben d-c, links a-d)
+                if ((a < lv) !== (b < lv)) pts.push([X + ip(a, b, 0, px), Y + px]);
+                if ((b < lv) !== (c < lv)) pts.push([X + px, Y + ip(b, c, px, 0)]);
+                if ((d < lv) !== (c < lv)) pts.push([X + ip(d, c, 0, px), Y]);
+                if ((a < lv) !== (d < lv)) pts.push([X, Y + ip(a, d, px, 0)]);
+                if (pts.length >= 2) { ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); }
+            }
+            ctx.stroke();
+        });
+        // kältester Innenoberflächenpunkt
+        if (minPt) {
+            const cx = minPt.i * px + px / 2, cy = (ny - 1 - minPt.j) * px + px / 2;
+            ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+        }
+        if (wrap) wrap.style.display = '';
+        const leg = $('fem-legend');
+        if (leg) leg.innerHTML = '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#475569;align-items:center;">'
+            + '<span><span style="display:inline-block;width:60px;height:11px;border-radius:2px;background:linear-gradient(90deg,rgb(30,60,150),rgb(40,150,200),rgb(90,190,120),rgb(240,210,70),rgb(220,70,50));vertical-align:-1px;"></span> ' + te + '…' + ti + ' °C</span>'
+            + '<span><span style="display:inline-block;width:13px;border-top:2px solid #b91c1c;vertical-align:3px;"></span> θ_crit (f_Rsi 0,70)</span>'
+            + '<span><span style="display:inline-block;width:13px;border-top:2px solid #1d4ed8;vertical-align:3px;"></span> 0 °C</span>'
+            + '<span>⬤ kältester Oberflächenpunkt</span></div>';
+    }
+
+    window.femPrefillFromWall = function () {
+        // λ/Dicken aus dem Wand-Schichtaufbau: dickste tragende & dämmende Schicht heuristisch.
+        let struct = null, ins = null;
+        document.querySelectorAll('#wall_layers_container .wall-layer-row').forEach(function (r) {
+            const mm = parseFloat((r.querySelector('.wl-thick') || {}).value) || 0;
+            const lam = parseFloat((r.querySelector('.wl-lambda') || {}).value) || 0;
+            if (!(mm > 0) || !(lam > 0)) return;
+            if (lam >= 0.1) { if (!struct || mm > struct.mm) struct = { mm, lam }; }     // tragend/massiv
+            else { if (!ins || mm > ins.mm) ins = { mm, lam }; }                         // Dämmung
+        });
+        if (struct) { $('fem-d-struct').value = (struct.mm / 10).toFixed(1); $('fem-l-struct').value = struct.lam; }
+        if (ins) { $('fem-d-ins').value = (ins.mm / 10).toFixed(1); $('fem-l-ins').value = ins.lam; }
+        $('fem-res').innerHTML = '<div class="d48-res" style="margin-top:8px;">Werte aus Wandaufbau übernommen' + (struct ? '' : ' (keine Tragschicht erkannt)') + '. Jetzt „Temperaturfeld berechnen".</div>';
+    };
+
+    window.femRun = function () {
+        const type = ($('fem-type') || {}).value || 'balkon';
+        const P = {
+            dStruct: Math.max(0.02, num('fem-d-struct', 17.5) / 100),
+            lStruct: Math.max(0.05, num('fem-l-struct', 0.99)),
+            dIns: Math.max(0.01, num('fem-d-ins', 14) / 100),
+            lIns: Math.max(0.005, num('fem-l-ins', 0.035)),
+            lConc: Math.max(0.2, num('fem-l-conc', 2.3)),
+        };
+        const ti = num('fem-ti', 20), te = num('fem-te', -5);
+        const box = $('fem-res');
+        try {
+            const geo = buildGeometry(type, P);
+            const sol = solve(geo, ti, te);
+            render(sol, ti, te);
+            const fRsi = (sol.thetaSiMin - te) / (ti - te);
+            const ok = fRsi >= 0.70;
+            const tau = 20 - (20 - (-5)); // nur Hinweis
+            const badge = '<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:12px;color:#fff;background:' + (ok ? '#10b981' : '#ef4444') + '">' + (ok ? 'erfüllt' : 'nicht erfüllt') + '</span>';
+            box.className = 'd48-res ' + (ok ? 'green' : 'red');
+            box.innerHTML = badge + ' ' + (ok ? 'Kein erhöhtes Schimmel-/Tauwasserrisiko an dieser Wärmebrücke.' : 'Achtung: zu niedrige Oberflächentemperatur – Schimmel-/Tauwassergefahr.')
+                + '<div style="margin-top:8px;">Niedrigste Oberflächentemperatur <b>θ<sub>si,min</sub> = ' + sol.thetaSiMin.toFixed(1) + ' °C</b> · Temperaturfaktor <b>f<sub>Rsi</sub> = ' + fRsi.toFixed(2) + '</b> '
+                + '(Anforderung ≥ 0,70 → θ<sub>si</sub> ≥ ' + (te + 0.70 * (ti - te)).toFixed(1) + ' °C bei ' + ti + '/' + te + ' °C).</div>';
+        } catch (e) { if (box) { box.className = 'd48-res red'; box.innerHTML = 'Fehler in der FEM-Berechnung: ' + e.message; } }
+    };
 })();
 </script>
 
@@ -10559,6 +11250,168 @@ async function updateDoorType() {
     function badge(color, label) { return '<span class="d48-badge ' + color + '">' + label + '</span>'; }
     function fmt(x, d) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toLocaleString("de-DE", { maximumFractionDigits: d === undefined ? 2 : d }); }
 
+    // ====================================================================
+    // Grafiken je Nachweis (leichtgewichtige Inline-SVGs, helle d48-Flächen)
+    // ====================================================================
+    function nf(x, d) { const n = parseFloat(x); return isFinite(n) ? n.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) : "–"; }
+    function escq(s) { return (s == null ? "" : String(s)).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+    function svgEl(w, h, body) { return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img">' + body + '</svg>'; }
+    function chartWrap(title, inner) { return '<div class="d48-chart"><div class="d48-chart-t">' + title + '</div>' + inner + '</div>'; }
+    function chartLegend(items) {
+        return '<div class="d48-chart-legend">' + items.map(it => it[0] === 'dash'
+            ? '<span><span style="display:inline-block;width:14px;border-top:2px dashed #0f172a;vertical-align:3px;margin-right:4px"></span>' + escq(it[1]) + '</span>'
+            : '<span><i style="background:' + it[0] + '"></i>' + escq(it[1]) + '</span>').join('') + '</div>';
+    }
+    const d48charts = {
+        // 1 · Mindestwärmeschutz: R vorhanden (Balken) gegen R_min (gestrichelt) je Bauteil
+        mws(bauteile) {
+            const items = (bauteile || []).filter(b => (b.r_bauteil || b.r_min));
+            if (!items.length) return '';
+            const maxV = (Math.max.apply(null, items.map(b => Math.max(b.r_bauteil || 0, b.r_min || 0))) || 1) * 1.14;
+            const W = 340, rowH = 30, gap = 8, padL = 100, padR = 46, top = 6, barW = W - padL - padR;
+            const H = top + items.length * (rowH + gap);
+            let body = '';
+            items.forEach((b, i) => {
+                const y = top + i * (rowH + gap);
+                const rb = (b.r_bauteil || 0) / maxV * barW, rm = (b.r_min || 0) / maxV * barW;
+                const col = b.erfuellt ? '#10b981' : '#ef4444';
+                body += '<text x="0" y="' + (y + rowH * 0.4) + '" style="font-size:11px;font-weight:600;fill:#1e293b">' + escq((b.name || '').slice(0, 16)) + '</text>'
+                    + '<text x="0" y="' + (y + rowH * 0.92) + '" class="lg" style="font-size:9.5px">' + escq((b.typ_label || '').slice(0, 18)) + '</text>'
+                    + '<rect x="' + padL + '" y="' + (y + 5) + '" width="' + barW + '" height="' + (rowH - 12) + '" rx="4" fill="#eef2f7"/>'
+                    + '<rect x="' + padL + '" y="' + (y + 5) + '" width="' + Math.max(2, rb) + '" height="' + (rowH - 12) + '" rx="4" fill="' + col + '"/>'
+                    + '<line x1="' + (padL + rm) + '" y1="' + (y + 1) + '" x2="' + (padL + rm) + '" y2="' + (y + rowH - 3) + '" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="3 2"/>'
+                    + '<text x="' + (padL + Math.max(2, rb) + 4) + '" y="' + (y + rowH * 0.62) + '" class="lg" style="fill:#0f172a;font-weight:600">' + nf(b.r_bauteil, 2) + '</text>';
+            });
+            return chartWrap('Wärmedurchlasswiderstand R je Bauteil – Balken = vorhanden, gestrichelt = Mindestwert R_min',
+                svgEl(W, H, body) + chartLegend([['#10b981', 'R erfüllt'], ['#ef4444', 'R zu klein'], ['dash', 'R_min']]));
+        },
+        // 2 · Sommerlicher Wärmeschutz: S_zul aus Anteilen S1–S6 (Stapel) + Nadel S_vorh
+        som(res) {
+            const a = res.anteile || {};
+            const parts = [['S1 Grundwert', a.S1_grund, '#2563eb'], ['S2 Fensteranteil', a.S2_fensteranteil, '#0ea5b7'],
+            ['S3 Sonnenschutzglas', a.S3_sonnenschutzglas, '#10b981'], ['S4 Neigung', a.S4_neigung, '#84cc16'],
+            ['S5 Orientierung', a.S5_orientierung, '#f59e0b'], ['S6 passive Kühlung', a.S6_passive_kuehlung, '#a78bfa']]
+                .map(p => [p[0], +p[1] || 0, p[2]]);
+            const szul = res.s_zul || parts.reduce((s, p) => s + Math.max(p[1], 0), 0) || 1;
+            const svorh = res.s_vorh || 0;
+            const scaleMax = (Math.max(szul, svorh) || 1) * 1.1;
+            const W = 340, padL = 8, padR = 8, barY = 28, barH = 30, barW = W - padL - padR;
+            let x = padL, segs = '';
+            parts.forEach(p => {
+                if (p[1] <= 0) return;
+                const w = p[1] / scaleMax * barW;
+                segs += '<rect x="' + x + '" y="' + barY + '" width="' + w + '" height="' + barH + '" fill="' + p[2] + '"><title>' + escq(p[0]) + ': ' + nf(p[1], 3) + '</title></rect>';
+                if (w > 26) segs += '<text x="' + (x + w / 2) + '" y="' + (barY + barH * 0.64) + '" text-anchor="middle" style="font-size:10px;fill:#fff;font-weight:600">' + nf(p[1], 2) + '</text>';
+                x += w;
+            });
+            const xz = padL + szul / scaleMax * barW, xv = padL + svorh / scaleMax * barW, ok = res.erfuellt;
+            const body = segs
+                + '<line x1="' + xz + '" y1="' + (barY - 2) + '" x2="' + xz + '" y2="' + (barY + barH + 2) + '" stroke="#0f172a" stroke-width="1" stroke-dasharray="2 2"/>'
+                + '<text x="' + Math.min(xz, W - 4) + '" y="' + (barY + barH + 18) + '" text-anchor="end" class="lg">S_zul ' + nf(szul, 3) + '</text>'
+                + '<line x1="' + xv + '" y1="' + (barY - 9) + '" x2="' + xv + '" y2="' + (barY + barH + 9) + '" stroke="' + (ok ? '#065f46' : '#b91c1c') + '" stroke-width="2.5"/>'
+                + '<text x="' + Math.max(2, Math.min(xv, W - 70)) + '" y="' + (barY - 12) + '" style="font-size:11px;font-weight:700;fill:' + (ok ? '#065f46' : '#b91c1c') + '">S_vorh ' + nf(svorh, 3) + '</text>';
+            return chartWrap('Sonneneintrag: zulässiger Wert S_zul aus den Anteilen S1–S6, senkrechte Nadel = vorhandener Wert S_vorh',
+                svgEl(W, barY + barH + 24, body) + chartLegend(parts.filter(p => p[1] > 0).map(p => [p[2], p[0]])));
+        },
+        // 3 · Tauwasser: Glaser-Diagramm über die geometrische Bauteildicke (Schichten proportional)
+        glaser(res) {
+            const prof = res.profil || [];
+            if (prof.length < 2) return '';
+            const sch = res.schichten || [];
+            // geometrische Position je Knoten (kumulierte Schichtdicken); Fallback: s_d
+            const xg = [0]; for (let k = 0; k < sch.length; k++) xg.push(xg[k] + (+sch[k].d || 0));
+            const useGeo = (xg[xg.length - 1] > 0 && xg.length === prof.length);
+            const xs = useGeo ? xg : prof.map(p => +p.sd || 0);
+            const theta = prof.map(p => +p.theta || 0), psat = prof.map(p => +p.p_sat || 0), pp = prof.map(p => +p.p || 0);
+            const maxX = Math.max.apply(null, xs) || 1, maxY = (Math.max.apply(null, psat.concat(pp)) || 1) * 1.10;
+            const W = 480, H = 280, padL = 48, padR = 14, padT = 18, padB = 52, plotW = W - padL - padR, plotH = H - padT - padB;
+            const X = v => padL + (v / maxX) * plotW, Y = v => padT + plotH - (v / maxY) * plotH, y0 = padT + plotH;
+            const pSat = T => (T >= 0) ? 610.5 * Math.exp(17.269 * T / (237.3 + T)) : 610.5 * Math.exp(21.875 * T / (265.5 + T));
+            let grid = '';
+            for (let k = 0; k <= 4; k++) { const yy = padT + plotH * k / 4, val = maxY * (1 - k / 4); grid += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" stroke="#eef2f7"/><text x="' + (padL - 5) + '" y="' + (yy + 3) + '" text-anchor="end" class="lg">' + Math.round(val) + '</text>'; }
+            // Schicht-Bänder (proportional zur echten Dicke)
+            let bands = ''; const legend = [];
+            for (let i = 1; i < prof.length; i++) {
+                const x0 = X(xs[i - 1]), x1 = X(xs[i]), fill = (i % 2) ? '#eef3f9' : '#e1e9f3';
+                bands += '<rect x="' + x0.toFixed(1) + '" y="' + padT + '" width="' + Math.max(0, x1 - x0).toFixed(1) + '" height="' + plotH + '" fill="' + fill + '"><title>' + escq(prof[i].position || ('Schicht ' + i)) + '</title></rect>'
+                    + '<line x1="' + x1.toFixed(1) + '" y1="' + padT + '" x2="' + x1.toFixed(1) + '" y2="' + y0 + '" stroke="#cbd5e1" stroke-width="0.7"/>';
+                if (x1 - x0 >= 11) bands += '<text x="' + ((x0 + x1) / 2).toFixed(1) + '" y="' + (padT + 11) + '" text-anchor="middle" style="font-size:9px;fill:#64748b;font-weight:700;">' + i + '</text>';
+                legend.push(i + ' ' + (prof[i].position || ''));
+            }
+            // p_sat glatt: Temperatur je Schicht linear interpolieren → Magnus-Sättigungsdruck
+            const satPts = [];
+            for (let i = 1; i < prof.length; i++) {
+                const steps = 8;
+                for (let s = (i === 1 ? 0 : 1); s <= steps; s++) {
+                    const f = s / steps, xx = xs[i - 1] + (xs[i] - xs[i - 1]) * f, T = theta[i - 1] + (theta[i] - theta[i - 1]) * f;
+                    satPts.push(X(xx).toFixed(1) + ',' + Y(pSat(T)).toFixed(1));
+                }
+            }
+            // p: gerade Segmente zwischen Knoten (innerhalb jeder Schicht linear)
+            const ptsP = prof.map((p, i) => X(xs[i]).toFixed(1) + ',' + Y(pp[i]).toFixed(1)).join(' ');
+            let dots = '', cond = '';
+            prof.forEach((p, i) => {
+                dots += '<circle cx="' + X(xs[i]).toFixed(1) + '" cy="' + Y(pp[i]).toFixed(1) + '" r="2.2" fill="#ef4444"/>';
+                if (pp[i] >= psat[i] - 1) cond += '<circle cx="' + X(xs[i]).toFixed(1) + '" cy="' + Y(psat[i]).toFixed(1) + '" r="4.5" fill="none" stroke="#b91c1c" stroke-width="2"/>';
+            });
+            const xlab = useGeo ? ('außen · Dicke ' + nf(maxX * 100, 0) + ' cm') : ('außen · s_d ' + nf(maxX, 1) + ' m');
+            const body = grid + bands
+                + '<line x1="' + padL + '" y1="' + padT + '" x2="' + padL + '" y2="' + y0 + '" stroke="#94a3b8"/>'
+                + '<line x1="' + padL + '" y1="' + y0 + '" x2="' + (W - padR) + '" y2="' + y0 + '" stroke="#94a3b8"/>'
+                + '<polyline points="' + satPts.join(' ') + '" fill="none" stroke="#2563eb" stroke-width="2.5"/>'
+                + '<polyline points="' + ptsP + '" fill="none" stroke="#ef4444" stroke-width="2.2"/>'
+                + dots + cond
+                + '<text x="6" y="' + (padT - 5) + '" class="lg">p [Pa]</text>'
+                + '<text x="' + padL + '" y="' + (y0 + 16) + '" class="lg">innen</text>'
+                + '<text x="' + (W - padR) + '" y="' + (y0 + 16) + '" text-anchor="end" class="lg">' + xlab + '</text>';
+            const touches = prof.some((p, i) => pp[i] >= psat[i] - 1);
+            const layerLeg = '<div style="font-size:10.5px;color:#475569;margin-top:4px;line-height:1.5;">Schichten (innen→außen): ' + legend.map(escq).join(' · ') + (useGeo ? ' · Σ s_d ' + nf(maxX === 0 ? 0 : (+res.sd_total || 0), 1) + ' m' : '') + '</div>';
+            const expl = '<div class="d48-chart" style="font-size:12.5px;line-height:1.55;">'
+                + '<b>So liest man das Glaser-Diagramm:</b> Im Winter wandert warme, feuchte Innenluft als Wasserdampf durch das Bauteil nach außen (von links = innen nach rechts = außen). Über den Bauteilquerschnitt werden zwei Kurven verglichen:'
+                + '<div style="margin:6px 0 6px 4px;">'
+                + '<div><span style="display:inline-block;width:16px;border-top:2px solid #2563eb;vertical-align:4px;"></span> <b>blau – Sättigungsdampfdruck p<sub>sat</sub>:</b> der maximal mögliche Dampfdruck bei der dort herrschenden Temperatur (sinkt dort stark, wo es kalt wird – in der Dämmung).</div>'
+                + '<div><span style="display:inline-block;width:16px;border-top:2px solid #ef4444;vertical-align:4px;"></span> <b>rot – tatsächlicher Dampfdruck p:</b> wie viel Wasserdampf wirklich vorhanden ist (fällt steiler in dampfdichten Schichten, z. B. Beton).</div>'
+                + '</div>'
+                + (touches
+                    ? '<span style="color:#b91c1c;"><b>Hier berühren bzw. schneiden sich die Linien</b> – die Luft ist gesättigt, an dieser Stelle fällt <b>Tauwasser</b> aus.</span>'
+                    : '<span style="color:#065f46;"><b>Die beiden Linien berühren sich nirgends</b> – der tatsächliche Dampfdruck bleibt überall unter der Sättigung (p &lt; p<sub>sat</sub>). Es kondensiert kein Wasser → das Bauteil ist <b>tauwasserfrei</b>.</span>')
+                + '</div>';
+            return chartWrap('Glaser-Diagramm über die Bauteildicke: Sättigungsdruck p_sat (blau) &amp; tatsächlicher Dampfdruck p (rot) – berühren sich die Linien, fällt Tauwasser aus',
+                svgEl(W, H, body) + chartLegend([['#2563eb', 'p_sat (Sättigung)'], ['#ef4444', 'p (vorhanden)'], ['#b91c1c', 'Tauwasser-Punkt']]) + layerLeg) + expl;
+        },
+        // 4 · Wärmebrücken: Vergleich der ΔU_WB-Stufen, gewählte hervorgehoben
+        wb(sel) {
+            const cats = [['innen', 'Innendämmung', 0.15], ['keine', 'Kein Nachweis', 0.10], ['kat_a', 'Bbl 2 Kat. A', 0.05], ['kat_b', 'Bbl 2 Kat. B', 0.03]];
+            const maxV = 0.15 * 1.12, W = 330, rowH = 26, gap = 8, padL = 104, padR = 70, top = 4, barW = W - padL - padR;
+            const H = top + cats.length * (rowH + gap);
+            let body = '';
+            cats.forEach((c, i) => {
+                const y = top + i * (rowH + gap), w = c[2] / maxV * barW, isSel = c[0] === sel;
+                const col = isSel ? '#2563eb' : (c[2] <= 0.05 ? '#10b981' : (c[2] <= 0.10 ? '#f59e0b' : '#ef4444'));
+                body += '<text x="0" y="' + (y + rowH * 0.66) + '" style="font-size:11px;font-weight:' + (isSel ? '700' : '400') + ';fill:#1e293b">' + escq(c[1]) + '</text>'
+                    + '<rect x="' + padL + '" y="' + (y + 3) + '" width="' + barW + '" height="' + (rowH - 9) + '" rx="4" fill="#eef2f7"/>'
+                    + '<rect x="' + padL + '" y="' + (y + 3) + '" width="' + Math.max(2, w) + '" height="' + (rowH - 9) + '" rx="4" fill="' + col + '"/>'
+                    + '<text x="' + (padL + Math.max(2, w) + 5) + '" y="' + (y + rowH * 0.66) + '" class="lg" style="fill:#0f172a;font-weight:' + (isSel ? '700' : '400') + '">' + nf(c[2], 2) + (isSel ? ' ◄ gewählt' : '') + '</text>';
+            });
+            return chartWrap('Wärmebrückenzuschlag ΔU_WB – Vergleich der Nachweis-Stufen (niedriger = besser)', svgEl(W, H, body));
+        },
+        // 5 · Luftdichtheit: gemessener n50 gegen Grenzwert (Gauge)
+        n50(res, n50val) {
+            const limit = +res.n50_grenze || 3, v = +n50val || 0;
+            const maxX = Math.max(limit * 1.6, v * 1.15, limit + 0.5);
+            const W = 340, H = 64, padL = 8, padR = 8, top = 20, barH = 20, barW = W - padL - padR;
+            const xLim = padL + limit / maxX * barW, xV = padL + Math.min(v, maxX) / maxX * barW, ok = v <= limit;
+            const body = '<rect x="' + padL + '" y="' + top + '" width="' + (xLim - padL) + '" height="' + barH + '" fill="#d1fae5"/>'
+                + '<rect x="' + xLim + '" y="' + top + '" width="' + (padL + barW - xLim) + '" height="' + barH + '" fill="#fee2e2"/>'
+                + '<rect x="' + padL + '" y="' + top + '" width="' + Math.max(2, xV - padL) + '" height="' + barH + '" fill="' + (ok ? '#10b981' : '#ef4444') + '" opacity="0.88"/>'
+                + '<line x1="' + xLim + '" y1="' + (top - 6) + '" x2="' + xLim + '" y2="' + (top + barH + 6) + '" stroke="#0f172a" stroke-width="2"/>'
+                + '<text x="' + xLim + '" y="' + (top - 8) + '" text-anchor="middle" class="lg" style="fill:#0f172a;font-weight:700">Grenze ' + nf(limit, 1) + '</text>'
+                + '<text x="' + Math.max(20, Math.min(xV, W - 20)) + '" y="' + (top + barH + 16) + '" text-anchor="middle" style="font-size:11px;font-weight:700;fill:' + (ok ? '#065f46' : '#b91c1c') + '">n₅₀ = ' + nf(v, 2) + '</text>';
+            return chartWrap('Luftdichtheit: gemessener n₅₀ gegen den Grenzwert (grün = dicht genug, rot = zu undicht)', svgEl(W, H, body));
+        }
+    };
+    window.d48charts = d48charts;
+
     // --- Info-Box je Feature (ℹ️ in der Ecke) -------------------------------
     window.d48ToggleInfo = function (btn) {
         const box = btn.nextElementSibling;
@@ -10600,26 +11453,45 @@ async function updateDoorType() {
     function d48UDisp(id) { const el = $(id); if (!el) return 0; const t = el.innerText || el.textContent || ""; if (t.indexOf("—") >= 0) return 0; return d48Num(t); }
     function d48Val(id, def) { const el = $(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) ? v : (def || 0); }
 
+    // Wärmedurchlasswiderstand R = Σ d/λ direkt aus dem Schichtaufbau (Summe der je
+    // Schicht angezeigten R-Werte). Unabhängig von Rsi/Rse → exakter als R aus U zurückrechnen.
+    function d48SumLayerR(containerId) {
+        let R = 0, n = 0;
+        document.querySelectorAll('#' + containerId + ' .wall-layer-row .wl-r').forEach(function (el) {
+            const v = parseFloat((el.textContent || '').replace(',', '.'));
+            if (isFinite(v) && v > 0) { R += v; n++; }
+        });
+        return n > 0 ? R : 0;
+    }
+
     window.d48Prefill = function () {
         const note = $("d48-prefill-note");
         const msgs = [];
 
-        // Feature 1 – Bauteile aus dem Hülle-Tab (U-Werte der Konstruktionen)
+        // Feature 1 – Bauteile aus dem Hülle-Tab: R automatisch aus dem Schichtaufbau (Σ d/λ),
+        // U nur als Fallback, falls keine Schichten vorhanden sind.
         const wallU = { north: d48UDisp("north_u_display"), south: d48UDisp("south_u_display"), east: d48UDisp("east_u_display"), west: d48UDisp("west_u_display") };
         const orientDe = { north: "Nord", south: "Süd", east: "Ost", west: "West" };
         d48ClearRows("d48-mws-tbl");
         const walls = Object.keys(wallU).filter(o => wallU[o] > 0);
+        const wallR = d48SumLayerR('wall_layers_container');
         if (walls.length) {
             const vals = walls.map(o => wallU[o]);
-            if (vals.every(v => Math.abs(v - vals[0]) < 1e-6)) d48AddMwsRow("Außenwand", "aussenwand", "", vals[0].toFixed(3), "");
+            const same = vals.every(v => Math.abs(v - vals[0]) < 1e-6);
+            if (wallR > 0) {
+                if (same) d48AddMwsRow("Außenwand", "aussenwand", wallR.toFixed(3), "", "");
+                else walls.forEach(o => d48AddMwsRow("Außenwand " + orientDe[o], "aussenwand", wallR.toFixed(3), "", ""));
+            } else if (same) d48AddMwsRow("Außenwand", "aussenwand", "", vals[0].toFixed(3), "");
             else walls.forEach(o => d48AddMwsRow("Außenwand " + orientDe[o], "aussenwand", "", wallU[o].toFixed(3), ""));
         }
         const roofU = d48UDisp("roof_u_display");
-        if (roofU > 0) d48AddMwsRow("Dach", "flachdach", "", roofU.toFixed(3), "");
+        const roofR = d48SumLayerR('roof_layers_container');
+        if (roofU > 0) d48AddMwsRow("Dach", "flachdach", roofR > 0 ? roofR.toFixed(3) : "", roofR > 0 ? "" : roofU.toFixed(3), "");
         const floorU = d48UDisp("floor_u_display");
+        const floorR = d48SumLayerR('floor_layers_container');
         if (floorU > 0) {
             const b = (window.floorMaterialData && window.floorMaterialData.boundary) || "";
-            d48AddMwsRow("Boden", /keller/i.test(b) ? "decke_unten_keller" : "bodenplatte_erdreich", "", floorU.toFixed(3), "");
+            d48AddMwsRow("Boden", /keller/i.test(b) ? "decke_unten_keller" : "bodenplatte_erdreich", floorR > 0 ? floorR.toFixed(3) : "", floorR > 0 ? "" : floorU.toFixed(3), "");
         }
         if (!walls.length && !roofU && !floorU) { d48AddMwsRow("Außenwand", "aussenwand", "", "", ""); msgs.push("⚠ keine U-Werte im Hülle-Tab (dort zuerst berechnen)"); }
         else msgs.push("Bauteile aus Hülle");
@@ -10691,7 +11563,8 @@ async function updateDoorType() {
         box.className = "d48-res " + res.rating_color;
         box.innerHTML = badge(res.rating_color, res.rating_label) + " " + res.rating_message +
             '<table class="d48-tbl"><thead><tr><th>Bauteil</th><th>Typ</th><th>R</th><th>R_min</th><th>Status</th><th>Hinweis</th></tr></thead><tbody>' +
-            rowsHtml + "</tbody></table>";
+            rowsHtml + "</tbody></table>" +
+            d48charts.mws(res.bauteile);
     };
 
     // ============ Feature 2: Sommerlicher Wärmeschutz ======================
@@ -10742,7 +11615,8 @@ async function updateDoorType() {
             "<tr><td>S4 Fensterneigung 0–60°</td><td>" + fmt(a.S4_neigung, 3) + "</td></tr>" +
             "<tr><td>S5 Nordorientierung/verschattet</td><td>" + fmt(a.S5_orientierung, 3) + "</td></tr>" +
             "<tr><td>S6 passive Kühlung</td><td>" + fmt(a.S6_passive_kuehlung, 3) + "</td></tr>" +
-            "</tbody></table>";
+            "</tbody></table>" +
+            d48charts.som(res);
     };
 
     // ============ Feature 3: Tauwasser / Glaser ============================
@@ -10791,10 +11665,11 @@ async function updateDoorType() {
         box.className = "d48-res " + res.rating_color;
         box.innerHTML =
             badge(res.rating_color, res.rating_label) + " " + res.rating_message +
-            '<div style="margin-top:8px">U = ' + fmt(res.u_wert, 2) + " W/m²K · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
+            '<div style="margin-top:8px" title="U für den Feuchteschutz mit R_si=0,25 m²K/W nach DIN 4108-3; weicht leicht vom thermischen U (R_si=0,13) ab.">U<sub>Feuchte</sub> = ' + fmt(res.u_wert, 2) + " W/m²K · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
             "Tauwasser M_c = <b>" + fmt(res.mc_total, 3) + "</b> kg/m² · Verdunstung M_ev = <b>" + fmt(res.mev_total, 3) + "</b> kg/m² (zul. ≤ 1,0)</div>" +
             '<table class="d48-tbl"><thead><tr><th>Schichtgrenze</th><th>s_d [m]</th><th>θ [°C]</th><th>p_sat [Pa]</th><th>p [Pa]</th></tr></thead><tbody>' +
-            prof + "</tbody></table>";
+            prof + "</tbody></table>" +
+            d48charts.glaser(res);
     };
 
     // ---- ΔU_WB Hülle-Tab: festes Dropdown + benutzerdefinierter Wert ------
@@ -10838,6 +11713,8 @@ async function updateDoorType() {
         const opt = $("d48-wb-opt") ? $("d48-wb-opt").value : "keine";
         const info = $("d48-wb-info");
         if (info) info.textContent = "Gewählt: ΔU_WB = " + DUWB[opt].toFixed(2) + " W/m²K. „In Heizbedarf übernehmen“ setzt diesen Wert im Hülle-Tab (Feld delta_u_wb).";
+        const chart = $("d48-wb-chart");
+        if (chart) chart.innerHTML = d48charts.wb(opt);
     }
     window.d48ApplyDeltaUwbInfo = d48ApplyDeltaUwbInfo;
     if (document.addEventListener) document.addEventListener("change", function (e) { if (e.target && e.target.id === "d48-wb-opt") d48ApplyDeltaUwbInfo(); });
@@ -10868,6 +11745,7 @@ async function updateDoorType() {
         if (res.n_infiltration !== undefined) html += " · geschätzter Infiltrations-Luftwechsel n_inf ≈ " + fmt(res.n_infiltration, 2) + " h⁻¹";
         if (res.qe50_grenze) html += "<br>q_E50-Grenze (V>1500 m³) = " + res.qe50_grenze + " m³/(h·m²)" + (res.qe50_erfuellt !== null && res.qe50_erfuellt !== undefined ? " → " + (res.qe50_erfuellt ? "erfüllt" : "nicht erfüllt") : "");
         html += "</div>";
+        html += d48charts.n50(res, payload.n50);
         box.innerHTML = html;
     };
 
