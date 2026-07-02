@@ -1735,7 +1735,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <button type="button" class="fp-btn" data-fp="rect">▭ Rechteck</button>
                                 <button type="button" class="fp-btn" data-fp="l">⌐ L-Form</button>
                                 <button type="button" class="fp-btn" data-fp="u">⊔ U-Form</button>
-                                <button type="button" class="fp-btn" data-fp="circle">◯ Kreis</button>
+                                <button type="button" class="fp-btn" data-fp="circle">⬣ Achteck</button>
                             </span>
                             <span class="fp-group">
                                 <button type="button" class="fp-btn" data-fp="undo">↶ Punkt zurück</button>
@@ -1774,7 +1774,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             </svg>
                         </div>
                         <div class="fp-info" id="fpInfo"></div>
-                        <p class="note" style="margin-top:8px;">Ecken nacheinander anklicken; auf den ersten (goldenen) Punkt klicken, um die Wände zu schließen. Punkte sind verschiebbar. Türen werden auf den längsten Wänden platziert. Das 3D-Modell unten aktualisiert sich automatisch. <b>Wandaufbau, U‑Wert und CO₂ werden im Tab „Gebäudehülle" festgelegt.</b>
+                        <p class="note" style="margin-top:8px;">Ecken nacheinander anklicken; auf den ersten (goldenen) Punkt klicken, um die Wände zu schließen. Punkte sind verschiebbar. <b>Maximal 8 Wände</b> – jede Wand erhält automatisch eine Bezeichnung nach ihrer Ausrichtung (z. B. „1 · NO"), die später u. a. bei den Wandrandbedingungen wieder auftaucht. Türen werden auf den längsten Wänden platziert. Das 3D-Modell unten aktualisiert sich automatisch. <b>Wandaufbau, U‑Wert und CO₂ werden im Tab „Gebäudehülle" festgelegt.</b>
                     </div>
                 </div>
                 <div id="house3d" class="house3d" role="img" aria-label="3D-Gebäudemodell. Flächen anklicken, um zur jeweiligen Berechnung zu springen.">
@@ -2261,10 +2261,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
                         <span class="small" style="color:#9bb;">Fenster hinzufügen:</span>
-                        <button type="button" class="btn" onclick="addWindowTo('north')" style="padding:4px 10px;">＋ Nord</button>
-                        <button type="button" class="btn" onclick="addWindowTo('south')" style="padding:4px 10px;">＋ Süd</button>
-                        <button type="button" class="btn" onclick="addWindowTo('east')" style="padding:4px 10px;">＋ Ost</button>
-                        <button type="button" class="btn" onclick="addWindowTo('west')" style="padding:4px 10px;">＋ West</button>
+                        <span id="win_add_buttons" style="display:inline-flex;gap:6px;flex-wrap:wrap;">
+                            <button type="button" class="btn" onclick="addWindowTo('north')" style="padding:4px 10px;">＋ Nord</button>
+                            <button type="button" class="btn" onclick="addWindowTo('south')" style="padding:4px 10px;">＋ Süd</button>
+                            <button type="button" class="btn" onclick="addWindowTo('east')" style="padding:4px 10px;">＋ Ost</button>
+                            <button type="button" class="btn" onclick="addWindowTo('west')" style="padding:4px 10px;">＋ West</button>
+                        </span>
                     </div>
                     <p class="note" style="margin:10px 0 0;color:#7fb4d8;">💡 Klicke ein Fenster im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten.</p>
                     <div id="window_list" class="elem-list"></div>
@@ -2308,10 +2310,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
                         <span class="small" style="color:#9bb;">Tür hinzufügen:</span>
-                        <button type="button" class="btn" onclick="addDoorTo('north')" style="padding:4px 10px;">＋ Nord</button>
-                        <button type="button" class="btn" onclick="addDoorTo('south')" style="padding:4px 10px;">＋ Süd</button>
-                        <button type="button" class="btn" onclick="addDoorTo('east')" style="padding:4px 10px;">＋ Ost</button>
-                        <button type="button" class="btn" onclick="addDoorTo('west')" style="padding:4px 10px;">＋ West</button>
+                        <span id="door_add_buttons" style="display:inline-flex;gap:6px;flex-wrap:wrap;">
+                            <button type="button" class="btn" onclick="addDoorTo('north')" style="padding:4px 10px;">＋ Nord</button>
+                            <button type="button" class="btn" onclick="addDoorTo('south')" style="padding:4px 10px;">＋ Süd</button>
+                            <button type="button" class="btn" onclick="addDoorTo('east')" style="padding:4px 10px;">＋ Ost</button>
+                            <button type="button" class="btn" onclick="addDoorTo('west')" style="padding:4px 10px;">＋ West</button>
+                        </span>
                     </div>
                     <p class="note" style="margin:10px 0 0;color:#7fb4d8;">💡 Klicke eine Tür im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten – oder ziehe sie zum Verschieben.</p>
                     <div id="door_list" class="elem-list"></div>
@@ -3788,7 +3792,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
     .obd-modal { position: fixed; inset: 0; z-index: 9999; background: rgba(3,7,15,.62);
         display: none; align-items: flex-start; justify-content: center; padding: 8vh 16px 16px; }
     .obd-modal-box { width: min(640px, 100%); max-height: 80vh; display: flex; flex-direction: column;
-        background: var(--surface-strong, #131c2b); border: 1px solid var(--line-strong, var(--line, #2a3344));
+        background: #131c2b; border: 1px solid var(--line-strong, var(--line, #2a3344));
         border-radius: 14px; box-shadow: 0 24px 60px -20px rgba(0,0,0,.7); overflow: hidden; }
     .obd-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px;
         padding: 14px 16px; border-bottom: 1px solid var(--line, #2a3344); font-weight: 700; color: var(--text, #e7edf5); }
@@ -6793,10 +6797,20 @@ function getFloorUValue() {
  *   Beheizt       → Fx = 0   (gleiche Innentemperatur, kein Verlust)
  * ============================================================= */
 window.wallBoundary = window.wallBoundary || {
-    north: { type: 'aussenluft', temp: 10 },
-    south: { type: 'aussenluft', temp: 10 },
-    east:  { type: 'aussenluft', temp: 10 },
-    west:  { type: 'aussenluft', temp: 10 },
+    north:     { type: 'aussenluft', temp: 10 },
+    northeast: { type: 'aussenluft', temp: 10 },
+    east:      { type: 'aussenluft', temp: 10 },
+    southeast: { type: 'aussenluft', temp: 10 },
+    south:     { type: 'aussenluft', temp: 10 },
+    southwest: { type: 'aussenluft', temp: 10 },
+    west:      { type: 'aussenluft', temp: 10 },
+    northwest: { type: 'aussenluft', temp: 10 },
+};
+
+// Deutsche Orientierungsnamen (auch für Wand-Bezeichnungen der komplexen Geometrie)
+window.ORI_DE = {
+    north: 'Nord', northeast: 'Nordost', east: 'Ost', southeast: 'Südost',
+    south: 'Süd', southwest: 'Südwest', west: 'West', northwest: 'Nordwest',
 };
 
 // Default-Nachbartemperatur je Randbedingung (°C)
@@ -6890,6 +6904,88 @@ function _renderWallBoundaryFx(orientation) {
 // Rückwärtskompatibler Alias
 function updateWallBoundary(orientation) {
     onWallBoundaryTypeChange(orientation);
+}
+
+// Auswahloptionen der Randbedingung (identisch zum statischen HTML-Grid)
+const WALL_BOUNDARY_TYPES = [
+    ['aussenluft', 'Außenluft'],
+    ['erdreich', 'Erdreich'],
+    ['unbeheizt', 'Unbeheizter Raum'],
+    ['niedrig_beheizt', 'Niedrig beheizter Raum (~16 °C)'],
+    ['beheizt', 'Beheizter Raum'],
+];
+
+// Wandrandbedingungs-Grid neu aufbauen.
+// Einfache Geometrie → Nord/Süd/Ost/West. Komplexe Geometrie → die tatsächlich
+// vorkommenden Orientierungen mit den Wand-Bezeichnungen aus dem Grundriss-Editor,
+// z. B. „Nordost (Wand 3) – grenzt an". Auswahl/Temperaturen bleiben erhalten
+// (Zustand liegt in window.wallBoundary).
+function renderWallBoundaryGrid() {
+    const grid = document.getElementById('wall_boundary_grid');
+    if (!grid) return;
+    let entries; // [{ori, label}]
+    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+        // Eine Eingabe JE WAND – die Bezeichnungen sind eindeutig (assignWallSectors).
+        // Absicherung für Alt-Daten (>8 Wände): doppelte Orientierungen zusammenfassen.
+        const byOri = {}, order = [];
+        window.complexWallList.forEach(function (w) {
+            if (!byOri[w.ori]) { byOri[w.ori] = { nrs: [], oriDe: w.oriDe || w.ori }; order.push(w.ori); }
+            byOri[w.ori].nrs.push(w.nr);
+        });
+        entries = order.map(function (o) {
+            const g = byOri[o];
+            const label = g.nrs.length === 1
+                ? 'Wand ' + g.nrs[0] + ' · ' + g.oriDe + ' – grenzt an'
+                : g.oriDe + ' (Wände ' + g.nrs.join(', ') + ') – grenzt an';
+            return { ori: o, label: label };
+        });
+    } else {
+        entries = ['north', 'south', 'east', 'west'].map(function (o) {
+            return { ori: o, label: (window.ORI_DE[o] || o) + ' – grenzt an' };
+        });
+    }
+    grid.innerHTML = entries.map(function (e) {
+        const o = e.ori;
+        const st = (window.wallBoundary && window.wallBoundary[o]) || { type: 'aussenluft', temp: 10 };
+        const needsTemp = (st.type === 'unbeheizt' || st.type === 'niedrig_beheizt' || st.type === 'beheizt');
+        const tempVal = (st.temp !== undefined && st.temp !== null && isFinite(st.temp)) ? st.temp : '';
+        const opts = WALL_BOUNDARY_TYPES.map(function (t) {
+            return '<option value="' + t[0] + '"' + (st.type === t[0] ? ' selected' : '') + '>' + t[1] + '</option>';
+        }).join('');
+        return '<div class="field">' +
+            '<label>' + e.label + '</label>' +
+            '<select id="' + o + '_boundary" onchange="onWallBoundaryTypeChange(\'' + o + '\')">' + opts + '</select>' +
+            '<input type="number" id="' + o + '_boundary_temp" style="display:' + (needsTemp ? 'block' : 'none') + ';margin-top:6px;" step="0.5" placeholder="Temp °C" value="' + (needsTemp ? tempVal : '') + '" oninput="onWallBoundaryTempChange(\'' + o + '\')">' +
+            '<div class="small" id="' + o + '_boundary_fx" style="margin-top:6px;color:#9bb;">F<sub>x</sub> = 1.00</div>' +
+            '</div>';
+    }).join('');
+    entries.forEach(function (e) { _renderWallBoundaryFx(e.ori); });
+}
+
+// „Fenster/Tür hinzufügen"-Buttons an die tatsächlichen Wände anpassen.
+// Einfache Geometrie → Nord/Süd/Ost/West; komplexe Geometrie → ein Button je Wand
+// mit ihrer eindeutigen Bezeichnung (z. B. „＋ Wand 3 (Südost)").
+function renderElementAddButtons() {
+    const winC = document.getElementById('win_add_buttons');
+    const doorC = document.getElementById('door_add_buttons');
+    function btn(fn, ori, label, wallNr) {
+        return '<button type="button" class="btn" onclick="' + fn + '(\'' + ori + '\'' + (wallNr != null ? ', ' + wallNr : '') + ')" style="padding:4px 10px;">＋ ' + label + '</button>';
+    }
+    let winHtml = '', doorHtml = '';
+    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+        window.complexWallList.forEach(function (w) {
+            const lbl = 'Wand ' + w.nr + ' (' + (w.oriDe || w.ori) + ')';
+            winHtml += btn('addWindowTo', w.ori, lbl, w.nr);
+            doorHtml += btn('addDoorTo', w.ori, lbl, w.nr);
+        });
+    } else {
+        [['north', 'Nord'], ['south', 'Süd'], ['east', 'Ost'], ['west', 'West']].forEach(function (p) {
+            winHtml += btn('addWindowTo', p[0], p[1]);
+            doorHtml += btn('addDoorTo', p[0], p[1]);
+        });
+    }
+    if (winC) winC.innerHTML = winHtml;
+    if (doorC) doorC.innerHTML = doorHtml;
 }
 
 /* =====================================================================
@@ -7032,13 +7128,21 @@ async function calculateEnvelope() {
     (function () {
         const ori8 = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
         const wa = window.wallAreas || {};
-        const wallU = getEffectiveU('north');   // Wandaufbau aus Gebäudehülle
+        const wallUBase = getUValue('north');   // Wandaufbau aus Gebäudehülle (eine Quelle für alle Orientierungen)
         if (window.isComplexGeometry && window.complexWindows) {
             const cw = window.complexWindows, cd = window.complexDoors || {};
+            const wl = Array.isArray(window.complexWallList) ? window.complexWallList : [];
             ori8.forEach(function (o) {
+                // Fx je (Energie-)Sektor flächengewichtet über dessen Wände; jede Wand hat
+                // ihre EIGENE Randbedingung (eindeutige Wand-Bezeichnung als Schlüssel).
+                const group = wl.filter(function (w) { return (w.oriEnergy || w.ori) === o; });
+                const aSum = group.reduce(function (s, w) { return s + w.flaeche; }, 0);
+                const fx = aSum > 0
+                    ? group.reduce(function (s, w) { return s + w.flaeche * getWallFxFactor(w.ori); }, 0) / aSum
+                    : getWallFxFactor(o);
                 envelopePayload[o + '_area'] = wa[o] || 0;
-                envelopePayload[o + '_u'] = wallU;
-                envelopePayload[o + '_fx'] = 1;
+                envelopePayload[o + '_u'] = wallUBase * fx;
+                envelopePayload[o + '_fx'] = fx;
                 envelopePayload['window_' + o + '_area'] = cw[o] || 0;
                 envelopePayload['door_' + o + '_count'] = cd[o] || 0;
             });
@@ -7047,7 +7151,7 @@ async function calculateEnvelope() {
             // Einfach: nur die 4 Diagonalen ergänzen (Fläche 0)
             ['northeast', 'southeast', 'southwest', 'northwest'].forEach(function (o) {
                 envelopePayload[o + '_area'] = wa[o] || 0;
-                envelopePayload[o + '_u'] = wallU;
+                envelopePayload[o + '_u'] = wallUBase;
                 envelopePayload[o + '_fx'] = 1;
             });
         }
@@ -9064,7 +9168,8 @@ async function updateDoorType() {
         ensureWindowsList();
         const list = window.windowsList || [];
         const byOri = { north: [], south: [], east: [], west: [] };
-        list.forEach(function (w) { if (byOri[w.orientation]) byOri[w.orientation].push(w); });
+        // wandgebundene Fenster (wallNr, komplexe Geometrie) gehören nicht ins einfache Modell
+        list.forEach(function (w) { if (w.wallNr == null && byOri[w.orientation]) byOri[w.orientation].push(w); });
 
         function winMesh(w) {
             const ww = Math.max(0.3, +w.width || 1.2), wh = Math.max(0.3, +w.height || 1.4);
@@ -9074,12 +9179,16 @@ async function updateDoorType() {
             m.userData.orientation = w.orientation;
             return m;
         }
+        // Position + halbe Breite der Erdgeschoss-Fenster je Fassade merken,
+        // damit Türen (buildDoors) nicht direkt davor platziert werden.
+        const groundSpans = { north: [], south: [], east: [], west: [] };
         // Fenster einer Fassade als Raster (Spalten × Geschosse) platzieren
-        function placeFacade(arr, axisLen, posFn) {
+        function placeFacade(arr, axisLen, ori, posFn) {
             const n = arr.length; if (!n) return;
             const perRow = Math.max(1, Math.ceil(n / a.floors));
             const denom = perRow + 0.3;
             arr.forEach(function (w, i) {
+                const ww = Math.max(0.3, +w.width || 1.2);
                 const m = winMesh(w);
                 const row = Math.min(Math.floor(i / perRow), a.floors - 1);
                 const col = i % perRow;
@@ -9087,13 +9196,16 @@ async function updateDoorType() {
                 const cy = floorTop + a.fh * row + a.fh * 0.55;
                 const u = (w.posU != null) ? w.posU : span;
                 const v = (w.posV != null) ? w.posV : cy;
+                // Fenster, die (in der Höhe) mit einer Tür kollidieren könnten, vormerken
+                if (v <= floorTop + a.fh) groundSpans[ori].push({ u: u, half: ww / 2 });
                 posFn(m, u, v);
             });
         }
-        placeFacade(byOri.south, W, function (m, span, cy) { m.position.set(span, cy, halfD + 0.03); });
-        placeFacade(byOri.north, W, function (m, span, cy) { m.position.set(span, cy, -halfD - 0.03); m.rotation.y = Math.PI; });
-        placeFacade(byOri.east, D, function (m, span, cy) { m.position.set(halfW + 0.03, cy, span); m.rotation.y = Math.PI / 2; });
-        placeFacade(byOri.west, D, function (m, span, cy) { m.position.set(-halfW - 0.03, cy, span); m.rotation.y = -Math.PI / 2; });
+        placeFacade(byOri.south, W, 'south', function (m, span, cy) { m.position.set(span, cy, halfD + 0.03); });
+        placeFacade(byOri.north, W, 'north', function (m, span, cy) { m.position.set(span, cy, -halfD - 0.03); m.rotation.y = Math.PI; });
+        placeFacade(byOri.east, D, 'east', function (m, span, cy) { m.position.set(halfW + 0.03, cy, span); m.rotation.y = Math.PI / 2; });
+        placeFacade(byOri.west, D, 'west', function (m, span, cy) { m.position.set(-halfW - 0.03, cy, span); m.rotation.y = -Math.PI / 2; });
+        window._winGroundSpans = groundSpans;
     }
 
     // Türen als EINZELNE Objekte (analog zu den Fenstern), klickbar + verschiebbar.
@@ -9114,27 +9226,53 @@ async function updateDoorType() {
         ensureDoorsList();
         const list = window.doorsList || [];
         const byOri = { north: [], south: [], east: [], west: [] };
-        list.forEach(function (d) { if (byOri[d.orientation]) byOri[d.orientation].push(d); });
+        // wandgebundene Türen (wallNr, komplexe Geometrie) gehören nicht ins einfache Modell
+        list.forEach(function (d) { if (d.wallNr == null && byOri[d.orientation]) byOri[d.orientation].push(d); });
         function doorMesh(d) {
             const w = Math.max(0.4, +d.width || 1.0), h = Math.max(0.8, +d.height || 2.1);
             const m = addMesh(new THREE.BoxGeometry(w, h, 0.12), COL.door, 'door', { emissive: 0x10b981, emInt: 0.16, rough: 0.5 });
             m.userData.doorId = d.id; m.userData.orientation = d.orientation;
             return { m: m, w: w, h: h };
         }
-        function place(arr, axisLen, posFn) {
+        const winSpans = window._winGroundSpans || { north: [], south: [], east: [], west: [] };
+        // Wählt eine Türposition möglichst nah an der Ideal­lage (base), die aber nicht
+        // direkt vor einem Erdgeschoss-Fenster (oder einer bereits gesetzten Tür) liegt.
+        function pickFreeSpan(base, axisLen, doorHalf, occupied) {
+            const limit = Math.max(0, axisLen / 2 - doorHalf - 0.15);
+            const bclamped = Math.max(-limit, Math.min(limit, base));
+            if (!occupied.length) return bclamped;
+            const gap = 0.15; // Mindestluft zwischen Tür- und Fensterkante
+            function clearOK(x) { for (let k = 0; k < occupied.length; k++) { const o = occupied[k]; if (Math.abs(x - o.u) < o.half + doorHalf + gap) return false; } return true; }
+            function slack(x) { let s = Infinity; for (let k = 0; k < occupied.length; k++) { const o = occupied[k]; s = Math.min(s, Math.abs(x - o.u) - (o.half + doorHalf)); } return s; }
+            if (clearOK(bclamped)) return bclamped;
+            const step = Math.max(0.1, axisLen / 100);
+            let bestNear = null, bestNearDelta = Infinity;      // nächste kollisionsfreie Lage
+            let bestSlack = -Infinity, bestSlackX = bclamped;   // Fallback: geringste Überlappung
+            for (let x = -limit; x <= limit + 1e-6; x += step) {
+                const delta = Math.abs(x - base);
+                if (clearOK(x) && delta < bestNearDelta) { bestNearDelta = delta; bestNear = x; }
+                const s = slack(x); if (s > bestSlack) { bestSlack = s; bestSlackX = x; }
+            }
+            return bestNear != null ? bestNear : bestSlackX;
+        }
+        function place(arr, axisLen, occupied, posFn) {
             const n = arr.length; if (!n) return;
+            const taken = (occupied || []).slice(); // Fenster + bereits gesetzte Türen dieser Fassade
             arr.forEach(function (d, i) {
                 const r = doorMesh(d);
-                const span = (i - (n - 1) / 2) * (axisLen / (n + 0.5));
-                const u = (d.posU != null) ? d.posU : span;
+                const doorHalf = r.w / 2;
+                const base = (i - (n - 1) / 2) * (axisLen / (n + 0.5));
+                const span = (d.posU != null) ? d.posU : pickFreeSpan(base, axisLen, doorHalf, taken);
+                if (d.posU == null) taken.push({ u: span, half: doorHalf });
+                const u = span;
                 const v = (d.posV != null) ? d.posV : (floorTop + r.h / 2);
                 posFn(r.m, u, v);
             });
         }
-        place(byOri.south, W, function (m, u, v) { m.position.set(u, v, halfD + 0.05); });
-        place(byOri.north, W, function (m, u, v) { m.position.set(u, v, -halfD - 0.05); m.rotation.y = Math.PI; });
-        place(byOri.east, D, function (m, u, v) { m.position.set(halfW + 0.05, v, u); m.rotation.y = Math.PI / 2; });
-        place(byOri.west, D, function (m, u, v) { m.position.set(-halfW - 0.05, v, u); m.rotation.y = -Math.PI / 2; });
+        place(byOri.south, W, winSpans.south, function (m, u, v) { m.position.set(u, v, halfD + 0.05); });
+        place(byOri.north, W, winSpans.north, function (m, u, v) { m.position.set(u, v, -halfD - 0.05); m.rotation.y = Math.PI; });
+        place(byOri.east, D, winSpans.east, function (m, u, v) { m.position.set(halfW + 0.05, v, u); m.rotation.y = Math.PI / 2; });
+        place(byOri.west, D, winSpans.west, function (m, u, v) { m.position.set(-halfW - 0.05, v, u); m.rotation.y = -Math.PI / 2; });
     }
 
     // PV als EINZELNE Module (klickbar + verschiebbar). Liste = window.pvList.
@@ -9193,6 +9331,67 @@ async function updateDoorType() {
         window._pvGroup = g;
         const slopeHalf = (info.type === 'flat') ? (W / 2) : ((halfW + eave) / Math.max(0.3, Math.cos(info.pitch)) / 2 + 0.6);
         window._pvBounds = { halfX: slopeHalf, halfZ: D / 2 + 0.3 };
+    }
+
+    // "N" als Canvas-Sprite (immer zur Kamera gerichtet → jederzeit lesbar)
+    function makeTextSprite(text, hexColor, px) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.font = 'bold ' + (px || 92) + 'px Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = hexColor; ctx.fillText(text, 64, 70);
+        const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+        const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+        spr.scale.set(0.85, 0.85, 0.85);
+        return spr;
+    }
+
+    // Kompass-Gizmo (CAD-Stil) unten rechts im Canvas: eigene Mini-Szene, deren Kamera
+    // jede Frame die Blickrichtung der Hauptkamera übernimmt → dreht sich mit dem Gebäude.
+    // Weltachsen: Nord = -z, Süd = +z (Kameraseite), Ost = +x, West = -x.
+    const gizmoScene = new THREE.Scene();
+    const gizmoCam = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
+    (function buildGizmo() {
+        function axis(dir, len, color, headLen, headW) {
+            return new THREE.ArrowHelper(dir.normalize(), new THREE.Vector3(0, 0, 0), len, color, headLen, headW);
+        }
+        function label(text, cssColor, pos, scale) {
+            const s = makeTextSprite(text, cssColor, 96);
+            s.position.copy(pos); s.scale.set(scale, scale, scale);
+            gizmoScene.add(s);
+        }
+        // Nord: rot + prominent
+        gizmoScene.add(axis(new THREE.Vector3(0, 0, -1), 1.25, 0xef4444, 0.42, 0.22));
+        label('N', '#ef4444', new THREE.Vector3(0, 0, -1.62), 0.72);
+        // Ost / Süd / West: dezenter
+        gizmoScene.add(axis(new THREE.Vector3(1, 0, 0), 0.95, 0xf6b94b, 0.3, 0.15));
+        label('O', '#f6b94b', new THREE.Vector3(1.3, 0, 0), 0.5);
+        gizmoScene.add(axis(new THREE.Vector3(0, 0, 1), 0.95, 0x8aa1b8, 0.3, 0.15));
+        label('S', '#8aa1b8', new THREE.Vector3(0, 0, 1.3), 0.5);
+        gizmoScene.add(axis(new THREE.Vector3(-1, 0, 0), 0.95, 0x8aa1b8, 0.3, 0.15));
+        label('W', '#8aa1b8', new THREE.Vector3(-1.3, 0, 0), 0.5);
+        // Vertikale (oben) für den 3D-Eindruck
+        gizmoScene.add(axis(new THREE.Vector3(0, 1, 0), 0.85, 0x38bdf8, 0.26, 0.13));
+    })();
+    const GIZMO_SIZE = 96, GIZMO_PAD = 10;
+    function renderGizmo() {
+        const w = mount.clientWidth, h = mount.clientHeight;
+        if (!w || !h) return;
+        // Kamera des Gizmos übernimmt die Orientierung der Hauptkamera (fester Abstand)
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        gizmoCam.position.copy(dir).multiplyScalar(-4.2);
+        gizmoCam.up.copy(camera.up);
+        gizmoCam.lookAt(0, 0, 0);
+        renderer.clearDepth(); // Gizmo immer über der Hauptszene zeichnen
+        renderer.autoClear = false; // Farb-Puffer im Ausschnitt NICHT löschen (kein „Loch" im Bild)
+        renderer.setScissorTest(true);
+        renderer.setScissor(w - GIZMO_SIZE - GIZMO_PAD, GIZMO_PAD, GIZMO_SIZE, GIZMO_SIZE);
+        renderer.setViewport(w - GIZMO_SIZE - GIZMO_PAD, GIZMO_PAD, GIZMO_SIZE, GIZMO_SIZE);
+        renderer.render(gizmoScene, gizmoCam);
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, w, h);
+        renderer.autoClear = true;
     }
 
     function clearHouse() {
@@ -9291,6 +9490,9 @@ async function updateDoorType() {
         window.isComplexGeometry = false;
         window.complexWindows = null;
         window.complexDoors = null;
+        window.complexWallList = null;
+        if (typeof renderWallBoundaryGrid === 'function') renderWallBoundaryGrid();
+        if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
         if (typeof updateGeometryStats === 'function') updateGeometryStats();
         const d = getSimpleDims();
         buildHouse({
@@ -9309,6 +9511,36 @@ async function updateDoorType() {
         return dirs[Math.round(a / 45) % 8];
     }
 
+    // Eindeutige Wand-Bezeichnungen: jeder Wand wird EINE eigene der 8 Himmelsrichtungen
+    // zugewiesen (keine Doppelvergabe möglich, da max. 8 Wände). Gewählt wird die Zuordnung
+    // mit der kleinsten Gesamtabweichung: maßgeblich ist die Richtung der Außennormale,
+    // die Lage der Wand am Gebäude (Mittelpunkt → Wandmitte) löst Gleichstände auf
+    // (z. B. beim Achteck, dessen Normalen genau zwischen zwei Sektoren liegen).
+    const SECTOR_KEYS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+    function assignWallSectors(edges) {   // edges: [{azN, azM}] in Grad (Kompass, 0=N, 90=O)
+        const n = edges.length;
+        if (!n || n > 8) return null;
+        function angDist(a, b) { const d = Math.abs(((a - b) % 360 + 360) % 360); return d > 180 ? 360 - d : d; }
+        const cost = edges.map(function (e) {
+            const row = [];
+            for (let s = 0; s < 8; s++) row.push(angDist(e.azN, s * 45) + 0.35 * angDist(e.azM, s * 45));
+            return row;
+        });
+        let best = null, bestC = Infinity;
+        const asg = new Array(n).fill(-1), used = new Array(8).fill(false);
+        (function bt(i, c) {
+            if (c >= bestC) return;
+            if (i === n) { best = asg.slice(); bestC = c; return; }
+            for (let s = 0; s < 8; s++) {
+                if (used[s]) continue;
+                used[s] = true; asg[i] = s;
+                bt(i + 1, c + cost[i][s]);
+                used[s] = false;
+            }
+        })(0, 0);
+        return best;   // Sektor-Index (0..7) je Wand, in Kantenreihenfolge
+    }
+
     // Komplexe Geometrie: NUR Geometrie (Form, Ausrichtung, Fenster, Türen).
     // Wandaufbau/U-Wert/CO₂ kommen ausschließlich aus dem Tab „Gebäudehülle".
     function buildComplex(pointsM) {
@@ -9320,11 +9552,12 @@ async function updateDoorType() {
         const wwr = (window.complexWWR != null ? window.complexWWR : 0.3);
         const nDoors = Math.max(0, Math.round(window.complexDoorCount != null ? window.complexDoorCount : 1));
 
-        // zentrieren
+        // zentrieren; y spiegeln: der 2D-Editor hat y nach unten (Norden = oben),
+        // im 3D-Weltsystem liegt Norden bei -Z (wie im einfachen Modell + Kompass-Gizmo)
         let cx = 0, cz = 0;
         pointsM.forEach(function (p) { cx += p.x; cz += p.y; });
         cx /= pointsM.length; cz /= pointsM.length;
-        const pts = pointsM.map(function (p) { return { x: p.x - cx, y: p.y - cz }; });
+        const pts = pointsM.map(function (p) { return { x: p.x - cx, y: -(p.y - cz) }; });
         const n = pts.length;
 
         const shape = new THREE.Shape();
@@ -9378,22 +9611,47 @@ async function updateDoorType() {
 
         const walls = { north: 0, northeast: 0, east: 0, southeast: 0, south: 0, southwest: 0, west: 0, northwest: 0 };
         const doorByOri = Object.assign({}, walls);
+        const manualWinArea = Object.assign({}, walls);   // manuell hinzugefügte Fenster je Energie-Sektor
+        const wallList = [];   // Bezeichnung je Wand: Nr. (Zeichenreihenfolge) + EINDEUTIGE Himmelsrichtung
         const winH = Math.max(0.6, Math.min(1.6, d.fh * 0.5));
         const doorH = Math.min(2.1, H * 0.9), doorW = 1.1, eps = 0.07;
 
+        // --- Pass 1: Kantengeometrie + Azimute (Außennormale und Lage am Gebäude) ---
+        // Außennormale über den Umlaufsinn (Shoelace-Vorzeichen) statt Schwerpunkt-Test:
+        // nur so stimmt sie auch bei nicht-konvexen Grundrissen (z. B. U-Form-Einbuchtung).
+        const sgnW = (area2 < 0) ? 1 : -1;   // Umlaufsinn im Weltsystem (Z = −gespiegeltes y)
+        const edges = [];
         for (let i = 0; i < n; i++) {
             const a = pts[i], b = pts[(i + 1) % n];
-            const AX = a.x, AZ = -a.y, ex = b.x - a.x, ez = -(b.y - a.y);  // Welt: X=p.x, Z=-p.y
+            const AX = a.x, AZ = -a.y, ex = b.x - a.x, ez = -(b.y - a.y);  // Welt: X=p.x, Z=-p.y (y bereits gespiegelt)
             const L = Math.hypot(ex, ez);
             if (L < 1e-6) continue;
-            let nx = ez, nz = -ex;                                        // Außennormale
-            if (((AX + b.x) / 2) * nx + ((AZ - b.y) / 2) * nz < 0) { nx = -nx; nz = -nz; }
+            let nx = sgnW * ez, nz = -sgnW * ex;                          // Außennormale
             const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
-            const ori = orientationKey(Math.atan2(nx, nz) * 180 / Math.PI + az);  // Nord=+Z, Ost=+X
-            walls[ori] += L * H;
-            const ry = Math.atan2(nx, nz);
+            const midX = AX + ex / 2, midZ = AZ + ez / 2;
+            edges.push({
+                i: i, AX: AX, AZ: AZ, ex: ex, ez: ez, L: L, nx: nx, nz: nz,
+                midX: midX, midZ: midZ, ry: Math.atan2(nx, nz),
+                azN: Math.atan2(nx, -nz) * 180 / Math.PI + az,            // Nord=-Z, Ost=+X
+                azM: Math.atan2(midX, -midZ) * 180 / Math.PI + az
+            });
+        }
 
-            const cnt = doorsPerEdge[i];
+        // Eindeutige Bezeichnung je Wand (keine Doppelvergabe); der ENERGIE-Sektor für
+        // Solargewinne/Verluste richtet sich weiter nach der tatsächlichen Normalenrichtung.
+        const sectorAsg = assignWallSectors(edges.map(function (e) { return { azN: e.azN, azM: e.azM }; }));
+        const doorAreas = [];
+        const manualWins = window.windowsList || [], manualDoors = window.doorsList || [];
+
+        // --- Pass 2: Flächen buchen, Fenster/Türen platzieren ---
+        edges.forEach(function (E, idx) {
+            const oriEnergy = orientationKey(E.azN);                          // physikalischer Sektor
+            const key = sectorAsg ? SECTOR_KEYS[sectorAsg[idx]] : oriEnergy;  // eindeutige Bezeichnung
+            walls[oriEnergy] += E.L * H;
+            wallList.push({ nr: E.i + 1, ori: key, oriEnergy: oriEnergy, oriDe: (window.ORI_DE || {})[key] || key, laenge: +E.L.toFixed(2), flaeche: +(E.L * H).toFixed(2) });
+            const AX = E.AX, AZ = E.AZ, ex = E.ex, ez = E.ez, L = E.L, nx = E.nx, nz = E.nz, ry = E.ry;
+
+            const cnt = doorsPerEdge[E.i];
             const doorTs = [];
             for (let j = 0; j < cnt; j++) doorTs.push((j + 1) / (cnt + 1));
 
@@ -9418,18 +9676,63 @@ async function updateDoorType() {
                     { emissive: 0x10b981, emInt: 0.16, rough: 0.5 });
                 dm.position.set(AX + ex * dt + nx * eps, floorTop + doorH / 2, AZ + ez * dt + nz * eps);
                 dm.rotation.y = ry;
-                doorByOri[ori] += 1;
+                doorByOri[oriEnergy] += 1;
+                doorAreas.push(doorW * doorH);
             });
-        }
+
+            // --- Manuell hinzugefügte Fenster/Türen dieser Wand („＋ Wand n") ---
+            const ux = ex / L, uz = ez / L;
+            const wallInfo = { ox: E.midX, oz: E.midZ, ux: ux, uz: uz, nx: nx, nz: nz, len: L };
+            const winsHere = manualWins.filter(function (w) { return w.wallNr === E.i + 1; });
+            winsHere.forEach(function (w, k) {
+                w.orientation = key; w.wallLen = L;   // Bezeichnung + Editor-Grenzen aktuell halten
+                const ww = Math.max(0.3, +w.width || 1.0), wh = Math.max(0.3, +w.height || 1.4);
+                const uLim = Math.max(0, L / 2 - ww / 2 - 0.05);
+                let u = (w.posU != null) ? w.posU : ((k + 1) / (winsHere.length + 1) - 0.5) * L;
+                u = Math.max(-uLim, Math.min(uLim, u));
+                let v = (w.posV != null) ? w.posV : (floorTop + d.fh * 0.55);
+                v = Math.max(floorTop + wh / 2, Math.min(floorTop + H - wh / 2, v));
+                const wm = addMesh(new THREE.BoxGeometry(ww, wh, 0.12), COL.window, 'window',
+                    { emissive: 0xf6b94b, emInt: 0.34, rough: 0.25, metal: 0.1 });
+                wm.position.set(wallInfo.ox + ux * u + nx * eps, v, wallInfo.oz + uz * u + nz * eps);
+                wm.rotation.y = ry;
+                wm.userData.windowId = w.id; wm.userData.orientation = key; wm.userData.complexWall = wallInfo;
+                manualWinArea[oriEnergy] += ww * wh;
+            });
+            const doorsHere = manualDoors.filter(function (dd) { return dd.wallNr === E.i + 1; });
+            doorsHere.forEach(function (dd, k) {
+                dd.orientation = key; dd.wallLen = L;
+                const dw = Math.max(0.4, +dd.width || 1.0), dh = Math.max(0.8, +dd.height || 2.1);
+                const uLim = Math.max(0, L / 2 - dw / 2 - 0.05);
+                let u = (dd.posU != null) ? dd.posU : ((k + 1) / (doorsHere.length + 1) - 0.5) * L * 0.8;
+                u = Math.max(-uLim, Math.min(uLim, u));
+                let v = (dd.posV != null) ? dd.posV : (floorTop + dh / 2);
+                v = Math.max(floorTop + dh / 2, Math.min(floorTop + H - dh / 2, v));
+                const dm = addMesh(new THREE.BoxGeometry(dw, dh, 0.14), COL.door, 'door',
+                    { emissive: 0x10b981, emInt: 0.16, rough: 0.5 });
+                dm.position.set(wallInfo.ox + ux * u + nx * eps, v, wallInfo.oz + uz * u + nz * eps);
+                dm.rotation.y = ry;
+                dm.userData.doorId = dd.id; dm.userData.orientation = key; dm.userData.complexWall = wallInfo;
+                doorByOri[oriEnergy] += 1;
+                doorAreas.push(dw * dh);
+            });
+        });
 
         // In die Rechenkette schreiben (nur Geometrie: Flächen, Fenster, Türen)
         window.wallAreas = Object.assign({}, walls, { roof: A, floor: A });
         window.complexWindows = {};
-        Object.keys(walls).forEach(function (k) { window.complexWindows[k] = +(walls[k] * wwr).toFixed(2); });
+        Object.keys(walls).forEach(function (k) { window.complexWindows[k] = +(walls[k] * wwr + manualWinArea[k]).toFixed(2); });
         window.complexDoors = doorByOri;
-        window.complexDoorArea = +(doorW * doorH).toFixed(2);   // m² je Tür → door_area_per_unit
+        window.complexDoorArea = doorAreas.length
+            ? +(doorAreas.reduce(function (s, x) { return s + x; }, 0) / doorAreas.length).toFixed(2)
+            : +(doorW * doorH).toFixed(2);   // m² je Tür → door_area_per_unit
         window.isComplexGeometry = true;
+        window.complexWallList = wallList;   // Wand-Bezeichnungen (Nr. + Orientierung) für spätere Eingaben
         window.geometryVolume = A * H;
+        // Grenzen für Editor/Drag (Bounding-Box; je Wand gilt zusätzlich wallLen)
+        window._geo3d = { W: maxx - minx, D: maxz - minz, halfW: (maxx - minx) / 2, halfD: (maxz - minz) / 2, wallTop: floorTop + H, floorTop: floorTop };
+        if (typeof renderWallBoundaryGrid === 'function') renderWallBoundaryGrid();
+        if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
 
         const bgf = A * d.floors;
         const set = function (id, txt) { const el = document.getElementById(id); if (el) el.innerText = txt; };
@@ -9473,10 +9776,48 @@ async function updateDoorType() {
             for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s += (a.x * b.y - b.x * a.y); }
             return Math.abs(s / 2) / (PXPM * PXPM);
         }
-        function updateInfo() {
+        const MAX_WALLS = 8;
+        const ORI_ABBR = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
+        function updateInfo(msg) {
             if (!info) return;
+            if (msg) { info.textContent = msg; return; }
             const walls = closed ? pts.length : Math.max(0, pts.length - 1);
-            info.textContent = 'Wände: ' + walls + '  ·  Fläche: ' + (closed ? area().toFixed(1) : '–') + ' m²  ·  1 Kästchen = 1 m';
+            info.textContent = 'Wände: ' + walls + '/' + MAX_WALLS + '  ·  Fläche: ' + (closed ? area().toFixed(1) : '–') + ' m²  ·  1 Kästchen = 1 m';
+        }
+        // Wand-Bezeichnungen (Nr. + Himmelsrichtung) an den Kantenmitten. Nutzt dieselbe
+        // eindeutige Sektor-Zuordnung wie buildComplex (assignWallSectors) – dadurch
+        // bekommt keine zweite Wand dieselbe Bezeichnung und 2D/3D stimmen überein.
+        function edgeLabels() {
+            if (!closed || pts.length < 3) return '';
+            const n = pts.length, az = window.buildingAzimuth || 0;
+            let cx0 = 0, cy0 = 0;
+            pts.forEach(function (p) { cx0 += p.x; cy0 += p.y; });
+            cx0 /= n; cy0 /= n;
+            // Außennormale über den Umlaufsinn – korrekt auch bei Einbuchtungen (U-Form)
+            let s2 = 0;
+            for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; s2 += a.x * b.y - b.x * a.y; }
+            const sgn = (s2 > 0) ? 1 : -1;
+            const eds = [];
+            for (let i = 0; i < n; i++) {
+                const a = pts[i], b = pts[(i + 1) % n];
+                const ex = b.x - a.x, ey = b.y - a.y, L = Math.hypot(ex, ey);
+                if (L < 1e-6) continue;
+                let nx = sgn * ey, ny = -sgn * ex;
+                const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+                eds.push({
+                    i: i, mx: mx, my: my, nx: nx, ny: ny,
+                    azN: Math.atan2(nx, -ny) * 180 / Math.PI + az,                    // SVG: Norden = oben (-y)
+                    azM: Math.atan2(mx - cx0, -(my - cy0)) * 180 / Math.PI + az
+                });
+            }
+            const asg = assignWallSectors(eds.map(function (e) { return { azN: e.azN, azM: e.azM }; }));
+            let s = '';
+            eds.forEach(function (e, idx) {
+                const key = asg ? SECTOR_KEYS[asg[idx]] : orientationKey(e.azN);
+                s += '<text x="' + (e.mx + e.nx * 14).toFixed(1) + '" y="' + (e.my + e.ny * 14).toFixed(1) + '" fill="#7fb4d8" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">' + (e.i + 1) + '·' + ORI_ABBR[key] + '</text>';
+            });
+            return s;
         }
         function render() {
             let s = '';
@@ -9488,6 +9829,7 @@ async function updateDoorType() {
                 pts.forEach(function (p, i) {
                     s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (i === 0 ? 7 : 5.5) + '" fill="' + (i === 0 ? '#f6b94b' : '#0b1f3a') + '" stroke="#10b981" stroke-width="2"/>';
                 });
+                s += edgeLabels();
             }
             layer.innerHTML = s;
             updateInfo();
@@ -9505,6 +9847,10 @@ async function updateDoorType() {
                 const f = pts[0];
                 if (Math.hypot(sp.x - f.x, sp.y - f.y) < 14) { closed = true; render(); apply(); return; }
             }
+            if (pts.length >= MAX_WALLS) {   // Limit: max. 8 Wände
+                updateInfo('Maximal ' + MAX_WALLS + ' Wände – Polygon über den goldenen Punkt (oder „Polygon schließen") schließen.');
+                return;
+            }
             pts.push(sp); render();
         }
         function setPreset(name, doApply) {
@@ -9513,7 +9859,7 @@ async function updateDoorType() {
             if (name === 'rect') { const w = 5 * PXPM, h = 4 * PXPM; pts = [{ x: cx - w, y: cy - h }, { x: cx + w, y: cy - h }, { x: cx + w, y: cy + h }, { x: cx - w, y: cy + h }]; }
             else if (name === 'l') { const u = 2.6 * PXPM; pts = [{ x: cx - 2 * u, y: cy - 1.4 * u }, { x: cx, y: cy - 1.4 * u }, { x: cx, y: cy + 0.2 * u }, { x: cx + 2 * u, y: cy + 0.2 * u }, { x: cx + 2 * u, y: cy + 1.6 * u }, { x: cx - 2 * u, y: cy + 1.6 * u }]; }
             else if (name === 'u') { const u = 1.8 * PXPM; pts = [{ x: cx - 3 * u, y: cy - 2 * u }, { x: cx - u, y: cy - 2 * u }, { x: cx - u, y: cy + u }, { x: cx + u, y: cy + u }, { x: cx + u, y: cy - 2 * u }, { x: cx + 3 * u, y: cy - 2 * u }, { x: cx + 3 * u, y: cy + 2 * u }, { x: cx - 3 * u, y: cy + 2 * u }]; }
-            else if (name === 'circle') { const r = 4 * PXPM, n = 28; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; pts.push({ x: snap(cx + Math.cos(a) * r), y: snap(cy + Math.sin(a) * r) }); } }
+            else if (name === 'circle') { const r = 4 * PXPM; for (let i = 0; i < MAX_WALLS; i++) { const a = -Math.PI / 2 + i / MAX_WALLS * Math.PI * 2; pts.push({ x: snap(cx + Math.cos(a) * r), y: snap(cy + Math.sin(a) * r) }); } }   // regelmäßiges Achteck (Limit 8 Wände)
             closed = true; render();
             if (doApply !== false) apply();
         }
@@ -9548,7 +9894,10 @@ async function updateDoorType() {
         });
 
         setPreset('rect', false); // Standard zeichnen, aber noch nicht ins 3D übernehmen
-        return { applyCurrent: function () { if (pts.length >= 3) { closed = true; render(); apply(); } } };
+        return {
+            applyCurrent: function () { if (pts.length >= 3) { closed = true; render(); apply(); } },
+            refresh: render   // z. B. nach Azimut-Änderung: Wand-Labels neu berechnen
+        };
     }
 
     function syncBuildingType(cat) {
@@ -9619,6 +9968,7 @@ async function updateDoorType() {
             if (azVal) azVal.textContent = Math.round(window.buildingAzimuth) + '°';
             updateNorthArrow();
             if (geomMode === 'complex' && lastPolygon) buildComplex(lastPolygon);
+            if (floorplanApi && floorplanApi.refresh) floorplanApi.refresh();   // Wand-Labels im 2D-Editor
         });
         if (wwrEl) wwrEl.addEventListener('input', function () {
             window.complexWWR = Math.max(0, Math.min(90, parseFloat(wwrEl.value) || 0)) / 100;
@@ -9736,6 +10086,27 @@ async function updateDoorType() {
         const g = window._geo3d; if (!g || !pressObj) return;
         updatePointer(e);
         raycaster.setFromCamera(pointer, camera);
+        // Komplexe Geometrie: Fenster/Tür haftet an einer beliebig ausgerichteten Wand –
+        // in deren Ebene projizieren und entlang der Wandrichtung verschieben.
+        const cwl = pressObj.userData.complexWall;
+        if (cwl) {
+            const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+                new THREE.Vector3(cwl.nx, 0, cwl.nz), new THREE.Vector3(cwl.ox, 0, cwl.oz));
+            const target = new THREE.Vector3();
+            if (!raycaster.ray.intersectPlane(plane, target)) return;
+            pressObj.geometry.computeBoundingBox();
+            const bb = pressObj.geometry.boundingBox;
+            const bw = bb.max.x - bb.min.x, bh = bb.max.y - bb.min.y;
+            let u = (target.x - cwl.ox) * cwl.ux + (target.z - cwl.oz) * cwl.uz;
+            const uLim = Math.max(0, cwl.len / 2 - bw / 2 - 0.05);
+            u = Math.max(-uLim, Math.min(uLim, u));
+            const wt = (g.wallTop != null) ? g.wallTop : 6;
+            const v = Math.max(floorTop + bh / 2, Math.min(wt - bh / 2, target.y));
+            pressObj.position.set(cwl.ox + cwl.ux * u + cwl.nx * 0.07, v, cwl.oz + cwl.uz * u + cwl.nz * 0.07);
+            const item = _findItem(pressObj);
+            if (item) { item.posU = u; item.posV = v; }
+            return;
+        }
         const ori = pressObj.userData.orientation;
         pressObj.geometry.computeBoundingBox();
         const bb = pressObj.geometry.boundingBox;
@@ -9836,6 +10207,7 @@ async function updateDoorType() {
         requestAnimationFrame(animate);
         controls.update();
         renderer.render(scene, camera);
+        renderGizmo();
     }
     animate();
 
@@ -9851,8 +10223,14 @@ async function updateDoorType() {
     window._itemPos = function (part, id) {
         for (let i = 0; i < clickable.length; i++) {
             const o = clickable[i], ud = o.userData || {};
-            if (part === 'window' && ud.windowId === id) { const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y }; }
-            if (part === 'door' && ud.doorId === id) { const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y }; }
+            if (part === 'window' && ud.windowId === id) {
+                if (ud.complexWall) { const c = ud.complexWall; return { u: (o.position.x - c.ox) * c.ux + (o.position.z - c.oz) * c.uz, v: o.position.y }; }
+                const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y };
+            }
+            if (part === 'door' && ud.doorId === id) {
+                if (ud.complexWall) { const c = ud.complexWall; return { u: (o.position.x - c.ox) * c.ux + (o.position.z - c.oz) * c.uz, v: o.position.y }; }
+                const ns = (ud.orientation === 'south' || ud.orientation === 'north'); return { u: ns ? o.position.x : o.position.z, v: o.position.y };
+            }
             if (part === 'pv' && ud.pvId === id) { return { x: o.position.x, z: o.position.z }; }
         }
         return null;
@@ -9910,8 +10288,10 @@ async function updateDoorType() {
     function winPosRange() {
         const g = window._geo3d || {};
         const ori = byId('win_edit_ori').value;
+        const it = findWin(parseInt(byId('win_edit_id').value, 10));
         const ns = (ori === 'south' || ori === 'north');
-        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        // wandgebundenes Fenster (komplexe Geometrie): Grenze = halbe Wandlänge
+        const halfAxis = (it && it.wallLen != null) ? (it.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
         const w = num(byId('win_edit_w').value, 1), h = num(byId('win_edit_h').value, 1.4);
@@ -9960,10 +10340,10 @@ async function updateDoorType() {
         w.height = Math.max(0.2, num(byId('win_edit_h').value, w.height));
         w.u = Math.max(0.1, num(byId('win_edit_u').value, w.u));
         w.g = Math.min(1, Math.max(0, num(byId('win_edit_g').value, w.g)));
-        // Position per Koordinate übernehmen (auf die Fassade begrenzt)
+        // Position per Koordinate übernehmen (auf die Fassade/Wand begrenzt)
         const g = window._geo3d || {};
         const ns = (w.orientation === 'south' || w.orientation === 'north');
-        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const halfAxis = (w.wallLen != null) ? (w.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
         let pu = num(byId('win_edit_posu').value, (w.posU != null ? w.posU : 0));
@@ -9985,12 +10365,13 @@ async function updateDoorType() {
         window.closeWindowEditor();
     };
 
-    window.addWindowTo = function (ori) {
+    window.addWindowTo = function (ori, wallNr) {
         if (!Array.isArray(window.windowsList)) window.windowsList = [];
         window._winSeq = (window._winSeq || 0) + 1;
         const u = num((byId('window_u') || {}).value, 1.10);
         const g = num((byId('g_value') || {}).value, 0.55);
-        window.windowsList.push({ id: window._winSeq, orientation: ori, width: 1.0, height: 1.4, u: u, g: g });
+        // wallNr: Wand-Nr. bei komplexer Geometrie (Button „＋ Wand n") → Fenster haftet an dieser Wand
+        window.windowsList.push({ id: window._winSeq, orientation: ori, width: 1.0, height: 1.4, u: u, g: g, wallNr: (wallNr != null ? wallNr : undefined) });
         window.aggregateWindows();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
     };
@@ -10025,7 +10406,7 @@ async function updateDoorType() {
 <script>
 (function () {
     "use strict";
-    const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West' };
+    const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West', northeast: 'Nordost', southeast: 'Südost', southwest: 'Südwest', northwest: 'Nordwest' };
     const $ = (id) => document.getElementById(id);
     function num(v, d) { const x = parseFloat(v); return isFinite(x) ? x : d; }
     function findDoor(id) { return (window.doorsList || []).find(function (d) { return d.id === id; }); }
@@ -10055,8 +10436,10 @@ async function updateDoorType() {
     function doorPosRange() {
         const g = window._geo3d || {};
         const ori = $('door_edit_ori').value;
+        const it = findDoor(parseInt($('door_edit_id').value, 10));
         const ns = (ori === 'south' || ori === 'north');
-        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        // wandgebundene Tür (komplexe Geometrie): Grenze = halbe Wandlänge
+        const halfAxis = (it && it.wallLen != null) ? (it.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
         const w = num($('door_edit_w').value, 1), h = num($('door_edit_h').value, 2.1);
@@ -10076,7 +10459,9 @@ async function updateDoorType() {
         $('door_edit_id').value = id;
         $('door_edit_title').textContent = 'Tür bearbeiten – ' + (ORI[d.orientation] || d.orientation);
         const sel = $('door_edit_ori');
-        sel.innerHTML = ['north', 'south', 'east', 'west'].map(function (o) { return '<option value="' + o + '"' + (o === d.orientation ? ' selected' : '') + '>' + ORI[o] + '</option>'; }).join('');
+        const dOpts = ['north', 'south', 'east', 'west'];
+        if (dOpts.indexOf(d.orientation) < 0) dOpts.push(d.orientation);   // wandgebundene Tür (komplexe Geometrie)
+        sel.innerHTML = dOpts.map(function (o) { return '<option value="' + o + '"' + (o === d.orientation ? ' selected' : '') + '>' + (ORI[o] || o) + '</option>'; }).join('');
         $('door_edit_w').value = d.width; $('door_edit_h').value = d.height; $('door_edit_u').value = d.u;
         const ft = (window._geo3d && window._geo3d.floorTop != null) ? window._geo3d.floorTop : 0.2;
         const pos = (typeof window._itemPos === 'function') ? window._itemPos('door', id) : null;
@@ -10095,10 +10480,10 @@ async function updateDoorType() {
         d.width = Math.max(0.4, num($('door_edit_w').value, d.width));
         d.height = Math.max(0.8, num($('door_edit_h').value, d.height));
         d.u = Math.max(0.1, num($('door_edit_u').value, d.u));
-        // Position per Koordinate übernehmen (auf die Fassade begrenzt)
+        // Position per Koordinate übernehmen (auf die Fassade/Wand begrenzt)
         const g = window._geo3d || {};
         const ns = (d.orientation === 'south' || d.orientation === 'north');
-        const halfAxis = ns ? (g.halfW || 6) : (g.halfD || 6);
+        const halfAxis = (d.wallLen != null) ? (d.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
         let pu = num($('door_edit_posu').value, (d.posU != null ? d.posU : 0));
@@ -10118,11 +10503,12 @@ async function updateDoorType() {
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
         window.closeDoorEditor();
     };
-    window.addDoorTo = function (ori) {
+    window.addDoorTo = function (ori, wallNr) {
         if (!Array.isArray(window.doorsList)) window.doorsList = [];
         window._doorSeq = (window._doorSeq || 0) + 1;
         const u = num(($('door_u') || {}).value, 2.5);
-        window.doorsList.push({ id: window._doorSeq, orientation: ori, width: 1.0, height: 2.1, u: u });
+        // wallNr: Wand-Nr. bei komplexer Geometrie (Button „＋ Wand n") → Tür haftet an dieser Wand
+        window.doorsList.push({ id: window._doorSeq, orientation: ori, width: 1.0, height: 2.1, u: u, wallNr: (wallNr != null ? wallNr : undefined) });
         window.aggregateDoors();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
     };
@@ -10326,9 +10712,14 @@ async function updateDoorType() {
 (function () {
     "use strict";
     const $ = (id) => document.getElementById(id);
-    const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West' };
+    const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West', northeast: 'Nordost', southeast: 'Südost', southwest: 'Südwest', northwest: 'Nordwest' };
     function fmt(x) { const n = parseFloat(x); return isFinite(n) ? (Math.round(n * 100) / 100) : '—'; }
     function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    // Anzeige-Label: wandgebundene Elemente (komplexe Geometrie) mit Wand-Nr.
+    function oriLabel(item) {
+        const base = ORI[item.orientation] || item.orientation || '—';
+        return (item.wallNr != null) ? ('Wand ' + item.wallNr + ' (' + base + ')') : base;
+    }
 
     function row(kind, id, label) {
         return '<div class="elem-row"><span class="er-label">' + esc(label) + '</span>'
@@ -10341,9 +10732,9 @@ async function updateDoorType() {
 
     window.renderElementLists = function () {
         const wl = $('window_list');
-        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, ORI[w.orientation] + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g))).join('') : empty('Noch keine Fenster.'); }
+        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, oriLabel(w) + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g))).join('') : empty('Noch keine Fenster.'); }
         const dl = $('door_list');
-        if (dl) { const l = window.doorsList || []; dl.innerHTML = l.length ? l.map(d => row('door', d.id, ORI[d.orientation] + ' · ' + fmt(d.width) + '×' + fmt(d.height) + ' m · U ' + fmt(d.u))).join('') : empty('Noch keine Türen.'); }
+        if (dl) { const l = window.doorsList || []; dl.innerHTML = l.length ? l.map(d => row('door', d.id, oriLabel(d) + ' · ' + fmt(d.width) + '×' + fmt(d.height) + ' m · U ' + fmt(d.u))).join('') : empty('Noch keine Türen.'); }
         const pl = $('pv_module_list');
         if (pl) { const l = window.pvList || []; pl.innerHTML = l.length ? l.map((p, i) => row('pv', p.id, 'Modul ' + (i + 1) + ' · ' + fmt(p.width) + '×' + fmt(p.height) + ' m · ' + fmt(p.tilt) + '° · ' + fmt(p.azimuth) + '°')).join('') : empty('Noch keine PV-Module.'); }
     };
@@ -10592,7 +10983,7 @@ async function updateDoorType() {
 
     // Tooltip-Text für eine 3D-Fläche – jeweils der passende Kennwert.
     window.partThermalLabel = function (part, orientation) {
-        const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West' };
+        const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West', northeast: 'Nordost', southeast: 'Südost', southwest: 'Südwest', northwest: 'Nordwest' };
         switch (part) {
             case 'wall':  return 'Außenwand · U = ' + fmtU(wallU(), 3) + ' W/m²K' + lamSuffix('wall_layers_container');
             case 'roof':  return 'Dach · U = ' + fmtU(roofU(), 3) + ' W/m²K' + lamSuffix('roof_layers_container');
