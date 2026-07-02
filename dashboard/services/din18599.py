@@ -316,7 +316,24 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         delta_u_wb = DELTA_U_WB
     h_bridges = delta_u_wb * wb_area
 
-    h_t = wall_total + roof_loss + floor_loss + window_total + door_total + h_bridges  # [W/K]
+    # Fenster-Einbauwärmebrücken (linear): H_WB,Fenster = Σ ψ_i · L_i über die
+    # Anschlüsse Seiten (Laibung Seite 1+2), Sturz und Brüstung. ψ [W/mK] und die
+    # Bezugslängen L [m] (automatisch aus der Fenstergeometrie) kommen vom Frontend.
+    def _psi(key: str) -> float:
+        v = safe_float(data.get(key), 0.0)
+        return v if 0.0 <= v <= 0.5 else 0.0
+
+    def _len(key: str) -> float:
+        v = safe_float(data.get(key), 0.0)
+        return v if v >= 0.0 else 0.0
+
+    h_window_bridges = (
+        _psi("window_psi_seiten") * _len("window_len_seiten")
+        + _psi("window_psi_sturz") * _len("window_len_sturz")
+        + _psi("window_psi_bruestung") * _len("window_len_bruestung")
+    )
+
+    h_t = wall_total + roof_loss + floor_loss + window_total + door_total + h_bridges + h_window_bridges  # [W/K]
     h_v = air_change * volume * C_AIR                                                  # [W/K] (Gl. 63)
     h_total = h_t + h_v
 
@@ -489,6 +506,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # H_T (Transmission) wie bisher als "envelope_total" (W/K); zusätzlich H gesamt.
         "envelope_total": round(h_t, 2),
         "thermal_bridge_loss": round(h_bridges, 2),     # ΔU_WB·A_Hülle [W/K]
+        "window_bridge_loss": round(h_window_bridges, 2),  # Σ ψ·L Fenster (Seiten/Sturz/Brüstung) [W/K]
         "delta_u_wb": delta_u_wb,                        # angesetzter Wärmebrückenzuschlag [W/m²K]
         "envelope_area_m2": round(envelope_area, 1),
         "h_transmission": round(h_t, 2),
