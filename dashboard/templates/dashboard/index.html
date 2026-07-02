@@ -2584,7 +2584,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             </div>
 
             <!-- Abschluss-Button: gesamte Gebäudehülle auswerten (unten links) -->
-            <button class="btn btn-primary" style="margin-top:18px;" onclick="calculateEnvelope()">Gebäudehülle auswerten</button>
+            <button class="btn btn-primary" style="margin-top:18px;" onclick="recompute('huelle')">Gebäudehülle auswerten</button>
             <span class="stale-badge" id="stale_huelle" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
 
             <!-- ④ H_T Wärmeverlustkoeffizienten -->
@@ -2755,7 +2755,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             (Energiebilanz-Tab) – hier wird er nur für Nichtwohngebäude bilanziert.</div>
                     </div>
 
-                    <button class="btn btn-primary" onclick="calculateSystem()">Anlagentechnik auswerten</button>
+                    <button class="btn btn-primary" onclick="recompute('anlage')">Anlagentechnik auswerten</button>
                     <span class="stale-badge" id="stale_anlage" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
 
                     <div class="note">
@@ -2933,7 +2933,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <input id="pv_feed_in_tariff" type="number" step="0.01" value="0.08">
                     </div>
 
-                    <button class="btn btn-primary" onclick="calculatePV()" style="margin-top: 14px;">PV auswerten</button>
+                    <button class="btn btn-primary" onclick="recompute('pv')" style="margin-top: 14px;">PV auswerten</button>
                     <span class="stale-badge" id="stale_pv" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
                 </div>
             </div>
@@ -3382,7 +3382,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             </div>
 
             <div class="footer-note">
-                <button class="btn btn-primary" onclick="calculateBalance()">Energiebilanz aktualisieren</button>
+                <button class="btn btn-primary" onclick="recompute('bilanz')">Energiebilanz aktualisieren</button>
                 <span class="stale-badge" id="stale_bilanz" style="display:none;">⚠ Eingaben geändert – bitte aktualisieren</span>
             </div>
         </div>
@@ -6283,7 +6283,7 @@ function _renderStale() {
         if (el) el.style.display = (window._hasRun[s] && window._stale[s]) ? '' : 'none';
     });
 }
-function markStale(stage) { (STALE_DOWNSTREAM[stage] || [stage]).forEach(s => { window._stale[s] = true; }); _renderStale(); }
+function markStale(stage) { (STALE_DOWNSTREAM[stage] || [stage]).forEach(s => { window._stale[s] = true; }); _renderStale(); scheduleAuto(stage); }
 function clearStale(stage) { window._stale[stage] = false; window._hasRun[stage] = true; _renderStale(); }
 (function _wireStale() {
     const wire = () => {
@@ -6299,14 +6299,81 @@ function clearStale(stage) { window._stale[stage] = false; window._hasRun[stage]
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
 })();
 
-// Heizwärmebedarf automatisch neu berechnen (debounced) – aber erst, nachdem die
-// Gebäudehülle einmal manuell ausgewertet wurde, damit nicht vor dem Setup Fehler erscheinen.
-let _autoEnvTimer = null;
-function autoRecalcEnvelope() {
-    if (!window._envelopeHasRun || typeof calculateEnvelope !== 'function') return;
-    clearTimeout(_autoEnvTimer);
-    _autoEnvTimer = setTimeout(() => { try { calculateEnvelope(); } catch (e) {} }, 500);
+// ===== Automatische Neuberechnung der GESAMTEN Website (debounced) =====
+// Sobald eine Eingabe eine Stufe „veraltet" macht (markStale), werden die betroffene
+// Stufe UND alle nachgelagerten Stufen automatisch neu gerechnet – in Abhängigkeits-
+// reihenfolge (Hülle → Anlagentechnik → PV → Energiebilanz), serverantwort-synchron.
+// So aktualisieren sich alle Werte/Ergebnisse selbst; kein „Auswerten"-Knopf mehr nötig.
+window._autoRecalc = (window._autoRecalc !== false);   // globaler An/Aus-Schalter
+const _PIPELINE_FN = {
+    huelle: () => (typeof calculateEnvelope === 'function') ? calculateEnvelope() : null,
+    anlage: () => (typeof calculateSystem === 'function') ? calculateSystem() : null,
+    pv:     () => (typeof calculatePV === 'function') ? calculatePV() : null,
+    bilanz: () => (typeof calculateBalance === 'function') ? calculateBalance() : null,
+};
+// Rechnet die betroffenen Stufen (inkl. nachgelagerter) in korrekter Reihenfolge durch.
+async function recomputeStages(entries) {
+    if (window._recomputing) return;          // Rekursion/Überlappung vermeiden
+    window._recomputing = true;
+    try {
+        const need = new Set();
+        entries.forEach(e => (STALE_DOWNSTREAM[e] || [e]).forEach(s => need.add(s)));
+        // Vorbedingungen bootstrappen, falls eine Stufe noch nie gerechnet wurde
+        if ((need.has('anlage') || need.has('bilanz')) && !window._hasRun.huelle) need.add('huelle');
+        if (need.has('bilanz') && !window._hasRun.anlage) need.add('anlage');
+        const bilanzViaPv = need.has('pv');   // calculatePV ruft die Bilanz selbst auf
+        for (const s of ['huelle', 'anlage', 'pv']) {
+            if (need.has(s)) { try { await _PIPELINE_FN[s](); } catch (e) {} }
+        }
+        if (need.has('bilanz') && !bilanzViaPv) { try { await calculateBalance(); } catch (e) {} }
+        // Ökobilanz (LCA) mitziehen, sobald sie einmal berechnet wurde
+        if (window._lcaHasRun && typeof window.calculateLCA === 'function') {
+            try { await window.calculateLCA(false); } catch (e) {}
+        }
+    } finally {
+        window._recomputing = false;
+    }
 }
+window.recomputeStages = recomputeStages;
+window.recompute = (entry) => recomputeStages([entry]);   // für „Auswerten"-Buttons
+
+// Debounce: sammelt geänderte Stufen und rechnet sie nach einer kurzen Pause durch.
+let _autoTimer = null;
+const _autoPending = new Set();
+async function _runAutoPending() {
+    if (window._recomputing) {                // läuft noch → gleich erneut versuchen
+        clearTimeout(_autoTimer);
+        _autoTimer = setTimeout(_runAutoPending, 250);
+        return;
+    }
+    if (!_autoPending.size) return;
+    const entries = [..._autoPending];
+    _autoPending.clear();
+    await recomputeStages(entries);
+}
+function scheduleAuto(stage) {
+    // erst aktiv, nachdem die Hülle einmal gerechnet wurde (Standard-Setup abgeschlossen)
+    if (!window._autoRecalc || !window._envelopeHasRun) return;
+    _autoPending.add(stage);
+    clearTimeout(_autoTimer);
+    _autoTimer = setTimeout(_runAutoPending, 500);
+}
+window.scheduleAuto = scheduleAuto;
+
+// Alt-Name beibehalten: delegiert jetzt an den zentralen Orchestrator.
+function autoRecalcEnvelope() { scheduleAuto('huelle'); }
+
+// Beim Seitenaufruf einmal komplett durchrechnen (frische Seite, kein ?project) –
+// damit von Anfang an Ergebnisse angezeigt werden, ganz ohne Button-Klick.
+window.addEventListener('load', function () {
+    setTimeout(function () {
+        try {
+            if (new URLSearchParams(location.search).get('project')) return;  // ?project rechnet selbst
+            if (window._envelopeHasRun) return;                               // schon gerechnet
+            if (typeof window.recomputeStages === 'function') window.recomputeStages(['huelle', 'pv']);
+        } catch (e) {}
+    }, 1200);
+});
 
 // „Aus Gebäudedaten übernehmen": Dachfläche auf den automatisch aus der Geometrie
 // berechneten Wert zurücksetzen (hebt eine manuelle Eingabe wieder auf).
@@ -7373,7 +7440,7 @@ async function calculateEnvelope() {
     // mit dem Lüftungssystem (WRG) neu gerechnet.
     window.lastEnvelopePayload = envelopePayload;
 
-    fetch('/calculate/', {
+    return fetch('/calculate/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(envelopePayload)
@@ -7481,7 +7548,7 @@ function calculateSystem() {
     const fanType = document.querySelector('input[name="ventilation_fan_type"]:checked')?.value || 'ac';
     const hrEff = parseFloat(document.querySelector('input[name="ventilation_heat_recovery"]:checked')?.value) || 0.8;
 
-    fetch('/calculate-system/', {
+    return fetch('/calculate-system/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -7918,7 +7985,7 @@ function calculatePV() {
 
     // Berechnung nach DIN V 18599-9 im Backend (monatliche Strahlung je Orientierung,
     // Peakleistungskoeffizient Tab. B.2, Systemleistungsfaktor Tab. B.1)
-    fetch('/calculate-pv/', {
+    return fetch('/calculate-pv/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -8517,7 +8584,7 @@ function calculateBalance() {
 
     const household = parseFloat(document.getElementById('household_electricity')?.value) || 2000;
 
-    fetch('/calculate-balance/', {
+    return fetch('/calculate-balance/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -11453,6 +11520,7 @@ async function updateDoorType() {
             const opPeriod = (opYear || 0) * years;
             const total = emb.total + eol + opPeriod;
             render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct);
+            window._lcaHasRun = true;   // ab jetzt zieht die Auto-Neuberechnung die LCA mit
             if (status) status.textContent = '✓ Stand ' + _now();
         } catch (e) { if (status) status.textContent = '⚠ Fehler bei der LCA-Berechnung.'; }
     };
@@ -12407,6 +12475,49 @@ async function updateDoorType() {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", d48InitInline);
     else d48InitInline();
 })();
+
+// ===== Auto-Update für die Tabs „Ökobilanz (LCA)" und „DIN 4108" =====
+// Diese Tabs hängen nicht am Hülle→Bilanz-Staleness-System, darum eigene Debounce-Listener.
+window.addEventListener('load', function () {
+    // LCA: Änderungen an LCA-Eingaben (Betrachtungszeitraum, EoL-Anteil …) → LCA neu rechnen.
+    // Materialänderungen im Hülle-Tab ziehen die LCA bereits über recomputeStages nach.
+    var lcaC = document.getElementById('lca');
+    if (lcaC) {
+        var lt = null;
+        var lh = function () {
+            if (!window._autoRecalc || !window._lcaHasRun) return;
+            clearTimeout(lt);
+            lt = setTimeout(function () { try { window.calculateLCA(false); } catch (e) {} }, 500);
+        };
+        lcaC.addEventListener('input', lh);
+        lcaC.addEventListener('change', lh);
+    }
+
+    // DIN 4108: jeden Nachweis, der einmal ausgeführt wurde, bei Eingabeänderungen neu rechnen.
+    // (Die Nachweise werden erst beim ersten Klick „aktiv" und aktualisieren sich danach selbst.)
+    var d48Names = ['d48RunMws', 'd48RunSom', 'd48RunTau', 'd48RunN50', 'femRun'];
+    window._d48Active = window._d48Active || new Set();
+    d48Names.forEach(function (n) {
+        var orig = window[n];
+        if (typeof orig !== 'function' || orig._autoWrapped) return;
+        var wrapped = function () { window._d48Active.add(n); return orig.apply(this, arguments); };
+        wrapped._autoWrapped = true;
+        window[n] = wrapped;
+    });
+    var d48C = document.getElementById('din4108');
+    if (d48C) {
+        var dt = null;
+        var dh = function () {
+            if (!window._autoRecalc || !window._d48Active.size) return;
+            clearTimeout(dt);
+            dt = setTimeout(function () {
+                window._d48Active.forEach(function (n) { try { window[n](); } catch (e) {} });
+            }, 500);
+        };
+        d48C.addEventListener('input', dh);
+        d48C.addEventListener('change', dh);
+    }
+});
 </script>
 
 </body>
