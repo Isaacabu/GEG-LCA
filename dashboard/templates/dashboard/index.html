@@ -1839,11 +1839,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <h3>Gebäudegeometrie</h3>
                     <div class="grid-2">
                         <div class="field">
-                            <label>Länge Nord/Süd (m)</label>
+                            <label id="building_length_label">Länge Nord/Süd (m)</label>
                             <input id="building_length" type="number" min="0" step="0.1" value="12" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
-                            <label>Breite Ost/West (m)</label>
+                            <label id="building_width_label">Breite Ost/West (m)</label>
                             <input id="building_width" type="number" min="0" step="0.1" value="10" oninput="updateGeometryStats()">
                         </div>
                         <div class="field">
@@ -1881,7 +1881,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="grid-3 field-bottom">
                         <div class="field">
                             <label>Klimaregion (auto. aus Standort)</label>
-                            <input id="climate_region_display" type="text" value="Region 3 (Süddeutschland)" readonly>
+                            <input id="climate_region_display" type="text" value="Bayern (kontinental, strahlungsreich)" readonly>
                         </div>
                         <div class="field">
                             <label>Höhenlage (m ü. NN)</label>
@@ -1948,6 +1948,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div class="stat-box">
                             <div class="label">Interne Gewinne (W)</div>
                             <div class="value" id="usage_internal_gains">—</div>
+                        </div>
+                        <div class="stat-box" title="Sensible Personenwärme – jede zusätzliche Person erhöht die internen Gewinne um diesen Betrag.">
+                            <div class="label">davon je Person (W)</div>
+                            <div class="value" id="usage_gain_per_person">—</div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Nutzungsprofil</div>
@@ -2222,7 +2226,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                 </div>
 
-                <div class="result-row" style="margin-top:14px;">
+                <div class="result-row" style="margin-top:14px;" id="wall_result_row">
                     <div class="result-chip"><span class="small">Nord (W/K)</span><strong id="north_result">—</strong></div>
                     <div class="result-chip"><span class="small">Süd (W/K)</span><strong id="south_result">—</strong></div>
                     <div class="result-chip"><span class="small">Ost (W/K)</span><strong id="east_result">—</strong></div>
@@ -4495,7 +4499,37 @@ function applySystemDefaults() {
     }
 }
 
+// Gebäudegeometrie-Felder an den Modus anpassen: In komplexer Geometrie kommt der
+// Grundriss aus dem 2D-Editor – Länge/Breite werden zu berechneten Anzeigen
+// (Ausdehnung der Bounding-Box); Geschosse/Geschosshöhe bleiben editierbar.
+function setGeometryFieldsMode(complex, extNS, extEW) {
+    const len = document.getElementById('building_length');
+    const wid = document.getElementById('building_width');
+    const lenL = document.getElementById('building_length_label');
+    const widL = document.getElementById('building_width_label');
+    if (!len || !wid) return;
+    if (complex) {
+        len.readOnly = true; wid.readOnly = true;
+        len.title = wid.title = 'Aus dem gezeichneten Grundriss (größte Ausdehnung) – im 2D-Editor ändern';
+        if (isFinite(extNS)) len.value = (Math.round(extNS * 10) / 10);
+        if (isFinite(extEW)) wid.value = (Math.round(extEW * 10) / 10);
+        if (lenL) lenL.innerHTML = 'Ausdehnung Nord/Süd (m) <small style="color:#8aa1b8;">aus Grundriss</small>';
+        if (widL) widL.innerHTML = 'Ausdehnung Ost/West (m) <small style="color:#8aa1b8;">aus Grundriss</small>';
+    } else {
+        len.readOnly = false; wid.readOnly = false;
+        len.title = wid.title = '';
+        if (lenL) lenL.textContent = 'Länge Nord/Süd (m)';
+        if (widL) widL.textContent = 'Breite Ost/West (m)';
+    }
+}
+
 function updateGeometryStats() {
+    // Komplexe Geometrie: Maße, Flächen und Volumen kommen aus dem gezeichneten
+    // Grundriss (buildComplex) – die Rechteck-Formeln hier würden sie überschreiben.
+    if (window.isComplexGeometry) {
+        if (typeof updateUsageStats === 'function') updateUsageStats();
+        return;
+    }
     const length = parseFloat(document.getElementById('building_length').value) || 0;
     const width = parseFloat(document.getElementById('building_width').value) || 0;
     const floors = parseFloat(document.getElementById('building_floors').value) || 0;
@@ -4605,15 +4639,20 @@ function updateUsageStats() {
     const hours     = parseFloat(document.getElementById('usage_hours')?.value) || defaults.occupancy_hours;
 
     const personDen = (bgf > 0 && nPersons > 0) ? bgf / nPersons : 0;
-    // Interne Gewinne: Personenwärme (80 W/Person im Wohngebäude, sensible Wärme)
+    // Interne Gewinne: Personenwärme (80 W/Person, sensible Wärme)
     // + Geräte und Beleuchtung als Flächenpauschale (DIN V 18599-10)
-    const personHeatW  = nPersons * 80;
+    const HEAT_PER_PERSON_W = 80;
+    const personHeatW  = nPersons * HEAT_PER_PERSON_W;
     const equipLightW  = bgf > 0 ? (defaults.equip + defaults.light) * bgf : 0;
     const intGainsTotal = personHeatW + equipLightW;
 
     const el = (id) => document.getElementById(id);
     if (el('usage_personendichte')) el('usage_personendichte').innerText = personDen > 0 ? personDen.toFixed(1) : '—';
-    if (el('usage_internal_gains')) el('usage_internal_gains').innerText = Math.round(intGainsTotal) + ' W';
+    if (el('usage_internal_gains')) {
+        el('usage_internal_gains').innerText = Math.round(intGainsTotal) + ' W';
+        el('usage_internal_gains').title = 'Personen: ' + Math.round(personHeatW) + ' W (' + nPersons + ' × ' + HEAT_PER_PERSON_W + ' W) + Geräte/Beleuchtung: ' + Math.round(equipLightW) + ' W';
+    }
+    if (el('usage_gain_per_person')) el('usage_gain_per_person').innerText = HEAT_PER_PERSON_W + ' W';
     if (el('usage_profile_label'))  el('usage_profile_label').innerText  = defaults.label;
 }
 
@@ -4665,23 +4704,27 @@ window.buildingTypeOptions = {
 };
 
 // ===== KLIMA & STANDORT =====
-// Klimaregion je Bundesland (muss zu dashboard/services/climate.py passen).
-// radiation_factor skaliert die Potsdam-Referenzstrahlung → wirkt auf solare
-// Gewinne (Heizbilanz) und PV-Ertrag. temp_offset = Jahres-Temperaturoffset.
-window.stateClimate = {
-    'Schleswig-Holstein': 'nord', 'Hamburg': 'nord', 'Bremen': 'nord',
-    'Niedersachsen': 'nord', 'Mecklenburg-Vorpommern': 'nord',
-    'Berlin': 'ost', 'Brandenburg': 'ost', 'Sachsen-Anhalt': 'ost',
-    'Sachsen': 'ost', 'Thüringen': 'ost',
-    'Nordrhein-Westfalen': 'west', 'Rheinland-Pfalz': 'west',
-    'Saarland': 'west', 'Hessen': 'west',
-    'Bayern': 'sued', 'Baden-Württemberg': 'sued'
-};
+// Klimaregion je Bundesland – EINE Region pro Bundesland (muss zu
+// dashboard/services/climate.py passen). radiation skaliert die Potsdam-
+// Referenzstrahlung → wirkt auf solare Gewinne (Heizbilanz) und PV-Ertrag;
+// temp = Jahres-Temperaturoffset (Höhenlage wirkt separat als Höhenkorrektur).
 window.climateRegions = {
-    nord: { label: 'Region Nord (Küste/Norddeutschland)', radiation: 0.93 },
-    ost:  { label: 'Region Ost (Referenzklima Potsdam)', radiation: 1.00 },
-    west: { label: 'Region West (Rheinland/mild)', radiation: 1.00 },
-    sued: { label: 'Region Süd (Süddeutschland)', radiation: 1.10 }
+    'Schleswig-Holstein':     { label: 'Schleswig-Holstein (Küste, maritim)', radiation: 0.96, temp: 0.3 },
+    'Hamburg':                { label: 'Hamburg (maritim)', radiation: 0.94, temp: 0.4 },
+    'Bremen':                 { label: 'Bremen (maritim)', radiation: 0.93, temp: 0.4 },
+    'Niedersachsen':          { label: 'Niedersachsen (Tiefland, maritim geprägt)', radiation: 0.94, temp: 0.3 },
+    'Mecklenburg-Vorpommern': { label: 'Mecklenburg-Vorpommern (Ostseeküste, sonnig-kühl)', radiation: 0.99, temp: -0.1 },
+    'Berlin':                 { label: 'Berlin (kontinental, Referenznähe)', radiation: 1.00, temp: 0.3 },
+    'Brandenburg':            { label: 'Brandenburg (Referenzklima Potsdam)', radiation: 1.00, temp: 0.0 },
+    'Sachsen-Anhalt':         { label: 'Sachsen-Anhalt (kontinental, trocken)', radiation: 0.99, temp: 0.1 },
+    'Sachsen':                { label: 'Sachsen (kontinental)', radiation: 1.00, temp: -0.2 },
+    'Thüringen':              { label: 'Thüringen (Mittelgebirge, kühler)', radiation: 0.97, temp: -0.5 },
+    'Nordrhein-Westfalen':    { label: 'Nordrhein-Westfalen (mild, strahlungsarm)', radiation: 0.92, temp: 0.8 },
+    'Hessen':                 { label: 'Hessen (Mittelgebirge, mild)', radiation: 0.96, temp: 0.3 },
+    'Rheinland-Pfalz':        { label: 'Rheinland-Pfalz (Rheintal, mild)', radiation: 0.99, temp: 0.6 },
+    'Saarland':               { label: 'Saarland (mild, sonnig)', radiation: 1.00, temp: 0.5 },
+    'Baden-Württemberg':      { label: 'Baden-Württemberg (strahlungsreich)', radiation: 1.08, temp: 0.0 },
+    'Bayern':                 { label: 'Bayern (kontinental, strahlungsreich)', radiation: 1.10, temp: -0.4 }
 };
 // Repräsentative Höhenlage je Ort [m ü. NN] – füllt das Feld „Höhenlage" automatisch.
 window.cityElevation = {
@@ -4739,10 +4782,12 @@ window.cityElevation = {
 // Setzt Klimaregion-Anzeige + Höhenlage automatisch aus dem Standort und löst
 // (falls bereits gerechnet) eine Neuberechnung der Energiebilanz aus.
 function applyClimateForLocation(state, city) {
-    const regionKey = window.stateClimate[state] || 'ost';
-    const region = window.climateRegions[regionKey] || window.climateRegions.ost;
+    const region = window.climateRegions[state] || window.climateRegions['Brandenburg'];
     const regionDisplay = document.getElementById('climate_region_display');
-    if (regionDisplay) regionDisplay.value = region.label;
+    if (regionDisplay) {
+        regionDisplay.value = region.label;
+        regionDisplay.title = 'Strahlungsfaktor ' + region.radiation.toFixed(2) + ' × Potsdam-Referenz · Temperatur-Offset ' + (region.temp > 0 ? '+' : '') + region.temp.toFixed(1) + ' K (Höhenlage wirkt separat)';
+    }
 
     const elevInput = document.getElementById('elevation_m');
     if (elevInput && window.cityElevation[city] != null) {
@@ -6988,6 +7033,48 @@ function renderElementAddButtons() {
     if (doorC) doorC.innerHTML = doorHtml;
 }
 
+// Wand-Ergebnischips (W/K) unter den Wandrandbedingungen an die tatsächliche
+// Wandsituation anpassen. Einfache Geometrie → Nord/Süd/Ost/West wie gehabt;
+// komplexe Geometrie → ein Chip je vorkommendem Himmelsrichtungs-Sektor mit den
+// zugehörigen Wand-Nummern (Werte je Sektor aus der DIN-Berechnung).
+function renderWallResultChips(data) {
+    const row = document.getElementById('wall_result_row');
+    if (!row) return;
+    const fmt = function (v) { return (v != null && isFinite(v)) ? v + ' W/K' : '—'; };
+    const chips = [];
+    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+        // EIN Chip je Wand: Der Rechenkern liefert Verluste je Himmelsrichtungs-Sektor;
+        // teilen sich mehrere Wände einen Sektor, wird dessen Verlust flächen- und
+        // Fx-gewichtet auf die einzelnen Wände aufgeteilt (Summe = Sektorwert).
+        const wl = data.wall_losses || {};
+        const list = window.complexWallList;
+        const fxOf = function (w) { return (typeof getWallFxFactor === 'function') ? getWallFxFactor(w.ori) : 1; };
+        const bucketWeight = {};
+        list.forEach(function (w) {
+            const o = w.oriEnergy || w.ori;
+            bucketWeight[o] = (bucketWeight[o] || 0) + (w.flaeche || 0) * fxOf(w);
+        });
+        list.forEach(function (w) {
+            const o = w.oriEnergy || w.ori;
+            const bucketLoss = (wl[o] != null) ? wl[o] : data[o + '_loss'];
+            const weight = (w.flaeche || 0) * fxOf(w);
+            const loss = (bucketLoss != null && bucketWeight[o] > 0)
+                ? Math.round(bucketLoss * weight / bucketWeight[o] * 100) / 100
+                : null;
+            chips.push({ label: 'Wand ' + w.nr + ' · ' + (w.oriDe || w.ori) + ' (W/K)', value: fmt(loss) });
+        });
+    } else {
+        chips.push({ label: 'Nord (W/K)', value: fmt(data.north_loss), id: 'north_result' });
+        chips.push({ label: 'Süd (W/K)', value: fmt(data.south_loss), id: 'south_result' });
+        chips.push({ label: 'Ost (W/K)', value: fmt(data.east_loss), id: 'east_result' });
+        chips.push({ label: 'West (W/K)', value: fmt(data.west_loss), id: 'west_result' });
+    }
+    chips.push({ label: 'Wände gesamt (W/K)', value: fmt(data.wall_total), id: 'wall_total_result' });
+    row.innerHTML = chips.map(function (c) {
+        return '<div class="result-chip"><span class="small">' + c.label + '</span><strong' + (c.id ? ' id="' + c.id + '"' : '') + '>' + c.value + '</strong></div>';
+    }).join('');
+}
+
 /* =====================================================================
  * KPI-Anzeige mit Ampel-Bewertung und Richtwert-Zeile.
  *   setKpi('elementId', wert, 'kWh/m²a', {
@@ -7172,11 +7259,9 @@ async function calculateEnvelope() {
         return data;
     })
     .then(data => {
-        document.getElementById('north_result').innerText = data.north_loss + ' W/K';
-        document.getElementById('south_result').innerText = data.south_loss + ' W/K';
-        document.getElementById('east_result').innerText = data.east_loss + ' W/K';
-        document.getElementById('west_result').innerText = data.west_loss + ' W/K';
-        document.getElementById('wall_total_result').innerText = data.wall_total + ' W/K';
+        // Wand-Chips an die tatsächliche Wandsituation angepasst rendern
+        // (einfach: N/S/O/W; komplex: je vorkommender Himmelsrichtung + Wand-Nr.)
+        renderWallResultChips(data);
 
         document.getElementById('roof_result').innerText = data.roof_loss + ' W/K';
         document.getElementById('floor_result').innerText = data.floor_loss + ' W/K';
@@ -9493,6 +9578,7 @@ async function updateDoorType() {
         window.complexWallList = null;
         if (typeof renderWallBoundaryGrid === 'function') renderWallBoundaryGrid();
         if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
+        if (typeof setGeometryFieldsMode === 'function') setGeometryFieldsMode(false);
         if (typeof updateGeometryStats === 'function') updateGeometryStats();
         const d = getSimpleDims();
         buildHouse({
@@ -9741,6 +9827,18 @@ async function updateDoorType() {
         set('geometry_bgf', bgf.toFixed(0) + ' m²');
         set('geometry_envelope_area', (perim * H + 2 * A).toFixed(0) + ' m²');
         const bgfInput = document.getElementById('bgf'); if (bgfInput) bgfInput.value = bgf.toFixed(0);
+        // Gebäudegeometrie-Felder: Länge/Breite = Ausdehnung des Grundrisses (readonly)
+        if (typeof setGeometryFieldsMode === 'function') setGeometryFieldsMode(true, maxz - minz, maxx - minx);
+        // Wandflächen-Anzeigen (Gebäudehülle) mit den echten Polygonwerten füllen
+        ['north', 'south', 'east', 'west'].forEach(function (o) {
+            const el = document.getElementById(o + '_area_display');
+            if (el) {
+                el.innerText = walls[o].toFixed(1) + ' m²';
+                el.title = 'Aus dem gezeichneten Grundriss. Diagonalsektoren (NO/SO/SW/NW) fließen zusätzlich in die Berechnung ein.';
+            }
+        });
+        // Personen-/Nutzungs-Statistik hängt an der BGF
+        if (typeof updateUsageStats === 'function') updateUsageStats();
         window._autoRoofArea = A;   // automatische Dachgrundfläche aus der Geometrie (für „Aus Gebäudedaten übernehmen")
         const roofDisp = document.getElementById('roof_area_display'); if (roofDisp && !roofDisp.dataset.manual) roofDisp.value = A.toFixed(1);
         // Steildach: Grundriss-Projektion automatisch aus der Geometrie (überschreibbar);

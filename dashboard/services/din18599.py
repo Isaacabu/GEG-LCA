@@ -473,6 +473,9 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "south_loss": wall_losses["south"],
         "east_loss": wall_losses["east"],
         "west_loss": wall_losses["west"],
+        # Alle 8 Orientierungen (inkl. Diagonalen) – für die Wand-Ergebnischips
+        # bei komplexer Geometrie (Frontend rendert je tatsächlicher Wand).
+        "wall_losses": wall_losses,
         "wall_total": round(wall_total, 2),
         "roof_loss": roof_loss,
         "floor_loss": floor_loss,
