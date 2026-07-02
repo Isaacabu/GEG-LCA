@@ -2276,7 +2276,26 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div id="window_list" class="elem-list"></div>
                     <div class="grid-2" style="margin-top:10px;">
                         <div class="field"><label>g-Wert – Standard (0–1)</label><input id="g_value" type="number" step="0.01" value="0.55" onchange="applyGlobalWindowUG()" title="Standard-g-Wert für alle Fenster"></div>
-                        <div class="field"><label>ψ-Wert (W/mK)</label><div class="value-display">—</div></div>
+                        <div class="field"><label>ψ Fenster gesamt (W/K)</label><div class="value-display" id="win_psi_total_top">—</div></div>
+                    </div>
+                    <!-- Fenster-Einbauwärmebrücken: H_WB,Fenster = Σ ψ · Bezugslänge (Seiten/Sturz/Brüstung) -->
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);">
+                        <p class="note" style="margin:0 0 8px;">🔲 <strong>Fenster-Wärmebrücken (Einbau)</strong> – ψ · Bezugslänge je Anschluss. Bezugslängen automatisch aus der Fenstergeometrie (Seiten = 2 × Höhe, Sturz/Brüstung = Breite; über alle Fenster summiert).</p>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;">
+                            <span class="note" id="win_psi_auto_note" style="margin:0;flex:1;min-width:200px;color:#7fb4d8;">🔗 ψ wird automatisch aus dem Wandaufbau vorgeschlagen.</span>
+                            <button type="button" class="btn" style="padding:3px 10px;font-size:12px;" onclick="applyAutoWindowPsi(true)" title="Alle drei ψ-Werte wieder aus dem aktuellen Wandaufbau ableiten">↻ Aus Wandaufbau</button>
+                        </div>
+                        <div class="grid-3" style="gap:8px;">
+                            <div class="field"><label>ψ Seiten (W/mK)</label><input id="win_psi_seiten" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag der beiden seitlichen Laibungen (Seite 1 + 2). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
+                            <div class="field"><label>ψ Sturz (W/mK)</label><input id="win_psi_sturz" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am oberen Anschluss (Sturz). Bei ungedämmtem Rollladenkasten manuell erhöhen."></div>
+                            <div class="field"><label>ψ Brüstung (W/mK)</label><input id="win_psi_bruestung" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am unteren Anschluss (Brüstung). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
+                        </div>
+                        <div class="grid-4" style="gap:8px;margin-top:8px;">
+                            <div class="field"><label>L Seiten (m)</label><div class="value-display" id="win_len_seiten">—</div></div>
+                            <div class="field"><label>L Sturz (m)</label><div class="value-display" id="win_len_sturz">—</div></div>
+                            <div class="field"><label>L Brüstung (m)</label><div class="value-display" id="win_len_bruestung">—</div></div>
+                            <div class="field"><label>Gesamt (W/K)</label><div class="value-display" id="win_psi_total">—</div></div>
+                        </div>
                     </div>
                     <!-- result element kept for JS -->
                     <div style="display:none;"><div id="window_total_result">—</div></div>
@@ -2577,6 +2596,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <div class="ht-row"><span>Dach</span><span id="ht_roof">—</span></div>
                 <div class="ht-row"><span>Boden</span><span id="ht_floor">—</span></div>
                 <div class="ht-row"><span>Wärmebrücken (ΔU_WB·A)</span><span id="ht_bridges">—</span></div>
+                <div class="ht-row"><span>Wärmebrücken Fenster (ψ·L)</span><span id="ht_window_bridges">—</span></div>
                 <div class="ht-row ht-total"><span>H_T gesamt</span><span id="ht_total">—</span></div>
             </div>
 
@@ -4301,6 +4321,94 @@ function updateWindowTotalDisplay() {
     if (el) el.textContent = (n + s + e + w).toFixed(1).replace('.0','');
 }
 
+// Fenster-Einbauwärmebrücken: Bezugslängen automatisch aus der Fenstergeometrie.
+// Seiten (Laibung Seite 1+2) = 2 × Höhe, Sturz = Breite, Brüstung = Breite; über
+// alle Einzelfenster summiert.  H_WB,Fenster = ψ_Seiten·L_Seiten + ψ_Sturz·L_Sturz + ψ_Brüstung·L_Brüstung.
+function computeWindowBridge() {
+    let list = Array.isArray(window.windowsList) ? window.windowsList : null;
+    // Fallback (noch kein 3D-Modell aufgebaut): aus den Orientierungs-Flächen schätzen
+    // (gleiche Heuristik wie ensureWindowsList: ~2,4 m² je Fenster, Höhe 1,4 m).
+    if (!list || list.length === 0) {
+        list = [];
+        [['window_north_area'], ['window_south_area'], ['window_east_area'], ['window_west_area']].forEach(function (pair) {
+            const elA = document.getElementById(pair[0]);
+            const A = elA ? (parseFloat(elA.value) || 0) : 0;
+            if (A <= 0) return;
+            const count = Math.max(1, Math.min(6, Math.round(A / 2.4)));
+            const height = 1.4, width = (A / count) / height;
+            for (let i = 0; i < count; i++) list.push({ width: width, height: height });
+        });
+    }
+    let lSeiten = 0, lSturz = 0, lBruestung = 0;
+    list.forEach(function (win) {
+        const h = parseFloat(win.height) || 0, b = parseFloat(win.width) || 0;
+        lSeiten += 2 * h;   // beide seitlichen Laibungen
+        lSturz += b;        // oberer Anschluss
+        lBruestung += b;    // unterer Anschluss
+    });
+    const num = (id, def) => { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) && v >= 0 ? v : def; };
+    const psiS = num('win_psi_seiten', 0.04), psiSt = num('win_psi_sturz', 0.04), psiB = num('win_psi_bruestung', 0.04);
+    const total = psiS * lSeiten + psiSt * lSturz + psiB * lBruestung;
+    return { lSeiten, lSturz, lBruestung, psiS, psiSt, psiB, total };
+}
+
+// Anzeige der Fenster-Wärmebrücken (Bezugslängen + Gesamt) aktualisieren.
+function updateWindowPsi() {
+    const r = computeWindowBridge();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('win_len_seiten', r.lSeiten.toFixed(2));
+    set('win_len_sturz', r.lSturz.toFixed(2));
+    set('win_len_bruestung', r.lBruestung.toFixed(2));
+    set('win_psi_total', r.total.toFixed(2) + ' W/K');
+    set('win_psi_total_top', r.total.toFixed(2));
+    return r;
+}
+
+// Leitet einen ψ-Vorschlag aus dem tatsächlichen Wandaufbau ab. Maßgeblich ist die
+// LAGE DER DÄMMEBENE (DIN 4108 Bbl 2): außen → Fenster in Dämmebene (niedrig),
+// mittig → Kerndämmung, innen → Innendämmung (Laibung wird Wärmebrücke, hoch).
+// Bewusst ein Schätzwert: Details wie Rahmen-Überdämmung/Rollladenkasten kennt die App nicht.
+function deriveWindowPsiFromWall() {
+    const layers = (typeof currentWallLayers === 'function') ? currentWallLayers() : [];
+    const total = layers.reduce(function (s, l) { return s + (parseFloat(l.mm) || 0); }, 0);
+    if (!(total > 0)) return { psi: 0.06, reason: 'kein Wandaufbau erfasst – Standardannahme' };
+    // Dämmschicht = Schichttyp „daemmung" ODER sehr niedriges λ (≤ 0,07 W/mK)
+    const isIns = function (l) { return l.type === 'daemmung' || (l.lambda != null && l.lambda > 0 && l.lambda <= 0.07); };
+    let insMm = 0, weighted = 0, cum = 0;
+    layers.forEach(function (l) {
+        const mm = parseFloat(l.mm) || 0;
+        const centerFrac = (cum + mm / 2) / total;   // 0 = innen … 1 = außen
+        if (isIns(l)) { insMm += mm; weighted += mm * centerFrac; }
+        cum += mm;
+    });
+    if (insMm <= 0) return { psi: 0.08, reason: 'monolithisch (keine separate Dämmschicht) – Fenster in Wandebene' };
+    const pos = weighted / insMm;   // Schwerpunkt der Dämmung
+    if (pos >= 0.60) return { psi: 0.03, reason: 'Außendämmung (Dämmung außen) – Fenster in Dämmebene möglich' };
+    if (pos <= 0.40) return { psi: 0.10, reason: 'Innendämmung (Dämmung innen) – Laibung als Wärmebrücke' };
+    return { psi: 0.06, reason: 'Kern-/Mitteldämmung – Fenster mittig in der Wand' };
+}
+
+// Nutzer hat ein ψ-Feld von Hand geändert → dieses Feld nicht mehr automatisch überschreiben.
+function onWinPsiInput(el) {
+    if (el && el.dataset) el.dataset.auto = '0';
+    updateWindowPsi();
+}
+
+// ψ-Vorschlag aus dem Wandaufbau in die (noch automatischen) Felder schreiben.
+// force=true setzt ALLE drei Felder zurück auf Automatik (Button „↻ Aus Wandaufbau").
+function applyAutoWindowPsi(force) {
+    const d = deriveWindowPsiFromWall();
+    ['win_psi_seiten', 'win_psi_sturz', 'win_psi_bruestung'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (force) el.dataset.auto = '1';
+        if (el.dataset.auto !== '0') el.value = d.psi.toFixed(2);   // nur automatische Felder
+    });
+    const note = document.getElementById('win_psi_auto_note');
+    if (note) note.textContent = '🔗 Auto aus Wandaufbau: ' + d.reason + ' → ψ ≈ ' + d.psi.toFixed(2) + ' W/mK';
+    updateWindowPsi();
+}
+
 // Gesamt-Türanzahl-Anzeige aktualisieren
 function updateDoorTotalDisplay() {
     const n = parseInt(document.getElementById('door_north_count').value) || 0;
@@ -4324,6 +4432,7 @@ function syncHtTable() {
     copyVal('roof_result', 'ht_roof');
     copyVal('floor_result', 'ht_floor');
     copyVal('thermal_bridge_result', 'ht_bridges');
+    copyVal('win_psi_total', 'ht_window_bridges');
     copyVal('envelope_total_result', 'ht_total');
 }
 
@@ -5240,6 +5349,8 @@ function recalcWallU() {
     }
     renderWallViz();
     scheduleWallGwp();
+    // Fenster-ψ-Vorschlag an den geänderten Wandaufbau anpassen (nur automatische Felder).
+    if (typeof applyAutoWindowPsi === 'function') applyAutoWindowPsi(false);
 }
 
 // ===== Graue Emissionen des Wandaufbaus (echte ÖKOBAUDAT-Daten, Modul A1–A3) =====
@@ -7201,6 +7312,20 @@ async function calculateEnvelope() {
             window_u: document.getElementById('window_u').value,
             g_value: document.getElementById('g_value').value,
 
+            // Fenster-Einbauwärmebrücken (ψ · Bezugslänge, Seiten/Sturz/Brüstung).
+            // Bezugslängen automatisch aus der Fenstergeometrie berechnet.
+            ...(function () {
+                const wb = updateWindowPsi();
+                return {
+                    window_psi_seiten: wb.psiS,
+                    window_psi_sturz: wb.psiSt,
+                    window_psi_bruestung: wb.psiB,
+                    window_len_seiten: wb.lSeiten,
+                    window_len_sturz: wb.lSturz,
+                    window_len_bruestung: wb.lBruestung
+                };
+            })(),
+
             door_north_count: document.getElementById('door_north_count').value,
             door_south_count: document.getElementById('door_south_count').value,
             door_east_count: document.getElementById('door_east_count').value,
@@ -7270,6 +7395,10 @@ async function calculateEnvelope() {
         document.getElementById('envelope_total_result').innerText = data.envelope_total + ' W/K';
         if (data.thermal_bridge_loss !== undefined) {
             document.getElementById('thermal_bridge_result').innerText = data.thermal_bridge_loss + ' W/K';
+        }
+        if (data.window_bridge_loss !== undefined) {
+            const wt = document.getElementById('win_psi_total'); if (wt) wt.textContent = data.window_bridge_loss + ' W/K';
+            const wtt = document.getElementById('win_psi_total_top'); if (wtt) wtt.textContent = data.window_bridge_loss;
         }
 
         if (data.door_total !== undefined) {
@@ -10375,6 +10504,7 @@ async function updateDoorType() {
             const c = byId('win_count_' + o); if (c) c.textContent = '(' + cnt[o] + ' Fenster)';
         });
         if (typeof updateWindowTotalDisplay === 'function') updateWindowTotalDisplay();
+        if (typeof updateWindowPsi === 'function') updateWindowPsi();
         if (typeof markStale === 'function') markStale('huelle');
         else if (typeof window.markStale === 'function') window.markStale('huelle');
         if (typeof autoRecalcEnvelope === 'function') autoRecalcEnvelope();
