@@ -8,13 +8,13 @@
   :root { --bg:#081222; --panel:#0f2138; --line:#21456d; --text:#e7edf5; --muted:#9bb4c8; --cyan:#38bdf8; --green:#10b981; --gold:#f6b94b; }
   * { box-sizing:border-box; }
   body { margin:0; font-family:'Segoe UI',system-ui,-apple-system,sans-serif; color:var(--text); min-height:100vh;
-    background: radial-gradient(900px 500px at 80% -10%, rgba(16,185,129,.10), transparent 60%),
-                linear-gradient(180deg,#0a1830 0%, #081222 100%); }
+    background: radial-gradient(900px 500px at 80% -10%, rgba(16,185,129,.06), transparent 60%),
+                #ffffff; }
   .wrap { max-width:1120px; margin:0 auto; padding:44px 22px 64px; }
   header.top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:30px; }
-  .brand { font-size:25px; font-weight:800; letter-spacing:.2px; }
+  .brand { font-size:25px; font-weight:800; letter-spacing:.2px; color:#0b1f3a; }
   .brand span { color:var(--green); }
-  .sub { color:var(--muted); font-size:13.5px; margin-top:5px; }
+  .sub { color:#475569; font-size:13.5px; margin-top:5px; }
   .btn { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:10px; padding:10px 16px;
     font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:border-color .15s, transform .1s; }
   .btn:hover { border-color:var(--cyan); }
@@ -25,7 +25,7 @@
     background:linear-gradient(135deg, rgba(16,185,129,.10), rgba(14,165,183,.06)); border:1px solid var(--line);
     border-radius:18px; padding:24px 26px; margin-bottom:30px; }
   .new-card .nc-title { font-size:19px; font-weight:800; }
-  h2.sec { font-size:14px; margin:0 0 16px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  h2.sec { font-size:14px; margin:0 0 16px; color:#64748b; text-transform:uppercase; letter-spacing:.06em; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr)); gap:16px; }
   .proj { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:17px 19px; display:flex; flex-direction:column; gap:11px; }
   .proj h3 { margin:0; font-size:16.5px; word-break:break-word; }
