@@ -876,6 +876,24 @@ body {
     box-shadow: 0 6px 18px rgba(0,0,0,0.45);
 }
 .info-i:hover::after { opacity: 1; }
+/* Tooltip nicht abschneiden: Boxen mit overflow:hidden beim Hover öffnen und in den
+   Vordergrund heben, damit der ⓘ-Text vollständig lesbar über den Nachbarn liegt. */
+.stat-box:hover, .summary-box:hover { overflow: visible; z-index: 60; }
+/* Ergebnis-Panel Fenster-Einbauwärmebrücken (ψ · Länge je Anschluss) */
+.win-wb-panel { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.win-wb-panel:empty { display: none; }
+.wwb-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+.wwb-row:first-child { border-top: 0; }
+.wwb-name { flex: 1; color: #c4cfdc; font-weight: 600; }
+.wwb-name sub { font-weight: 600; }
+.wwb-calc { color: var(--muted); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; }
+.wwb-val { width: 118px; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; color: #e6edf5; white-space: nowrap; }
+.wwb-total { background: rgba(255,255,255,.045); }
+.wwb-total .wwb-name, .wwb-total .wwb-val { color: #fff; }
+.wwb-rating { padding: 7px 12px; font-size: 12.5px; font-weight: 700; border-top: 1px solid rgba(255,255,255,.08); }
+.wwb-good { color: #86efac; background: rgba(16,185,129,.10); }
+.wwb-mid  { color: #fcd34d; background: rgba(246,185,75,.10); }
+.wwb-bad  { color: #fca5a5; background: rgba(239,68,68,.10); }
 
 .bilanz-section-title {
     margin: 22px 0 8px;
@@ -1564,8 +1582,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 
 /* Veraltet-Hinweis: Eingaben geändert → Ergebnisse müssen neu ausgewertet werden */
 .stale-badge { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; padding: 4px 10px;
-    border-radius: 999px; font-size: 12px; font-weight: 600; color: #fde68a;
-    background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.45); vertical-align: middle; }
+    border-radius: 999px; font-size: 12px; font-weight: 600; color: #bfdbfe;
+    background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.45); vertical-align: middle; }
+.stale-badge .stale-spin { display: inline-block; animation: stale-spin .9s linear infinite; }
+@keyframes stale-spin { to { transform: rotate(360deg); } }
 
 /* === Anlagentechnik === */
 /* Ergebnis-Tab zeigt im Frontend nur Heizwärmebedarf + Endenergiebedarf.
@@ -1693,7 +1713,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
-        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108()">📋 DIN 4108</button>
+        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 DIN 4108</button>
         <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()">🌍 Ökobilanz (LCA)</button>
     </div>
 
@@ -2276,7 +2296,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div id="window_list" class="elem-list"></div>
                     <div class="grid-2" style="margin-top:10px;">
                         <div class="field"><label>g-Wert – Standard (0–1)</label><input id="g_value" type="number" step="0.01" value="0.55" onchange="applyGlobalWindowUG()" title="Standard-g-Wert für alle Fenster"></div>
-                        <div class="field"><label>ψ Fenster gesamt (W/K)</label><div class="value-display" id="win_psi_total_top">—</div></div>
+                        <div class="field"><label>ψ Fenster gesamt (W/(m²·K))</label><div class="value-display" id="win_psi_total_top">—</div></div>
                     </div>
                     <!-- Fenster-Einbauwärmebrücken: H_WB,Fenster = Σ ψ · Bezugslänge (Seiten/Sturz/Brüstung) -->
                     <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);">
@@ -2290,11 +2310,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             <div class="field"><label>ψ Sturz (W/mK)</label><input id="win_psi_sturz" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am oberen Anschluss (Sturz). Bei ungedämmtem Rollladenkasten manuell erhöhen."></div>
                             <div class="field"><label>ψ Brüstung (W/mK)</label><input id="win_psi_bruestung" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am unteren Anschluss (Brüstung). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
                         </div>
-                        <div class="grid-4" style="gap:8px;margin-top:8px;">
-                            <div class="field"><label>L Seiten (m)</label><div class="value-display" id="win_len_seiten">—</div></div>
-                            <div class="field"><label>L Sturz (m)</label><div class="value-display" id="win_len_sturz">—</div></div>
-                            <div class="field"><label>L Brüstung (m)</label><div class="value-display" id="win_len_bruestung">—</div></div>
-                            <div class="field"><label>Gesamt (W/K)</label><div class="value-display" id="win_psi_total">—</div></div>
+                        <!-- Klar aufbereitetes Ergebnis: ψ · Länge = Verlust je Anschluss + Gesamt + Einordnung -->
+                        <div id="win_wb_result" class="win-wb-panel"></div>
+                        <!-- Legacy-IDs verborgen halten (JS-Setter + Server schreibt window_bridge_loss hierher) -->
+                        <div style="display:none;">
+                            <span id="win_len_seiten">—</span><span id="win_len_sturz">—</span>
+                            <span id="win_len_bruestung">—</span><span id="win_psi_total">—</span>
                         </div>
                     </div>
                     <!-- result element kept for JS -->
@@ -2583,9 +2604,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
             </div>
 
-            <!-- Abschluss-Button: gesamte Gebäudehülle auswerten (unten links) -->
-            <button class="btn btn-primary" style="margin-top:18px;" onclick="recompute('huelle')">Gebäudehülle auswerten</button>
-            <span class="stale-badge" id="stale_huelle" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
+            <!-- „Gebäudehülle auswerten"-Button entfernt: Berechnung läuft automatisch (Live-Update). -->
+            <span class="stale-badge" id="stale_huelle" style="display:none;"><span class="stale-spin">🔄</span> Ergebnisse werden aktualisiert …</span>
 
             <!-- ④ H_T Wärmeverlustkoeffizienten -->
             <div class="card ht-table" style="margin-top:18px;">
@@ -2755,8 +2775,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             (Energiebilanz-Tab) – hier wird er nur für Nichtwohngebäude bilanziert.</div>
                     </div>
 
-                    <button class="btn btn-primary" onclick="recompute('anlage')">Anlagentechnik auswerten</button>
-                    <span class="stale-badge" id="stale_anlage" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
+                    <!-- „Anlagentechnik auswerten"-Button entfernt: Berechnung läuft automatisch (Live-Update). -->
+                    <span class="stale-badge" id="stale_anlage" style="display:none;"><span class="stale-spin">🔄</span> Ergebnisse werden aktualisiert …</span>
 
                     <div class="note">
                         Grundlage ist der zuvor berechnete Heizwärmebedarf netto aus der Gebäudehülle.
@@ -2883,7 +2903,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div class="value-display" id="pv_ew_facade_area">—</div>
                     </div>
 
-                    <button class="btn btn-primary" onclick="updatePVAreaCalculations()" style="margin-top: 14px;">Flächen berechnen</button>
+                    <!-- „Flächen berechnen"-Button entfernt: Flächen werden automatisch aktualisiert (Live-Update). -->
                 </div>
 
                 <div class="card">
@@ -2933,8 +2953,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <input id="pv_feed_in_tariff" type="number" step="0.01" value="0.08">
                     </div>
 
-                    <button class="btn btn-primary" onclick="recompute('pv')" style="margin-top: 14px;">PV auswerten</button>
-                    <span class="stale-badge" id="stale_pv" style="display:none;">⚠ Eingaben geändert – Ergebnisse veraltet, bitte neu auswerten</span>
+                    <!-- „PV auswerten"-Button entfernt: Berechnung läuft automatisch (Live-Update). -->
+                    <span class="stale-badge" id="stale_pv" style="display:none;"><span class="stale-spin">🔄</span> Ergebnisse werden aktualisiert …</span>
                 </div>
             </div>
 
@@ -3129,31 +3149,6 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 
                 <div class="sys-detail-head">Detail-Kennwerte</div>
                 <div class="stats" id="sys_stats">
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Endenergie nach DIN V 18599-5: gekaufte Energie (Gas, Pellets, Strom …) für die Raumheizung – inklusive aller Verluste von Übergabe, Verteilung, Speicher und Wärmeerzeuger.">i</span>
-                        <div class="label">Endenergie Heizung (Q_f)</div>
-                        <div class="value" id="system_heating_end">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Endenergie für Trinkwarmwasser nach DIN V 18599-8. Der Warmwasserbedarf selbst kommt aus dem Nutzungsprofil (DIN V 18599-10), dazu Verteil-, Speicher- und Erzeugerverluste.">i</span>
-                        <div class="label">Endenergie Warmwasser (Q_f,w)</div>
-                        <div class="value" id="system_hotwater_end">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Hilfsenergie nach DIN V 18599-5/-6/-8: Strom für Heizungspumpe, Kesselgebläse/Regelung, Zirkulationspumpe und Lüftungs-Ventilatoren.&#10;Richtwert EFH: ~200–600 kWh/a.">i</span>
-                        <div class="label">Hilfsenergie Strom (W_f)</div>
-                        <div class="value" id="system_aux">—</div>
-                    </div>
-                    <div class="stat-box" id="system_rlt_box" style="display:none;">
-                        <span class="info-i" data-tip="Endenergie für die RLT-Luftaufbereitung (DIN V 18599-3): Erwärmung der maschinell geförderten Zuluft auf Raumtemperatur (nach Wärmerückgewinnung). Wird über denselben Wärmeerzeuger gedeckt. Nur bei mechanischer Lüftung.">i</span>
-                        <div class="label">Endenergie RLT-Heizung (Teil 3)</div>
-                        <div class="value" id="system_rlt_end">—</div>
-                    </div>
-                    <div class="stat-box" id="system_cooling_box" style="display:none;">
-                        <span class="info-i" data-tip="Endenergie Kühlung: Nutzkältebedarf Q_c,b (DIN V 18599-2) gedeckt über eine elektrische Kältemaschine mit Leistungszahl EER (Standard 3,0). Nur bei Nichtwohngebäuden mit aktiver Kühlung.">i</span>
-                        <div class="label">Endenergie Kühlung (Q_c,f)</div>
-                        <div class="value" id="system_cooling_end">—</div>
-                    </div>
                     <div class="stat-box" id="system_total_end_box">
                         <span class="info-i" data-tip="Summe der Endenergie: Heizung + RLT + Warmwasser + Hilfsstrom + Kühlung. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
                         <div class="label">Endenergiebedarf (Q_f)</div>
@@ -3165,34 +3160,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div class="value" id="system_primary">—</div>
                     </div>
                     <div class="stat-box">
-                        <span class="info-i" data-tip="CO₂-Äquivalente nach GEG Anlage 9: Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg je kWh Endenergie.">i</span>
-                        <div class="label">CO₂-Emissionen</div>
+                        <span class="info-i" data-tip="Spezifische CO₂-Emissionen je m² Bezugsfläche und Jahr. Basis: CO₂-Äquivalente nach GEG Anlage 9 (Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg je kWh Endenergie), geteilt durch die Bezugsfläche.">i</span>
+                        <div class="label">CO₂-Emissionen je m²</div>
                         <div class="value" id="system_co2">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Endenergie pro m² und Jahr – Vergleichswert je nach Energieträger:&#10;Wärmepumpe ~25–45 · Gas-Brennwert ~80–120 · unsanierter Altbau >200 kWh/(m²·a).">i</span>
-                        <div class="label">Endenergie je m²</div>
-                        <div class="value" id="system_spec_end">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Wärmeverluste der Verteilleitungen (Q_h,d / Q_w,d) und Speicher (Q_h,s / Q_w,s) nach DIN V 18599-5/-8 – mit Norm-Standardlängen, daher eher konservativ.">i</span>
-                        <div class="label">Verteil- &amp; Speicherverluste (Q_d + Q_s)</div>
-                        <div class="value" id="system_ventilation">—</div>
-                    </div>
-                    <div class="stat-box" id="system_heat_adjusted_box">
-                        <span class="info-i" data-tip="Heizwärmebedarf Q_h,b – bei Lüftungsanlage mit Wärmerückgewinnung wird die Teil-2-Bilanz hier neu gerechnet (effektiver Luftwechsel nach DIN V 18599-6), daher ggf. niedriger als im Hülle-Tab.">i</span>
-                        <div class="label">Heizwärmebedarf (Q_h,b)</div>
-                        <div class="value" id="system_heat_adjusted">—</div>
-                    </div>
-                    <div class="stat-box" id="system_jaz_box">
-                        <span class="info-i" data-tip="Jahresarbeitszahl der Wärmepumpe: gelieferte Wärme ÷ eingesetzter Strom übers Jahr.&#10;≥4,0 sehr gut · 3–4 üblich · <3 unwirtschaftlich. Nur bei Wärmepumpe gefüllt.">i</span>
-                        <div class="label">Jahresarbeitszahl (JAZ)</div>
-                        <div class="value" id="system_jaz">—</div>
-                    </div>
-                    <div class="stat-box" id="system_lighting_box">
-                        <span class="info-i" data-tip="Endenergie Beleuchtung Q_l,f nach DIN V 18599-4 (Tabellenverfahren) – nur bei Nichtwohngebäuden.&#10;Richtwerte: LED + Tageslichtregelung ~3–8 · Leuchtstoff ~10–25 kWh/(m²·a).">i</span>
-                        <div class="label">Endenergie Beleuchtung (Q_l,f)</div>
-                        <div class="value" id="system_lighting">—</div>
                     </div>
                 </div>
 
@@ -3319,9 +3289,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <div class="grid-2" style="gap:18px; align-items:center;">
                     <div class="field" style="margin:0;">
                         <label>Haushaltsstrom (kWh/a)
-                            <span class="info-i" data-tip="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 000–1 500 kWh je Person und Jahr.">i</span>
+                            <span class="info-i" data-tip="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 000–1 500 kWh je Person und Jahr.&#10;Wird automatisch aus der Personenzahl (Gebäudedaten) vorbelegt – manuelle Eingabe hat Vorrang.">i</span>
                         </label>
-                        <input id="household_electricity" type="number" min="0" step="100" value="2000" onchange="calculateBalance()">
+                        <input id="household_electricity" type="number" min="0" step="100" value="2000" oninput="this.dataset.manual='1'" onchange="calculateBalance()">
                         <div class="note" id="bilanz_strom_note" style="font-size:11px; margin-top:6px;">Energiebilanz auswerten für die Stromverrechnung.</div>
                     </div>
                     <div>
@@ -3383,7 +3353,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 
             <div class="footer-note">
                 <button class="btn btn-primary" onclick="recompute('bilanz')">Energiebilanz aktualisieren</button>
-                <span class="stale-badge" id="stale_bilanz" style="display:none;">⚠ Eingaben geändert – bitte aktualisieren</span>
+                <span class="stale-badge" id="stale_bilanz" style="display:none;"><span class="stale-spin">🔄</span> Ergebnisse werden aktualisiert …</span>
             </div>
         </div>
     </div>
@@ -4339,17 +4309,19 @@ function computeWindowBridge() {
             for (let i = 0; i < count; i++) list.push({ width: width, height: height });
         });
     }
-    let lSeiten = 0, lSturz = 0, lBruestung = 0;
+    let lSeiten = 0, lSturz = 0, lBruestung = 0, aWin = 0;
     list.forEach(function (win) {
         const h = parseFloat(win.height) || 0, b = parseFloat(win.width) || 0;
         lSeiten += 2 * h;   // beide seitlichen Laibungen
         lSturz += b;        // oberer Anschluss
         lBruestung += b;    // unterer Anschluss
+        aWin += b * h;      // Fensterfläche (Bezug für den flächenbezogenen Zuschlag)
     });
     const num = (id, def) => { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) && v >= 0 ? v : def; };
     const psiS = num('win_psi_seiten', 0.04), psiSt = num('win_psi_sturz', 0.04), psiB = num('win_psi_bruestung', 0.04);
-    const total = psiS * lSeiten + psiSt * lSturz + psiB * lBruestung;
-    return { lSeiten, lSturz, lBruestung, psiS, psiSt, psiB, total };
+    const total = psiS * lSeiten + psiSt * lSturz + psiB * lBruestung;   // H_WB,Fenster [W/K]
+    const duWb = aWin > 0 ? total / aWin : 0;   // ΔU_WB,Fenster [W/(m²·K)] – auf die Fensterfläche bezogen
+    return { lSeiten, lSturz, lBruestung, psiS, psiSt, psiB, total, aWin, duWb };
 }
 
 // Anzeige der Fenster-Wärmebrücken (Bezugslängen + Gesamt) aktualisieren.
@@ -4359,9 +4331,43 @@ function updateWindowPsi() {
     set('win_len_seiten', r.lSeiten.toFixed(2));
     set('win_len_sturz', r.lSturz.toFixed(2));
     set('win_len_bruestung', r.lBruestung.toFixed(2));
-    set('win_psi_total', r.total.toFixed(2) + ' W/K');
-    set('win_psi_total_top', r.total.toFixed(2));
+    set('win_psi_total', r.total.toFixed(2) + ' W/K');   // versteckt – speist die H_T-Tabelle (copyVal)
+    set('win_psi_total_top', r.duWb.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    renderWindowBridgePanel(r);
     return r;
+}
+
+// Klar aufbereitetes Ergebnis-Panel der Fenster-Einbauwärmebrücken.
+// Zeigt je Anschluss ψ · Länge = Verlust (W/K), die Summe H_WB,Fenster und eine
+// Einordnung über den längengewichteten effektiven ψ (Qualität des Anschlussdetails,
+// unabhängig von der Fensteranzahl – DIN 4108 Bbl 2: ~0,10 üblich, ≤0,05 optimiert).
+function renderWindowBridgePanel(r) {
+    const box = document.getElementById('win_wb_result');
+    if (!box) return;
+    const de = (v, d = 2) => (isFinite(v) ? v : 0).toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const lTotal = r.lSeiten + r.lSturz + r.lBruestung;
+    if (!(lTotal > 0)) {   // noch keine Fenster erfasst
+        box.innerHTML = '<div class="wwb-row"><span class="wwb-name">Noch keine Fenster erfasst – Wärmebrücken = 0.</span></div>';
+        return;
+    }
+    const effPsi = r.total / lTotal;
+    let cls, label;
+    if (effPsi <= 0.05) { cls = 'good'; label = 'sehr gut (wärmebrückenoptimiert)'; }
+    else if (effPsi <= 0.10) { cls = 'good'; label = 'gut (üblicher Standard)'; }
+    else if (effPsi <= 0.15) { cls = 'mid'; label = 'mittel – Anschlüsse verbessern'; }
+    else { cls = 'bad'; label = 'erhöht – Wärmebrücken kritisch'; }
+    const row = (name, psi, len) =>
+        '<div class="wwb-row"><span class="wwb-name">' + name + '</span>'
+        + '<span class="wwb-calc">ψ ' + de(psi) + ' × ' + de(len, 1) + ' m</span>'
+        + '<span class="wwb-val">' + de(psi * len) + ' W/K</span></div>';
+    box.innerHTML =
+        row('Seiten (Laibung 1+2)', r.psiS, r.lSeiten)
+        + row('Sturz (oben)', r.psiSt, r.lSturz)
+        + row('Brüstung (unten)', r.psiB, r.lBruestung)
+        + '<div class="wwb-row wwb-total"><span class="wwb-name">Gesamt ΔU<sub>WB,Fenster</sub></span>'
+        + '<span class="wwb-calc">' + de(r.total) + ' W/K ÷ ' + de(r.aWin, 1) + ' m² Fenster</span>'
+        + '<span class="wwb-val">' + de(r.duWb) + ' W/(m²·K)</span></div>'
+        + '<div class="wwb-rating wwb-' + cls + '">Einordnung: ' + label + ' · ψ_eff ' + de(effPsi) + ' W/(m·K)</div>';
 }
 
 // Leitet einen ψ-Vorschlag aus dem tatsächlichen Wandaufbau ab. Maßgeblich ist die
@@ -4763,6 +4769,20 @@ function updateUsageStats() {
     }
     if (el('usage_gain_per_person')) el('usage_gain_per_person').innerText = HEAT_PER_PERSON_W + ' W';
     if (el('usage_profile_label'))  el('usage_profile_label').innerText  = defaults.label;
+
+    // Personenzahl → Haushaltsstrom vorbelegen (KEIN DIN-Verfahren; Richtwert ~1250 kWh je Person
+    // und Jahr). Nur solange der Nutzer den Wert nicht selbst überschrieben hat (dataset.manual='1').
+    // Die internen Gewinne der Heizbilanz bleiben normgerecht flächenbezogen (DIN V 18599-10) – die
+    // Personenzahl fließt dort bewusst NICHT ein.
+    const KWH_PER_PERSON = 1250;
+    const he = el('household_electricity');
+    if (he && he.dataset.manual !== '1' && nPersons > 0) {
+        const val = Math.round(nPersons * KWH_PER_PERSON / 100) * 100;   // auf 100 kWh gerundet
+        if (String(he.value) !== String(val)) {
+            he.value = val;
+            if (typeof markStale === 'function') markStale('bilanz');
+        }
+    }
 }
 
 // Wenn der Nutzer Gebäudetyp/Variante wechselt → Personendichte/Stunden auf Profil-Default setzen
@@ -7464,8 +7484,10 @@ async function calculateEnvelope() {
             document.getElementById('thermal_bridge_result').innerText = data.thermal_bridge_loss + ' W/K';
         }
         if (data.window_bridge_loss !== undefined) {
+            // Top-Feld (ΔU in W/(m²·K)) + Panel konsistent aus den aktuellen Werten neu rendern …
+            if (typeof updateWindowPsi === 'function') updateWindowPsi();
+            // … und den (versteckten) W/K-Wert auf den Server-Wert setzen (speist die H_T-Tabelle).
             const wt = document.getElementById('win_psi_total'); if (wt) wt.textContent = data.window_bridge_loss + ' W/K';
-            const wtt = document.getElementById('win_psi_total_top'); if (wtt) wtt.textContent = data.window_bridge_loss;
         }
 
         if (data.door_total !== undefined) {
@@ -7587,37 +7609,18 @@ function calculateSystem() {
         // Für den Energiebilanz-Tab merken (Energieträger-Aufteilung Brennstoff/Strom)
         window.lastSystemResult = data;
 
-        // „Endenergie Heizung" = Raum-Anteil (ohne RLT); RLT/Kühlung als eigene Kategorien
-        document.getElementById('system_heating_end').innerText =
-            (data.heating_space_end_energy != null ? data.heating_space_end_energy : data.heating_end_energy) + ' kWh/a';
-        document.getElementById('system_hotwater_end').innerText = data.hotwater_end_energy + ' kWh/a';
-        document.getElementById('system_aux').innerText = data.auxiliary_electricity + ' kWh/a';
+        // Detail-Kennwerte auf drei Werte reduziert: Endenergiebedarf (Q_f), Primärenergie (Q_p), spez. CO₂
+        const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+        setTxt('system_total_end', data.total_end_energy + ' kWh/a');
+        setTxt('system_primary', data.primary_energy + ' kWh/a');
+        // Spezifische CO₂-Emissionen (kg/m²a): CO₂ ÷ Bezugsfläche (Primärenergie ÷ q_p)
+        const _qp = parseFloat(data.specific_primary_energy);
+        const _bgfRef = (isFinite(_qp) && _qp > 0) ? (data.primary_energy / _qp) : 0;
+        const _co2Spec = (_bgfRef > 0) ? (data.co2_emissions / _bgfRef) : 0;
+        setTxt('system_co2', _co2Spec.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg/m²a');
 
-        // RLT-Heizung (Teil 3) und Kühlung – nur anzeigen, wenn vorhanden
-        const rltBox = document.getElementById('system_rlt_box');
-        const rltEnd = data.heating_rlt_end_energy || 0;
-        if (rltBox) rltBox.style.display = rltEnd > 0 ? '' : 'none';
-        if (rltEnd > 0) document.getElementById('system_rlt_end').innerText = rltEnd + ' kWh/a';
-
-        const coolBox = document.getElementById('system_cooling_box');
-        const coolEnd = data.cooling_end_energy || 0;
-        if (coolBox) coolBox.style.display = coolEnd > 0 ? '' : 'none';
-        if (coolEnd > 0) document.getElementById('system_cooling_end').innerText =
-            coolEnd + ' kWh/a  (Q_c,b ' + (data.cooling_demand_kwh || 0) + ' kWh · EER ' + (data.cooling_eer || 3) + ')';
-
-        document.getElementById('system_total_end').innerText = data.total_end_energy + ' kWh/a';
-        document.getElementById('system_primary').innerText = data.primary_energy + ' kWh/a';
-        document.getElementById('system_co2').innerText = data.co2_emissions + ' kg/a';
-        setKpi('system_spec_end', data.specific_end_energy, 'kWh/m²a', {
-            good: 50, mid: 100,
-            bench: 'WP ~25–45 · Gas ~80–120 · Altbau >200'
-        });
-
-        // DIN-Detailwerte (Stufe 2)
+        // DIN-Detailwerte (Stufe 2) – weiter unten für JAZ/Beleuchtung benötigt
         const din = data.din || {};
-        const distLoss = (din.q_h_d || 0) + (din.q_h_s || 0) + (din.q_w_d || 0) + (din.q_w_s || 0);
-        document.getElementById('system_ventilation').innerText = distLoss.toFixed(0) + ' kWh/a';
-        document.getElementById('system_heat_adjusted').innerText = data.adjusted_heat_demand_net + ' kWh/a';
         // JAZ nur bei Wärmepumpe anzeigen, sonst Kachel ausblenden
         const jazBox = document.getElementById('system_jaz_box');
         if (din.jaz) {
@@ -7761,9 +7764,13 @@ function renderSystemViz(data) {
     if (endT <= 0) { flow.innerHTML = '<div class="sys-flow-empty">Noch keine Endenergie berechnet.</div>'; return; }
 
     const fmt = function (n) { return Math.round(n).toLocaleString('de-DE'); };
+    const fmt1 = function (n) { return (isFinite(n) ? n : 0).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); };
     const pct = function (v) { return Math.round(v / endT * 100); };
     const ratio = (prim / endT).toFixed(2).replace('.', ',');
     const qpCls = isFinite(qp) ? (qp <= 60 ? 'good' : (qp <= 120 ? 'mid' : 'bad')) : '';
+    // Spezifische CO₂-Emissionen (kg/m²a): Bezugsfläche aus Primärenergie ÷ spez. Primärenergie (q_p)
+    const bgfRef = (isFinite(qp) && qp > 0) ? (prim / qp) : 0;
+    const co2Spec = (bgfRef > 0) ? (co2v / bgfRef) : 0;
 
     // Schritt-Kacheln mit Klartext-Erklärung
     function step(ic, lab, val, unit, sub, cls) {
@@ -7776,7 +7783,7 @@ function renderSystemViz(data) {
         + '<div class="es-arrow">×&nbsp;' + ratio + '<small>f<sub>P</sub></small></div>'
         + step('🌍', 'Primärenergie', fmt(prim), 'kWh/a', (isFinite(qp) ? ('q<sub>p</sub> ' + fmt(qp) + ' kWh/m²a · ') : '') + 'inkl. Erzeugung & Transport', qpCls)
         + '<div class="es-arrow">→</div>'
-        + step('☁️', 'CO₂-Ausstoß', fmt(co2v), 'kg/a', 'Treibhausgase pro Jahr', '');
+        + step('☁️', 'CO₂-Emissionen', fmt1(co2Spec), 'kg/m²a', 'Treibhausgase je m² und Jahr', '');
 
     // Zusammensetzung der Endenergie (einfacher Balken mit %)
     const segDefs = [['Heizung', heat, '#10b981'], ['Warmwasser', ww, '#f6b94b'], ['Hilfsstrom', aux, '#8b7cf6']].filter(function (s) { return s[1] > 0; });
@@ -9763,7 +9770,20 @@ async function updateDoorType() {
             wrap.appendChild(card);
         });
     }
-    function selectRoof(key) { currentRoof = key; buildSimple(); renderRoofOptions(); }
+    function selectRoof(key) {
+        currentRoof = key; buildSimple(); renderRoofOptions();
+        // Dachform aus Gebäudedaten → Dachtyp im Hülle-Tab automatisch übernehmen
+        // (flat → Flachdach, gable/hip/mono → Steildach). Neigung bleibt beim Standard.
+        const rt = document.getElementById('roof_type');
+        if (rt) {
+            const want = (key === 'flat') ? 'flachdach' : 'steildach';
+            if (rt.value !== want) {
+                rt.value = want;
+                if (typeof updateRoofType === 'function') updateRoofType();
+                if (typeof markStale === 'function') markStale('huelle');
+            }
+        }
+    }
 
     // Einfache (rechteckige) Geometrie aus den echten Gebäudemaßen
     function buildSimple() {
