@@ -1409,6 +1409,13 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
   border-radius: 12px;
   padding: 12px;
 }
+/* Skizze + „Aufbau je Wand" nebeneinander (Panel füllt den freien Platz rechts) */
+.wall-viz-row { display: flex; gap: 18px; align-items: stretch; flex-wrap: wrap; }
+.wall-viz-row .wall-viz-col { flex: 0 1 420px; }
+.wall-aufbau-col { position: relative; flex: 1 1 300px; min-width: 260px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; padding: 12px; }
+.wall-aufbau-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
 .wall-viz-title {
   color: #10b981;
   font-weight: 600;
@@ -2085,7 +2092,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <!-- ① Außenwände -->
             <div class="card" id="card-aussenwand">
                 <h3>🧱 Außenwände – Schichtenaufbau (von innen → außen)</h3>
-                <p class="note" style="margin-bottom:14px;">Flächen werden aus den Gebäudedaten berechnet. Derselbe Aufbau gilt für alle Orientierungen (N/S/O/W). U = 1 / (R<sub>si</sub> + Σ d/λ + R<sub>se</sub>)</p>
+                <p class="note" style="margin-bottom:14px;">Flächen werden aus den Gebäudedaten berechnet. Standard: der Aufbau unten gilt für alle Wände – unter „Aufbau je Wand" kann jeder 3D-Wand ein gespeicherter Aufbau zugewiesen werden. U = 1 / (R<sub>si</sub> + Σ d/λ + R<sub>se</sub>)</p>
 
                 <!-- Wandflächen-Anzeige -->
                 <div class="grid-4" style="margin-bottom:18px;">
@@ -2126,6 +2133,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <button class="btn" onclick="loadStandardWallBuild()">⚡ WDVS-Standardaufbau</button>
                     </div>
                   </div>
+                  <div class="wall-viz-row">
                   <div class="wall-viz-col">
                     <div class="wall-viz-head">
                       <div class="wall-viz-title">Wandaufbau <span class="wall-viz-sub">(innen → außen)</span></div>
@@ -2141,6 +2149,16 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="wall-viz-scale" id="wall_viz_scale">—</div>
                     <div class="wall-viz-legend" id="wall_viz_legend"></div>
                   </div>
+                  <!-- Aufbau je Wand: neben der Skizze; jeder 3D-Wand (1–8) einen GESPEICHERTEN
+                       Aufbau zuordnen. Fließt in die Berechnung ein (per-Wand-U → sektorweise). -->
+                  <div id="wall_aufbau_assign" class="wall-aufbau-col">
+                      <div class="wall-viz-title">Aufbau je Wand
+                          <span class="info-i" data-tip="Jeder Wand aus dem 3D-Modell kann hier ein gespeicherter Schichtaufbau zugewiesen werden (oben mit „💾 Aufbau speichern' anlegen). „Standard (Tabelle)' = der Aufbau aus der Schichtentabelle. Der U-Wert je Wand fließt in die H_T-Berechnung ein.">i</span>
+                      </div>
+                      <p class="note" style="margin:0 0 10px;">Standard = Schichtentabelle. Gespeicherte Aufbauten („💾") je Wand wählbar – der jeweilige U-Wert geht in die Berechnung ein.</p>
+                      <div id="wall_aufbau_grid" class="wall-aufbau-grid"></div>
+                  </div>
+                  </div><!-- /wall-viz-row -->
                 </div>
 
                 <!-- Gesamtergebnis -->
@@ -3224,39 +3242,13 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     Gesamtbilanz (Effizienzklasse, Energie- &amp; CO₂-Flüsse, Einordnung je m²).
                 </div>
                 <div id="bilanz_viz_body" style="display:none;">
-
-                    <!-- Effizienzklasse-Band (Energieausweis-Skala) -->
-                    <div class="card bilanz-eff-card">
-                        <div class="bilanz-eff-head">
-                            <div class="bilanz-eff-badge" id="bilanz_eff_letter">–</div>
-                            <div class="bilanz-eff-meta">
-                                <div class="bilanz-eff-title">Energieeffizienzklasse
-                                    <span class="bilanz-eff-sub">· Endenergie je m² (Energieausweis-Skala für Wohngebäude)</span></div>
-                                <div class="bilanz-eff-value" id="bilanz_eff_value">—</div>
-                                <div class="bilanz-eff-verdict" id="bilanz_eff_verdict">—</div>
-                            </div>
-                        </div>
-                        <div class="eff-band" id="bilanz_eff_band"></div>
-                    </div>
-
-                    <!-- Endenergie-Zusammensetzung + Strombilanz -->
-                    <div class="grid-2" style="margin-top:16px;">
-                        <div class="card">
-                            <h3>Endenergie – Zusammensetzung</h3>
-                            <div class="es-bar" id="bilanz_end_bar" style="margin-top:6px;"></div>
-                            <div class="es-bar-legend" id="bilanz_end_legend"></div>
-                            <div class="bilanz-flow" id="bilanz_flow"></div>
-                        </div>
-                        <div class="card">
-                            <h3>Strombilanz mit PV</h3>
-                            <div class="es-bar" id="bilanz_el_bar" style="margin-top:6px;"></div>
-                            <div class="es-bar-legend" id="bilanz_el_legend"></div>
-                            <div class="note" id="bilanz_el_note" style="margin-top:10px;"></div>
-                        </div>
-                    </div>
+                    <!-- Effizienzklasse-Band + „Endenergie-Zusammensetzung"/„Strombilanz mit PV" entfernt:
+                         Dopplungen. Der Energieausweis steht oben unter „② Ergebnis Anlagentechnik" (GEG-konform,
+                         ohne Haushaltsstrom); Zusammensetzung zeigt „Energie auf einen Blick"; die Strombilanz
+                         steht unten bei der Stromverrechnung. -->
 
                     <!-- CO₂-Bilanz (links, kompakt) + Zusammenfassungstabelle (rechts) -->
-                    <div class="bilanz-co2-row" style="margin-top:16px;">
+                    <div class="bilanz-co2-row" style="margin-top:6px;">
                         <!-- CO₂-Bilanz (Einordnung je m² steht unten als Benchmark-Bänder) -->
                         <div class="card">
                             <h3>CO₂-Bilanz</h3>
@@ -3278,10 +3270,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
             </div>
 
-            <div class="bilanz-section-title" style="margin-top:24px;">Stromverrechnung &amp; Einordnung</div>
+            <div class="bilanz-section-title" style="margin-top:24px;">Stromverrechnung</div>
             <p class="note" style="margin:-4px 0 10px;">
                 Wärmebedarf und Endenergie/Primärenergie stehen oben und in „Bilanz auf einen Blick".
-                Hier: die Stromverrechnung (Netzbezug vs. PV) und die Einordnung des Endergebnisses je m².
+                Hier: die Stromverrechnung (Netzbezug vs. PV-Eigenverbrauch).
             </p>
 
             <!-- Stromverrechnung: Eingabe Haushaltsstrom + Mini-Bilanzbalken -->
@@ -3302,25 +3294,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
             </div>
 
-            <!-- Endergebnis je m²: Kennzahl + Benchmark-Einordnung -->
-            <div class="grid-2" style="margin-top:14px;">
-                <div class="card">
-                    <h3>Endenergie gesamt – Einordnung je m²</h3>
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin:2px 0 4px;">
-                        <div><div class="es-lab">Endenergie gesamt</div><div class="es-val" id="bilanz_end_total">—</div></div>
-                        <div style="text-align:right;"><div class="es-lab">je m² (inkl. Haushalt)</div><div class="es-val" id="bilanz_end_perm2_v">—</div></div>
-                    </div>
-                    <svg id="bilanz_bench_end" viewBox="0 0 380 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; margin-top:4px;"></svg>
-                </div>
-                <div class="card">
-                    <h3>CO₂-Emissionen – Einordnung je m²</h3>
-                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin:2px 0 4px;">
-                        <div><div class="es-lab">CO₂ gesamt (netto)</div><div class="es-val" id="bilanz_co2_total">—</div></div>
-                        <div style="text-align:right;"><div class="es-lab">je m² und Jahr</div><div class="es-val" id="bilanz_co2_perm2_v">—</div></div>
-                    </div>
-                    <svg id="bilanz_bench_co2" viewBox="0 0 380 80" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:auto; margin-top:4px;"></svg>
-                </div>
-            </div>
+            <!-- „Einordnung je m²"-Karten entfernt: Endenergie je m² steht im Energieausweis-Band oben,
+                 spez. CO₂ in „Energie auf einen Blick" – beides war doppelt. -->
 
             <div class="bilanz-section-title" style="margin-top:22px;">Energiefluss &amp; Kosten</div>
             <div class="grid-2" style="margin-top:6px;">
@@ -3844,10 +3819,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <div class="field"><label>U-Wert (W/m²K)</label><input id="win_edit_u" type="number" step="0.01" min="0.1" value="1.10"></div>
             <div class="field"><label>g-Wert (0–1)</label><input id="win_edit_g" type="number" step="0.01" min="0" max="1" value="0.55"></div>
         </div>
-        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">Eingabe in Metern – alternativ im Modell mit der Maus ziehen.</span></div>
+        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">X/Y in Metern, Y ab Fußbodenoberkante der Etage – alternativ im Modell ziehen (nur innerhalb der Etage).</span></div>
+        <div class="field" style="margin-top:6px;"><label>Etage</label><select id="win_edit_etage" onchange="updateWinPosNote()"></select></div>
         <div class="grid-2" style="margin-top:6px;">
-            <div class="field"><label>Horizontal (0 = Mitte, − links / + rechts)</label><input id="win_edit_posu" type="number" step="0.05" value="0"></div>
-            <div class="field"><label>Höhe Mitte über Boden</label><input id="win_edit_posv" type="number" step="0.05" value="1.2"></div>
+            <div class="field"><label>X – horizontal (0 = Mitte, − links / + rechts)</label><input id="win_edit_posu" type="number" step="0.05" value="0"></div>
+            <div class="field"><label>Y – Höhe Mitte über Fußbodenoberkante</label><input id="win_edit_posv" type="number" step="0.05" value="1.2"></div>
         </div>
         <div class="note" id="win_edit_posnote" style="font-size:11px;margin-top:2px;"></div>
         <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
@@ -3872,10 +3848,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         </div>
         <div class="field" style="margin-top:8px;"><label>Fläche (B × H)</label><div class="value-display" id="door_edit_area">—</div></div>
         <div class="field" style="margin-top:8px;"><label>U-Wert (W/m²K)</label><input id="door_edit_u" type="number" step="0.01" min="0.1" value="2.5"></div>
-        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">Eingabe in Metern – alternativ im Modell mit der Maus ziehen.</span></div>
+        <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">X/Y in Metern, Y ab Fußbodenoberkante der Etage – alternativ im Modell ziehen (nur innerhalb der Etage).</span></div>
+        <div class="field" style="margin-top:6px;"><label>Etage</label><select id="door_edit_etage" onchange="updateDoorPosNote()"></select></div>
         <div class="grid-2" style="margin-top:6px;">
-            <div class="field"><label>Horizontal (0 = Mitte, − links / + rechts)</label><input id="door_edit_posu" type="number" step="0.05" value="0"></div>
-            <div class="field"><label>Höhe Mitte über Boden</label><input id="door_edit_posv" type="number" step="0.05" value="1.05"></div>
+            <div class="field"><label>X – horizontal (0 = Mitte, − links / + rechts)</label><input id="door_edit_posu" type="number" step="0.05" value="0"></div>
+            <div class="field"><label>Y – Höhe Mitte über Fußbodenoberkante</label><input id="door_edit_posv" type="number" step="0.05" value="1.05"></div>
         </div>
         <div class="note" id="door_edit_posnote" style="font-size:11px;margin-top:2px;"></div>
         <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;">
@@ -5357,21 +5334,115 @@ function recalcWallU() {
     if (totalR > R_SI + R_SE) {
         const U = 1 / totalR;
         uDisplay.textContent = U.toFixed(3) + ' W/m²K';
-        // Alle 4 Orientierungen auf den gleichen U-Wert setzen
-        ['north','south','east','west'].forEach(ori => {
-            window.wallMaterialData[ori].manualU    = U;
-            window.wallMaterialData[ori].calculatedU = U;
-            const disp = document.getElementById(`${ori}_u_display`);
-            if (disp) disp.textContent = U.toFixed(3) + ' W/m²K';
-        });
+        window._wallTableU = U;                 // Tabellen-U (Basis/Fallback für „Aufbau je Wand")
+        applyPerWallU(U);                       // je Orientierung: gewählter Aufbau oder Tabellen-U
     } else {
         uDisplay.textContent = '—';
+        window._wallTableU = null;
+        applyPerWallU(null);
     }
     renderWallViz();
     scheduleWallGwp();
     // Fenster-ψ-Vorschlag an den geänderten Wandaufbau anpassen (nur automatische Felder).
     if (typeof applyAutoWindowPsi === 'function') applyAutoWindowPsi(false);
 }
+
+// ===== Aufbau je Wand: gespeicherte Schichtaufbauten den 3D-Wänden (1–8) zuordnen =====
+// Auswahl je Wand-Schlüssel ('north'… bzw. eindeutiger Sektor-Schlüssel der komplexen Wand);
+// '' oder fehlend = Standard (Schichtentabelle). Auswahl wird in localStorage gehalten.
+window.wallAufbauSel = (function () {
+    try { const o = JSON.parse(localStorage.getItem('geglca_wall_aufbau_sel') || '{}'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
+})();
+function getSavedWallBuilds() {
+    try { const a = JSON.parse(localStorage.getItem('geglca_layers_wall') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+// U-Wert aus einem gespeicherten Schichten-Array – gleiche Mathematik wie recalcWallU, ohne DOM
+function computeUFromLayers(layers) {
+    const R_SI = 0.13, R_SE = 0.04;
+    let r = R_SI + R_SE, any = false;
+    (layers || []).forEach(function (l) {
+        const mm = parseFloat(l.thickness_mm), lam = parseFloat(l.lambda);
+        if (mm > 0 && lam > 0) { r += (mm / 1000) / lam; any = true; }
+    });
+    return any ? 1 / r : null;
+}
+// U-Wert der Wand `key`: zugewiesener gespeicherter Aufbau, sonst Tabellen-U (Fallback)
+function wallUFor(key, tableU) {
+    const sel = (window.wallAufbauSel || {})[key];
+    if (sel !== '' && sel != null) {
+        const it = getSavedWallBuilds()[parseInt(sel, 10)];
+        const u = it ? computeUFromLayers(it.layers) : null;
+        if (u > 0) return u;
+    }
+    return tableU;
+}
+// Simple Geometrie: U je Orientierung stempeln (Payload liest wallMaterialData[ori])
+function applyPerWallU(tableU) {
+    ['north', 'south', 'east', 'west'].forEach(function (ori) {
+        const u = wallUFor(ori, tableU);
+        if (window.wallMaterialData && window.wallMaterialData[ori]) {
+            window.wallMaterialData[ori].manualU = u;
+            window.wallMaterialData[ori].calculatedU = u;
+        }
+        const disp = document.getElementById(ori + '_u_display');
+        if (disp) disp.textContent = (u > 0 ? u.toFixed(3) + ' W/m²K' : '—');
+    });
+}
+// Auswahl-Grid rendern: ein kleines Feld je Wand des 3D-Modells (einfach 4, komplex bis 8)
+function renderWallAufbauGrid() {
+    const grid = document.getElementById('wall_aufbau_grid');
+    if (!grid) return;
+    const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
+    const saved = getSavedWallBuilds();
+    let entries;   // [{key, label}]
+    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+        // je Wand ein Feld; bei >8 Wänden teilen sich Wände einen Sektor (wie Randbedingungen)
+        const byOri = {}, order = [];
+        window.complexWallList.forEach(function (w) {
+            if (!byOri[w.ori]) { byOri[w.ori] = { nrs: [], oriDe: w.oriDe || w.ori }; order.push(w.ori); }
+            byOri[w.ori].nrs.push(w.nr);
+        });
+        entries = order.map(function (o) {
+            const g = byOri[o];
+            return { key: o, label: (g.nrs.length === 1 ? 'Wand ' + g.nrs[0] : 'Wände ' + g.nrs.join(', ')) + ' · ' + g.oriDe };
+        });
+    } else {
+        entries = [['north', 'Nord', 1], ['south', 'Süd', 2], ['east', 'Ost', 3], ['west', 'West', 4]]
+            .map(function (p) { return { key: p[0], label: 'Wand ' + p[2] + ' · ' + p[1] }; });
+    }
+    grid.innerHTML = entries.map(function (e) {
+        const cur = String((window.wallAufbauSel || {})[e.key] != null ? window.wallAufbauSel[e.key] : '');
+        const u = wallUFor(e.key, window._wallTableU);
+        const opts = '<option value=""' + (cur === '' ? ' selected' : '') + '>Standard (Tabelle)</option>'
+            + saved.map(function (it, i) { return '<option value="' + i + '"' + (cur === String(i) ? ' selected' : '') + '>' + esc(it.name) + '</option>'; }).join('');
+        return '<div class="field" style="margin:0;">'
+            + '<label>' + e.label + '</label>'
+            + '<select onchange="onWallAufbauSelect(\'' + e.key + '\', this.value)">' + opts + '</select>'
+            + '<div class="small" style="margin-top:4px;color:#9bb;">U = ' + (u > 0 ? u.toFixed(3) + ' W/m²K' : '—') + '</div>'
+            + '</div>';
+    }).join('');
+}
+window.renderWallAufbauGrid = renderWallAufbauGrid;
+// Auswahl geändert → merken, U-Werte neu stempeln, Neuberechnung anstoßen
+window.onWallAufbauSelect = function (key, val) {
+    window.wallAufbauSel[key] = val;
+    try { localStorage.setItem('geglca_wall_aufbau_sel', JSON.stringify(window.wallAufbauSel)); } catch (e) {}
+    applyPerWallU(window._wallTableU);
+    renderWallAufbauGrid();
+    if (typeof markStale === 'function') markStale('huelle');
+};
+// Nach dem Laden: Grid aufbauen und an das Speichern/Löschen von Aufbauten koppeln
+window.addEventListener('load', function () {
+    setTimeout(function () {
+        try {
+            const orig = window.refreshLayerBuildSelects;
+            if (typeof orig === 'function') {
+                window.refreshLayerBuildSelects = function () { orig(); try { renderWallAufbauGrid(); } catch (e) {} };
+            }
+            renderWallAufbauGrid();
+        } catch (e) {}
+    }, 900);
+});
 
 // ===== Graue Emissionen des Wandaufbaus (echte ÖKOBAUDAT-Daten, Modul A1–A3) =====
 let _wallGwpTimer = null;
@@ -7203,6 +7274,8 @@ function renderWallBoundaryGrid() {
             '</div>';
     }).join('');
     entries.forEach(function (e) { _renderWallBoundaryFx(e.ori); });
+    // „Aufbau je Wand"-Felder an dieselbe Wandliste anpassen
+    if (typeof renderWallAufbauGrid === 'function') { try { renderWallAufbauGrid(); } catch (e) {} }
 }
 
 // „Fenster/Tür hinzufügen"-Buttons an die tatsächlichen Wände anpassen.
@@ -7422,25 +7495,30 @@ async function calculateEnvelope() {
     };
 
     // --- Feinere Orientierungen / komplexe Geometrie (8 Himmelsrichtungen) ---
-    // Geometrie (Flächen/Fenster/Türen) kommt aus dem 3D-Modell; der WANDAUFBAU/U-Wert
-    // stammt aus dem Tab „Gebäudehülle" (eine Quelle) und gilt für alle Orientierungen.
+    // Geometrie (Flächen/Fenster/Türen) kommt aus dem 3D-Modell. Der WANDAUFBAU stammt aus
+    // der Schichtentabelle; über „Aufbau je Wand" kann jede Wand einen eigenen gespeicherten
+    // Aufbau (eigenen U-Wert) haben – je Sektor flächengewichtet (wie F_x).
     (function () {
         const ori8 = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
         const wa = window.wallAreas || {};
-        const wallUBase = getUValue('north');   // Wandaufbau aus Gebäudehülle (eine Quelle für alle Orientierungen)
+        const tblU = (window._wallTableU > 0) ? window._wallTableU : getUValue('north');   // Tabellen-U als Basis/Fallback
+        const uOf = (key) => (typeof wallUFor === 'function') ? (wallUFor(key, tblU) || tblU) : tblU;
         if (window.isComplexGeometry && window.complexWindows) {
             const cw = window.complexWindows, cd = window.complexDoors || {};
             const wl = Array.isArray(window.complexWallList) ? window.complexWallList : [];
             ori8.forEach(function (o) {
-                // Fx je (Energie-)Sektor flächengewichtet über dessen Wände; jede Wand hat
-                // ihre EIGENE Randbedingung (eindeutige Wand-Bezeichnung als Schlüssel).
+                // Fx UND U je (Energie-)Sektor flächengewichtet über dessen Wände; jede Wand
+                // hat ihre EIGENE Randbedingung + ihren EIGENEN Aufbau (Wand-Schlüssel w.ori).
                 const group = wl.filter(function (w) { return (w.oriEnergy || w.ori) === o; });
                 const aSum = group.reduce(function (s, w) { return s + w.flaeche; }, 0);
                 const fx = aSum > 0
                     ? group.reduce(function (s, w) { return s + w.flaeche * getWallFxFactor(w.ori); }, 0) / aSum
                     : getWallFxFactor(o);
+                const uSector = aSum > 0
+                    ? group.reduce(function (s, w) { return s + w.flaeche * uOf(w.ori); }, 0) / aSum
+                    : uOf(o);
                 envelopePayload[o + '_area'] = wa[o] || 0;
-                envelopePayload[o + '_u'] = wallUBase * fx;
+                envelopePayload[o + '_u'] = uSector * fx;
                 envelopePayload[o + '_fx'] = fx;
                 envelopePayload['window_' + o + '_area'] = cw[o] || 0;
                 envelopePayload['door_' + o + '_count'] = cd[o] || 0;
@@ -7450,7 +7528,7 @@ async function calculateEnvelope() {
             // Einfach: nur die 4 Diagonalen ergänzen (Fläche 0)
             ['northeast', 'southeast', 'southwest', 'northwest'].forEach(function (o) {
                 envelopePayload[o + '_area'] = wa[o] || 0;
-                envelopePayload[o + '_u'] = wallUBase;
+                envelopePayload[o + '_u'] = tblU;
                 envelopePayload[o + '_fx'] = 1;
             });
         }
@@ -8735,10 +8813,7 @@ function renderBilanzViz() {
     const co2PerM2 = bgf > 0 ? co2Total / bgf : null;
     const primaryAnlage = parseFloat(sys.primary_energy) || 0;
 
-    bilanzRenderEffBand(endPerM2);
-    bilanzRenderEndBar(fuelEnd, sysEl, household, totalEnd);
-    bilanzRenderFlow(totalEnd, primaryAnlage, co2Total);
-    bilanzRenderElBar(pvOffset, gridNet, elGross);
+    // Effizienzband/Endenergie-Bar/Flow-Kacheln/El-Bar entfernt (Dopplungen im Tab beseitigt)
     bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total);
     bilanzRenderTable({ env: env, sys: sys, heat: env ? env.adjusted_heat_demand_kwh : null,
         spec: env ? env.specific_heat_demand : null, totalEnd: totalEnd, primaryAnlage: primaryAnlage,
@@ -8750,10 +8825,6 @@ function renderBilanzViz() {
         co2Total: co2Total, endPerM2: endPerM2, co2PerM2: co2PerM2 });
 }
 
-// kWh → lesbare Endenergie-Angabe (große Werte als MWh)
-function bilanzEnergyFmt(kwh) {
-    return kwh >= 10000 ? pvNum(kwh / 1000, 2) + ' MWh/a' : pvNum(kwh, 0) + ' kWh/a';
-}
 
 // Stromverrechnung (Mini-Bilanzbalken) + Endergebnis-Kennzahlen + Benchmark-Bänder
 function bilanzRenderResult(d) {
@@ -8770,56 +8841,11 @@ function bilanzRenderResult(d) {
                             : ' · noch kein PV-Eigenverbrauch (im PV-Tab auswerten)');
     }
 
-    // Endergebnis-Kennzahlen
-    const setTxt = function (id, t) { const el = document.getElementById(id); if (el) el.innerText = t; };
-    setTxt('bilanz_end_total', bilanzEnergyFmt(d.totalEnd));
-    setTxt('bilanz_end_perm2_v', d.endPerM2 != null ? pvNum(d.endPerM2, 0) + ' kWh/m²a' : '—');
-    setTxt('bilanz_co2_total', pvNum(d.co2Total, 0) + ' kg/a');
-    setTxt('bilanz_co2_perm2_v', d.co2PerM2 != null ? pvNum(d.co2PerM2, 1) + ' kg/m²a' : '—');
-
-    // Benchmark-Bänder (Klassen mit benannten Stützstellen + Marker)
-    bilanzRenderBenchmark('bilanz_bench_end', d.endPerM2, 'kWh/m²a', 250, [
-        { at: 30, label: 'Passivhaus' }, { at: 70, label: 'GEG-Neubau' },
-        { at: 120, label: 'saniert' }, { at: 190, label: 'Bestand' }
-    ]);
-    bilanzRenderBenchmark('bilanz_bench_co2', d.co2PerM2, 'kg/m²a', 60, [
-        { at: 6, label: 'sehr gut' }, { at: 16, label: 'Neubau' },
-        { at: 28, label: 'mittel' }, { at: 45, label: 'hoch' }
-    ]);
+    // Kennzahlen-/Benchmark-Karten „Einordnung je m²" entfernt (Dopplung von
+    // Energieausweis-Band und „Energie auf einen Blick").
 }
 
-// Benchmark-Band: farbige Klassenzonen, benannte Stützstellen + Gebäude-Marker
-function bilanzRenderBenchmark(svgId, value, unit, scaleMax, anchors) {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    const x0 = 12, x1 = 368, y = 30, h = 16;
-    const sx = function (v) { return x0 + Math.max(0, Math.min(scaleMax, v)) / scaleMax * (x1 - x0); };
-    const cols = ['#10b981', '#84cc16', '#f6b94b', '#ef8a4b', '#ef4444'];
-    let prev = 0, bar = '';
-    anchors.forEach(function (a, i) {
-        bar += '<rect x="' + sx(prev).toFixed(1) + '" y="' + y + '" width="' + (sx(a.at) - sx(prev)).toFixed(1) + '" height="' + h + '" fill="' + cols[i] + '" opacity="0.85"/>';
-        prev = a.at;
-    });
-    bar += '<rect x="' + sx(prev).toFixed(1) + '" y="' + y + '" width="' + (x1 - sx(prev)).toFixed(1) + '" height="' + h + '" fill="' + cols[anchors.length] + '" opacity="0.85"/>';
-    bar += '<rect x="' + x0 + '" y="' + y + '" width="' + (x1 - x0) + '" height="' + h + '" fill="none" stroke="rgba(255,255,255,0.18)" rx="3"/>';
-    // Stützstellen-Ticks + Namen darunter
-    anchors.forEach(function (a) {
-        const x = sx(a.at);
-        bar += '<line x1="' + x.toFixed(1) + '" y1="' + (y - 2) + '" x2="' + x.toFixed(1) + '" y2="' + (y + h + 2) + '" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>';
-        bar += '<text x="' + x.toFixed(1) + '" y="' + (y + h + 14) + '" text-anchor="middle" font-size="8.5" fill="#94a3b6" font-family="Inter">' + a.label + '</text>';
-        bar += '<text x="' + x.toFixed(1) + '" y="' + (y - 5) + '" text-anchor="middle" font-size="8" fill="#64748b" font-family="JetBrains Mono,monospace">' + a.at + '</text>';
-    });
-    // Gebäude-Marker
-    let marker = '', valText = '— (BGF/Bilanz fehlt)';
-    if (value != null && isFinite(value)) {
-        const mx = sx(value);
-        marker = '<polygon points="' + mx.toFixed(1) + ',' + (y - 7) + ' ' + (mx - 5).toFixed(1) + ',' + (y - 15) + ' ' + (mx + 5).toFixed(1) + ',' + (y - 15) + '" fill="#fff"/>' +
-            '<line x1="' + mx.toFixed(1) + '" y1="' + (y - 7) + '" x2="' + mx.toFixed(1) + '" y2="' + (y + h + 1) + '" stroke="#fff" stroke-width="1.5"/>';
-        valText = pvNum(value, value < 20 ? 1 : 0) + ' ' + unit;
-    }
-    const head = '<text x="' + x1 + '" y="14" text-anchor="end" font-size="13" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' + valText + '</text>';
-    svg.innerHTML = head + bar + marker;
-}
+// (bilanzRenderBenchmark entfernt – die „Einordnung je m²"-Karten waren Dopplungen)
 
 // --- Energiefluss-Diagramm (Sankey): Energieträger → Verwendung ---
 function bilanzRenderSankey(d) {
@@ -8943,49 +8969,9 @@ function bilanzRenderCosts(d) {
     ], cGrid + cFuel, '€/a');
 }
 
-// --- Effizienzklasse-Band ---
-function bilanzRenderEffBand(endPerM2) {
-    const band = document.getElementById('bilanz_eff_band');
-    const letter = document.getElementById('bilanz_eff_letter');
-    const value = document.getElementById('bilanz_eff_value');
-    const verdict = document.getElementById('bilanz_eff_verdict');
-    // Segmente (Breite ∝ kWh-Spanne, gedeckelt auf Skala)
-    let prev = 0, segs = '';
-    const cls = (endPerM2 != null) ? bilanzEffClass(endPerM2) : null;
-    BILANZ_EFF.forEach(function (c) {
-        const top = Math.min(c.max, BILANZ_SCALE);
-        const w = Math.max(0, top - prev) / BILANZ_SCALE * 100;
-        prev = top;
-        if (w <= 0) return;
-        const active = cls && c.k === cls.k ? ' is-active' : '';
-        segs += '<div class="eff-seg' + active + '" style="width:' + w.toFixed(2) + '%;background:' + c.col + '"><span>' + c.k + '</span></div>';
-    });
-    let pointer = '';
-    if (endPerM2 != null) {
-        const left = Math.max(0, Math.min(BILANZ_SCALE, endPerM2)) / BILANZ_SCALE * 100;
-        pointer = '<div class="eff-pointer" style="left:' + left.toFixed(2) + '%"><div class="eff-pointer-bubble">' +
-            pvNum(endPerM2, 0) + ' kWh/m²</div><div class="eff-pointer-tip"></div></div>';
-    }
-    band.innerHTML = segs + pointer;
-
-    if (cls) {
-        letter.textContent = cls.k;
-        letter.style.background = cls.col;
-        value.textContent = pvNum(endPerM2, 1) + ' kWh/m²·a';
-        const verds = {
-            'A+': 'Hervorragend – Effizienzhaus-Niveau.', 'A': 'Sehr effizient – moderner Neubau.',
-            'B': 'Effizient – guter Neubau-/Sanierungsstandard.', 'C': 'Gut – solider Standard.',
-            'D': 'Durchschnittlich – Optimierung lohnt sich.', 'E': 'Erhöhter Bedarf – Sanierung empfehlenswert.',
-            'F': 'Hoher Bedarf – deutliche Einsparpotenziale.', 'G': 'Sehr hoher Bedarf – Sanierung dringend.',
-            'H': 'Höchster Bedarf – unsanierter Altbau-Bereich.'
-        };
-        verdict.textContent = verds[cls.k] || '';
-    } else {
-        letter.textContent = '?'; letter.style.background = 'var(--surface-strong)';
-        value.textContent = 'BGF im Tab „Gebäudedaten" angeben';
-        verdict.textContent = 'Ohne beheizte Fläche (BGF) lässt sich keine Klasse je m² bestimmen.';
-    }
-}
+// (bilanzRenderEffBand entfernt – zweites Energieausweis-Band war eine Dopplung; der
+//  GEG-konforme Energieausweis steht unter „② Ergebnis Anlagentechnik". bilanzEffClass
+//  bleibt: die Zusammenfassungstabelle nutzt die Klassen-Einstufung weiterhin.)
 
 // --- gestapelter Balken: Helfer ---
 function bilanzStackBar(barId, legId, parts, total, unit) {
@@ -9002,39 +8988,8 @@ function bilanzStackBar(barId, legId, parts, total, unit) {
     }).join('');
 }
 
-// --- Endenergie-Zusammensetzung ---
-function bilanzRenderEndBar(fuelEnd, sysEl, household, totalEnd) {
-    bilanzStackBar('bilanz_end_bar', 'bilanz_end_legend', [
-        { label: 'Brennstoff/Fernwärme', val: fuelEnd, col: '#f6b94b' },
-        { label: 'Anlagenstrom', val: sysEl, col: '#8b7cf6' },
-        { label: 'Haushaltsstrom', val: household, col: '#22d3ee' }
-    ], totalEnd, 'kWh/a');
-}
-
-// --- Kennzahl-Kacheln (Endenergie / Primärenergie / CO₂) ---
-function bilanzRenderFlow(totalEnd, primaryAnlage, co2Total) {
-    function tile(ic, lab, val, unit, sub) {
-        return '<div class="es-step"><div class="es-ic">' + ic + '</div><div class="es-lab">' + lab +
-            '</div><div class="es-val">' + pvNum(val, 0) + '<span>' + unit + '</span></div><div class="es-sub">' + sub + '</div></div>';
-    }
-    document.getElementById('bilanz_flow').innerHTML = '<div class="es-steps">' +
-        tile('🔌', 'Endenergie gesamt', totalEnd, 'kWh/a', 'inkl. Haushaltsstrom') +
-        tile('🌍', 'Primärenergie', primaryAnlage, 'kWh/a', 'Anlage, GEG Q_p') +
-        tile('☁️', 'CO₂ gesamt', co2Total, 'kg/a', 'nach PV-Gutschrift') + '</div>';
-}
-
-// --- Strombilanz mit PV ---
-function bilanzRenderElBar(pvOffset, gridNet, elGross) {
-    bilanzStackBar('bilanz_el_bar', 'bilanz_el_legend', [
-        { label: 'PV-Eigenverbrauch', val: pvOffset, col: '#10b981' },
-        { label: 'Netzbezug', val: gridNet, col: '#64748b' }
-    ], elGross, 'kWh/a');
-    const pct = elGross > 0 ? Math.round(pvOffset / elGross * 100) : 0;
-    document.getElementById('bilanz_el_note').innerHTML = pvOffset > 0
-        ? 'PV-Eigenverbrauch deckt <strong>' + pct + '%</strong> des Gesamt-Strombedarfs (' + pvNum(elGross, 0) +
-          ' kWh/a). Verbleibender Netzbezug: <strong>' + pvNum(gridNet, 0) + ' kWh/a</strong>.'
-        : 'Noch kein PV-Eigenverbrauch verrechnet – im Tab „Photovoltaik" auswerten. Strombedarf gesamt: ' + pvNum(elGross, 0) + ' kWh/a.';
-}
+// (bilanzRenderEndBar / bilanzRenderFlow / bilanzRenderElBar entfernt – ihre Karten waren
+//  Dopplungen von „Energie auf einen Blick" bzw. der Strombilanz in der Stromverrechnung.)
 
 // --- CO₂-Donut (Mehrsegment) ---
 function bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total) {
@@ -9366,6 +9321,20 @@ async function updateDoorType() {
             fh: readNum('building_floor_height', 3.0)
         };
     }
+    // ===== Etagen-Helfer (Fenster/Türen je Etage, Y ab Fußbodenoberkante) =====
+    // Fußbodenoberkante der Etage k liegt bei floorTop + k·fh (Etage 0 = Erdgeschoss).
+    window._floorMeta = function () {
+        const d = getSimpleDims();
+        const g = window._geo3d || {};
+        return { ft: (g.floorTop != null ? g.floorTop : floorTop), fh: d.fh, floors: d.floors };
+    };
+    // Etage eines Fensters/einer Tür: explizit zugeordnet (item.etage) oder aus der Höhe abgeleitet.
+    window._etageOf = function (item) {
+        const m = window._floorMeta();
+        if (item && item.etage != null) return Math.max(0, Math.min(m.floors - 1, Math.round(item.etage)));
+        if (item && item.posV != null) return Math.max(0, Math.min(m.floors - 1, Math.floor((item.posV - m.ft) / m.fh)));
+        return 0;
+    };
 
     function addEdgesGeo(geo, parent, colorHex) {
         const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color: colorHex }));
@@ -9478,7 +9447,11 @@ async function updateDoorType() {
             arr.forEach(function (w, i) {
                 const ww = Math.max(0.3, +w.width || 1.2);
                 const m = winMesh(w);
-                const row = Math.min(Math.floor(i / perRow), a.floors - 1);
+                // zugeordnete Etage hat Vorrang vor der automatischen Zeilen-Verteilung;
+                // Auto-Zeile als explizite Etage übernehmen (für Editor + Etagen-Begrenzung)
+                const row = (w.etage != null) ? Math.max(0, Math.min(a.floors - 1, Math.round(w.etage)))
+                    : Math.min(Math.floor(i / perRow), a.floors - 1);
+                if (w.etage == null) w.etage = row;
                 const col = i % perRow;
                 const span = (col - (perRow - 1) / 2) * (axisLen / denom);
                 const cy = floorTop + a.fh * row + a.fh * 0.55;
@@ -9553,7 +9526,10 @@ async function updateDoorType() {
                 const span = (d.posU != null) ? d.posU : pickFreeSpan(base, axisLen, doorHalf, taken);
                 if (d.posU == null) taken.push({ u: span, half: doorHalf });
                 const u = span;
-                const v = (d.posV != null) ? d.posV : (floorTop + r.h / 2);
+                // Tür steht auf der Fußbodenoberkante ihrer Etage (Etage 0 = Erdgeschoss)
+                const et = (d.etage != null) ? Math.max(0, Math.min(a.floors - 1, Math.round(d.etage))) : 0;
+                if (d.etage == null) d.etage = et;
+                const v = (d.posV != null) ? d.posV : (floorTop + et * a.fh + r.h / 2);
                 posFn(r.m, u, v);
             });
         }
@@ -9711,7 +9687,7 @@ async function updateDoorType() {
         clearHouse();
         const W = a.W, D = a.D, halfW = W / 2, halfD = D / 2;
         const H = a.floors * a.fh, wallTop = floorTop + H;
-        window._geo3d = { W: W, D: D, halfW: halfW, halfD: halfD, wallTop: wallTop, floorTop: floorTop };
+        window._geo3d = { W: W, D: D, halfW: halfW, halfD: halfD, wallTop: wallTop, floorTop: floorTop, floors: a.floors, fh: a.fh };
 
         const slab = addMesh(new THREE.BoxGeometry(W + 0.7, 0.3, D + 0.7), COL.floor, 'floor', { rough: 0.95 });
         slab.position.y = 0;
@@ -9719,6 +9695,12 @@ async function updateDoorType() {
         const body = addMesh(new THREE.BoxGeometry(W, H, D), a.cat === 'nichtwohn' ? COL.wallNW : COL.wall, 'wall', { rough: 0.85 });
         body.position.y = floorTop + H / 2;
         addEdges(body, 0x0a1830);
+        // Etagen visuell trennen: jede Fußbodenoberkante (Geschossdecke) als umlaufendes Band –
+        // Fenster/Türen orientieren sich an diesen Kanten (Y je Etage ab Fußbodenoberkante).
+        for (let k = 1; k < a.floors; k++) {
+            const band = addMesh(new THREE.BoxGeometry(W + 0.08, 0.06, D + 0.08), 0x0a1830, null, { rough: 0.9 });
+            band.position.y = floorTop + a.fh * k;
+        }
 
         const info = buildRoof(a, W, D, wallTop);
         buildWindows(a, W, D, halfW, halfD);
@@ -10415,9 +10397,18 @@ async function updateDoorType() {
             const uLim = Math.max(0, cwl.len / 2 - bw / 2 - 0.05);
             u = Math.max(-uLim, Math.min(uLim, u));
             const wt = (g.wallTop != null) ? g.wallTop : 6;
-            const v = Math.max(floorTop + bh / 2, Math.min(wt - bh / 2, target.y));
-            pressObj.position.set(cwl.ox + cwl.ux * u + cwl.nx * 0.07, v, cwl.oz + cwl.uz * u + cwl.nz * 0.07);
             const item = _findItem(pressObj);
+            // Etagen-Begrenzung: nur innerhalb der zugeordneten Etage verschiebbar
+            let vMin = floorTop + bh / 2, vMax = wt - bh / 2;
+            if (item && typeof window._etageOf === 'function') {
+                const fm = window._floorMeta(), et = window._etageOf(item);
+                const y0 = fm.ft + et * fm.fh;
+                vMin = Math.max(vMin, y0 + bh / 2);
+                vMax = Math.min(vMax, y0 + fm.fh - bh / 2);
+                if (vMax < vMin) vMax = vMin;
+            }
+            const v = Math.max(vMin, Math.min(vMax, target.y));
+            pressObj.position.set(cwl.ox + cwl.ux * u + cwl.nx * 0.07, v, cwl.oz + cwl.uz * u + cwl.nz * 0.07);
             if (item) { item.posU = u; item.posV = v; }
             return;
         }
@@ -10433,10 +10424,19 @@ async function updateDoorType() {
         let u = isNS ? target.x : target.z, v = target.y;
         const halfAxis = isNS ? g.halfW : g.halfD;
         u = Math.max(-halfAxis + w / 2, Math.min(halfAxis - w / 2, u));
-        v = Math.max(floorTop + h / 2, Math.min(g.wallTop - h / 2, v));
+        const item = _findItem(pressObj);
+        // Etagen-Begrenzung: Fenster/Tür nur innerhalb der zugeordneten Etage verschiebbar
+        let vMin = floorTop + h / 2, vMax = g.wallTop - h / 2;
+        if (item && typeof window._etageOf === 'function') {
+            const fm = window._floorMeta(), et = window._etageOf(item);
+            const y0 = fm.ft + et * fm.fh;
+            vMin = Math.max(vMin, y0 + h / 2);
+            vMax = Math.min(vMax, y0 + fm.fh - h / 2);
+            if (vMax < vMin) vMax = vMin;
+        }
+        v = Math.max(vMin, Math.min(vMax, v));
         if (isNS) { pressObj.position.x = u; pressObj.position.y = v; }
         else { pressObj.position.z = u; pressObj.position.y = v; }
-        const item = _findItem(pressObj);
         if (item) { item.posU = u; item.posV = v; }
     }
 
@@ -10599,7 +10599,8 @@ async function updateDoorType() {
         if (typeof window.renderElementLists === 'function') window.renderElementLists();
     };
 
-    // Erlaubter Positionsbereich (m) für die aktuelle Orientierung + Fenstergröße
+    // Erlaubter Positionsbereich (m): X auf der Fassade, Y innerhalb der gewählten Etage
+    // (Y ab Fußbodenoberkante der Etage; das Fenster darf das Etagenband nicht verlassen).
     function winPosRange() {
         const g = window._geo3d || {};
         const ori = byId('win_edit_ori').value;
@@ -10607,14 +10608,16 @@ async function updateDoorType() {
         const ns = (ori === 'south' || ori === 'north');
         // wandgebundenes Fenster (komplexe Geometrie): Grenze = halbe Wandlänge
         const halfAxis = (it && it.wallLen != null) ? (it.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
-        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
-        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: 0.2, fh: 3, floors: 1 };
+        const etSel = byId('win_edit_etage');
+        const et = Math.max(0, Math.min(fm.floors - 1, parseInt(etSel && etSel.value, 10) || 0));
         const w = num(byId('win_edit_w').value, 1), h = num(byId('win_edit_h').value, 1.4);
-        return { ft: ft, uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, wallTop - h / 2 - ft) };
+        return { ft: fm.ft, fh: fm.fh, etage: et, datum: fm.ft + et * fm.fh,
+                 uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, fm.fh - h / 2) };
     }
     window.updateWinPosNote = function () {
         const r = winPosRange(), el = byId('win_edit_posnote');
-        if (el) el.textContent = 'Erlaubt: horizontal ±' + r.uMax.toFixed(2) + ' m · Höhe ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m (wird sonst auf den Rand begrenzt)';
+        if (el) el.textContent = 'Etage ' + (r.etage + 1) + ' – erlaubt: X ±' + r.uMax.toFixed(2) + ' m · Y ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m über Fußbodenoberkante (wird sonst begrenzt)';
     };
     window.updateWinEditArea = function () {
         const a = num(byId('win_edit_w').value, 0) * num(byId('win_edit_h').value, 0);
@@ -10639,8 +10642,18 @@ async function updateDoorType() {
         const pos = (typeof window._itemPos === 'function') ? window._itemPos('window', id) : null;
         const pu = (pos && pos.u != null) ? pos.u : (w.posU != null ? w.posU : 0);
         const pv = (pos && pos.v != null) ? pos.v : (w.posV != null ? w.posV : (ft + 1.2));
+        // Etage: explizit zugeordnet oder aus der aktuellen Höhe abgeleitet; Y ab Fußbodenoberkante
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: ft, fh: 3, floors: 1 };
+        const etage = (w.etage != null) ? Math.max(0, Math.min(fm.floors - 1, Math.round(w.etage)))
+            : Math.max(0, Math.min(fm.floors - 1, Math.floor((pv - fm.ft) / fm.fh)));
+        const etSel = byId('win_edit_etage');
+        if (etSel) {
+            let optHtml = '';
+            for (let k = 0; k < fm.floors; k++) optHtml += '<option value="' + k + '"' + (k === etage ? ' selected' : '') + '>Etage ' + (k + 1) + '</option>';
+            etSel.innerHTML = optHtml;
+        }
         byId('win_edit_posu').value = Math.round(pu * 100) / 100;
-        byId('win_edit_posv').value = Math.round((pv - ft) * 100) / 100;
+        byId('win_edit_posv').value = Math.round((pv - (fm.ft + etage * fm.fh)) * 100) / 100;
         window.updateWinEditArea();
         byId('win_modal').classList.add('show');
     };
@@ -10655,17 +10668,24 @@ async function updateDoorType() {
         w.height = Math.max(0.2, num(byId('win_edit_h').value, w.height));
         w.u = Math.max(0.1, num(byId('win_edit_u').value, w.u));
         w.g = Math.min(1, Math.max(0, num(byId('win_edit_g').value, w.g)));
-        // Position per Koordinate übernehmen (auf die Fassade/Wand begrenzt)
+        // Position per Koordinate übernehmen: X auf der Fassade, Y innerhalb der gewählten Etage
+        // (Y ab Fußbodenoberkante; Fenster bleibt im Etagenband)
         const g = window._geo3d || {};
         const ns = (w.orientation === 'south' || w.orientation === 'north');
         const halfAxis = (w.wallLen != null) ? (w.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: ft, fh: 3, floors: 1 };
+        const etage = Math.max(0, Math.min(fm.floors - 1, parseInt((byId('win_edit_etage') || {}).value, 10) || 0));
+        const datum = fm.ft + etage * fm.fh;   // Fußbodenoberkante der Etage
         let pu = num(byId('win_edit_posu').value, (w.posU != null ? w.posU : 0));
-        let pv = num(byId('win_edit_posv').value, (w.posV != null ? w.posV - ft : 1.2)) + ft;
+        let yRel = num(byId('win_edit_posv').value, 1.2);
+        yRel = Math.max(w.height / 2, Math.min(Math.max(w.height / 2, fm.fh - w.height / 2), yRel));
+        let pv = datum + yRel;
         const uLim = Math.max(0, halfAxis - w.width / 2);
         pu = Math.max(-uLim, Math.min(uLim, pu));
         pv = Math.max(ft + w.height / 2, Math.min(wallTop - w.height / 2, pv));
+        w.etage = etage;
         w.posU = pu; w.posV = pv;
         window.aggregateWindows();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
@@ -10755,14 +10775,16 @@ async function updateDoorType() {
         const ns = (ori === 'south' || ori === 'north');
         // wandgebundene Tür (komplexe Geometrie): Grenze = halbe Wandlänge
         const halfAxis = (it && it.wallLen != null) ? (it.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
-        const ft = (g.floorTop != null) ? g.floorTop : 0.2;
-        const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: 0.2, fh: 3, floors: 1 };
+        const etSel = $('door_edit_etage');
+        const et = Math.max(0, Math.min(fm.floors - 1, parseInt(etSel && etSel.value, 10) || 0));
         const w = num($('door_edit_w').value, 1), h = num($('door_edit_h').value, 2.1);
-        return { ft: ft, uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, wallTop - h / 2 - ft) };
+        return { ft: fm.ft, fh: fm.fh, etage: et, datum: fm.ft + et * fm.fh,
+                 uMax: Math.max(0, halfAxis - w / 2), hMin: h / 2, hMax: Math.max(h / 2, fm.fh - h / 2) };
     }
     window.updateDoorPosNote = function () {
         const r = doorPosRange(), el = $('door_edit_posnote');
-        if (el) el.textContent = 'Erlaubt: horizontal ±' + r.uMax.toFixed(2) + ' m · Höhe ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m (wird sonst auf den Rand begrenzt)';
+        if (el) el.textContent = 'Etage ' + (r.etage + 1) + ' – erlaubt: X ±' + r.uMax.toFixed(2) + ' m · Y ' + r.hMin.toFixed(2) + '…' + r.hMax.toFixed(2) + ' m über Fußbodenoberkante (Tür steht mit Y = ' + r.hMin.toFixed(2) + ' auf dem Boden)';
     };
     window.updateDoorEditArea = function () {
         const a = num($('door_edit_w').value, 0) * num($('door_edit_h').value, 0);
@@ -10782,8 +10804,18 @@ async function updateDoorType() {
         const pos = (typeof window._itemPos === 'function') ? window._itemPos('door', id) : null;
         const pu = (pos && pos.u != null) ? pos.u : (d.posU != null ? d.posU : 0);
         const pv = (pos && pos.v != null) ? pos.v : (d.posV != null ? d.posV : (ft + d.height / 2));
+        // Etage: explizit zugeordnet oder aus der aktuellen Höhe abgeleitet; Y ab Fußbodenoberkante
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: ft, fh: 3, floors: 1 };
+        const etage = (d.etage != null) ? Math.max(0, Math.min(fm.floors - 1, Math.round(d.etage)))
+            : Math.max(0, Math.min(fm.floors - 1, Math.floor((pv - fm.ft) / fm.fh)));
+        const etSel = $('door_edit_etage');
+        if (etSel) {
+            let optHtml = '';
+            for (let k = 0; k < fm.floors; k++) optHtml += '<option value="' + k + '"' + (k === etage ? ' selected' : '') + '>Etage ' + (k + 1) + '</option>';
+            etSel.innerHTML = optHtml;
+        }
         $('door_edit_posu').value = Math.round(pu * 100) / 100;
-        $('door_edit_posv').value = Math.round((pv - ft) * 100) / 100;
+        $('door_edit_posv').value = Math.round((pv - (fm.ft + etage * fm.fh)) * 100) / 100;
         window.updateDoorEditArea();
         $('door_modal').classList.add('show');
     };
@@ -10795,17 +10827,24 @@ async function updateDoorType() {
         d.width = Math.max(0.4, num($('door_edit_w').value, d.width));
         d.height = Math.max(0.8, num($('door_edit_h').value, d.height));
         d.u = Math.max(0.1, num($('door_edit_u').value, d.u));
-        // Position per Koordinate übernehmen (auf die Fassade/Wand begrenzt)
+        // Position per Koordinate übernehmen: X auf der Fassade, Y innerhalb der gewählten Etage
+        // (Y ab Fußbodenoberkante; Tür bleibt im Etagenband)
         const g = window._geo3d || {};
         const ns = (d.orientation === 'south' || d.orientation === 'north');
         const halfAxis = (d.wallLen != null) ? (d.wallLen / 2) : (ns ? (g.halfW || 6) : (g.halfD || 6));
         const ft = (g.floorTop != null) ? g.floorTop : 0.2;
         const wallTop = (g.wallTop != null) ? g.wallTop : (ft + 6);
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : { ft: ft, fh: 3, floors: 1 };
+        const etage = Math.max(0, Math.min(fm.floors - 1, parseInt(($('door_edit_etage') || {}).value, 10) || 0));
+        const datum = fm.ft + etage * fm.fh;   // Fußbodenoberkante der Etage
         let pu = num($('door_edit_posu').value, (d.posU != null ? d.posU : 0));
-        let pv = num($('door_edit_posv').value, (d.posV != null ? d.posV - ft : d.height / 2)) + ft;
+        let yRel = num($('door_edit_posv').value, d.height / 2);
+        yRel = Math.max(d.height / 2, Math.min(Math.max(d.height / 2, fm.fh - d.height / 2), yRel));
+        let pv = datum + yRel;
         const uLim = Math.max(0, halfAxis - d.width / 2);
         pu = Math.max(-uLim, Math.min(uLim, pu));
         pv = Math.max(ft + d.height / 2, Math.min(wallTop - d.height / 2, pv));
+        d.etage = etage;
         d.posU = pu; d.posV = pv;
         window.aggregateDoors();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
