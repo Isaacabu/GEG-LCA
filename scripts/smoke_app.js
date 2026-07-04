@@ -5,6 +5,11 @@
 // Klickt jeden Tab durch, löst die Berechnungen in Abhängigkeitsreihenfolge aus
 // (Hülle → Anlage → PV → Bilanz → DIN 4108), prüft, dass je ein Ergebnis erscheint,
 // sammelt JS-Konsolen-/Netzwerkfehler und legt Screenshots unter scripts/_smoke/ ab.
+//
+// Die „…auswerten"-Buttons wurden durch das Live-Update (markStale/scheduleAuto)
+// ersetzt – der Test stößt die Pipeline deshalb über den zentralen Orchestrator
+// window.recompute(stufe) an (derselbe Hook wie der Bilanz-Button) und prüft
+// zusätzlich, dass ein Heizsystem-Wechsel per Karte automatisch neu rechnet.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
@@ -55,22 +60,38 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     await openTab("daten");
     step(await page.isVisible("#bgf"), "Tab Gebäudedaten");
 
-    // 2) Gebäudehülle
+    // 2) Gebäudehülle – Pipeline anstoßen (rechnet Hülle + Anlage + Bilanz durch)
     await openTab("huelle");
-    await page.click('button:has-text("Gebäudehülle auswerten")');
+    await page.evaluate(() => window.recompute('huelle'));
     await waitResult("specific_heat_result", "Gebäudehülle (Heizwärmebedarf)", "10_huelle.png");
 
-    // 3) Anlagentechnik
+    // 3) Anlagentechnik – von der Pipeline automatisch mitgerechnet
     await openTab("anlage");
-    await page.click('button:has-text("Anlagentechnik auswerten")');
-    await waitResult("system_spec_end", "Anlagentechnik (Endenergie)", "11_anlage.png");
+    await waitResult("system_total_end", "Anlagentechnik (Endenergie)", "11_anlage.png");
+    // Live-Update: Heizsystem-Kartenklick muss automatisch neu rechnen –
+    // das letzte Systemergebnis muss danach zur Wärmepumpe gehören.
+    await page.click('.heat-card[data-heat="heatpump"]');
+    try {
+        await page.waitForFunction(() =>
+            window.lastSystemResult && window.lastSystemResult.din
+            && window.lastSystemResult.din.heating_system === 'heatpump',
+            { timeout: 9000 });
+        step(true, "Anlagentechnik: Heizsystem-Wechsel rechnet automatisch neu");
+    } catch (e) {
+        step(false, "Anlagentechnik: keine Neuberechnung nach Heizsystem-Wechsel");
+    }
+    await page.click('.heat-card[data-heat="gas"]');   // zurück auf Standard
+    await page.waitForFunction(() =>
+        window.lastSystemResult && window.lastSystemResult.din
+        && window.lastSystemResult.din.heating_system === 'gas',
+        { timeout: 9000 }).catch(() => {});
 
     // 4) Photovoltaik – PV ist standardmäßig deaktiviert (Ja/Nein-Gate), erst „Ja" wählen
     await openTab("pv");
     await page.click('#pv_gate_yes');
     await page.waitForSelector('#pv_body', { state: "visible", timeout: 5000 });
     await page.waitForTimeout(250);
-    await page.click('button:has-text("PV auswerten")');
+    await page.evaluate(() => window.recompute('pv'));
     await waitResult("pv_annual_yield", "Photovoltaik (Jahresertrag)", "12_pv.png");
     step(true, "PV-Gate: Ja zeigt PV-Inhalt + Modell");
 
