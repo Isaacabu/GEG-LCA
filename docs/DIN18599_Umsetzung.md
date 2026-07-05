@@ -282,10 +282,13 @@ Orientierung aus Tab. E.6 (Fassaden exakt 90°; Dach-Süd-Näherung 0,72·horizo
 - `scripts/din_table.py <teil> <seite>` – extrahiert Tabellen koordinatenbasiert (für exakte Werte)
 
 **Offene Punkte für höhere Genauigkeit (spätere Stufen):**
-- Nachtabsenkung / reduzierter Betrieb (ΔQ_c,b, Teil 2) – aktuell konservativ weggelassen.
-- 15 Klimaregionen statt bundesweitem Referenzklima (Teil 10 Anhang E) + Höhenkorrektur.
+- Echte 15 Klimaregionen (Teil 10 Anhang E). Umgesetzt ist stattdessen: Höhenkorrektur
+  (0,0065 K/m über Potsdam 81 m) + optionale Bundesland-Skalierung (`climate.py`,
+  DWD-Jahresmittel – **kein** Norm-/Referenzklima-Verfahren; für den Referenzklima-
+  Nachweis Bundesland auf Standard lassen).
 - Detaillierte Verschattung F_S (Horizont/Überstand) statt Pauschalwert 0,9.
-- Lüftung mit Wärmerückgewinnung / mechanischer Anlage (Teil 6).
+- Opake solare Gewinne / langwellige Abstrahlung (§6.4.1) – nicht angesetzt.
+- (Nachtabsenkung ist umgesetzt, s. §13; Wochenend-/Ferienbetrieb 6.1.2.3 offen.)
 
 ---
 
@@ -454,7 +457,9 @@ Fernwärme identisch zu Teil 8: Gl. (242–244), Tab. 61: Warmwasser-Netz niedri
 Wetterklassen + Produkt-Prüfpunktfelder) ist ohne Produktdaten nicht anwendbar. Stattdessen
 Monatsmodell über Carnot-Gütegrad: `η_g = COP_Prüf/COP_Carnot(Prüfpunkt)` (Prüfpunkt A2/W35 bzw.
 B0/W35), dann je Monat `COP_m = η_g·T_sink/(T_sink − T_source,m)` mit T_sink = θ_HK,av(β_m)+Spreizung/2
-(aus 8.2) und T_source = θ_e,m (Luft) bzw. Erdreich ~ konst. TWW-COP: 3,06 fix (Teil 8 Anhang B). →
+(aus 8.2) und T_source = θ_e,m (Luft) bzw. Erdreich ~ konst. **TWW-COP: dasselbe Carnot-Modell mit
+Senke θ_s,av = 55 °C (min ΔT 10 K), also monatlich variabel** – abweichend vom Norm-Standardwert
+COP_w,t = 3,06 fix bei 50 °C (Teil 8 Anhang B); im Winter konservativer, im Sommer günstiger. →
 liefert realistische Jahresarbeitszahlen; exaktes BIN-Verfahren als späterer Ausbau dokumentiert.
 
 ## 9. Teil 6 – Wohnungslüftung (extrahierte Normgrundlagen)
@@ -480,10 +485,16 @@ Frostschutz-/EWÜT-Zuschläge f = 0 im Standardfall (ohne E-WÜT/S-KOL).
 - **Rechenkern:** `dashboard/services/din18599_anlage.py` (`calculate_system_din`) –
   monatliche Prozesskette Heizung (Teil 5) + TWW (Teil 8) + Lüftung (Teil 6) mit den oben
   dokumentierten Standardwerten. `views.calculate_system` (`/calculate-system/`) ist dünner Wrapper.
-- **Lüftungskopplung:** Das Frontend sendet die Hüllendaten (`envelope`) mit; die Teil-2-Bilanz wird
-  mit dem effektiven Luftwechsel `n_eff = n_inf + n_mech·(1 − η_WRG)` neu gerechnet → WRG senkt den
-  Heizwärmebedarf korrekt (Referenz-EFH: −3 278 kWh/a bei η = 0,8). Die frühere
-  **Gradstunden-Doppelzählung der Lüftungsverluste wurde entfernt.**
+- **Lüftungskopplung:** Das Frontend sendet die Hüllendaten (`envelope`) mit. Bei mechanischer
+  Lüftung wird die Teil-2-Bilanz mit **n_zone = n_inf = 0,1 h⁻¹** neu gerechnet; der maschinell
+  geförderte Anteil `n_rlt = n_eff − n_inf` (mit `n_eff = n_inf + n_mech·(1 − η_WRG)`, Teil 6
+  Gl. 14/15) wird **separat als RLT-Luftaufbereitung** über denselben Erzeuger bilanziert
+  (Zuschläge: Kanäle außerhalb der Hülle ×1,10, Auslässe an der Außenwand ×1,03 – Näherungswerte,
+  keine Teil-6-Tabellenwerte). Abweichung zum reinen n_eff-Ansatz: der RLT-Anteil nimmt nicht an
+  der η(γ)-Gewinnverrechnung teil und kennt keine Heizgrenze (fällt in allen Monaten mit
+  θ_e < θ_i an) → in Übergangsmonaten leicht konservativ. WRG senkt den Heizwärmebedarf korrekt
+  (Referenz-EFH: ~−3 900 kWh/a bei η = 0,8). Die frühere **Gradstunden-Doppelzählung der
+  Lüftungsverluste wurde entfernt.**
 - **Frontend:** `calculateSystem()` sendet envelope + Lüftungssystem (Mapping auf Teil-6-Schlüssel),
   AC/DC, η_WRG, Wärmeübergabe-Auswahl (neu, ersetzt das η-Eingabefeld); Warmwasser/Hilfsstrom-Felder
   sind jetzt berechnete (readonly) Anzeigen und versorgen den Energiebilanz-Tab.
@@ -499,4 +510,30 @@ Frostschutz-/EWÜT-Zuschläge f = 0 im Standardfall (ohne E-WÜT/S-KOL).
 - **Energieträger-Faktoren:** Endenergie Brennstoffe Hi-bezogen (Kette intern Hs, Umrechnung f_Hs/Hi);
   f_P nach GEG 2024 (Strom 1,8), CO₂ nach GEG Anlage 9 (Strom 0,56 kg/kWh – ersetzt die alten 0,40).
 - **Offen für später:** Solarthermie (Teil 8 6.4.3), WP-BIN-Verfahren (Teil 5 Anhang B/C),
-  Nachtabsenkung, reale Rohrlängen-Eingabe, Stufe 3 (Beleuchtung Teil 4 / Kühlung Teil 3).
+  reale Rohrlängen-Eingabe, Kühlung (Teil 3). Nachtabsenkung (§13) und Beleuchtung (Teil 4,
+  §13) sind umgesetzt.
+
+## 14. Norm-Review Juli 2026: korrigierte Fehler ✅
+
+Ein systematischer Review (Code vs. eigene Norm-Extraktion) fand und behob vier Fehler:
+
+1. **Solare Gewinne ~10 % zu niedrig** (`din18599.py`): Es wurden vier Abminderungsfaktoren
+   multipliziert (F_F·F_S·F_W·F_V = 0,7·0,9·0,9·**0,9**), obwohl Teil 10 Tab. 4 für Wohnen
+   Verschmutzung **F_V = 1** setzt (§4b oben). F_SOILING = 1,0 korrigiert → Q_h,b sinkt
+   (Referenz-EFH: 69,7 → 67,8 kWh/(m²a); Solargewinne +11 %).
+2. **Fernwärme-Primärenergiefaktor 0,7 → 0,6** (`din18599_anlage.py`, `constants.py`):
+   0,7 war der EnEV-/DIN-18599-1-Wert; GEG 2024 Anlage 4 nennt für Fernwärme aus KWK
+   (fossil) **0,6** – konsistent zum verwendeten CO₂-Faktor 0,18 (Anlage 9).
+3. **Fenster in F_x=0-Wänden** (`din18599.py`): Fenster in Wänden an beheizte Nachbarräume
+   (Einzelraum-Fall) erhielten volle Solargewinne, obwohl sie transmissionsseitig korrekt
+   aus der Hülle fielen → solare Gewinne jetzt nur für Orientierungen mit F_x > 0.
+4. **Zirkulations-Laufzeit z** (`din18599_anlage.py`): Der MFH-Mindestwert z ≥ 16 h (Gl. 18)
+   galt nur für die Pumpen-Hilfsenergie, nicht für die Verlust-Betriebszeit → jetzt ein
+   gemeinsames `z_circ` für beide.
+
+Zusätzlich Doku/Code-Widersprüche bereinigt: Lüftungskopplung (§10), WP-TWW-COP (§8.6),
+Nachtabsenkung/Klimaregionen (Status §6/§13). Bekannte, bewusst offene Abweichungen:
+BGF als Bezugsfläche statt NGF (Eingabefeld heißt BGF; alle flächenbezogenen Teil-10-Werte
+sind NGF-bezogen – bei BGF-Eingabe werden interne Gewinne/TWW/Kennwerte um ~10–20 %
+verschoben), PV-Eigenverbrauch als pauschale Jahresquote, Beleuchtung ohne k_WF/k_R und
+ohne Wärmequellen-Rückkopplung.

@@ -48,7 +48,9 @@ U_PIPE_SA = 0.255           # W/(m·K) Strang/Anbindung, gedämmt nach 1995
 F_HS_HI = {"gas": 1.11, "pellet": 1.08}   # Brennwert/Heizwert-Verhältnis (Teil 5, 4.2)
 
 # Primärenergie- (GEG 2024 Anlage 4) und CO₂-Faktoren (GEG Anlage 9), je Energieträger.
-F_PRIMARY = {"gas": 1.1, "pellet": 0.2, "district": 0.7, "electricity": 1.8}
+# Fernwärme = "aus KWK, fossiler Brennstoff": f_P = 0,6 (Anlage 4) passend zum
+# CO₂-Faktor 0,18 (Anlage 9). 0,7 war der alte EnEV-/DIN-18599-1-Pauschalwert.
+F_PRIMARY = {"gas": 1.1, "pellet": 0.2, "district": 0.6, "electricity": 1.8}
 F_CO2 = {"gas": 0.240, "pellet": 0.020, "district": 0.180, "electricity": 0.560}
 
 # ---------------------------------------------------------------------------
@@ -359,12 +361,16 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     theta_ds = DISTRICT["d_ds"] * DISTRICT["theta_prim"] + (1 - DISTRICT["d_ds"]) * theta_sek
     h_ds = DISTRICT["b_ds"] * max(p_n, 1.0) ** (1.0 / 3.0)          # Gl. (243)
 
+    # Zirkulations-Laufzeit z (Gl. 18): EFH ≤ 24 h, MFH 16–24 h. Einmal berechnet,
+    # gilt identisch für Pumpen-Hilfsenergie (Gl. 17) und Verlust-Betriebszeit (Gl. 13).
+    z_circ = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)
+    if is_mfh:
+        z_circ = max(z_circ, 16.0)
+
     # Zirkulationspumpe (Teil 8, 6.2.2.4)
     w_circ_pump_year = 0.0
     if with_circ:
-        z = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)             # Gl. (18)
-        if is_mfh:
-            z = max(z, 16.0)
+        z = z_circ
         p_wda = (U_PIPE_V * lw["v"] + U_PIPE_SA * lw["s"]) * (THETA_W_CIRC - theta_i)  # Gl. (21) [W]
         v_flow = p_wda / (1.15 * 5.0 * 1000.0)                      # Gl. (20) [m³/h]
         l_max_w = 2.0 * (l_char + 2.5 + n_storeys * room_height)    # Gl. (23)
@@ -448,7 +454,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         theta_w_free = 25.0 * U_PIPE_SA ** -0.2      # ≈ 32,9 °C (ohne Zirkulation)
         amb_in = theta_i if heating else 22.0
         if with_circ:
-            z_h = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)
+            z_h = z_circ
             loss_circ = (U_PIPE_V * lw["v"] * (THETA_W_CIRC - theta_cellar)
                          + U_PIPE_SA * lw["s"] * (THETA_W_CIRC - amb_in)) * z_h
             loss_rest = (U_PIPE_V * lw["v"] / 2.0 * (theta_w_free - theta_cellar)

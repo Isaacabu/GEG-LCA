@@ -363,40 +363,46 @@ MC_MAX_GRENZ = 0.5   # kg/m² an Grenzflächen mit nicht kapillar saugender Schi
 # μ als (trocken/feucht); im Glaser-Verfahren ist der für die Schichtposition
 # ungünstigere Wert anzusetzen (Anhang A.2.3) – das Frontend bietet beide an.
 # Repräsentative Auswahl gebräuchlicher Baustoffe (innen → außen einsetzbar).
+# kapillar: kapillar wasseraufnahmefähig (§5.2.2 – an Grenzflächen, an denen
+#   mindestens eine Schicht NICHT saugt, gilt die strengere Grenze M_c ≤ 0,5 kg/m²).
+# holz: "" / "holz" / "hwst" – Holz bzw. Holzwerkstoff (§5.2.2 Feuchtezunahme
+#   ≤ 5 bzw. 3 M-%; hier als Warnung, nicht als Rechenkriterium).
 MATERIAL_DB = [
-    # (Schlüssel, Anzeigename, λ_B, μ_trocken, μ_feucht, Kategorie)
-    ("gipsputz",        "Gipsputz",                       0.51, 4, 10,    "Putz/Estrich"),
-    ("kalkzementputz",  "Kalk-/Kalkzementputz",           1.00, 15, 35,   "Putz/Estrich"),
-    ("kunstharzputz",   "Kunstharzputz (außen)",          0.70, 50, 200,  "Putz/Estrich"),
-    ("waermedaemmputz", "Wärmedämmputz (T1)",             0.12, 5, 20,    "Putz/Estrich"),
-    ("zementestrich",   "Zementestrich",                  1.40, 15, 35,   "Putz/Estrich"),
-    ("stahlbeton",      "Stahlbeton/Normalbeton",         2.30, 80, 130,  "Beton/Mauerwerk"),
-    ("porenbeton",      "Porenbeton (ρ500)",              0.14, 5, 10,    "Beton/Mauerwerk"),
-    ("leichtbeton",     "Leichtbeton (ρ800)",             0.39, 70, 150,  "Beton/Mauerwerk"),
-    ("vollziegel",      "Vollziegel (ρ1800)",             0.81, 5, 10,    "Beton/Mauerwerk"),
-    ("hochlochziegel",  "Hochlochziegel HLzW (ρ700)",     0.21, 5, 10,    "Beton/Mauerwerk"),
-    ("klinker",         "Vollklinker (ρ1800)",            0.81, 50, 100,  "Beton/Mauerwerk"),
-    ("kalksandstein",   "Kalksandstein (ρ1800)",          0.99, 15, 25,   "Beton/Mauerwerk"),
-    ("mineralwolle",    "Mineralwolle (MW)",              0.035, 1, 1,    "Dämmstoff"),
-    ("eps",             "EPS (Polystyrol expandiert)",    0.035, 20, 100, "Dämmstoff"),
-    ("xps",             "XPS (Polystyrol extrudiert)",    0.035, 80, 250, "Dämmstoff"),
-    ("pu",              "PU/PIR-Hartschaum",              0.025, 40, 200, "Dämmstoff"),
-    ("holzfaser",       "Holzfaserdämmplatte (WF)",       0.040, 3, 5,    "Dämmstoff"),
-    ("kork",            "Kork expandiert (ICB)",          0.045, 5, 10,   "Dämmstoff"),
-    ("mineralschaum",   "Mineralschaum/Calciumsilikat",   0.045, 3, 6,    "Dämmstoff"),
-    ("holz_nadel",      "Nadelholz (Konstruktionsholz)",  0.13, 20, 50,   "Holz"),
-    ("osb",             "OSB-/Holzwerkstoffplatte",       0.13, 30, 50,   "Holz"),
-    ("gipskarton",      "Gipskartonplatte",               0.25, 4, 10,    "Platte"),
-    ("dampfbremse",     "Dampfbremse PE/PA (Folie)",      0.50, 50000, 50000, "Folie/Bahn"),
-    ("bitumenbahn",     "Bitumen-Dachbahn",               0.17, 20000, 20000, "Folie/Bahn"),
-    ("dampfbremse_var", "feuchtevar. Dampfbremse (sd~2m)", 0.50, 13000, 13000, "Folie/Bahn"),
+    # (Schlüssel, Anzeigename, λ_B, μ_trocken, μ_feucht, Kategorie, kapillar, holz)
+    ("gipsputz",        "Gipsputz",                       0.51, 4, 10,    "Putz/Estrich",   True,  ""),
+    ("kalkzementputz",  "Kalk-/Kalkzementputz",           1.00, 15, 35,   "Putz/Estrich",   True,  ""),
+    ("kunstharzputz",   "Kunstharzputz (außen)",          0.70, 50, 200,  "Putz/Estrich",   False, ""),
+    ("waermedaemmputz", "Wärmedämmputz (T1)",             0.12, 5, 20,    "Putz/Estrich",   True,  ""),
+    ("zementestrich",   "Zementestrich",                  1.40, 15, 35,   "Putz/Estrich",   True,  ""),
+    ("stahlbeton",      "Stahlbeton/Normalbeton",         2.30, 80, 130,  "Beton/Mauerwerk", True, ""),
+    ("porenbeton",      "Porenbeton (ρ500)",              0.14, 5, 10,    "Beton/Mauerwerk", True, ""),
+    ("leichtbeton",     "Leichtbeton (ρ800)",             0.39, 70, 150,  "Beton/Mauerwerk", True, ""),
+    ("vollziegel",      "Vollziegel (ρ1800)",             0.81, 5, 10,    "Beton/Mauerwerk", True, ""),
+    ("hochlochziegel",  "Hochlochziegel HLzW (ρ700)",     0.21, 5, 10,    "Beton/Mauerwerk", True, ""),
+    ("klinker",         "Vollklinker (ρ1800)",            0.81, 50, 100,  "Beton/Mauerwerk", True, ""),
+    ("kalksandstein",   "Kalksandstein (ρ1800)",          0.99, 15, 25,   "Beton/Mauerwerk", True, ""),
+    ("mineralwolle",    "Mineralwolle (MW)",              0.035, 1, 1,    "Dämmstoff",      False, ""),
+    ("eps",             "EPS (Polystyrol expandiert)",    0.035, 20, 100, "Dämmstoff",      False, ""),
+    ("xps",             "XPS (Polystyrol extrudiert)",    0.035, 80, 250, "Dämmstoff",      False, ""),
+    ("pu",              "PU/PIR-Hartschaum",              0.025, 40, 200, "Dämmstoff",      False, ""),
+    ("holzfaser",       "Holzfaserdämmplatte (WF)",       0.040, 3, 5,    "Dämmstoff",      True,  "hwst"),
+    ("kork",            "Kork expandiert (ICB)",          0.045, 5, 10,   "Dämmstoff",      False, ""),
+    ("mineralschaum",   "Mineralschaum/Calciumsilikat",   0.045, 3, 6,    "Dämmstoff",      True,  ""),
+    ("holz_nadel",      "Nadelholz (Konstruktionsholz)",  0.13, 20, 50,   "Holz",           True,  "holz"),
+    ("osb",             "OSB-/Holzwerkstoffplatte",       0.13, 30, 50,   "Holz",           True,  "hwst"),
+    ("gipskarton",      "Gipskartonplatte",               0.25, 4, 10,    "Platte",         True,  ""),
+    ("dampfbremse",     "Dampfbremse PE/PA (Folie)",      0.50, 50000, 50000, "Folie/Bahn", False, ""),
+    ("bitumenbahn",     "Bitumen-Dachbahn",               0.17, 20000, 20000, "Folie/Bahn", False, ""),
+    ("dampfbremse_var", "feuchtevar. Dampfbremse (sd~2m)", 0.50, 13000, 13000, "Folie/Bahn", False, ""),
 ]
+_MATERIAL_FLAGS = {k: (kap, hz) for (k, _n, _l, _mt, _mf, _kat, kap, hz) in MATERIAL_DB}
 
 
 def material_db() -> List[Dict[str, Any]]:
     """Material-Bemessungswerte (λ/μ) für den Glaser-Schichteditor."""
     return [{"key": k, "name": n, "lambda": lam, "mu_trocken": md, "mu_feucht": mf,
-             "kategorie": kat} for (k, n, lam, md, mf, kat) in MATERIAL_DB]
+             "kategorie": kat, "kapillar": kap, "holz": hz}
+            for (k, n, lam, md, mf, kat, kap, hz) in MATERIAL_DB]
 
 
 def p_sat(theta: float) -> float:
@@ -448,12 +454,17 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
     sd_layers: List[float] = []
     for i, s in enumerate(schichten):
         name = str(s.get("name") or f"Schicht {i + 1}")
+        # Materialschlüssel (falls aus der DB gewählt) → kapillar/Holz-Flags;
+        # unbekannte/manuelle Schichten gelten als kapillar saugend, kein Holz.
+        mat_key = str(s.get("material") or "")
+        kapillar, holz = _MATERIAL_FLAGS.get(mat_key, (True, ""))
         if bool(s.get("luftschicht")):
             R = safe_float(s.get("r"), 0.0)
             sd = SD_LUFTSCHICHT
             d = safe_float(s.get("d"), 0.0)
             schicht_out.append({"name": name, "d": d, "lambda": None, "mu": None,
-                                "r": round(R, 3), "sd": sd, "luftschicht": True})
+                                "r": round(R, 3), "sd": sd, "luftschicht": True,
+                                "kapillar": False, "holz": ""})
         else:
             d = safe_float(s.get("d"), 0.0)
             lam = safe_float(s.get("lambda") or s.get("lam"), 0.0)
@@ -464,7 +475,8 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
             R = d / lam
             sd = mu * d
             schicht_out.append({"name": name, "d": d, "lambda": lam, "mu": mu,
-                                "r": round(R, 3), "sd": round(sd, 3), "luftschicht": False})
+                                "r": round(R, 3), "sd": round(sd, 3), "luftschicht": False,
+                                "kapillar": kapillar, "holz": holz})
         R_layers.append(R)
         sd_layers.append(sd)
     if errors:
@@ -519,8 +531,17 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
             continue
         sd_c = pts[idx][0]
         pc = pts[idx][1]   # = psat dort (Hüllenknoten an Sättigung)
+        # Knoten idx = Grenzfläche zwischen Schicht idx−1 (innen) und idx (außen).
+        nachbarn = [schicht_out[k] for k in (idx - 1, idx) if 0 <= k < len(schicht_out)]
+        # §5.2.2: strengere Grenze 0,5 kg/m², wenn mindestens eine angrenzende
+        # Schicht nicht kapillar wasseraufnahmefähig ist (Folie, XPS, MW, …).
+        nicht_saugend = any(not s["kapillar"] for s in nachbarn)
+        holz_beteiligt = any(s["holz"] for s in nachbarn)
         tauebenen.append({"node": idx, "sd_c": sd_c, "pc": pc,
-                          "grenze_nach": schicht_out[idx - 1]["name"] if idx - 1 < len(schicht_out) else ""})
+                          "grenze_nach": schicht_out[idx - 1]["name"] if idx - 1 < len(schicht_out) else "",
+                          "mc_max": MC_MAX_GRENZ if nicht_saugend else MC_MAX_ALLG,
+                          "nicht_saugend": nicht_saugend,
+                          "holz_beteiligt": holz_beteiligt})
 
     # --- Tauwassermasse je Ebene: g_in − g_out (verallgemeinert A.3–A.11) ---
     mc_total = 0.0
@@ -556,8 +577,20 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
         mev_total += mev
 
     tauwasser = mc_total > 1e-6
-    # Bewertung §5.2.2: M_c ≤ M_ev und M_c ≤ 1,0 kg/m²
-    erfuellt = (not tauwasser) or (mc_total <= mev_total + 1e-9 and mc_total <= MC_MAX_ALLG + 1e-9)
+    # Bewertung §5.2.2: M_c ≤ M_ev, M_c ≤ 1,0 kg/m² insgesamt und je Grenzfläche
+    # M_c ≤ 0,5 kg/m², wenn eine angrenzende Schicht nicht kapillar saugend ist.
+    ebenen_ok = all(e["mc"] <= e["mc_max"] + 1e-9 for e in tauebenen)
+    erfuellt = (not tauwasser) or (
+        mc_total <= mev_total + 1e-9 and mc_total <= MC_MAX_ALLG + 1e-9 and ebenen_ok)
+    # Holz-Kriterium (Feuchtezunahme ≤ 5 M-% Holz / 3 M-% Holzwerkstoffe) wird
+    # nicht gerechnet (keine Rohdichten) → Warnung statt „grün", wenn betroffen.
+    warnungen: List[str] = []
+    if tauwasser and any(e["holz_beteiligt"] for e in tauebenen):
+        warnungen.append(
+            "Tauwasser fällt an einer Grenzfläche zu Holz/Holzwerkstoff aus. Das Zusatzkriterium "
+            "der DIN 4108-3 §5.2.2 (Feuchtezunahme ≤ 5 M-% bei Holz bzw. ≤ 3 M-% bei "
+            "Holzwerkstoffen) wird hier nicht geprüft – bitte gesondert nachweisen."
+        )
 
     # Knotenprofil für die Anzeige (Diffusionsdiagramm)
     profil = []
@@ -574,15 +607,27 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
     if not tauwasser:
         msg = "Kein Tauwasserausfall im Bauteilquerschnitt → diffusionstechnisch zulässig."
     elif erfuellt:
+        grenz_hin = " (strengere Grenze 0,5 kg/m² an nicht saugender Schicht eingehalten)" \
+            if any(e["nicht_saugend"] for e in tauebenen) else ""
         msg = (f"Tauwasser {mc_total:.3f} kg/m² fällt an, verdunstet aber wieder "
-               f"({mev_total:.3f} kg/m²) und bleibt unter 1,0 kg/m² → zulässig.")
+               f"({mev_total:.3f} kg/m²) und bleibt unter den zulässigen Grenzen{grenz_hin} → zulässig.")
     else:
         grund = []
         if mc_total > mev_total:
             grund.append("Verdunstung reicht nicht (M_c > M_ev)")
         if mc_total > MC_MAX_ALLG:
             grund.append("M_c > 1,0 kg/m²")
+        if not ebenen_ok:
+            grund.append("M_c > 0,5 kg/m² an einer Grenzfläche mit nicht kapillar saugender Schicht")
         msg = f"Tauwasser {mc_total:.3f} kg/m² – {', '.join(grund)} → nicht zulässig."
+    if warnungen:
+        msg += " ⚠ " + " ".join(warnungen)
+
+    rating_label = "Erfüllt" if erfuellt else "Nicht erfüllt"
+    rating_color = "green" if erfuellt else "red"
+    if erfuellt and warnungen:
+        rating_label = "Erfüllt (mit Vorbehalt)"
+        rating_color = "yellow"
 
     return {
         "ok": True,
@@ -598,9 +643,10 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
         "mc_total": round(mc_total, 4),
         "mev_total": round(mev_total, 4),
         "mc_max_zulaessig": MC_MAX_ALLG,
+        "warnungen": warnungen,
         "erfuellt": erfuellt,
-        "rating_label": "Erfüllt" if erfuellt else "Nicht erfüllt",
-        "rating_color": "green" if erfuellt else "red",
+        "rating_label": rating_label,
+        "rating_color": rating_color,
         "rating_message": msg,
     }
 

@@ -112,6 +112,10 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     await page.screenshot({ path: path.join(OUT, "14_din_mws.png") });
     step(true, "DIN 4108: Mindestwärmeschutz");
     await page.click('[data-d48="som"]');
+    // Raumbezogener Nachweis (kritischer Raum): Prefill füllt hier bewusst keine
+    // Gebäudewerte mehr – A_G + Fensterfläche des Raums werden manuell gesetzt.
+    await page.fill("#d48-som-ag", "18");
+    await page.fill("#d48-som-tbl tbody tr td:nth-child(2) input", "6");
     await page.click('button:has-text("Sommernachweis berechnen")');
     await page.waitForSelector("#d48-som-res .d48-badge", { timeout: 5000 });
     step((await page.textContent("#d48-som-res")).includes("S_vorh"), "DIN 4108: Sommerlicher Wärmeschutz");

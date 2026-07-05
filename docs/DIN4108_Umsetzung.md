@@ -94,11 +94,19 @@ das deckt die vier Norm-Fälle a–d (kein/eine/zwei Ebenen/ein Bereich) einheit
 Tauwassermasse je Ebene M_c = (g_in − g_out)·t_c; Verdunstung M_ev über Abgabe zu beiden
 Oberflächen (p_sat,Verd, Gl. A.12–A.15).
 
-**Bewertung (§5.2.2):** zulässig, wenn kein Tauwasser **oder** M_c ≤ M_ev **und** M_c ≤ 1,0 kg/m².
+**Bewertung (§5.2.2):** zulässig, wenn kein Tauwasser **oder** M_c ≤ M_ev **und** M_c ≤ 1,0 kg/m²
+**und** je Grenzfläche M_c ≤ **0,5 kg/m²**, wenn mindestens eine der angrenzenden Schichten nicht
+kapillar wasseraufnahmefähig ist (Folien/Bitumen, XPS/EPS/PU, Mineralwolle, ruhende Luftschicht –
+Flag `kapillar` in `MATERIAL_DB`; manuell eingegebene Schichten gelten als saugend → Grenze 1,0).
+Grenzt eine Tauebene an **Holz/Holzwerkstoff** (Flag `holz`), wird das Zusatzkriterium
+„Feuchtezunahme ≤ 5 M-% (Holz) bzw. ≤ 3 M-% (Holzwerkstoffe)" **nicht gerechnet** (keine
+Rohdichten hinterlegt) – das Ergebnis wird dann statt grün als **gelb „Erfüllt (mit Vorbehalt)"**
+mit Warnhinweis ausgegeben.
 
 λ/μ-Bemessungswerte: **DIN 4108-4:2020-11, Tab. 1 + 2** (`MATERIAL_DB`, je Stoff trockener und
 feuchter μ-Wert; im Glaser ist der für die Schichtposition ungünstigere zu verwenden, Anhang A.2.3).
-Verifiziert: diffusionsoffene WDVS-Wand → tauwasserfrei; Innendämmung + Bitumensperre außen → Tauwasser erkannt.
+Verifiziert: diffusionsoffene WDVS-Wand → tauwasserfrei; Innendämmung + Bitumensperre außen → Tauwasser
+erkannt; Tauebene an Bitumenbahn → Grenze 0,5 kg/m²; Tauwasser an OSB → gelbe Ampel mit Holz-Warnung.
 
 Funktion: `berechne_tauwasser_glaser(data)` → `{u_wert, profil[], tauebenen[], mc_total, mev_total, erfuellt}`.
 
@@ -128,6 +136,10 @@ Funktionen: `waermebruecken_zuschlag(option)`, `pruefe_luftdichtheit(data)`.
 - **Tauwasser:** Periodenbilanz-(Glaser-)Verfahren mit Blockklima (kein Monatsbilanzverfahren
   nach DIN EN ISO 13788 / kein hygrothermisches Modell nach Anhang D). μ als Einzel-
   Bemessungswert je Schicht (Default = feuchter Wert); ruhende Luftschichten s_d = 0,01 m.
+  Das Holz-Feuchtekriterium (§5.2.2, ≤ 5/3 M-%) wird nicht gerechnet, sondern als gelbe
+  Warnung ausgegeben; die Kapillar-Einstufung greift nur bei Materialien aus der DB
+  (manuell eingegebene Schichten gelten mangels Information als saugend → Grenze 1,0 kg/m²;
+  für Folien/Sperrschichten daher das DB-Material wählen, sonst ist die Prüfung zu milde).
 - **Mindestwärmeschutz:** Tabellenverfahren (Tab. 3); der alternative Nachweis über
   θ_si,min = 17 °C bzw. der detaillierte Wärmebrücken-f_Rsi-Nachweis (§6) ist nicht implementiert.
 - **Luftdichtheit:** Grenzwertabgleich + Infiltrationsschätzung; keine Kopplung des n_inf

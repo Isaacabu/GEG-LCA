@@ -3447,9 +3447,13 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 Hitzeschutz, Tauwasserschutz im Bauteil und Wärmebrücken/Luftdichtheit.
             </div>
 
-            <div style="margin-bottom:16px">
+            <div style="margin-bottom:16px" id="d48-prefill-box">
                 <button class="btn btn-primary" onclick="d48Prefill()">📥 Aus Gebäudedaten &amp; Hülle übernehmen</button>
                 <span id="d48-prefill-note" class="d48-src" style="margin-left:10px"></span>
+            </div>
+            <div style="margin-bottom:16px;display:none" id="d48-prefill-som-note" class="d48-src">
+                ℹ️ Keine Übernahme aus den Gebäudedaten: Dieser Nachweis wird <b>raumbezogen</b> für den
+                kritischen Raum geführt – bitte unten die Werte dieses Raums eingeben.
             </div>
 
             <div class="d48-sub">
@@ -3491,17 +3495,21 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     Geprüft wird der <b>Sonneneintragskennwert</b> S<sub>vorh</sub> (aus Fenstergröße, Ausrichtung,
                     Verglasung, Sonnenschutz, Speichermasse und Klimaregion) – er muss unter dem zulässigen Wert
                     S<sub>zul</sub> bleiben. So wird <b>Überhitzung im Sommer</b> vermieden. Das ist beim Bauen ein
-                    gesetzlich vorgeschriebener Nachweis.
-                    <span class="src">Quelle: DIN 4108-2:2026-05, §8.4, Tab. 8 + F_C-Tabellen 10–13.</span>
+                    gesetzlich vorgeschriebener Nachweis. Er wird <b>nicht für das ganze Gebäude</b>, sondern für den
+                    <b>kritischen Raum</b> geführt – den Raum mit den höchsten solaren Lasten (typisch: Süd-/Westzimmer
+                    mit großen Fenstern).
+                    <span class="src">Quelle: DIN 4108-2:2026-05, §8.2 + §8.4, Tab. 8 + F_C-Tabellen 10–13.</span>
                 </div>
                 <p>Sonneneintragskennwert-Verfahren (<b>DIN 4108-2:2026-05, §8.4</b>): Nachweis gegen sommerliche
-                   Überhitzung. Erfüllt, wenn <b>S<sub>vorh</sub> ≤ S<sub>zul</sub></b>.</p>
+                   Überhitzung, geführt für den <b>kritischen Raum</b> (höchste solare Last, z. B. Süd-/Westzimmer mit
+                   großen Fenstern). Gib unten die <b>Grundfläche und Fenster dieses Raums</b> ein – nicht die
+                   Gebäudewerte. Erfüllt, wenn <b>S<sub>vorh</sub> ≤ S<sub>zul</sub></b>.</p>
                 <div class="d48-grid">
                     <div class="d48-field"><label>Nutzung</label><select id="d48-som-nutzung"><option value="wohn">Wohngebäude</option><option value="nichtwohn">Nichtwohngebäude</option></select></div>
                     <div class="d48-field"><label>Sommerklimaregion (A/B/C)</label><select id="d48-som-region"><option value="A">A (kühl)</option><option value="B" selected>B (gemäßigt)</option><option value="C">C (heiß)</option></select></div>
                     <div class="d48-field"><label>Bauart (Speichermasse)</label><select id="d48-som-bauart"><option value="leicht">leicht (&lt;50 Wh/m²K)</option><option value="mittel" selected>mittel (50–130)</option><option value="schwer">schwer (&gt;130)</option></select></div>
                     <div class="d48-field"><label>Nachtlüftung</label><select id="d48-som-nacht"><option value="ohne">ohne</option><option value="erhoeht" selected>erhöht (n≥2)</option><option value="hoch">hoch (n≥5)</option></select></div>
-                    <div class="d48-field"><label>Nettogrundfläche A_G [m²]</label><input id="d48-som-ag" type="number" value="20" step="0.5"></div>
+                    <div class="d48-field"><label>Nettogrundfläche A_G des kritischen Raums [m²]</label><input id="d48-som-ag" type="number" value="" placeholder="z. B. 20" step="0.5"></div>
                     <div class="d48-field"><label>passive Kühlung</label><select id="d48-som-passiv"><option value="0">nein</option><option value="1">ja</option></select></div>
                 </div>
                 <table class="d48-tbl" id="d48-som-tbl">
@@ -12407,6 +12415,11 @@ async function updateDoorType() {
         $("d48-" + key).classList.add("active");
         document.querySelectorAll("#din4108 .d48-sub button").forEach(b => b.classList.remove("active"));
         if (btn) btn.classList.add("active");
+        // Sommerlicher Wärmeschutz ist ein raumbezogener Nachweis (kritischer Raum) –
+        // die Gebäude-Übernahme ergibt hier keinen Sinn und wird ausgeblendet.
+        const som = key === "som";
+        if ($("d48-prefill-box")) $("d48-prefill-box").style.display = som ? "none" : "";
+        if ($("d48-prefill-som-note")) $("d48-prefill-som-note").style.display = som ? "" : "none";
     };
 
     // --- Init: Materialien laden + Default-Zeilen ---------------------------
@@ -12421,7 +12434,8 @@ async function updateDoorType() {
         // Default-Zeilen
         d48AddMwsRow("Außenwand", "aussenwand", "", "0.20", "");
         d48AddMwsRow("Kellerdecke", "decke_unten_keller", "", "0.30", "");
-        d48AddSomRow("4", "south", "90", "0.60", "0.25");
+        // Sommer: bewusst leer – Fläche des kritischen Raums muss selbst eingegeben werden
+        d48AddSomRow("", "south", "90", "0.60", "0.25");
         // Beispiel-Wandaufbau (diffusionsoffen)
         d48AddTauRow("gipsputz", "0.015");
         d48AddTauRow("stahlbeton", "0.18");
@@ -12479,9 +12493,9 @@ async function updateDoorType() {
         if (!walls.length && !roofU && !floorU) { d48AddMwsRow("Außenwand", "aussenwand", "", "", ""); msgs.push("⚠ keine U-Werte im Hülle-Tab (dort zuerst berechnen)"); }
         else msgs.push("Bauteile aus Hülle");
 
-        // Feature 2 – Sommer: A_G (=BGF), Nutzung, Fenster + g-Wert
-        const bgf = d48Val("bgf", 0);
-        if (bgf > 0) $("d48-som-ag").value = bgf;
+        // Feature 2 – Sommer: NUR raumunabhängige Größen (Nutzung, Klimaregion, Nachtlüftung).
+        // A_G und Fenster bleiben unangetastet: der Nachweis ist raumbezogen (kritischer Raum),
+        // Gebäudewerte (BGF, Gesamt-Fensterflächen) wären zu günstig und nicht normkonform.
         const bt = (($("building_type") || {}).value) || "wohngebaeude";
         const nutz = bt.indexOf("nicht") === 0 ? "nichtwohn" : "wohn";
         $("d48-som-nutzung").value = nutz;
@@ -12496,14 +12510,7 @@ async function updateDoorType() {
         if ($("d48-som-region")) $("d48-som-region").value = region;
         // Nachtlüftung: Wohnnutzung darf i.d.R. erhöht angesetzt werden (Tab. 8 Fußn. c), NWG konservativ ohne
         if ($("d48-som-nacht")) $("d48-som-nacht").value = (nutz === "wohn") ? "erhoeht" : "ohne";
-        const g = d48Val("g_value", 0.55);
-        d48ClearRows("d48-som-tbl");
-        const winMap = [["window_north_area", "north"], ["window_south_area", "south"], ["window_east_area", "east"], ["window_west_area", "west"]];
-        let anyWin = false;
-        winMap.forEach(([id, ori]) => { const a = d48Val(id, 0); if (a > 0) { d48AddSomRow(a, ori, "90", g.toFixed(2), "1.0"); anyWin = true; } });
-        if (!anyWin) d48AddSomRow("", "south", "90", g.toFixed(2), "1.0");
-        msgs.push("Fenster + g-Wert + A_G (=BGF)");
-        msgs.push("Klimaregion " + region + " (Schätzung) + Nachtlüftung");
+        msgs.push("Sommer: nur Nutzung + Klimaregion " + region + " (Schätzung) + Nachtlüftung (Raumwerte selbst eingeben)");
 
         // Feature 4 – aktuell gewählten ΔU_WB-Wert spiegeln
         const du = window.getDeltaUwb ? window.getDeltaUwb() : d48Val("delta_u_wb", 0.10);
@@ -12511,7 +12518,7 @@ async function updateDoorType() {
         if ($("d48-wb-opt")) { $("d48-wb-opt").value = map[du] || "keine"; d48ApplyDeltaUwbInfo(); }
 
         if (note) note.textContent = "✓ übernommen: " + msgs.join(", ") +
-            ". Klimaregion ist eine grobe Bundesland-Schätzung (DIN 4108-2 Bild 1 prüfen). Noch setzen: Sonnenschutz F_C, kritischer Raum (A_G). Tauwasser (Glaser) bleibt manuell (μ-Werte).";
+            ". Klimaregion ist eine grobe Bundesland-Schätzung (DIN 4108-2 Bild 1 prüfen). Sommernachweis: A_G + Fenster des kritischen Raums selbst eingeben. Tauwasser (Glaser) bleibt manuell (μ-Werte).";
     };
 
     // ============ Feature 1: Mindestwärmeschutz ============================
@@ -12557,7 +12564,7 @@ async function updateDoorType() {
         const oOpts = ORIENTS.map(([k, l]) => '<option value="' + k + '"' + (k === orient ? " selected" : "") + ">" + l + "</option>").join("");
         tr.innerHTML =
             '<td>Fenster</td>' +
-            '<td><input type="number" step="0.1" value="' + (flaeche || "") + '"></td>' +
+            '<td><input type="number" step="0.1" value="' + (flaeche || "") + '" placeholder="z. B. 4"></td>' +
             '<td><select>' + oOpts + '</select></td>' +
             '<td><input type="number" step="5" value="' + (neig || "90") + '"></td>' +
             '<td><input type="number" step="0.05" value="' + (g || "0.60") + '"></td>' +
@@ -12637,7 +12644,7 @@ async function updateDoorType() {
         const schichten = rows.map(tr => {
             const c = tr.querySelectorAll("input,select");
             const matSel = c[0]; const matName = matSel.options[matSel.selectedIndex] ? matSel.options[matSel.selectedIndex].text : "Schicht";
-            return { name: matName, d: parseFloat(c[1].value) || 0, lambda: parseFloat(c[2].value) || 0, mu: parseFloat(c[3].value) || 0 };
+            return { name: matName, material: matSel.value, d: parseFloat(c[1].value) || 0, lambda: parseFloat(c[2].value) || 0, mu: parseFloat(c[3].value) || 0 };
         }).filter(s => s.d > 0);
         const res = await d48Post("/calculate-tauwasser/", { bauteil_typ: $("d48-tau-typ").value, schichten });
         const box = $("d48-tau-res");
@@ -12646,10 +12653,13 @@ async function updateDoorType() {
             "<tr><td>" + p.position + "</td><td>" + fmt(p.sd, 2) + "</td><td>" + fmt(p.theta, 1) + "</td><td>" + fmt(p.p_sat, 0) + "</td><td>" + fmt(p.p, 0) +
             (p.p >= p.p_sat - 1 ? " " + badge("red", "Tau") : "") + "</td></tr>").join("");
         box.className = "d48-res " + res.rating_color;
+        const grenzTxt = (res.tauebenen || []).some(e => e.nicht_saugend)
+            ? "(zul. ≤ 1,0 gesamt · ≤ 0,5 an Grenzfläche mit nicht kapillar saugender Schicht)"
+            : "(zul. ≤ 1,0)";
         box.innerHTML =
             badge(res.rating_color, res.rating_label) + " " + res.rating_message +
             '<div style="margin-top:8px" title="U für den Feuchteschutz mit R_si=0,25 m²K/W nach DIN 4108-3; weicht leicht vom thermischen U (R_si=0,13) ab.">U<sub>Feuchte</sub> = ' + fmt(res.u_wert, 2) + " W/m²K · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
-            "Tauwasser M_c = <b>" + fmt(res.mc_total, 3) + "</b> kg/m² · Verdunstung M_ev = <b>" + fmt(res.mev_total, 3) + "</b> kg/m² (zul. ≤ 1,0)</div>" +
+            "Tauwasser M_c = <b>" + fmt(res.mc_total, 3) + "</b> kg/m² · Verdunstung M_ev = <b>" + fmt(res.mev_total, 3) + "</b> kg/m² " + grenzTxt + "</div>" +
             '<table class="d48-tbl"><thead><tr><th>Schichtgrenze</th><th>s_d [m]</th><th>θ [°C]</th><th>p_sat [Pa]</th><th>p [Pa]</th></tr></thead><tbody>' +
             prof + "</tbody></table>" +
             d48charts.glaser(res);

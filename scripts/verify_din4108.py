@@ -109,6 +109,46 @@ r2 = d.berechne_tauwasser_glaser({"bauteil_typ": "wand", "schichten": [
 ]})
 check("Innendämmung+Sperre außen → Tauwasser erkannt", r2["tauwasser"] is True)
 check("Tauwassermasse > 0", r2["mc_total"] > 0)
+# §5.2.2 strengere Grenze: Tauebene an nicht kapillar saugender Schicht → mc_max 0,5.
+# Materialschlüssel steuern die Flags (bitumenbahn/mineralwolle nicht saugend).
+r3 = d.berechne_tauwasser_glaser({"bauteil_typ": "wand", "schichten": [
+    {"name": "Gipskarton", "material": "gipskarton", "d": 0.0125, "lambda": 0.25, "mu": 8},
+    {"name": "Mineralwolle innen", "material": "mineralwolle", "d": 0.10, "lambda": 0.035, "mu": 1},
+    {"name": "Stahlbeton", "material": "stahlbeton", "d": 0.20, "lambda": 2.3, "mu": 130},
+    {"name": "Bitumenbahn außen", "material": "bitumenbahn", "d": 0.005, "lambda": 0.17, "mu": 20000},
+]})
+check("Tauebene an Bitumenbahn → Grenze 0,5 kg/m²",
+      any(abs(e["mc_max"] - 0.5) < 1e-9 for e in r3["tauebenen"]))
+check("Ebenen-Grenze fließt in Bewertung ein (mc>mc_max → nicht erfüllt)",
+      all(e["mc"] <= e["mc_max"] + 1e-9 for e in r3["tauebenen"]) or r3["erfuellt"] is False)
+# Ohne Materialschlüssel (manuelle Schicht) → konservativ kapillar, Grenze 1,0
+check("manuelle Schichten → Standardgrenze 1,0",
+      all(abs(e["mc_max"] - 1.0) < 1e-9 for e in r2["tauebenen"]))
+# Holz-Warnung: Tauwasser an OSB-Grenzfläche → gelb statt grün + Warnhinweis
+r4 = d.berechne_tauwasser_glaser({"bauteil_typ": "wand", "schichten": [
+    {"name": "Gipskarton", "material": "gipskarton", "d": 0.0125, "lambda": 0.25, "mu": 8},
+    {"name": "Mineralwolle", "material": "mineralwolle", "d": 0.16, "lambda": 0.035, "mu": 1},
+    {"name": "OSB außen", "material": "osb", "d": 0.015, "lambda": 0.13, "mu": 50},
+]})
+check("Holzwerkstoff an Tauebene → Warnung",
+      (not r4["tauwasser"]) or len(r4["warnungen"]) > 0)
+check("Holz-Warnung → Ampel gelb (kein falsches Grün)",
+      (not r4["tauwasser"]) or (r4["rating_color"] in ("yellow", "red")))
+check("Holz-Fall liefert wirklich Tauwasser (Testfall aussagekräftig)", r4["tauwasser"] is True)
+# Gelb-Pfad: Holzständerwand mit Dampfbremse sd=2 m → wenig Tauwasser an der OSB,
+# verdunstet wieder (zulässig), aber Holz beteiligt → „Erfüllt (mit Vorbehalt)"/gelb
+r5 = d.berechne_tauwasser_glaser({"bauteil_typ": "wand", "schichten": [
+    {"name": "Gipskarton", "material": "gipskarton", "d": 0.0125, "lambda": 0.25, "mu": 8},
+    {"name": "Dampfbremse sd2", "material": "dampfbremse_var", "d": 0.0005, "lambda": 0.5, "mu": 4000},
+    {"name": "Mineralwolle", "material": "mineralwolle", "d": 0.16, "lambda": 0.035, "mu": 1},
+    {"name": "OSB außen", "material": "osb", "d": 0.015, "lambda": 0.13, "mu": 50},
+]})
+check("Gelb-Pfad: zulässig trotz Tauwasser", r5["tauwasser"] is True and r5["erfuellt"] is True)
+check("Gelb-Pfad: Ampel gelb + Holz-Warnung",
+      r5["rating_color"] == "yellow" and len(r5["warnungen"]) == 1)
+check("Gelb-Pfad: 0,5-Grenze an MW/OSB eingehalten",
+      all(e["mc"] <= e["mc_max"] + 1e-9 for e in r5["tauebenen"])
+      and any(abs(e["mc_max"] - 0.5) < 1e-9 for e in r5["tauebenen"]))
 
 print("=== Feature 4: Wärmebrücken + Luftdichtheit ===")
 check("ΔU_WB Kat. A = 0.05", abs(d.waermebruecken_zuschlag("kat_a")["delta_u_wb"] - 0.05) < 1e-9)

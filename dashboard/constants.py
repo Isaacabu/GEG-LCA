@@ -18,7 +18,7 @@ SOLAR_FACTORS = {
 PRIMARY_ENERGY_FACTORS = {
     'gas': 1.1,       # Erdgas
     'heatpump': 1.8,  # Strom (Wärmepumpe)
-    'district': 0.7,  # Fernwärme (Standardannahme)
+    'district': 0.6,  # Fernwärme aus KWK, fossil (GEG Anlage 4; passend zu CO₂ 0,18)
     'pellet': 0.2,    # Holz/Biomasse
 }
 
