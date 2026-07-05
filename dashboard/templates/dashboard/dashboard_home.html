@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEGenius – Dashboard</title>
+<style>
+  :root { --bg:#081222; --panel:#0f2138; --line:#21456d; --text:#e7edf5; --muted:#9bb4c8; --cyan:#38bdf8; --green:#10b981; --gold:#f6b94b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Segoe UI',system-ui,-apple-system,sans-serif; color:var(--text); min-height:100vh;
+    background: radial-gradient(900px 500px at 80% -10%, rgba(16,185,129,.10), transparent 60%),
+                linear-gradient(180deg,#0a1830 0%, #081222 100%); }
+  .wrap { max-width:1120px; margin:0 auto; padding:44px 22px 64px; }
+  header.top { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:30px; }
+  .brand { font-size:25px; font-weight:800; letter-spacing:.2px; }
+  .brand span { color:var(--green); }
+  .sub { color:var(--muted); font-size:13.5px; margin-top:5px; }
+  .btn { border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:10px; padding:10px 16px;
+    font-size:14px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:border-color .15s, transform .1s; }
+  .btn:hover { border-color:var(--cyan); }
+  .btn:active { transform:translateY(1px); }
+  .btn-primary { background:linear-gradient(135deg,#10b981,#0ea5b7); border:0; color:#06231c; font-weight:800; }
+  .danger { background:#7f1d1d; border-color:#7f1d1d; color:#fff; }
+  .new-card { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap;
+    background:linear-gradient(135deg, rgba(16,185,129,.10), rgba(14,165,183,.06)); border:1px solid var(--line);
+    border-radius:18px; padding:24px 26px; margin-bottom:30px; }
+  .new-card .nc-title { font-size:19px; font-weight:800; }
+  h2.sec { font-size:14px; margin:0 0 16px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(290px,1fr)); gap:16px; }
+  .proj { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:17px 19px; display:flex; flex-direction:column; gap:11px; }
+  .proj h3 { margin:0; font-size:16.5px; word-break:break-word; }
+  .proj .meta { color:var(--muted); font-size:12.5px; margin-top:-4px; }
+  .proj .kpis { display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:#cfe0f2; }
+  .proj .kpis b { color:var(--gold); font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .proj .actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; }
+  .proj .actions .btn { padding:8px 14px; font-size:13px; }
+  .empty { background:var(--panel); border:1px dashed var(--line); border-radius:14px; padding:34px 24px; text-align:center; color:var(--muted); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="brand">GEG<span>enius</span> · Dashboard</div>
+      <div class="sub">GEG- &amp; Ökobilanz-Projekte verwalten</div>
+    </div>
+    <a class="btn btn-primary" href="/projekt/">＋ Neues Projekt</a>
+  </header>
+
+  <div class="new-card">
+    <div>
+      <div class="nc-title">Neues Projekt starten</div>
+      <div class="sub">Öffnet den Rechner mit einem Standardgebäude. Speichern im Rechner über „💾 Im Dashboard sichern".</div>
+    </div>
+    <a class="btn btn-primary" href="/projekt/">Rechner öffnen →</a>
+  </div>
+
+  <h2 class="sec">Gespeicherte Projekte</h2>
+  <div id="projects"></div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+    const LS = 'geglca_projects_v1';
+    function load() { try { const r = localStorage.getItem(LS); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    function save(a) { try { localStorage.setItem(LS, JSON.stringify(a)); } catch (e) {} }
+    function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function fmt(x, u) { return (x == null || !isFinite(x)) ? '—' : (Math.round(x * 10) / 10).toLocaleString('de-DE') + (u || ''); }
+
+    window.openProject = function (id) { location.href = '/projekt/?project=' + encodeURIComponent(id); };
+    window.deleteProject = function (id) { if (!confirm('Projekt wirklich löschen?')) return; save(load().filter(p => String(p.id) !== String(id))); render(); };
+
+    function render() {
+        const box = document.getElementById('projects');
+        const list = load().sort((a, b) => (b.id || 0) - (a.id || 0));
+        if (!list.length) {
+            box.innerHTML = '<div class="empty">Noch keine Projekte gespeichert.<br>Starte mit <b>„＋ Neues Projekt"</b> und sichere deinen Stand im Rechner über <b>„💾 Im Dashboard sichern"</b>.</div>';
+            return;
+        }
+        box.innerHTML = '<div class="grid">' + list.map(function (p) {
+            const s = p.summary || {};
+            return '<div class="proj"><h3>' + esc(p.name || 'Projekt') + '</h3>'
+                + '<div class="meta">' + esc(p.ts || '') + '</div>'
+                + '<div class="kpis"><span>Heizwärme <b>' + fmt(s.spec_heat, ' kWh/m²a') + '</b></span><span>Endenergie <b>' + fmt(s.spec_end, ' kWh/m²a') + '</b></span></div>'
+                + '<div class="actions"><button class="btn btn-primary" onclick="openProject(' + JSON.stringify(p.id) + ')">Öffnen</button>'
+                + '<button class="btn danger" onclick="deleteProject(' + JSON.stringify(p.id) + ')">Löschen</button></div></div>';
+        }).join('') + '</div>';
+    }
+    render();
+})();
+</script>
+</body>
+</html>

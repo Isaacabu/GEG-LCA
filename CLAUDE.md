@@ -15,17 +15,15 @@ commands from here.
 > Student/coursework project: `geglca/settings.py` ships `DEBUG=True` and a committed `SECRET_KEY`, SQLite is
 > the database, and `setup.py` creates an `admin`/`admin` superuser. Not production-hardened.
 
-## Two parallel applications (important)
+## The application
 
-This repo contains **two independent, overlapping implementations** of the same calculator. Know which one
-you're touching before editing:
+This repo is a **single Django app**: `manage.py`, `geglca/` (project), `dashboard/` (the app). It serves a
+large server-rendered single-page UI plus a JSON + DRF API. **This is what `Dockerfile` runs.**
 
-1. **Django monolith** (`manage.py`, `geglca/`, `dashboard/`) — the original and primary app. Serves a large
-   server-rendered single-page UI plus a JSON + DRF API. **This is what `Dockerfile` runs.**
-2. **TypeScript monorepo** (`package.json` workspaces → `apps/`, `packages/`) — a newer React + Express
-   rewrite with a shared, unit-tested calculation library. Fully fleshed out but separate from Django.
-
-Ignore as dead prototypes: `frontend/` (vanilla HTML/JS toy) and `backend/app.py` (a 10-line CO₂ stub).
+> History: a parallel React/TypeScript monorepo (`apps/`, `packages/`) plus two dead prototypes (`frontend/`,
+> `backend/app.py`) used to live here for design reference. They were **removed** (verified independent of the
+> Django app via the full smoke test) and archived under `../_repo_cleanup_backup/` (one level above the repo,
+> local only). `package.json` now only carries the Playwright dev-tooling, not an npm workspace.
 
 ## Django app
 
@@ -42,6 +40,17 @@ docker build -t geglca . && docker run -p 8000:8000 geglca
 ```
 
 ### Architecture
+- **DIN 4108 (Wärme-/Feuchteschutz) sits alongside the 18599 energy balance.** `dashboard/services/din4108.py`
+  implements four bauphysik proofs: Mindestwärmeschutz (Teil 2 §5, Tab. 3 → `pruefe_mindestwaermeschutz`),
+  sommerlicher Wärmeschutz / Sonneneintragskennwert (Teil 2 §8.4 → `berechne_sommerlicher_waermeschutz`),
+  Tauwasser/Glaser-Periodenbilanz (Teil 3 Anhang A + λ/μ aus Teil 4 → `berechne_tauwasser_glaser`, uses a
+  lower-convex-hull to locate condensation planes), and Wärmebrücken ΔU_WB (Bbl 2) + Luftdichtheit n50
+  (Teil 7 → `waermebruecken_zuschlag`/`pruefe_luftdichtheit`). Thin views `/calculate-mindestwaermeschutz/`,
+  `/calculate-sommerlicher-waermeschutz/`, `/calculate-tauwasser/`, `/calculate-luftdichtheit/`,
+  `/din4108-materialien/`; frontend tab „📋 DIN 4108" in `index.html`. Norm derivation + tables in
+  `docs/DIN4108_Umsetzung.md`; verification `scripts/verify_din4108.py`; PDFs in `DIN_4108/` (gitignore,
+  copyrighted) extracted via `scripts/din4108_extract.py`. The Bbl-2 ΔU_WB selector writes into the Hülle-tab
+  `delta_u_wb` field, feeding the 18599 heating balance.
 - **Heating demand uses a real DIN V 18599-2 monthly-balance engine.** `dashboard/services/din18599.py`
   (`calculate_heat_demand`) implements the monthly method (Q_h,b = Q_sink − η·Q_source per month, utilization
   factor η(γ,τ), Potsdam reference climate, Teil-10 usage profiles, Teil-1 factors). `dashboard/views.calculate`
@@ -87,27 +96,19 @@ docker build -t geglca . && docker run -p 8000:8000 geglca
 - The served UI is `dashboard/templates/dashboard/index.html` — a ~250 KB hand-written single-file page (no
   build step). `.bak` files and a stray 30 MB `data` blob under `templates/dashboard/` are cruft, not inputs.
 
-### Known quirks
-- `views.py` defines `upload_ekobaudat_csv` **twice**; the second definition shadows the first (the first is
-  dead). Edit the second one (~line 500).
-- `scripts/*.py` are standalone diagnostic/research scripts (check IDs, U-values, extract door data), not part
-  of the app's runtime.
+### Scripts & tooling
+- `scripts/*.py` are standalone tools, not part of the app's runtime. Kept on purpose: the norm-verification
+  scripts (`verify_din18599*.py`, `verify_din_geg.py`, `verify_din4108.py`) and PDF-extraction helpers
+  (`din_page.py`, `din_table.py`, `din4108_extract.py`). One-off diagnostic scripts (`check_*.py`, door/window
+  research extractors) were removed to `../_repo_cleanup_backup/`.
+- `scripts/smoke_app.js` is a Playwright end-to-end smoke test for the whole UI (run `npm run smoke` with the
+  dev server up); it clicks every tab and fails on any console/network error.
 
-## TypeScript monorepo (`apps/`, `packages/`)
+## Removed: TypeScript/React monorepo
 
-npm workspaces. Run from the repo root:
-```bash
-npm install
-npm run dev          # runs backend (tsx, :4001) + frontend (vite, :5173) in parallel
-npm test             # vitest in packages/shared
-npm run build        # builds the frontend
-npm --workspace @geg/backend run dev    # backend only
-```
-- `packages/shared` (`@geg/shared`) is the **source of truth for this stack's calculations** — strict TS
-  domain types (every value has units or is `null`, no silent defaults) plus `calculations/`
-  (`buildingPhysics`, `envelope`, `heating`) and `validation/`. It has the only real unit tests
-  (`buildingPhysics.test.ts`).
-- `apps/backend` is a thin Express layer (`src/server.ts` mounts routers under `/api`) that delegates math to
-  `@geg/shared` and serves Ökobaudat data parsed from `src/data/OBD_2024.csv`.
-- `apps/frontend` is React + Vite, importing `@geg/shared` for client-side calculation; component-heavy under
-  `src/components`, with a `useBuildingStore` hook holding state.
+The former `apps/` + `packages/` npm workspace (React + Vite frontend, Express backend, `@geg/shared` calc
+library) and the `frontend/`/`backend/` prototypes were **deleted** — they were a design-reference rewrite,
+never wired into the Django app. Verified safe (no Python import, template, static, settings, URL or Dockerfile
+dependency) and confirmed by the full Playwright smoke test before and after removal. Archived (recoverable)
+under `../_repo_cleanup_backup/`. Node tooling left in the repo is only Playwright (`package.json` →
+`npm run smoke`).

@@ -7,18 +7,24 @@ db.sqlite3
 venv/
 .venv/
 
-# --- Node (TypeScript-Monorepo) ---
+# --- Node ---
 node_modules/
-apps/frontend/dist/
 
 # --- Urheberrechtlich geschützte DIN-Normdaten: NIEMALS pushen! ---
 # (liegen lokal eine Ebene über dem Repo: ../DIN V 18599/ und ../din_texts/)
 output/
 din_texts/
 *18599*.pdf
+DIN_4108/
+Din En ISO/
+*ISO 140*.pdf
 scripts/_din_render/
+scripts/_din4108_text/
 docs/din_pdfs/*
 !docs/din_pdfs/README.md
+
+# --- Test-Artefakte (lokal) ---
+scripts/_smoke/
 
 # --- Altlasten / große Duplikate ---
 GEG-LCA-mainNeu.zip

@@ -15,6 +15,10 @@ Dokumentierte Vereinfachungen:
 - Elektro-Wärmepumpe: Carnot-Gütegrad-Monatsmodell statt BIN-Verfahren (Anhang B/C),
   Gütegrad aus COP-Eingabe am Prüfpunkt A2/W35; TWW-Senke 55 °C.
 - Keine Solarthermie, kein KWK, keine Mehrkesselanlagen (kein UI-Input).
+- Lüftungs-Bedarfsregelung (Einzelraumregelung 0,85 · zentrale Vorregelung 0,92) wirkt als
+  Reduktionsfaktor auf den geförderten Luftvolumenstrom (Teil 6); Verteilleitungen außerhalb
+  der Hülle (+10 %) und Auslässe überwiegend an der Außenwand (+3 %) als Zuschläge auf die
+  RLT-Aufbereitung – Standardwert-Näherungen, kein detailliertes Kanalnetz.
 """
 from __future__ import annotations
 
@@ -44,7 +48,9 @@ U_PIPE_SA = 0.255           # W/(m·K) Strang/Anbindung, gedämmt nach 1995
 F_HS_HI = {"gas": 1.11, "pellet": 1.08}   # Brennwert/Heizwert-Verhältnis (Teil 5, 4.2)
 
 # Primärenergie- (GEG 2024 Anlage 4) und CO₂-Faktoren (GEG Anlage 9), je Energieträger.
-F_PRIMARY = {"gas": 1.1, "pellet": 0.2, "district": 0.7, "electricity": 1.8}
+# Fernwärme = "aus KWK, fossiler Brennstoff": f_P = 0,6 (Anlage 4) passend zum
+# CO₂-Faktor 0,18 (Anlage 9). 0,7 war der alte EnEV-/DIN-18599-1-Pauschalwert.
+F_PRIMARY = {"gas": 1.1, "pellet": 0.2, "district": 0.6, "electricity": 1.8}
 F_CO2 = {"gas": 0.240, "pellet": 0.020, "district": 0.180, "electricity": 0.560}
 
 # ---------------------------------------------------------------------------
@@ -213,23 +219,42 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     vent = VENT_SYSTEMS.get(vent_key, VENT_SYSTEMS["none"])
     hr_eff = safe_float(data.get("ventilation_heat_recovery_eff"), 0.8)
     fan_dc = str(data.get("ventilation_fan_type", "ac")).strip().lower() == "dc"
+    mechanical_vent = vent_key != "none"
+
+    # Bedarfsregelung & Verteilung/Übergabe (Teil 6): Einzelraumregelung und zentrale
+    # Vorregelung senken den geförderten Luftvolumenstrom (weniger Überlüftung) →
+    # weniger RLT-Heizung und Ventilatorstrom. Verteilleitungen außerhalb der beheizten
+    # Hülle und überwiegend an der Außenwand liegende Auslässe erhöhen die Verluste.
+    room_control = str(data.get("ventilation_room_control", "without")).strip().lower()
+    precontrol = str(data.get("ventilation_precontrol", "without")).strip().lower()
+    duct_outside = str(data.get("ventilation_distribution", "innerhalb")).strip().lower() \
+        in ("außerhalb", "ausserhalb", "outside")
+    outlet_outer = str(data.get("ventilation_outlet_arrangement", "outer")).strip().lower() \
+        in ("outer", "außen", "aussen")
+    f_vent_ctrl = 1.0
+    if mechanical_vent and room_control == "with":
+        f_vent_ctrl *= 0.85      # Einzelraumregelung (bedarfsgeführt)
+    if mechanical_vent and precontrol == "with":
+        f_vent_ctrl *= 0.92      # zentrale Vorregelung
+    n_mech = N_MECH * f_vent_ctrl                      # geregelter Anlagenluftwechsel
+    f_duct = 1.10 if (mechanical_vent and duct_outside) else 1.0      # Kanalverluste
+    f_outlet = 1.03 if (mechanical_vent and outlet_outer) else 1.0    # Übergabe Außenwand
 
     if "n_eff_fixed" in vent:
         n_eff = vent["n_eff_fixed"]
     elif vent["hr"]:
-        n_eff = N_INF + N_MECH * (1.0 - hr_eff)      # Teil 6 Gl. (14)/(15)
+        n_eff = N_INF + n_mech * (1.0 - hr_eff)      # Teil 6 Gl. (14)/(15)
     elif vent_key == "none":
         # Freie Lüftung: Profil-Luftwechsel nutzungszeitgewichtet (wie im Teil-2-Kern)
         usage_share = (profile["usage_days"] / 365.0) * (profile["usage_hours"] / 24.0)
         n_eff = (profile["air_change"] * usage_share
                  + N_INFILTRATION * (1.0 - usage_share))
     else:
-        n_eff = N_INF + N_MECH                        # Abluft/Zu-Abluft ohne WRG
+        n_eff = N_INF + n_mech                        # Abluft/Zu-Abluft ohne WRG
 
     # Aufteilung Lüftung: nur die Infiltration bleibt in der Zonenbilanz (Teil 2);
     # der maschinell geförderte Anteil wird als RLT-Luftaufbereitung (Teil 3) separat
     # auf Raumtemperatur erwärmt (kein doppelter Lüftungs-Wärmeverlust).
-    mechanical_vent = vent_key != "none"
     if mechanical_vent:
         n_zone = N_INF
         n_rlt = max(n_eff - N_INF, 0.0)
@@ -336,12 +361,16 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     theta_ds = DISTRICT["d_ds"] * DISTRICT["theta_prim"] + (1 - DISTRICT["d_ds"]) * theta_sek
     h_ds = DISTRICT["b_ds"] * max(p_n, 1.0) ** (1.0 / 3.0)          # Gl. (243)
 
+    # Zirkulations-Laufzeit z (Gl. 18): EFH ≤ 24 h, MFH 16–24 h. Einmal berechnet,
+    # gilt identisch für Pumpen-Hilfsenergie (Gl. 17) und Verlust-Betriebszeit (Gl. 13).
+    z_circ = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)
+    if is_mfh:
+        z_circ = max(z_circ, 16.0)
+
     # Zirkulationspumpe (Teil 8, 6.2.2.4)
     w_circ_pump_year = 0.0
     if with_circ:
-        z = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)             # Gl. (18)
-        if is_mfh:
-            z = max(z, 16.0)
+        z = z_circ
         p_wda = (U_PIPE_V * lw["v"] + U_PIPE_SA * lw["s"]) * (THETA_W_CIRC - theta_i)  # Gl. (21) [W]
         v_flow = p_wda / (1.15 * 5.0 * 1000.0)                      # Gl. (20) [m³/h]
         l_max_w = 2.0 * (l_char + 2.5 + n_storeys * room_height)    # Gl. (23)
@@ -363,7 +392,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Lüftung: Ventilator-Hilfsenergie (Teil 6, Gl. 60)
     spi = (vent["spi_dc"] if fan_dc else vent["spi_ac"])
-    w_fan_year = 0.001 * spi * N_MECH * volume * 24.0 * 365.0 if vent_key != "none" else 0.0
+    w_fan_year = 0.001 * spi * n_mech * volume * 24.0 * 365.0 if vent_key != "none" else 0.0
 
     # ------------------------------------------------------------------
     # Monatsschleife
@@ -416,8 +445,8 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
 
         # ---------- RLT-Luftaufbereitung (Teil 3): Zuluft auf Raumtemperatur ----------
         # Q_RLT = n_rlt · V · c_Luft · (θ_i − θ_e) · t   [kWh]; geht über denselben Erzeuger.
-        q_rlt = (n_rlt * volume * 0.34 * max(theta_i - theta_e, 0.0) * t_month_h / 1000.0
-                 if n_rlt > 0 else 0.0)
+        q_rlt = (f_duct * f_outlet * n_rlt * volume * 0.34 * max(theta_i - theta_e, 0.0)
+                 * t_month_h / 1000.0 if n_rlt > 0 else 0.0)
 
         q_h_outg = q_hb + q_hce + q_hd + q_hs + q_rlt
 
@@ -425,7 +454,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         theta_w_free = 25.0 * U_PIPE_SA ** -0.2      # ≈ 32,9 °C (ohne Zirkulation)
         amb_in = theta_i if heating else 22.0
         if with_circ:
-            z_h = min(10.0 + 1.0 / (0.07 + 50.0 / bgf), 24.0)
+            z_h = z_circ
             loss_circ = (U_PIPE_V * lw["v"] * (THETA_W_CIRC - theta_cellar)
                          + U_PIPE_SA * lw["s"] * (THETA_W_CIRC - amb_in)) * z_h
             loss_rest = (U_PIPE_V * lw["v"] / 2.0 * (theta_w_free - theta_cellar)
@@ -641,6 +670,11 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
             "emission_label": em["label"],
             "n_eff_air_change": round(n_eff, 3),
             "ventilation_label": vent["label"],
+            "vent_control_factor": round(f_vent_ctrl, 3),
+            "vent_room_control": room_control == "with",
+            "vent_precontrol": precontrol == "with",
+            "vent_duct_outside": duct_outside,
+            "vent_outlet_outer": outlet_outer,
             "phi_max_kw": round(phi_max, 2),
             "p_n_kw": round(p_n, 1),
             "q_h_b": round(sums["q_hb"], 1),

@@ -9,6 +9,18 @@ from django.views.decorators.csrf import csrf_exempt
 from .utils import safe_float, validate_non_negative, validate_u_value, get_rating
 from .services.din18599 import calculate_heat_demand
 from .services.din18599_anlage import calculate_system_din
+from .services.din4108 import (
+    pruefe_mindestwaermeschutz,
+    berechne_sommerlicher_waermeschutz,
+    berechne_tauwasser_glaser,
+    pruefe_luftdichtheit,
+    material_db,
+)
+
+
+def home(request):
+    """Dashboard-Startseite: gespeicherte Projekte ansehen + neues Projekt anlegen."""
+    return render(request, "dashboard/dashboard_home.html")
 
 
 def index(request):
@@ -58,6 +70,67 @@ def calculate_system(request):
             "ok": False,
             "errors": [f"Unerwarteter Fehler: {str(e)}"]
         }, status=500)
+
+
+# ===========================================================================
+# DIN 4108 – Bauphysikalische Nachweise (Rechenlogik: services/din4108.py;
+# normative Herleitung: docs/DIN4108_Umsetzung.md)
+# ===========================================================================
+@csrf_exempt
+def calculate_mindestwaermeschutz(request):
+    """Mindestwärmeschutz-Nachweis je Bauteil (DIN 4108-2:2026-05, §5, Tab. 3)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    try:
+        data = json.loads(request.body)
+        result = pruefe_mindestwaermeschutz(data)
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+
+
+@csrf_exempt
+def calculate_sommerlicher_waermeschutz(request):
+    """Sommerlicher Wärmeschutz – Sonneneintragskennwert (DIN 4108-2:2026-05, §8.4)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    try:
+        data = json.loads(request.body)
+        result = berechne_sommerlicher_waermeschutz(data)
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+
+
+@csrf_exempt
+def calculate_tauwasser(request):
+    """Tauwassernachweis / Glaser-Periodenbilanzverfahren (DIN 4108-3:2024-03)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    try:
+        data = json.loads(request.body)
+        result = berechne_tauwasser_glaser(data)
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+
+
+@csrf_exempt
+def calculate_luftdichtheit(request):
+    """Luftdichtheit n50-Nachweis (DIN 4108-7:2026-04, §5)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    try:
+        data = json.loads(request.body)
+        result = pruefe_luftdichtheit(data)
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    except Exception as e:
+        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+
+
+def din4108_materialien(request):
+    """Material-Bemessungswerte (λ/μ, DIN 4108-4) für den Glaser-Schichteditor."""
+    return JsonResponse({"ok": True, "materialien": material_db()}, status=200)
 
 
 # --- Photovoltaik nach DIN V 18599-9 (Gl. 64–67, Anhang B) ---
@@ -283,95 +356,6 @@ def calculate_balance(request):
 
     except Exception as e:
         return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
-
-
-@csrf_exempt
-def upload_ekobaudat_csv(request):
-    """
-    Upload und Import einer ÖKOBAUDAT CSV-Datei.
-    Erwartet multipart/form-data mit 'file' Parameter (CSV-Datei)
-    """
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-
-    try:
-        if "file" not in request.FILES:
-            return JsonResponse({"error": "Keine CSV-Datei hochgeladen"}, status=400)
-
-        csv_file = request.FILES["file"]
-        
-        # Prüfe Datei-Endung
-        if not csv_file.name.lower().endswith(".csv"):
-            return JsonResponse({"error": "Nur CSV-Dateien werden akzeptiert"}, status=400)
-
-        # Lese CSV aus Memory
-        from .csv_utils import extract_material_data, detect_delimiter
-        import csv
-        
-        # Dekodiere CSV-Inhalt
-        try:
-            content = csv_file.read().decode('utf-8-sig')
-        except UnicodeDecodeError:
-            try:
-                content = csv_file.read().decode('cp1252')
-            except UnicodeDecodeError:
-                content = csv_file.read().decode('latin-1')
-        
-        # Erkenne Trennzeichen
-        sample = content[:4096]
-        delimiter = detect_delimiter(sample)
-        
-        # Parse CSV
-        reader = csv.DictReader(content.splitlines(), delimiter=delimiter)
-        rows = list(reader)
-        
-        if not rows:
-            return JsonResponse({"error": "CSV-Datei ist leer"}, status=400)
-        
-        imported = 0
-        updated = 0
-        skipped = 0
-        errors_list = []
-        
-        for idx, row in enumerate(rows, start=2):  # start=2 weil Zeile 1 Header ist
-            try:
-                parsed = extract_material_data(row)
-                if not parsed or not parsed["name"]:
-                    skipped += 1
-                    continue
-                
-                defaults = {
-                    "producer": parsed["producer"],
-                    "category": parsed["category"],
-                    "u_value": parsed["u_value"],
-                    "embodied_co2": parsed["embodied_co2"],
-                    "notes": parsed["notes"],
-                }
-                
-                obj, created = EkobaudatMaterial.objects.update_or_create(
-                    name=parsed["name"],
-                    defaults=defaults,
-                )
-                if created:
-                    imported += 1
-                else:
-                    updated += 1
-            except Exception as e:
-                errors_list.append(f"Zeile {idx}: {str(e)}")
-                skipped += 1
-        
-        return JsonResponse({
-            "ok": True,
-            "file": csv_file.name,
-            "total_rows": len(rows),
-            "imported": imported,
-            "updated": updated,
-            "skipped": skipped,
-            "errors": errors_list[:10],  # Nur erste 10 Fehler zeigen
-        })
-
-    except Exception as e:
-        return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
 
 @csrf_exempt
@@ -883,10 +867,15 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
         for layer in layers_in:
             key = str(layer.get('material', '')).strip()
             thickness_m = safe_float(layer.get('thickness_mm'), 0.0) / 1000.0
-            uuid = self.LAYER_OBD_MAP.get(key)
+            # Direkte ÖKOBAUDAT-UUID (aus der Materialsuche) hat Vorrang, sonst
+            # Frontend-Schlüssel über die feste Preset-Zuordnung.
+            uuid = str(layer.get('uuid', '')).strip() or self.LAYER_OBD_MAP.get(key)
             mat = EkobaudatMaterial.objects.filter(uuid=uuid).first() if uuid else None
             if mat is None or mat.gwp_a1a3 is None:
                 missing.append(key or '(leer)')
+                # Ergebnis-Eintrag trotzdem anhängen (Reihenfolge 1:1 zu den Eingabe-Schichten,
+                # damit das Frontend den Wert je Zeile zuordnen kann).
+                results.append({'material': key, 'dataset': None, 'dataset_type': None, 'uuid': uuid or None, 'gwp_per_m2': None})
                 continue
             qty = mat.ref_quantity or 1.0
             unit = (mat.ref_unit or '').lower()
@@ -899,6 +888,7 @@ class EkobaudatMaterialViewSet(viewsets.ModelViewSet):
                 gwp_per_m2 = mat.gwp_a1a3 / qty
             if gwp_per_m2 is None:
                 missing.append(key)
+                results.append({'material': key, 'dataset': mat.name, 'dataset_type': mat.dataset_type, 'uuid': mat.uuid, 'gwp_per_m2': None})
                 continue
             total_per_m2 += gwp_per_m2
             results.append({

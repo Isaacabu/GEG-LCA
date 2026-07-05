@@ -10,10 +10,13 @@ aus den Normteilen verifiziert (siehe docs/DIN18599_Umsetzung.md):
 - Primärenergie-/CO₂-Faktoren: DIN V 18599-1:2018-09, Tabelle A.1
 
 Bewusst dokumentierte Vereinfachungen für Stufe 1:
-- Ein-Zonen-Modell; bundesweit Referenzklima Deutschland (Potsdam) statt 15 Klimaregionen.
+- Ein-Zonen-Modell; Referenzklima Deutschland (Potsdam) mit optionaler, NICHT
+  normativer Bundesland-Skalierung (climate.py) + Höhenkorrektur.
 - Konstante Luftwechselrate je Monat (kein detaillierter Teil-6-Anlagenansatz).
-- Nachtabsenkung (reduzierter Betrieb, ΔQ_c,b) noch nicht berücksichtigt → leicht konservativ.
+- Nachtabsenkung (Teil 2, Gl. 28–30) ist implementiert (night_setback=false zum Abschalten).
 - Verschattung pauschal (F_S = 0,9); erdberührte F_x über Profil/Frontend.
+- Opake solare Gewinne / langwellige Abstrahlung (§6.4.1) nicht angesetzt (bei
+  Wohnbau klein und teilkompensierend).
 """
 from __future__ import annotations
 
@@ -65,7 +68,8 @@ C_AIR = 0.34          # Wärmespeicherfähigkeit Luft, Wh/(m³·K) – §6.3, Gl
 F_FRAME = 0.7         # Rahmenanteil F_F (Anteil transparenter Fläche) – §6.4
 F_SHADING = 0.9       # bauliche Verschattung F_S (Default ohne Verbauung) – §6.4.3
 F_INCIDENCE = 0.9     # nicht senkrechter Strahlungseinfall F_W – §6.4
-F_SOILING = 0.9       # Verschmutzung F_V – §6.4
+F_SOILING = 1.0       # Verschmutzung F_V – Teil 10 Tab. 4: F_V = 1 (Wohnen).
+#                       Vorher fälschlich 0,9 zusätzlich zu F_W → Gewinne ~10 % zu niedrig.
 TAU_0 = 16.0          # h, Monatsbilanz – §6.7.3, Gl. (144)
 A_0 = 1.0             # –, Monatsbilanz – §6.7.3, Gl. (144)
 DELTA_U_WB = 0.10     # W/(m²K) pauschaler Wärmebrückenzuschlag – Gl. (47) / GEG §24
@@ -316,7 +320,24 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         delta_u_wb = DELTA_U_WB
     h_bridges = delta_u_wb * wb_area
 
-    h_t = wall_total + roof_loss + floor_loss + window_total + door_total + h_bridges  # [W/K]
+    # Fenster-Einbauwärmebrücken (linear): H_WB,Fenster = Σ ψ_i · L_i über die
+    # Anschlüsse Seiten (Laibung Seite 1+2), Sturz und Brüstung. ψ [W/mK] und die
+    # Bezugslängen L [m] (automatisch aus der Fenstergeometrie) kommen vom Frontend.
+    def _psi(key: str) -> float:
+        v = safe_float(data.get(key), 0.0)
+        return v if 0.0 <= v <= 0.5 else 0.0
+
+    def _len(key: str) -> float:
+        v = safe_float(data.get(key), 0.0)
+        return v if v >= 0.0 else 0.0
+
+    h_window_bridges = (
+        _psi("window_psi_seiten") * _len("window_len_seiten")
+        + _psi("window_psi_sturz") * _len("window_len_sturz")
+        + _psi("window_psi_bruestung") * _len("window_len_bruestung")
+    )
+
+    h_t = wall_total + roof_loss + floor_loss + window_total + door_total + h_bridges + h_window_bridges  # [W/K]
     h_v = air_change * volume * C_AIR                                                  # [W/K] (Gl. 63)
     h_total = h_t + h_v
 
@@ -372,8 +393,12 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
 
         # Solare Wärmequellen je Orientierung [kWh] (Gl. 112/113)
         # A_eff = A · F_F · F_S · F_W · F_V ; Q_sol = A_eff · g · I_S
+        # Fenster in Wänden mit F_x = 0 (an beheizten Nachbarraum, Einzelraum-Fall)
+        # liegen nicht in der Außenhülle → keine solaren Gewinne ansetzen.
         q_solar = 0.0
         for orient in ORIENTATIONS:
+            if _wall_fx(orient) <= 0.0:
+                continue
             # I_S der Potsdam-Referenz, regional skaliert (Globalstrahlungsniveau)
             irr_kwh = I_S[orient][m] * radiation_factor * 24.0 * days / 1000.0   # kWh/m² im Monat
             q_solar += (windows[orient] * g_value
@@ -473,6 +498,9 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "south_loss": wall_losses["south"],
         "east_loss": wall_losses["east"],
         "west_loss": wall_losses["west"],
+        # Alle 8 Orientierungen (inkl. Diagonalen) – für die Wand-Ergebnischips
+        # bei komplexer Geometrie (Frontend rendert je tatsächlicher Wand).
+        "wall_losses": wall_losses,
         "wall_total": round(wall_total, 2),
         "roof_loss": roof_loss,
         "floor_loss": floor_loss,
@@ -489,6 +517,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # H_T (Transmission) wie bisher als "envelope_total" (W/K); zusätzlich H gesamt.
         "envelope_total": round(h_t, 2),
         "thermal_bridge_loss": round(h_bridges, 2),     # ΔU_WB·A_Hülle [W/K]
+        "window_bridge_loss": round(h_window_bridges, 2),  # Σ ψ·L Fenster (Seiten/Sturz/Brüstung) [W/K]
         "delta_u_wb": delta_u_wb,                        # angesetzter Wärmebrückenzuschlag [W/m²K]
         "envelope_area_m2": round(envelope_area, 1),
         "h_transmission": round(h_t, 2),
