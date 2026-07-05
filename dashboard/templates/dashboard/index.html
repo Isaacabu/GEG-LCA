@@ -1289,6 +1289,12 @@ input[type="checkbox"], input[type="radio"] {
   letter-spacing: .04em;
   margin-top: 4px;
 }
+/* Einheiten-Spalten nicht großschreiben: bei Einheiten ist die Schreibweise
+   bedeutungstragend (m = Meter vs. M = Mega, k = Kilo vs. K = Kelvin). */
+.wall-layers-header .wl-col-thick,
+.wall-layers-header .wl-col-lambda,
+.wall-layers-header .wl-col-r,
+.wall-layers-header .wl-col-gwp { text-transform: none; letter-spacing: 0; }
 .wall-layer-row {
   display: grid;
   grid-template-columns: 32px 1fr 84px 1.25fr 72px 62px 86px 34px;
@@ -1974,16 +1980,16 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                     <div class="field">
                         <label>Wärmebrückenzuschlag ΔU_WB (GEG §24)
-                            <span class="info-i" data-tip="Pauschaler Wärmebrückenzuschlag auf die gesamte Hüllfläche (DIN V 18599-2, Gl. 47).&#10;0,10 W/m²K: ohne Nachweis (GEG-Standard).&#10;0,05 W/m²K: mit Gleichwertigkeitsnachweis nach DIN 4108 Beiblatt 2.&#10;0,03 W/m²K: wärmebrückenoptimiert (Passivhaus).">i</span>
+                            <span class="info-i" data-tip="Pauschaler Wärmebrückenzuschlag auf die gesamte Hüllfläche (DIN V 18599-2, Gl. 47).&#10;0,10 W/(m²·K): ohne Nachweis (GEG-Standard).&#10;0,05 W/(m²·K): mit Gleichwertigkeitsnachweis nach DIN 4108 Beiblatt 2.&#10;0,03 W/(m²·K): wärmebrückenoptimiert (Passivhaus).">i</span>
                         </label>
                         <select id="delta_u_wb" onchange="toggleDeltaUwbCustom()">
-                            <option value="0.10">0,10 W/m²K – pauschal ohne Nachweis (GEG-Standard)</option>
-                            <option value="0.05">0,05 W/m²K – mit Gleichwertigkeitsnachweis (Beiblatt 2)</option>
-                            <option value="0.03">0,03 W/m²K – wärmebrückenoptimiert (Passivhaus)</option>
+                            <option value="0.10">0,10 W/(m²·K) – pauschal ohne Nachweis (GEG-Standard)</option>
+                            <option value="0.05">0,05 W/(m²·K) – mit Gleichwertigkeitsnachweis (Beiblatt 2)</option>
+                            <option value="0.03">0,03 W/(m²·K) – wärmebrückenoptimiert (Passivhaus)</option>
                             <option value="custom">Benutzerdefiniert – manuell eingeben …</option>
                         </select>
                         <input id="delta_u_wb_custom" type="number" step="0.01" min="0" value="0.10"
-                               placeholder="z. B. 0,07 W/m²K" style="display:none; margin-top:6px;"
+                               placeholder="z. B. 0,07 W/(m²·K)" style="display:none; margin-top:6px;"
                                onchange="document.getElementById('delta_u_wb').dispatchEvent(new Event('change',{bubbles:true}))">
                     </div>
                     <!-- Gradstunden: versteckt, Standardwert 66000 Kh/a (Augsburg/Süddeutschland) -->
@@ -2168,9 +2174,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <span class="wl-col-type">Schichttyp</span>
                         <span class="wl-col-thick">Dicke (mm)</span>
                         <span class="wl-col-mat">Material (λ nach DIN 4108-4)</span>
-                        <span class="wl-col-lambda">λ W/mK</span>
-                        <span class="wl-col-r">R m²K/W</span>
-                        <span class="wl-col-gwp">CO₂ kg/m²</span>
+                        <span class="wl-col-lambda">λ [W/(m·K)]</span>
+                        <span class="wl-col-r">R [m²·K/W]</span>
+                        <span class="wl-col-gwp">kg CO₂e/m²</span>
                         <span class="wl-col-del"></span>
                     </div>
                     <div id="wall_layers_container"></div>
@@ -2217,7 +2223,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                     <div class="wall-u-row">
                         <span class="wall-u-label">R<sub>si</sub> + R<sub>se</sub></span>
-                        <div class="value-display">0.17 m²K/W</div>
+                        <div class="value-display">0.17 m²·K/W</div>
                     </div>
                     <div class="wall-u-row wall-u-highlight">
                         <span class="wall-u-label">U-Wert Außenwand</span>
@@ -2338,7 +2344,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             <div class="value-display" id="window_total_area_display">32</div>
                         </div>
                         <div class="field">
-                            <label>U_w – Standard (W/m²K)</label>
+                            <label>U_w – Standard [W/(m²·K)]</label>
                             <input id="window_u" type="number" step="0.01" value="1.10" onchange="applyGlobalWindowUG()" title="Standard-U-Wert für alle Fenster; einzelne Fenster im 3D-Modell anklicken zum Überschreiben">
                         </div>
                     </div>
@@ -2362,7 +2368,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div id="window_list" class="elem-list"></div>
                     <div class="grid-2" style="margin-top:10px;">
                         <div class="field"><label>g-Wert – Standard (0–1)</label><input id="g_value" type="number" step="0.01" value="0.55" onchange="applyGlobalWindowUG()" title="Standard-g-Wert für alle Fenster"></div>
-                        <div class="field"><label>ψ Fenster gesamt (W/(m²·K))</label><div class="value-display" id="win_psi_total_top">—</div></div>
+                        <div class="field"><label>ψ Fenster gesamt [W/(m²·K)]</label><div class="value-display" id="win_psi_total_top">—</div></div>
                     </div>
                     <!-- Fenster-Einbauwärmebrücken: H_WB,Fenster = Σ ψ · Bezugslänge (Seiten/Sturz/Brüstung) -->
                     <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);">
@@ -2372,9 +2378,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             <button type="button" class="btn" style="padding:3px 10px;font-size:12px;" onclick="applyAutoWindowPsi(true)" title="Alle drei ψ-Werte wieder aus dem aktuellen Wandaufbau ableiten">↻ Aus Wandaufbau</button>
                         </div>
                         <div class="grid-3" style="gap:8px;">
-                            <div class="field"><label>ψ Seiten (W/mK)</label><input id="win_psi_seiten" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag der beiden seitlichen Laibungen (Seite 1 + 2). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
-                            <div class="field"><label>ψ Sturz (W/mK)</label><input id="win_psi_sturz" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am oberen Anschluss (Sturz). Bei ungedämmtem Rollladenkasten manuell erhöhen."></div>
-                            <div class="field"><label>ψ Brüstung (W/mK)</label><input id="win_psi_bruestung" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am unteren Anschluss (Brüstung). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
+                            <div class="field"><label>ψ Seiten [W/(m·K)]</label><input id="win_psi_seiten" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag der beiden seitlichen Laibungen (Seite 1 + 2). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
+                            <div class="field"><label>ψ Sturz [W/(m·K)]</label><input id="win_psi_sturz" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am oberen Anschluss (Sturz). Bei ungedämmtem Rollladenkasten manuell erhöhen."></div>
+                            <div class="field"><label>ψ Brüstung [W/(m·K)]</label><input id="win_psi_bruestung" type="number" step="0.01" min="0" value="0.04" data-auto="1" oninput="onWinPsiInput(this)" title="Linearer Wärmebrückenzuschlag am unteren Anschluss (Brüstung). Automatisch aus dem Wandaufbau; manuell überschreibbar."></div>
                         </div>
                         <!-- Klar aufbereitetes Ergebnis: ψ · Länge = Verlust je Anschluss + Gesamt + Einordnung -->
                         <div id="win_wb_result" class="win-wb-panel"></div>
@@ -2408,7 +2414,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         </div>
                     </div>
                     <div class="field">
-                        <label>U-Wert – Standard (W/m²K)</label>
+                        <label>U-Wert – Standard [W/(m²·K)]</label>
                         <input id="door_u" type="number" step="0.01" value="2.5" onchange="applyGlobalDoorU()" title="Standard-U-Wert für alle Türen; einzelne Tür im 3D-Modell anklicken zum Überschreiben">
                     </div>
                     <p class="note" style="margin:10px 0 6px;">Türen nach Orientierung <strong>(automatisch aus den Einzeltüren)</strong>:</p>
@@ -2518,9 +2524,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <span class="wl-col-type">Schichttyp</span>
                                 <span class="wl-col-thick">Dicke (mm)</span>
                                 <span class="wl-col-mat">Material (λ nach DIN 4108-4)</span>
-                                <span class="wl-col-lambda">λ W/mK</span>
-                                <span class="wl-col-r">R m²K/W</span>
-                                <span class="wl-col-gwp">CO₂ kg/m²</span>
+                                <span class="wl-col-lambda">λ [W/(m·K)]</span>
+                                <span class="wl-col-r">R [m²·K/W]</span>
+                                <span class="wl-col-gwp">kg CO₂e/m²</span>
                                 <span class="wl-col-del"></span>
                             </div>
                             <div id="roof_layers_container"></div>
@@ -2543,7 +2549,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="field" id="roof_u_field" style="display:none;">
                         <label>Dach U-Wert – manuell eingeben <span style="color:#c0392b;">*</span></label>
                         <input id="roof_u_manual" type="number" step="0.01" min="0.05" max="6" placeholder="z.B. 0.20" required oninput="updateRoofManualU()">
-                        <small style="color:#666;">Pflichtfeld bei manueller Eingabe (typisch 0,14–0,45 W/m²K)</small>
+                        <small style="color:#666;">Pflichtfeld bei manueller Eingabe (typisch 0,14–0,45 W/(m²·K))</small>
                     </div>
                     <div class="grid-2">
                         <div class="field">
@@ -2609,9 +2615,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 <span class="wl-col-type">Schichttyp</span>
                                 <span class="wl-col-thick">Dicke (mm)</span>
                                 <span class="wl-col-mat">Material (λ nach DIN 4108-4)</span>
-                                <span class="wl-col-lambda">λ W/mK</span>
-                                <span class="wl-col-r">R m²K/W</span>
-                                <span class="wl-col-gwp">CO₂ kg/m²</span>
+                                <span class="wl-col-lambda">λ [W/(m·K)]</span>
+                                <span class="wl-col-r">R [m²·K/W]</span>
+                                <span class="wl-col-gwp">kg CO₂e/m²</span>
                                 <span class="wl-col-del"></span>
                             </div>
                             <div id="floor_layers_container"></div>
@@ -2684,6 +2690,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <div class="ht-row"><span>Wärmebrücken (ΔU_WB·A)</span><span id="ht_bridges">—</span></div>
                 <div class="ht-row"><span>Wärmebrücken Fenster (ψ·L)</span><span id="ht_window_bridges">—</span></div>
                 <div class="ht-row ht-total"><span>H_T gesamt</span><span id="ht_total">—</span></div>
+                <div class="ht-row ht-total"><span>H_T′ spezifisch (H_T ÷ Hüllfläche A) <span class="info-i" data-tip="Spezifischer Transmissionswärmeverlust H_T′ in W/(m²·K) – GEG-Kennwert (Anlage 1/7: Höchstwert je Gebäudetyp, z. B. 0,40 für freistehende Wohngebäude).">i</span></span><span id="ht_specific">—</span></div>
             </div>
 
             <!-- ⑤ Ergebniszeile: in den Energiebilanz-Tab verschoben (IDs bleiben, Berechnungskette unverändert) -->
@@ -2893,8 +2900,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
                 <div class="pv-hero-kpis">
                     <div class="pv-hero-kpi"><span id="pv_hero_kwp">—</span><small>kWp installiert</small></div>
-                    <div class="pv-hero-kpi"><span id="pv_hero_spec">—</span><small>kWh / kWp·a</small></div>
-                    <div class="pv-hero-kpi"><span id="pv_hero_co2">—</span><small>kg CO₂/a gespart</small></div>
+                    <div class="pv-hero-kpi"><span id="pv_hero_spec">—</span><small>kWh/(kWp·a)</small></div>
+                    <div class="pv-hero-kpi"><span id="pv_hero_co2">—</span><small>kg CO₂e/a gespart</small></div>
                     <div class="pv-hero-kpi"><span id="pv_hero_benefit">—</span><small>€/a Nutzen</small></div>
                 </div>
             </div>
@@ -3001,7 +3008,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <label>Zusätzliche Verschattung (%)</label>
                         <input id="pv_losses" type="number" step="0.1" value="5" min="0" max="50">
                         <small style="color:#888;">System-/Wechselrichterverluste stecken bereits im
-                        spezifischen Ertrag (kWh/kWp·a) – hier nur standortbedingte Verschattung.</small>
+                        spezifischen Ertrag (kWh/(kWp·a)) – hier nur standortbedingte Verschattung.</small>
                     </div>
 
                     <div class="field">
@@ -3049,7 +3056,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div class="value" id="pv_feed_in_kwh">—</div>
                     </div>
                     <div class="stat-box">
-                        <span class="info-i" data-tip="Jahresertrag × 0,56 kg CO₂/kWh (verdrängter Netzstrom, GEG Anlage 9).">i</span>
+                        <span class="info-i" data-tip="Jahresertrag × 0,56 kg CO₂e/kWh (verdrängter Netzstrom, GEG Anlage 9).">i</span>
                         <div class="label">CO₂-Ersparnis</div>
                         <div class="value" id="pv_co2_savings">—</div>
                     </div>
@@ -3101,7 +3108,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <h3>Ertrag nach Orientierung</h3>
                 <div class="pv-table-wrap">
                     <table class="bautechnik-table pv-table" id="pv_orient_table">
-                        <thead><tr><th>Orientierung</th><th class="num">Fläche</th><th class="num">Leistung</th><th class="num">Spez. Ertrag (kWh/kWp·a)</th><th class="num">Jahresertrag</th><th class="num">Anteil</th></tr></thead>
+                        <thead><tr><th>Orientierung</th><th class="num">Fläche</th><th class="num">Leistung</th><th class="num">Spez. Ertrag (kWh/(kWp·a))</th><th class="num">Jahresertrag</th><th class="num">Anteil</th></tr></thead>
                         <tbody><tr><td colspan="6" class="pv-empty">Noch keine Auswertung – die Berechnung läuft automatisch.</td></tr></tbody>
                     </table>
                 </div>
@@ -3129,7 +3136,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             </div>
 
             <div class="note" id="pv_basis_note" style="margin-top:14px;">
-                Grundlage: DIN&nbsp;V&nbsp;18599-9:2018-09, Gl.&nbsp;64–67 + Anhang&nbsp;B · CO₂-Faktor 0,56&nbsp;kg/kWh
+                Grundlage: DIN&nbsp;V&nbsp;18599-9:2018-09, Gl.&nbsp;64–67 + Anhang&nbsp;B · CO₂-Faktor 0,56&nbsp;kg CO₂e/kWh
                 (verdrängter Netzstrom, GEG&nbsp;Anlage&nbsp;9). Eigenverbrauch fließt in die Energiebilanz ein.
             </div>
             </div><!-- /#pv_body -->
@@ -3226,7 +3233,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <div class="value" id="system_primary">—</div>
                     </div>
                     <div class="stat-box">
-                        <span class="info-i" data-tip="Spezifische CO₂-Emissionen je m² Bezugsfläche und Jahr. Basis: CO₂-Äquivalente nach GEG Anlage 9 (Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg je kWh Endenergie), geteilt durch die Bezugsfläche.">i</span>
+                        <span class="info-i" data-tip="Spezifische CO₂-Emissionen je m² Bezugsfläche und Jahr. Basis: CO₂-Äquivalente nach GEG Anlage 9 (Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg CO₂e/kWh Endenergie), geteilt durch die Bezugsfläche.">i</span>
                         <div class="label">CO₂-Emissionen je m²</div>
                         <div class="value" id="system_co2">—</div>
                     </div>
@@ -3474,7 +3481,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                    <b>DIN 4108-2:2026-05, Tabelle 3</b> erreicht (Schutz vor Tauwasser/Schimmel an der Innenoberfläche).
                    Gib R direkt an <i>oder</i> den U-Wert (R wird mit R<sub>si</sub>=0,13, R<sub>se</sub>=0,04 umgerechnet).</p>
                 <table class="d48-tbl" id="d48-mws-tbl">
-                    <thead><tr><th>Bauteil</th><th>Typ</th><th>R [m²K/W]</th><th>oder U [W/m²K]</th><th>m′ [kg/m²]</th><th></th></tr></thead>
+                    <thead><tr><th>Bauteil</th><th>Typ</th><th>R [m²·K/W]</th><th>oder U [W/(m²·K)]</th><th>m′ [kg/m²]</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
                 <button class="d48-addbtn" onclick="d48AddMwsRow()">+ Bauteil</button>
@@ -3499,7 +3506,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <div class="d48-grid">
                     <div class="d48-field"><label>Nutzung</label><select id="d48-som-nutzung"><option value="wohn">Wohngebäude</option><option value="nichtwohn">Nichtwohngebäude</option></select></div>
                     <div class="d48-field"><label>Sommerklimaregion (A/B/C)</label><select id="d48-som-region"><option value="A">A (kühl)</option><option value="B" selected>B (gemäßigt)</option><option value="C">C (heiß)</option></select></div>
-                    <div class="d48-field"><label>Bauart (Speichermasse)</label><select id="d48-som-bauart"><option value="leicht">leicht (&lt;50 Wh/m²K)</option><option value="mittel" selected>mittel (50–130)</option><option value="schwer">schwer (&gt;130)</option></select></div>
+                    <div class="d48-field"><label>Bauart (Speichermasse)</label><select id="d48-som-bauart"><option value="leicht">leicht (&lt;50 Wh/(m²·K))</option><option value="mittel" selected>mittel (50–130)</option><option value="schwer">schwer (&gt;130)</option></select></div>
                     <div class="d48-field"><label>Nachtlüftung</label><select id="d48-som-nacht"><option value="ohne">ohne</option><option value="erhoeht" selected>erhöht (n≥2)</option><option value="hoch">hoch (n≥5)</option></select></div>
                     <div class="d48-field"><label>Nettogrundfläche A_G [m²]</label><input id="d48-som-ag" type="number" value="20" step="0.5"></div>
                     <div class="d48-field"><label>passive Kühlung</label><select id="d48-som-passiv"><option value="0">nein</option><option value="1">ja</option></select></div>
@@ -3532,7 +3539,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="d48-field"><label>Bauteiltyp (Verdunstung)</label><select id="d48-tau-typ"><option value="wand">Wand / Decke / helles Dach (p_sat 1700 Pa)</option><option value="dach_dunkel">unverschattetes dunkles Dach (2000 Pa)</option></select></div>
                 </div>
                 <table class="d48-tbl" id="d48-tau-tbl">
-                    <thead><tr><th>Schicht (innen→außen)</th><th>Material</th><th>d [m]</th><th>λ [W/mK]</th><th>μ [-]</th><th></th></tr></thead>
+                    <thead><tr><th>Schicht (innen→außen)</th><th>Material</th><th>d [m]</th><th>λ [W/(m·K)]</th><th>μ [-]</th><th></th></tr></thead>
                     <tbody></tbody>
                 </table>
                 <button class="d48-addbtn" onclick="d48AddTauRow()">+ Schicht</button>
@@ -3576,7 +3583,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 
                 <hr style="margin:20px 0;border:none;border-top:1px solid #e2e8f0">
                 <h4 style="margin:0 0 4px;color:#0f172a;font-size:15px;">🌡️ 2D-Temperaturfeld einer Wärmebrücke (Finite Elemente)</h4>
-                <p style="margin:2px 0 8px;">Echte 2D-Wärmeleitungsrechnung durch den Bauteilquerschnitt (Finite-Differenzen-Solver, ∇·(λ∇T)=0). Liefert das <b>Temperaturfeld mit Isothermen</b>, die niedrigste raumseitige <b>Oberflächentemperatur θ<sub>si,min</sub></b> und den Temperaturfaktor <b>f<sub>Rsi</sub></b> (Schimmel-/Tauwasser-Kriterium <b>≥ 0,70</b> nach DIN&nbsp;4108-2, mit R<sub>si</sub>=0,25&nbsp;m²K/W).</p>
+                <p style="margin:2px 0 8px;">Echte 2D-Wärmeleitungsrechnung durch den Bauteilquerschnitt (Finite-Differenzen-Solver, ∇·(λ∇T)=0). Liefert das <b>Temperaturfeld mit Isothermen</b>, die niedrigste raumseitige <b>Oberflächentemperatur θ<sub>si,min</sub></b> und den Temperaturfaktor <b>f<sub>Rsi</sub></b> (Schimmel-/Tauwasser-Kriterium <b>≥ 0,70</b> nach DIN&nbsp;4108-2, mit R<sub>si</sub>=0,25&nbsp;m²·K/W).</p>
                 <div class="d48-grid">
                     <div class="d48-field"><label>Wärmebrücken-Typ</label><select id="fem-type">
                         <option value="balkon">Auskragende Betonplatte / Balkon</option>
@@ -3584,10 +3591,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <option value="ecke">Außenwandecke</option>
                     </select></div>
                     <div class="d48-field"><label>Tragschicht-Dicke (cm)</label><input id="fem-d-struct" type="number" step="0.5" value="17.5"></div>
-                    <div class="d48-field"><label>λ Tragschicht (W/mK)</label><input id="fem-l-struct" type="number" step="0.05" value="0.99"></div>
+                    <div class="d48-field"><label>λ Tragschicht [W/(m·K)]</label><input id="fem-l-struct" type="number" step="0.05" value="0.99"></div>
                     <div class="d48-field"><label>Dämmung-Dicke (cm)</label><input id="fem-d-ins" type="number" step="0.5" value="14"></div>
-                    <div class="d48-field"><label>λ Dämmung (W/mK)</label><input id="fem-l-ins" type="number" step="0.005" value="0.035"></div>
-                    <div class="d48-field"><label>λ Beton (Brücke, W/mK)</label><input id="fem-l-conc" type="number" step="0.1" value="2.3"></div>
+                    <div class="d48-field"><label>λ Dämmung [W/(m·K)]</label><input id="fem-l-ins" type="number" step="0.005" value="0.035"></div>
+                    <div class="d48-field"><label>λ Beton (Brücke, W/(m·K))</label><input id="fem-l-conc" type="number" step="0.1" value="2.3"></div>
                     <div class="d48-field"><label>θ innen (°C)</label><input id="fem-ti" type="number" step="0.5" value="20"></div>
                     <div class="d48-field"><label>θ außen (°C)</label><input id="fem-te" type="number" step="0.5" value="-5"></div>
                 </div>
@@ -3864,7 +3871,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         </div>
         <div class="field" style="margin-top:8px;"><label>Fläche (B × H)</label><div class="value-display" id="win_edit_area">—</div></div>
         <div class="grid-2" style="margin-top:8px;">
-            <div class="field"><label>U-Wert (W/m²K)</label><input id="win_edit_u" type="number" step="0.01" min="0.1" value="1.10"></div>
+            <div class="field"><label>U-Wert [W/(m²·K)]</label><input id="win_edit_u" type="number" step="0.01" min="0.1" value="1.10"></div>
             <div class="field"><label>g-Wert (0–1)</label><input id="win_edit_g" type="number" step="0.01" min="0" max="1" value="0.55"></div>
         </div>
         <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">X/Y in Metern, Y ab Fußbodenoberkante der Etage – alternativ im Modell ziehen (nur innerhalb der Etage).</span></div>
@@ -3895,7 +3902,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             <div class="field"><label>Höhe (m)</label><input id="door_edit_h" type="number" step="0.05" min="0.8" value="2.1" oninput="updateDoorEditArea()"></div>
         </div>
         <div class="field" style="margin-top:8px;"><label>Fläche (B × H)</label><div class="value-display" id="door_edit_area">—</div></div>
-        <div class="field" style="margin-top:8px;"><label>U-Wert (W/m²K)</label><input id="door_edit_u" type="number" step="0.01" min="0.1" value="2.5"></div>
+        <div class="field" style="margin-top:8px;"><label>U-Wert [W/(m²·K)]</label><input id="door_edit_u" type="number" step="0.01" min="0.1" value="2.5"></div>
         <div class="pos-edit-head">📍 Position (m) <span class="pos-edit-sub">X/Y in Metern, Y ab Fußbodenoberkante der Etage – alternativ im Modell ziehen (nur innerhalb der Etage).</span></div>
         <div class="field" style="margin-top:6px;"><label>Etage</label><select id="door_edit_etage" onchange="updateDoorPosNote()"></select></div>
         <div class="grid-2" style="margin-top:6px;">
@@ -4030,7 +4037,7 @@ async function _obdRunSearch() {
                 '<div class="obd-row-name">' + _obdEsc(title) + '</div>' +
                 '<div class="obd-row-meta">' + _obdEsc(catLeaf) + (m.producer ? ' · ' + _obdEsc(m.producer) : '') +
                 ' · je ' + _obdEsc(unit) + ' · <span class="obd-row-gwp">' + (+m.gwp_a1a3).toFixed(1) + ' kg CO₂e</span>' +
-                (lamGuess !== '' ? ' · λ≈' + lamGuess + ' W/mK' : '') + '</div>' +
+                (lamGuess !== '' ? ' · λ≈' + lamGuess + ' W/(m·K)' : '') + '</div>' +
                 '</div>';
         }).join('');
     } catch (e) { box.innerHTML = '<div class="obd-empty">Fehler bei der Suche.</div>'; }
@@ -4063,7 +4070,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { co
         ['Wh/a',         'kWh/a',        'MWh/a',        'GWh/a'],
         ['Wh/(m\u00b2\u00b7a)',  'kWh/(m\u00b2\u00b7a)', 'MWh/(m\u00b2\u00b7a)', 'GWh/(m\u00b2\u00b7a)'],
         ['Wh/m\u00b2a',         'kWh/m\u00b2a',        'MWh/m\u00b2a',        'GWh/m\u00b2a'],
-        ['Wh/(m\u00b2a)',       'kWh/(m\u00b2a)',      'MWh/(m\u00b2a)',      'GWh/(m\u00b2a)'],
+        ['Wh/(m\u00b2a)',       'kWh/(m\u00b2\u00b7a)',      'MWh/(m\u00b2a)',      'GWh/(m\u00b2a)'],
         ['W',            'kW',           'MW',           'GW'],
         ['Wp',           'kWp',          'MWp',          'GWp'],
         ['g',            'kg',           't',            'kt'],
@@ -4403,7 +4410,7 @@ function deriveWindowPsiFromWall() {
     const layers = (typeof currentWallLayers === 'function') ? currentWallLayers() : [];
     const total = layers.reduce(function (s, l) { return s + (parseFloat(l.mm) || 0); }, 0);
     if (!(total > 0)) return { psi: 0.06, reason: 'kein Wandaufbau erfasst – Standardannahme' };
-    // Dämmschicht = Schichttyp „daemmung" ODER sehr niedriges λ (≤ 0,07 W/mK)
+    // Dämmschicht = Schichttyp „daemmung" ODER sehr niedriges λ (≤ 0,07 W/(m·K))
     const isIns = function (l) { return l.type === 'daemmung' || (l.lambda != null && l.lambda > 0 && l.lambda <= 0.07); };
     let insMm = 0, weighted = 0, cum = 0;
     layers.forEach(function (l) {
@@ -4436,7 +4443,7 @@ function applyAutoWindowPsi(force) {
         if (el.dataset.auto !== '0') el.value = d.psi.toFixed(2);   // nur automatische Felder
     });
     const note = document.getElementById('win_psi_auto_note');
-    if (note) note.textContent = '🔗 Auto aus Wandaufbau: ' + d.reason + ' → ψ ≈ ' + d.psi.toFixed(2) + ' W/mK';
+    if (note) note.textContent = '🔗 Auto aus Wandaufbau: ' + d.reason + ' → ψ ≈ ' + d.psi.toFixed(2) + ' W/(m·K)';
     updateWindowPsi();
 }
 
@@ -4465,6 +4472,19 @@ function syncHtTable() {
     copyVal('thermal_bridge_result', 'ht_bridges');
     copyVal('win_psi_total', 'ht_window_bridges');
     copyVal('envelope_total_result', 'ht_total');
+
+    // H_T′ = H_T / A (spezifischer Transmissionswärmeverlust, GEG-Kennwert, W/(m²·K)).
+    // Beide Quellen sind punkt-dezimal formatiert ("245.3 W/K" bzw. "702 m²").
+    const firstNum = (id) => {
+        const m = ((document.getElementById(id) || {}).textContent || '').match(/-?\d+(\.\d+)?/);
+        return m ? parseFloat(m[0]) : NaN;
+    };
+    const htTotal = firstNum('envelope_total_result');
+    const envArea = firstNum('geometry_envelope_area');
+    const specEl = document.getElementById('ht_specific');
+    if (specEl) specEl.textContent = (isFinite(htTotal) && envArea > 0)
+        ? (htTotal / envArea).toFixed(3) + ' W/(m²·K)'
+        : '—';
 }
 
 function showErrors(errors) {
@@ -5283,7 +5303,7 @@ function addWallLayer(presetType, presetMatId, presetThickMm) {
         <select class="wl-type-sel" onchange="onWlTypeChange(this)">${typeOpts}</select>
         <input  class="wl-thick" type="number" min="1" step="1" placeholder="mm" value="${presetThickMm || ''}" oninput="recalcWallU()">
         <select class="wl-mat-sel" onchange="onWlMatChange(this)">${matOpts}</select>
-        <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcWallU()" title="λ-Wert (W/mK) – nach DIN 4108-4 vorbelegt, hier überschreibbar">
+        <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcWallU()" title="λ-Wert [W/(m·K)] – nach DIN 4108-4 vorbelegt, hier überschreibbar">
         <div class="wl-r value-display">—</div>
         <div class="wl-gwp value-display" title="Graue Emissionen dieser Schicht (GWP A1–A3, ÖKOBAUDAT)">—</div>
         <button class="btn-remove-layer" onclick="removeWallLayer(this)" title="Schicht entfernen">✕</button>`;
@@ -5381,7 +5401,7 @@ function recalcWallU() {
 
     if (totalR > R_SI + R_SE) {
         const U = 1 / totalR;
-        uDisplay.textContent = U.toFixed(3) + ' W/m²K';
+        uDisplay.textContent = U.toFixed(3) + ' W/(m²·K)';
         window._wallTableU = U;                 // Tabellen-U (Basis/Fallback für „Aufbau je Wand")
         applyPerWallU(U);                       // je Orientierung: gewählter Aufbau oder Tabellen-U
     } else {
@@ -5433,7 +5453,7 @@ function applyPerWallU(tableU) {
             window.wallMaterialData[ori].calculatedU = u;
         }
         const disp = document.getElementById(ori + '_u_display');
-        if (disp) disp.textContent = (u > 0 ? u.toFixed(3) + ' W/m²K' : '—');
+        if (disp) disp.textContent = (u > 0 ? u.toFixed(3) + ' W/(m²·K)' : '—');
     });
 }
 // Auswahl-Grid rendern: ein kleines Feld je Wand des 3D-Modells (einfach 4, komplex bis 8)
@@ -5466,7 +5486,7 @@ function renderWallAufbauGrid() {
         return '<div class="field" style="margin:0;">'
             + '<label>' + e.label + '</label>'
             + '<select onchange="onWallAufbauSelect(\'' + e.key + '\', this.value)">' + opts + '</select>'
-            + '<div class="small" style="margin-top:4px;color:#9bb;">U = ' + (u > 0 ? u.toFixed(3) + ' W/m²K' : '—') + '</div>'
+            + '<div class="small" style="margin-top:4px;color:#9bb;">U = ' + (u > 0 ? u.toFixed(3) + ' W/(m²·K)' : '—') + '</div>'
             + '</div>';
     }).join('');
 }
@@ -6063,7 +6083,7 @@ function addLayer(kind, type, matId, mm) {
         <select class="wl-type-sel" onchange="onLyType(this)">${typeOpts}</select>
         <input class="wl-thick" type="number" min="1" step="1" placeholder="mm" value="${mm || ''}" oninput="recalcLy('${kind}')">
         <select class="wl-mat-sel" onchange="onLyMat(this)">${_lyMatOptions(cfg.presets, lt, matId)}</select>
-        <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcLy('${kind}')" title="λ-Wert (W/mK) – nach DIN 4108-4 vorbelegt, hier überschreibbar">
+        <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcLy('${kind}')" title="λ-Wert [W/(m·K)] – nach DIN 4108-4 vorbelegt, hier überschreibbar">
         <div class="wl-r value-display">—</div>
         <div class="wl-gwp value-display" title="Graue Emissionen dieser Schicht (GWP A1–A3, ÖKOBAUDAT)">—</div>
         <button class="btn-remove-layer" onclick="removeLy(this,'${kind}')" title="Schicht entfernen">✕</button>`;
@@ -6094,7 +6114,7 @@ function recalcLy(kind) {
     const uD = document.getElementById(cfg.uDisp), thD = document.getElementById(cfg.thDisp);
     const rows = document.querySelectorAll('#' + cfg.container + ' .wall-layer-row').length;
     let U = null;
-    if (rows > 0 && totalR > RSI + RSE) { U = 1 / totalR; if (uD) uD.textContent = 'U = ' + U.toFixed(3) + ' W/m²K'; if (thD) thD.textContent = totalMm + ' mm'; }
+    if (rows > 0 && totalR > RSI + RSE) { U = 1 / totalR; if (uD) uD.textContent = 'U = ' + U.toFixed(3) + ' W/(m²·K)'; if (thD) thD.textContent = totalMm + ' mm'; }
     else { if (uD) uD.textContent = '—'; if (thD) thD.textContent = '—'; }
     cfg.apply(U);
     scheduleGwp(kind);
@@ -6357,7 +6377,7 @@ async function updateWallUValue(orientation) {
 
     // Zeige Ergebnis
     if (uValue !== null && uValue > 0) {
-        document.getElementById(`${orientation}_u_display`).innerText = uValue.toFixed(3) + ' W/m²K';
+        document.getElementById(`${orientation}_u_display`).innerText = uValue.toFixed(3) + ' W/(m²·K)';
     } else {
         document.getElementById(`${orientation}_u_display`).innerText = '—';
     }
@@ -6654,7 +6674,7 @@ function addRoof() {
             '<div class="wall-layers-header">' +
               '<span class="wl-col-num">#</span><span class="wl-col-type">Schichttyp</span>' +
               '<span class="wl-col-thick">Dicke (mm)</span><span class="wl-col-mat">Material (λ nach DIN 4108-4)</span>' +
-              '<span class="wl-col-lambda">λ W/mK</span><span class="wl-col-r">R m²K/W</span><span class="wl-col-gwp">CO₂ kg/m²</span><span class="wl-col-del"></span>' +
+              '<span class="wl-col-lambda">λ [W/(m·K)]</span><span class="wl-col-r">R [m²·K/W]</span><span class="wl-col-gwp">kg CO₂e/m²</span><span class="wl-col-del"></span>' +
             '</div>' +
             '<div id="' + kind + '_layers_container"></div>' +
             '<div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center;">' +
@@ -6782,7 +6802,7 @@ function aggregateRoofs() {
     if (sum) {
         if (nExtra > 0) {
             sum.style.display = '';
-            sum.innerHTML = 'Gesamte Dachfläche (alle Dächer): <b>' + agg.area.toFixed(1) + ' m²</b> · effektiver U-Wert (flächengewichtet): <b>' + (agg.u_eff || 0).toFixed(3) + ' W/m²K</b>';
+            sum.innerHTML = 'Gesamte Dachfläche (alle Dächer): <b>' + agg.area.toFixed(1) + ' m²</b> · effektiver U-Wert (flächengewichtet): <b>' + (agg.u_eff || 0).toFixed(3) + ' W/(m²·K)</b>';
         } else {
             sum.style.display = 'none';
         }
@@ -6993,7 +7013,7 @@ function updateRoofUValue() {
 
     // Zeige Ergebnis
     if (uValue !== null && uValue > 0) {
-        document.getElementById('roof_u_display').innerText = uValue.toFixed(3) + ' W/m²K';
+        document.getElementById('roof_u_display').innerText = uValue.toFixed(3) + ' W/(m²·K)';
     } else {
         document.getElementById('roof_u_display').innerText = '—';
     }
@@ -7119,11 +7139,11 @@ function updateFloorUValue() {
     const fx = getFloorFxFactor();
     if (uValue !== null && uValue > 0) {
         document.getElementById('floor_u_display').innerText =
-            uValue.toFixed(3) + ' W/m²K · Fx ' + fx.toFixed(2) + ' → eff. ' + (uValue * fx).toFixed(3);
+            uValue.toFixed(3) + ' W/(m²·K) · Fx ' + fx.toFixed(2) + ' → eff. ' + (uValue * fx).toFixed(3);
     } else if (data.boundary) {
         // Kein Material gewählt → Standardwert sichtbar machen statt still zu rechnen
         document.getElementById('floor_u_display').innerText =
-            'Standard 0.250 W/m²K · Fx ' + fx.toFixed(2) + ' → eff. ' + (0.25 * fx).toFixed(3);
+            'Standard 0.250 W/(m²·K) · Fx ' + fx.toFixed(2) + ' → eff. ' + (0.25 * fx).toFixed(3);
     } else {
         document.getElementById('floor_u_display').innerText = '—';
     }
@@ -7407,7 +7427,7 @@ function renderWallResultChips(data) {
 
 /* =====================================================================
  * KPI-Anzeige mit Ampel-Bewertung und Richtwert-Zeile.
- *   setKpi('elementId', wert, 'kWh/m²a', {
+ *   setKpi('elementId', wert, 'kWh/(m²·a)', {
  *       good: 40, mid: 80,          // Schwellen (good ≤ … ≤ mid ≤ schlecht)
  *       lowerIsBetter: true,         // false z. B. für JAZ
  *       bench: '≤40 sehr gut · …'    // Richtwert-Zeile unter dem Wert
@@ -7633,7 +7653,7 @@ async function calculateEnvelope() {
 
         document.getElementById('solar_gain_result').innerText = data.solar_gain_kwh + ' kWh/a';
         document.getElementById('adjusted_heat_result').innerText = data.adjusted_heat_demand_kwh + ' kWh/a';
-        setKpi('specific_heat_result', data.specific_heat_demand, 'kWh/m²a', {
+        setKpi('specific_heat_result', data.specific_heat_demand, 'kWh/(m²·a)', {
             good: 40, mid: 80,
             bench: '≤40 sehr gut (Neubau) · 40–80 mittel · >80 hoch'
         });
@@ -7767,11 +7787,11 @@ function calculateSystem() {
         const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
         setTxt('system_total_end', data.total_end_energy + ' kWh/a');
         setTxt('system_primary', data.primary_energy + ' kWh/a');
-        // Spezifische CO₂-Emissionen (kg/m²a): CO₂ ÷ Bezugsfläche (Primärenergie ÷ q_p)
+        // Spezifische CO₂-Emissionen (kg CO₂e/(m²·a)): CO₂ ÷ Bezugsfläche (Primärenergie ÷ q_p)
         const _qp = parseFloat(data.specific_primary_energy);
         const _bgfRef = (isFinite(_qp) && _qp > 0) ? (data.primary_energy / _qp) : 0;
         const _co2Spec = (_bgfRef > 0) ? (data.co2_emissions / _bgfRef) : 0;
-        setTxt('system_co2', _co2Spec.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg/m²a');
+        setTxt('system_co2', _co2Spec.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' kg CO₂e/(m²·a)');
 
         // DIN-Detailwerte (Stufe 2) – weiter unten für JAZ/Beleuchtung benötigt
         const din = data.din || {};
@@ -7793,7 +7813,7 @@ function calculateSystem() {
         if (lightBox) lightBox.style.display = lightApplicable ? '' : 'none';
         const lightEl = document.getElementById('system_lighting');
         if (lightEl && lightApplicable) {
-            lightEl.innerText = data.lighting_end_energy + ' kWh/a  (' + din.lighting.q_lf_specific + ' kWh/m²a)';
+            lightEl.innerText = data.lighting_end_energy + ' kWh/a  (' + din.lighting.q_lf_specific + ' kWh/(m²·a))';
         }
 
         // Felder für den Energiebilanz-Tab mit den DIN-Ergebnissen füllen
@@ -7925,7 +7945,7 @@ function renderSystemViz(data) {
     const pct = function (v) { return Math.round(v / endT * 100); };
     const ratio = (prim / endT).toFixed(2).replace('.', ',');
     const qpCls = isFinite(qp) ? (qp <= 60 ? 'good' : (qp <= 120 ? 'mid' : 'bad')) : '';
-    // Spezifische CO₂-Emissionen (kg/m²a): Bezugsfläche aus Primärenergie ÷ spez. Primärenergie (q_p)
+    // Spezifische CO₂-Emissionen (kg CO₂e/(m²·a)): Bezugsfläche aus Primärenergie ÷ spez. Primärenergie (q_p)
     const bgfRef = (isFinite(qp) && qp > 0) ? (prim / qp) : 0;
     const co2Spec = (bgfRef > 0) ? (co2v / bgfRef) : 0;
 
@@ -7938,9 +7958,9 @@ function renderSystemViz(data) {
     }
     const steps = step('🔌', 'Endenergie', fmt(endT), 'kWh/a', 'Energie, die Sie einkaufen (Gas, Strom …)', '')
         + '<div class="es-arrow">×&nbsp;' + ratio + '<small>f<sub>P</sub></small></div>'
-        + step('🌍', 'Primärenergie', fmt(prim), 'kWh/a', (isFinite(qp) ? ('q<sub>p</sub> ' + fmt(qp) + ' kWh/m²a · ') : '') + 'inkl. Erzeugung & Transport', qpCls)
+        + step('🌍', 'Primärenergie', fmt(prim), 'kWh/a', (isFinite(qp) ? ('q<sub>p</sub> ' + fmt(qp) + ' kWh/(m²·a) · ') : '') + 'inkl. Erzeugung & Transport', qpCls)
         + '<div class="es-arrow">→</div>'
-        + step('☁️', 'CO₂-Emissionen', fmt1(co2Spec), 'kg/m²a', 'Treibhausgase je m² und Jahr', '');
+        + step('☁️', 'CO₂-Emissionen', fmt1(co2Spec), 'kg CO₂e/(m²·a)', 'Treibhausgase je m² und Jahr', '');
 
     // Zusammensetzung der Endenergie (einfacher Balken mit %)
     const segDefs = [['Heizung', heat, '#10b981'], ['Warmwasser', ww, '#f6b94b'], ['Hilfsstrom', aux, '#8b7cf6']].filter(function (s) { return s[1] > 0; });
@@ -7981,8 +8001,8 @@ function generateReport() {
     const anlage = rows([
         ['Endenergie gesamt', sys.total_end_energy != null ? num(sys.total_end_energy, 'kWh/a') : t('system_total_end')],
         ['Primärenergie', sys.primary_energy != null ? num(sys.primary_energy, 'kWh/a') : t('system_primary')],
-        ['Primärenergie q_p', sys.specific_primary_energy != null ? num(sys.specific_primary_energy, 'kWh/m²a') : t('system_spec_primary')],
-        ['CO₂-Emissionen', sys.co2_emissions != null ? num(sys.co2_emissions, 'kg/a') : t('system_co2')],
+        ['Primärenergie q_p', sys.specific_primary_energy != null ? num(sys.specific_primary_energy, 'kWh/(m²·a)') : t('system_spec_primary')],
+        ['CO₂-Emissionen', sys.co2_emissions != null ? num(sys.co2_emissions, 'kg CO₂e/a') : t('system_co2')],
         ['Bewertung', sys.system_label || t('ea_rating')]
     ]);
     const pvInst = t('pv_installed_kwp');
@@ -8198,10 +8218,10 @@ function calculatePV() {
     .then(data => {
         document.getElementById('pv_installed_kwp').innerText = data.installed_kwp + ' kWp';
         document.getElementById('pv_annual_yield').innerText =
-            data.annual_yield_kwh + ' kWh/a  (' + data.specific_yield_kwh_kwp + ' kWh/kWp·a)';
+            data.annual_yield_kwh + ' kWh/a  (' + data.specific_yield_kwh_kwp + ' kWh/(kWp·a))';
         document.getElementById('pv_self_kwh').innerText = data.self_consumption_kwh + ' kWh/a';
         document.getElementById('pv_feed_in_kwh').innerText = data.feed_in_kwh + ' kWh/a';
-        document.getElementById('pv_co2_savings').innerText = data.co2_savings_kg + ' kg/a';
+        document.getElementById('pv_co2_savings').innerText = data.co2_savings_kg + ' kg CO₂e/a';
         document.getElementById('pv_total_benefit').innerText = data.total_benefit_eur + ' €/a';
 
         lastPvSelfConsumptionKwh = data.self_consumption_kwh;
@@ -8250,10 +8270,10 @@ function pvRenderResults(data) {
     // Stat-Boxen (Kennzahlen)
     document.getElementById('pv_installed_kwp').innerText = pvNum(data.installed_kwp, 2) + ' kWp';
     document.getElementById('pv_annual_yield').innerText =
-        pvNum(data.annual_yield_kwh, 0) + ' kWh/a  (' + pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/kWp·a)';
+        pvNum(data.annual_yield_kwh, 0) + ' kWh/a  (' + pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/(kWp·a))';
     document.getElementById('pv_self_kwh').innerText = pvNum(data.self_consumption_kwh, 0) + ' kWh/a';
     document.getElementById('pv_feed_in_kwh').innerText = pvNum(data.feed_in_kwh, 0) + ' kWh/a';
-    document.getElementById('pv_co2_savings').innerText = pvNum(data.co2_savings_kg, 0) + ' kg/a';
+    document.getElementById('pv_co2_savings').innerText = pvNum(data.co2_savings_kg, 0) + ' kg CO₂e/a';
     document.getElementById('pv_total_benefit').innerText = pvNum(data.total_benefit_eur, 0) + ' €/a';
 
     // Hero
@@ -8263,7 +8283,7 @@ function pvRenderResults(data) {
     hero.classList.add(spec >= 950 ? 'sys-good' : (spec >= 750 ? 'sys-mid' : 'sys-bad'));
     document.getElementById('pv_hero_yield').innerText = pvNum(data.annual_yield_kwh, 0) + ' kWh/a';
     document.getElementById('pv_hero_sub').innerText =
-        'Spezifischer Ertrag ' + pvNum(spec, 0) + ' kWh/kWp·a · k_pk ' +
+        'Spezifischer Ertrag ' + pvNum(spec, 0) + ' kWh/(kWp·a) · k_pk ' +
         (data.k_pk != null ? pvNum(data.k_pk * 1000, 0) + ' Wp/m²' : '–') +
         ' · f_perf ' + (data.f_perf != null ? data.f_perf.toLocaleString('de-DE') : '–');
     document.getElementById('pv_hero_kwp').innerText = pvNum(data.installed_kwp, 1);
@@ -8293,7 +8313,7 @@ function pvOrientResult(key) {
     return pvLastResult.by_orientation.find(function (x) { return x.key === key; }) || null;
 }
 
-// spez. Ertrag [kWh/kWp·a] → Heatmap-Farbe (rot niedrig → amber → grün hoch)
+// spez. Ertrag [kWh/(kWp·a)] → Heatmap-Farbe (rot niedrig → amber → grün hoch)
 function pvYieldColor(spec) {
     if (spec == null) return '#3a6ea8';
     const t = Math.max(0, Math.min(1, (spec - 550) / (950 - 550)));
@@ -8338,7 +8358,7 @@ function pvFillVizLegend(A) {
         const o = pvOrientResult(it[0]);
         const col = o ? pvYieldColor(o.specific_kwh_kwp) : PV_ORIENT_COL[it[0]];
         let txt = it[1] + ' ' + pvNum(it[2].area, 1) + ' m²';
-        if (o) txt += ' · ' + pvNum(o.annual_kwh, 0) + ' kWh/a · ' + pvNum(o.specific_kwh_kwp, 0) + ' kWh/kWp·a · ' + pvNum(o.share_pct, 0) + ' %';
+        if (o) txt += ' · ' + pvNum(o.annual_kwh, 0) + ' kWh/a · ' + pvNum(o.specific_kwh_kwp, 0) + ' kWh/(kWp·a) · ' + pvNum(o.share_pct, 0) + ' %';
         return '<span class="pv-leg"><i style="background:' + col + '"></i>' + txt + '</span>';
     }).join('');
 }
@@ -8445,7 +8465,7 @@ function pvDrawDiagram2D(A) {
         '<circle r="2" fill="#f6b94b"/></g>';
 
     // Geometrie-Readout (oben links)
-    const roofSpec = roofRes ? pvNum(roofRes.specific_kwh_kwp, 0) + ' kWh/kWp·a' : '— noch nicht berechnet';
+    const roofSpec = roofRes ? pvNum(roofRes.specific_kwh_kwp, 0) + ' kWh/(kWp·a)' : '— noch nicht berechnet';
     const readout = '<g font-family="Inter,sans-serif">' +
         '<rect x="16" y="16" width="232" height="56" rx="8" fill="rgba(4,12,24,0.55)" stroke="rgba(255,255,255,0.12)"/>' +
         '<text x="28" y="36" font-size="12" font-weight="800" fill="#ffd98a">Dachfläche · Solar-Geometrie</text>' +
@@ -8573,11 +8593,11 @@ function pvFillEconTable(data) {
     if (!tb) return;
     const r = [
         ['Installierte Leistung', pvNum(data.installed_kwp, 2) + ' kWp'],
-        ['Spezifischer Ertrag', pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/kWp·a'],
+        ['Spezifischer Ertrag', pvNum(data.specific_yield_kwh_kwp, 0) + ' kWh/(kWp·a)'],
         ['Jahresertrag', pvNum(data.annual_yield_kwh, 0) + ' kWh/a'],
         ['Eigenverbrauch', pvNum(data.self_consumption_kwh, 0) + ' kWh/a'],
         ['Netzeinspeisung', pvNum(data.feed_in_kwh, 0) + ' kWh/a'],
-        ['CO₂-Einsparung', pvNum(data.co2_savings_kg, 0) + ' kg/a'],
+        ['CO₂-Einsparung', pvNum(data.co2_savings_kg, 0) + ' kg CO₂e/a'],
         ['Stromkosten-Einsparung', pvNum(data.savings_eur, 0) + ' €/a'],
         ['Einspeisevergütung', pvNum(data.feed_in_revenue_eur, 0) + ' €/a'],
         ['Gesamtnutzen', pvNum(data.total_benefit_eur, 0) + ' €/a']
@@ -8800,7 +8820,7 @@ function calculateBalance() {
 /* ===================================================================
    Energiebilanz – grafische Gesamtübersicht
    =================================================================== */
-// Endenergie-Effizienzklassen (Energieausweis-Skala Wohngebäude, kWh/m²·a)
+// Endenergie-Effizienzklassen (Energieausweis-Skala Wohngebäude, kWh/(m²·a))
 const BILANZ_EFF = [
     { k: 'A+', max: 30, col: '#1a9850' }, { k: 'A', max: 50, col: '#66bd63' },
     { k: 'B', max: 75, col: '#a6d96a' }, { k: 'C', max: 100, col: '#d9ef8b' },
@@ -8863,13 +8883,13 @@ function renderHeatBalance() {
     let stufe2 = '<span class="hb-muted">Endenergie / Primärenergie / CO₂ erscheinen automatisch mit der Anlagentechnik-Berechnung</span>';
     if (sys) {
         stufe2 = 'Endenergie <strong>' + pvNum(sys.total_end_energy, 0) + '</strong> · Primärenergie <strong>' +
-            pvNum(sys.primary_energy, 0) + '</strong> kWh/a · CO₂ <strong>' + pvNum(sys.co2_emissions, 0) + '</strong> kg/a';
+            pvNum(sys.primary_energy, 0) + '</strong> kWh/a · CO₂ <strong>' + pvNum(sys.co2_emissions, 0) + '</strong> kg CO₂e/a';
     }
     document.getElementById('hb_result').innerHTML =
         '<div class="hb-eq"><span class="hb-sink">Wärmesenken ' + pvNum(hb.sinks_total_kwh, 0) + '</span> − ' +
         '<span class="hb-gain-t">nutzbare Gewinne ' + pvNum(hb.usable_gains_kwh, 0) + '</span> = ' +
         '<span class="hb-qh">Heizwärmebedarf Q_h,b ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a' +
-        (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/m²a' : '') + '</span></div>' +
+        (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/(m²·a)' : '') + '</span></div>' +
         '<div class="hb-arrow">↓ Stufe 2 (Teil 5/6/8): Übergabe → Verteilung → Speicherung → Erzeugung</div>' +
         '<div class="hb-stufe2">' + stufe2 + '</div>';
 }
@@ -8901,7 +8921,7 @@ function renderBilanzViz() {
     const gridNet = elGross - pvOffset;
     const totalEnd = fuelEnd + elGross;
 
-    const F_EL = 0.56;                                   // kg CO₂/kWh Netzstrom (GEG Anlage 9)
+    const F_EL = 0.56;                                   // kg CO₂e/kWh Netzstrom (GEG Anlage 9)
     const sysCo2 = parseFloat(sys.co2_emissions) || 0;   // Anlagentechnik (Brennstoff + Anlagenstrom)
     const houseCo2 = household * F_EL;
     const pvCredit = pvOffset * F_EL;
@@ -9116,7 +9136,7 @@ function bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total) {
     }
     const center = '<text x="' + cx + '" y="' + (cy - 3) + '" text-anchor="middle" font-size="26" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' +
         pvNum(co2Total, 0) + '</text>' +
-        '<text x="' + cx + '" y="' + (cy + 17) + '" text-anchor="middle" font-size="11" fill="#94a3b6" font-family="Inter">kg CO₂/a netto</text>';
+        '<text x="' + cx + '" y="' + (cy + 17) + '" text-anchor="middle" font-size="11" fill="#94a3b6" font-family="Inter">kg CO₂e/a netto</text>';
     svg.innerHTML = body + center;
     let leg = parts.map(function (p) { return '<span><i style="background:' + p.col + '"></i>' + p.label + ' ' + pvNum(p.val, 0) + ' kg</span>'; }).join('');
     if (pvCredit > 0) leg += '<span><i style="background:#10b981"></i>− PV-Gutschrift ' + pvNum(pvCredit, 0) + ' kg</span>';
@@ -9128,7 +9148,7 @@ function bilanzRenderTable(d) {
     const tb = document.querySelector('#bilanz_summary_table tbody');
     if (!tb) return;
     const sys = d.sys || {};
-    const heatTxt = d.heat != null ? pvNum(d.heat, 0) + ' kWh/a' + (d.spec != null ? ' · ' + pvNum(d.spec, 0) + ' kWh/m²a' : '') : '— (Hülle noch nicht berechnet)';
+    const heatTxt = d.heat != null ? pvNum(d.heat, 0) + ' kWh/a' + (d.spec != null ? ' · ' + pvNum(d.spec, 0) + ' kWh/(m²·a)' : '') : '— (Hülle noch nicht berechnet)';
     // Wärmebilanz-Zeile (DIN V 18599-2): Wärmesenken − nutzbare Gewinne = Q_h,b
     const hb = d.env && d.env.heat_balance;
     const balanceTxt = hb
@@ -9142,7 +9162,7 @@ function bilanzRenderTable(d) {
         ['└ Wärmebilanz', 'Wärmesenken − nutzbare Gewinne', balanceTxt, balanceVerdict],
         ['② Anlagentechnik', 'Endenergie / Primärenergie', pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' kWh/a', sys.system_label || '—'],
         ['③ Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug', pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' kWh/a', d.pvOffset > 0 ? 'PV aktiv' : '—'],
-        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg/a',
+        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a',
             (d.endPerM2 != null ? 'Klasse ' + bilanzEffClass(d.endPerM2).k : '—')]
     ];
     tb.innerHTML = rows.map(function (r, i) {
@@ -11542,7 +11562,7 @@ async function updateDoorType() {
 <script>
 (function () {
     "use strict";
-    // Liest den ersten Zahlenwert aus einer der genannten Anzeigen/Inputs (robust gegen "U = 0,24 W/m²K").
+    // Liest den ersten Zahlenwert aus einer der genannten Anzeigen/Inputs (robust gegen "U = 0,24 W/(m²·K)").
     function uOf(ids) {
         for (const id of ids) {
             const e = document.getElementById(id);
@@ -11569,17 +11589,17 @@ async function updateDoorType() {
         });
         return out;
     }
-    function lamSuffix(cid) { const a = layerLambdas(cid); return a.length ? ' · λ = ' + a.join(' / ') + ' W/mK' : ''; }
+    function lamSuffix(cid) { const a = layerLambdas(cid); return a.length ? ' · λ = ' + a.join(' / ') + ' W/(m·K)' : ''; }
     function lamLegend(cid) { const a = layerLambdas(cid); return a.length ? ' · λ ' + a.join('/') : ''; }
 
     // Tooltip-Text für eine 3D-Fläche – jeweils der passende Kennwert.
     window.partThermalLabel = function (part, orientation) {
         const ORI = { north: 'Nord', south: 'Süd', east: 'Ost', west: 'West', northeast: 'Nordost', southeast: 'Südost', southwest: 'Südwest', northwest: 'Nordwest' };
         switch (part) {
-            case 'wall':  return 'Außenwand · U = ' + fmtU(wallU(), 3) + ' W/m²K' + lamSuffix('wall_layers_container');
-            case 'roof':  return 'Dach · U = ' + fmtU(roofU(), 3) + ' W/m²K' + lamSuffix('roof_layers_container');
-            case 'floor': return 'Bodenplatte · U = ' + fmtU(floorU(), 3) + ' W/m²K' + lamSuffix('floor_layers_container');
-            case 'door':  return 'Tür · U = ' + fmtU(doorU(), 2) + ' W/m²K';
+            case 'wall':  return 'Außenwand · U = ' + fmtU(wallU(), 3) + ' W/(m²·K)' + lamSuffix('wall_layers_container');
+            case 'roof':  return 'Dach · U = ' + fmtU(roofU(), 3) + ' W/(m²·K)' + lamSuffix('roof_layers_container');
+            case 'floor': return 'Bodenplatte · U = ' + fmtU(floorU(), 3) + ' W/(m²·K)' + lamSuffix('floor_layers_container');
+            case 'door':  return 'Tür · U = ' + fmtU(doorU(), 2) + ' W/(m²·K)';
             case 'window': return 'Fenster ' + (ORI[orientation] || '') + ' · U_w = ' + fmtU(winU(), 2) + ' · g = ' + fmtU(gVal(), 2) + ' – klicken zum Bearbeiten';
             case 'pv':    return 'PV-Modul · klicken zum Bearbeiten';
             default: return '';
@@ -11589,7 +11609,7 @@ async function updateDoorType() {
     // Dauerhafte Kennwert-Legende im 3D-Modell.
     window.updateULegend = function () {
         const el = document.getElementById('house3d-legend'); if (!el) return;
-        el.innerHTML = '<div><b>Kennwerte</b> <span class="l-k">(U in W/m²K, λ in W/mK)</span></div>'
+        el.innerHTML = '<div><b>Kennwerte</b> <span class="l-k">(U in W/(m²·K), λ in W/(m·K))</span></div>'
             + '<div><span class="l-k">Außenwand</span> <span class="l-v">U ' + fmtU(wallU(), 3) + lamLegend('wall_layers_container') + '</span></div>'
             + '<div><span class="l-k">Dach</span> <span class="l-v">U ' + fmtU(roofU(), 3) + lamLegend('roof_layers_container') + '</span></div>'
             + '<div><span class="l-k">Boden</span> <span class="l-v">U ' + fmtU(floorU(), 3) + lamLegend('floor_layers_container') + '</span></div>'
@@ -11602,8 +11622,8 @@ async function updateDoorType() {
         document.querySelectorAll('.wall-layer-row .wl-lambda').forEach(function (el) {
             const v = parseFloat(el.value);
             el.title = isFinite(v) && v > 0
-                ? 'λ = ' + v + ' W/mK (Wärmeleitfähigkeit) – überschreibbar'
-                : 'λ-Wert (W/mK) eingeben';
+                ? 'λ = ' + v + ' W/(m·K) (Wärmeleitfähigkeit) – überschreibbar'
+                : 'λ-Wert [W/(m·K)] eingeben';
         });
     }
 
@@ -11827,7 +11847,7 @@ async function updateDoorType() {
             + (bgf > 0 ? ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr; Gebäude-BGF ' + Math.round(bgf).toLocaleString('de-DE') + '&nbsp;m²).' : ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr).');
         $('lca_hero_years').textContent = years;
         $('lca_hero_total').textContent = fmtKg(total);
-        $('lca_hero_spec').textContent = bgf > 0 ? ('≈ ' + (Math.round(total / bgf / years * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/m²·a   ·   ' + Math.round(total / bgf).toLocaleString('de-DE') + ' kg CO₂e/m² gesamt') : 'BGF nicht gesetzt – pro-m²-Werte nicht verfügbar.';
+        $('lca_hero_spec').textContent = bgf > 0 ? ('≈ ' + (Math.round(total / bgf / years * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/(m²·a)   ·   ' + Math.round(total / bgf).toLocaleString('de-DE') + ' kg CO₂e/m² gesamt') : 'BGF nicht gesetzt – pro-m²-Werte nicht verfügbar.';
         $('lca_embodied').textContent = fmtKg(emb.total);
         $('lca_op_year').textContent = (opYear != null) ? (fmtKg(opYear) + '/a') : '—';
         $('lca_op_period').textContent = fmtKg(opPeriod);
@@ -12648,7 +12668,7 @@ async function updateDoorType() {
         box.className = "d48-res " + res.rating_color;
         box.innerHTML =
             badge(res.rating_color, res.rating_label) + " " + res.rating_message +
-            '<div style="margin-top:8px" title="U für den Feuchteschutz mit R_si=0,25 m²K/W nach DIN 4108-3; weicht leicht vom thermischen U (R_si=0,13) ab.">U<sub>Feuchte</sub> = ' + fmt(res.u_wert, 2) + " W/m²K · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
+            '<div style="margin-top:8px" title="U für den Feuchteschutz mit R_si=0,25 m²·K/W nach DIN 4108-3; weicht leicht vom thermischen U (R_si=0,13) ab.">U<sub>Feuchte</sub> = ' + fmt(res.u_wert, 2) + " W/(m²·K) · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
             "Tauwasser M_c = <b>" + fmt(res.mc_total, 3) + "</b> kg/m² · Verdunstung M_ev = <b>" + fmt(res.mev_total, 3) + "</b> kg/m² (zul. ≤ 1,0)</div>" +
             '<table class="d48-tbl"><thead><tr><th>Schichtgrenze</th><th>s_d [m]</th><th>θ [°C]</th><th>p_sat [Pa]</th><th>p [Pa]</th></tr></thead><tbody>' +
             prof + "</tbody></table>" +
@@ -12695,7 +12715,7 @@ async function updateDoorType() {
     function d48ApplyDeltaUwbInfo() {
         const opt = $("d48-wb-opt") ? $("d48-wb-opt").value : "keine";
         const info = $("d48-wb-info");
-        if (info) info.textContent = "Gewählt: ΔU_WB = " + DUWB[opt].toFixed(2) + " W/m²K. „In Heizbedarf übernehmen“ setzt diesen Wert im Hülle-Tab (Feld delta_u_wb).";
+        if (info) info.textContent = "Gewählt: ΔU_WB = " + DUWB[opt].toFixed(2) + " W/(m²·K). „In Heizbedarf übernehmen“ setzt diesen Wert im Hülle-Tab (Feld delta_u_wb).";
         const chart = $("d48-wb-chart");
         if (chart) chart.innerHTML = d48charts.wb(opt);
     }
@@ -12708,7 +12728,7 @@ async function updateDoorType() {
         const info = $("d48-wb-info");
         if (tgt) {
             window.setDeltaUwb(val);
-            if (info) info.textContent = "✓ ΔU_WB = " + val.toFixed(2) + " W/m²K im Hülle-Tab übernommen. Heizwärmebedarf dort neu berechnen.";
+            if (info) info.textContent = "✓ ΔU_WB = " + val.toFixed(2) + " W/(m²·K) im Hülle-Tab übernommen. Heizwärmebedarf dort neu berechnen.";
         } else if (info) {
             info.textContent = "Feld delta_u_wb nicht gefunden – bitte im Hülle-Tab manuell " + val.toFixed(2) + " eintragen.";
         }
