@@ -360,98 +360,64 @@ def calculate_balance(request):
 
 @csrf_exempt
 def upload_ekobaudat_csv(request):
-    """
-    Handle CSV file upload for ÖKOBAUDAT material data.
-    Expects a multipart POST with a 'file' field containing the CSV.
+    """Upload von ÖKOBAUDAT-Materialdaten als CSV **oder** Excel (.xlsx/.xls).
+
+    Multipart-POST mit Feld 'csv_file' (oder 'file'). Der offizielle ÖKOBAUDAT-Export
+    (Spalten UUID/Modul/Name (de)) wird automatisch erkannt und über den GWP-Importpfad
+    (Modul A1–A3) eingelesen; andere Tabellen über den generischen Spalten-Matcher.
     """
     if request.method != 'POST':
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
+        return JsonResponse({"ok": False, "errors": ["Only POST allowed"]}, status=400)
+
+    upload = request.FILES.get('csv_file') or request.FILES.get('file')
+    if upload is None:
+        return JsonResponse({"ok": False, "errors": ["Keine Datei gefunden."]}, status=400)
+
+    from .csv_utils import read_csv_bytes, read_excel_bytes, import_material_rows
+    from .models import EkobaudatMaterial
+
+    name = (upload.name or "").lower()
+    raw = upload.read()
 
     try:
-        # Get uploaded file
-        if 'file' not in request.FILES:
-            return JsonResponse({"error": "Keine Datei gefunden"}, status=400)
-        
-        csv_file = request.FILES['file']
-
-        # Validate file type
-        if not csv_file.name.endswith('.csv'):
-            return JsonResponse({"error": "Bitte eine CSV-Datei hochladen"}, status=400)
-
-        # Read file content
-        try:
-            file_content = csv_file.read().decode('utf-8-sig')
-        except UnicodeDecodeError:
-            # Try alternative encodings
-            csv_file.seek(0)
-            try:
-                file_content = csv_file.read().decode('cp1252')
-            except UnicodeDecodeError:
-                csv_file.seek(0)
-                file_content = csv_file.read().decode('latin-1')
-
-        # Parse CSV and extract materials
-        from io import StringIO
-        from .csv_utils import extract_material_data
-        import csv
-
-        csv_reader = csv.DictReader(StringIO(file_content))
-        if not csv_reader.fieldnames:
-            return JsonResponse({"error": "CSV-Datei ist leer"}, status=400)
-
-        imported_count = 0
-        updated_count = 0
-        skipped_count = 0
-
-        for row in csv_reader:
-            try:
-                material_data = extract_material_data(row)
-                
-                if not material_data or not material_data.get('name'):
-                    skipped_count += 1
-                    continue
-
-                # Use get_or_create to avoid duplicates
-                from .models import EkobaudatMaterial
-                obj, created = EkobaudatMaterial.objects.update_or_create(
-                    id=material_data.get('id') or None,  # Use ID if available
-                    defaults={
-                        'name': material_data['name'],
-                        'producer': material_data.get('producer', ''),
-                        'category': material_data.get('category', ''),
-                        'u_value': material_data.get('u_value'),
-                        'embodied_co2': material_data.get('embodied_co2'),
-                        'notes': material_data.get('notes', '')
-                    }
-                )
-
-                if created:
-                    imported_count += 1
-                else:
-                    updated_count += 1
-
-            except Exception as row_err:
-                skipped_count += 1
-                print(f"Fehler bei Zeile: {row_err}")
-                continue
-
-        return JsonResponse({
-            "success": True,
-            "file": csv_file.name,
-            "imported": imported_count,
-            "updated": updated_count,
-            "skipped": skipped_count,
-            "total": imported_count + updated_count + skipped_count,
-            "message": f"{imported_count} neue Materialien importiert, {updated_count} aktualisiert"
-        })
-
-    except Exception as err:
+        if name.endswith((".xlsx", ".xlsm", ".xls")):
+            rows = read_excel_bytes(raw, name)
+        elif name.endswith((".csv", ".txt")):
+            rows = read_csv_bytes(raw)
+        else:
+            return JsonResponse(
+                {"ok": False, "errors": ["Nur CSV- (.csv) oder Excel-Dateien (.xlsx/.xls) werden unterstützt."]},
+                status=400)
+    except ValueError as read_err:
+        return JsonResponse({"ok": False, "errors": [str(read_err)]}, status=400)
+    except Exception as read_err:
         import traceback
         traceback.print_exc()
-        return JsonResponse({
-            "error": str(err),
-            "success": False
-        }, status=500)
+        return JsonResponse({"ok": False, "errors": [f"Datei konnte nicht gelesen werden: {read_err}"]}, status=400)
+
+    if not rows:
+        return JsonResponse({"ok": False, "errors": ["Die Datei enthält keine Datenzeilen."]}, status=400)
+
+    try:
+        result = import_material_rows(rows, EkobaudatMaterial, source_name=upload.name)
+    except Exception as import_err:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"ok": False, "errors": [f"Import fehlgeschlagen: {import_err}"]}, status=500)
+
+    imported = result.get("imported", 0)
+    updated = result.get("updated", 0)
+    skipped = result.get("skipped", 0)
+    return JsonResponse({
+        "ok": True,
+        "success": True,
+        "file": result.get("file", upload.name),
+        "imported": imported,
+        "updated": updated,
+        "skipped": skipped,
+        "total": result.get("rows", imported + updated + skipped),
+        "message": f"{imported} neue Materialien importiert, {updated} aktualisiert",
+    })
 
 
 # ===== BAUTECHNIK API (REST Framework) =====

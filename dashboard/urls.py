@@ -28,6 +28,7 @@ urlpatterns = [
     path("calculate-tauwasser/", views.calculate_tauwasser),
     path("calculate-luftdichtheit/", views.calculate_luftdichtheit),
     path("din4108-materialien/", views.din4108_materialien),
+    path("upload-ekobaudat/", views.upload_ekobaudat_csv, name="upload-ekobaudat"),
     path("upload-ekobaudat-csv/", views.upload_ekobaudat_csv, name="upload-ekobaudat-csv"),
     
     # REST API Routes

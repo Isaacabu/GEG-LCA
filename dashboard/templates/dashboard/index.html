@@ -435,6 +435,11 @@ body {
 .fp-ctl input[type="range"] { width: 130px; accent-color: var(--cyan); cursor: pointer; }
 .fp-ctl input[type="number"] { width: 64px; border: 1px solid rgba(16,185,129,0.28); background: rgba(10,26,50,0.95); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 13px; }
 .fp-ctl #fpAzimuthVal { min-width: 34px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.fp-vertex-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 10px;
+    padding: 10px 14px; border: 1px solid rgba(56,189,248,0.35); border-radius: 12px;
+    background: rgba(12,32,60,0.85); }
+.fp-vertex-panel .fpv-title { font-size: 13px; font-weight: 800; color: var(--cyan); }
+.fp-vertex-panel .fpv-note { flex-basis: 100%; font-size: 11.5px; color: var(--muted); margin: 0; }
 #floorplanSvg { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
 .fp-handle { cursor: grab; }
 .fp-info {
@@ -1746,12 +1751,11 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 
         <div class="actions">
             <a class="btn" href="/" title="Zurück zum Dashboard">← Dashboard</a>
-            <button class="btn btn-primary" onclick="saveProjectSnapshot()" title="Kompletten Stand als Projekt sichern (erscheint im Dashboard)">💾 Im Dashboard sichern</button>
-            <button id="saveProjectBtn" class="btn btn-green" onclick="saveProject()">Projekt speichern</button>
+            <button id="saveProjectBtn" class="btn btn-primary" onclick="saveProjectSnapshot()" title="Kompletten Stand als Projekt sichern (erscheint im Dashboard)">💾 Projekt speichern</button>
             <button class="btn" onclick="generateReport()">📄 Bericht (PDF)</button>
             <div class="upload-area">
-                <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv" onchange="handleEkobaudatUpload(event)">
-                <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()">📥 Daten importieren</button>
+                <input id="ekobaudatUploadInput" class="hidden-file-input" type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onchange="handleEkobaudatUpload(event)">
+                <button id="uploadEkobaudatBtn" class="btn btn-primary" onclick="triggerEkobaudatUpload()" title="ÖKOBAUDAT-Materialien aus CSV oder Excel (.xlsx/.xls) importieren">📥 Daten importieren</button>
                 <div id="uploadStatus" class="upload-status" style="display:none;"></div>
             </div>
         </div>
@@ -1842,6 +1846,18 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                                 </g>
                                 <g id="fpLayer"></g>
                             </svg>
+                        </div>
+                        <div class="fp-vertex-panel" id="fpVertexPanel" style="display:none;">
+                            <span class="fpv-title">📍 Punkt <span id="fpvIdx">–</span></span>
+                            <label class="fp-ctl">Wand <span id="fpvWallInNr">–</span> (→ Punkt)
+                                <input type="number" id="fpvLenIn" min="0.3" max="40" step="0.1"> m</label>
+                            <label class="fp-ctl">Wand <span id="fpvWallOutNr">–</span> (Punkt →)
+                                <input type="number" id="fpvLenOut" min="0.3" max="40" step="0.1"> m</label>
+                            <label class="fp-ctl">Innenwinkel ∠
+                                <input type="number" id="fpvAngle" min="10" max="350" step="1"> °</label>
+                            <button type="button" class="fp-btn" id="fpvApply">✓ Übernehmen</button>
+                            <button type="button" class="fp-btn" id="fpvClose">Schließen</button>
+                            <p class="fpv-note" id="fpvNote">Länge der ankommenden Wand verschiebt diesen Punkt; Länge/Winkel der abgehenden Wand verschiebt den Folgepunkt. Die übrigen Punkte bleiben stehen.</p>
                         </div>
                         <div class="fp-info" id="fpInfo"></div>
                         <p class="note" style="margin-top:8px;">Ecken nacheinander anklicken; auf den ersten (goldenen) Punkt klicken, um die Wände zu schließen. Punkte sind verschiebbar. <b>Maximal 8 Wände</b> – jede Wand erhält automatisch eine Bezeichnung nach ihrer Ausrichtung (z. B. „1 · NO"), die später u. a. bei den Wandrandbedingungen wieder auftaucht. Türen werden auf den längsten Wänden platziert. Das 3D-Modell unten aktualisiert sich automatisch. <b>Wandaufbau, U‑Wert und CO₂ werden im Tab „Gebäudehülle" festgelegt.</b>
@@ -4579,7 +4595,8 @@ async function handleEkobaudatUpload(event) {
             throw new Error(message);
         }
 
-        setUploadStatus(`✓ ${data.imported} Materialien importiert`, 'success');
+        const impMsg = data.message || `${data.imported} Materialien importiert`;
+        setUploadStatus(`✓ ${impMsg}`, 'success');
 
         await populateWallMaterials();
         await populateRoofFloorMaterials();
@@ -10022,6 +10039,17 @@ async function updateDoorType() {
         const pts = pointsM.map(function (p) { return { x: p.x - cx, y: -(p.y - cz) }; });
         const n = pts.length;
 
+        // Punkt-im-Polygon (Shape-Koordinaten; Welt: X = p.x, Z = -p.y) – für
+        // Etagenband-Normalen und die PV-Auto-Platzierung auf dem Grundriss.
+        const inPoly = function (x, y, ps) {
+            let inside = false;
+            for (let i2 = 0, j2 = ps.length - 1; i2 < ps.length; j2 = i2++) {
+                const xi = ps[i2].x, yi = ps[i2].y, xj = ps[j2].x, yj = ps[j2].y;
+                if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+            }
+            return inside;
+        };
+
         const shape = new THREE.Shape();
         pts.forEach(function (p, i) { i ? shape.lineTo(p.x, p.y) : shape.moveTo(p.x, p.y); });
         shape.closePath();
@@ -10050,6 +10078,44 @@ async function updateDoorType() {
         }));
         floorM.userData.part = 'floor'; floorM.userData.baseEmissiveHex = 0x000000; floorM.userData.baseEmInt = 0;
         clickable.push(floorM); houseGroup.add(floorM);
+
+        // Etagen visuell trennen (wie im einfachen Modell): jede Fußbodenoberkante als
+        // umlaufendes Band. Das Band-Polygon wird ~4 cm nach außen versetzt (Miter entlang
+        // der Kantennormalen), damit es nicht in der Wandfläche verschwindet (Z-Fighting);
+        // Fenster/Türen stehen 7 cm vor der Wand und bleiben damit sichtbar davor.
+        if (d.floors > 1) {
+            const off = 0.04, m = pts.length, opts_ = [];
+            for (let i = 0; i < m; i++) {
+                const p0 = pts[(i - 1 + m) % m], p1 = pts[i], p2 = pts[(i + 1) % m];
+                // Außennormalen der beiden angrenzenden Kanten (Richtung per Innen-Test)
+                const norm = function (a, b) {
+                    const ex = b.x - a.x, ey = b.y - a.y, L = Math.hypot(ex, ey) || 1;
+                    let nx = ey / L, ny = -ex / L;
+                    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                    if (inPoly(mx + nx * 0.01, my + ny * 0.01, pts)) { nx = -nx; ny = -ny; }
+                    return { x: nx, y: ny };
+                };
+                const n1 = norm(p0, p1), n2 = norm(p1, p2);
+                // Miter: Versatz entlang der Winkelhalbierenden der Normalen; Distanz
+                // off/cos(θ/2), damit beide Kanten exakt off außen liegen (auf 4·off begrenzt).
+                let bx = n1.x + n2.x, by = n1.y + n2.y;
+                const bl = Math.hypot(bx, by);
+                if (bl < 1e-6) { bx = n2.x; by = n2.y; }
+                else { bx /= bl; by /= bl; }
+                const cosHalf = Math.sqrt(Math.max(0, (1 + (n1.x * n2.x + n1.y * n2.y)) / 2));
+                const dist = Math.min(4 * off, off / Math.max(0.25, cosHalf));
+                opts_.push({ x: p1.x + bx * dist, y: p1.y + by * dist });
+            }
+            const bandShape = new THREE.Shape();
+            opts_.forEach(function (p, i) { i ? bandShape.lineTo(p.x, p.y) : bandShape.moveTo(p.x, p.y); });
+            bandShape.closePath();
+            for (let k = 1; k < d.floors; k++) {
+                const bg = new THREE.ExtrudeGeometry(bandShape, { depth: 0.06, bevelEnabled: false });
+                bg.rotateX(-Math.PI / 2); bg.translate(0, floorTop + d.fh * k - 0.03, 0);
+                const band = new THREE.Mesh(bg, new THREE.MeshStandardMaterial({ color: 0x0a1830, roughness: 0.9 }));
+                houseGroup.add(band);
+            }
+        }
 
         // Fläche, Umfang, Bounding-Box, Kantenlängen
         let area2 = 0, perim = 0;
@@ -10250,6 +10316,23 @@ async function updateDoorType() {
             if (typeof updateSteildachAreas === 'function') updateSteildachAreas();
         }
 
+        // PV-Module auf dem Flachdach der komplexen Geometrie – wie beim einfachen
+        // Flachdach (aufgeständert, je Modul Neigung/Ausrichtung, klick- und verschiebbar).
+        // Auto-platzierte Module, die außerhalb des Grundrisses lägen (L-/U-Form), werden
+        // beim ersten Anlegen entfernt; Welt→Shape: x = X, y = -Z.
+        if (window.pvEnabled === true) {
+            const pvW = maxx - minx, pvD = maxz - minz;
+            const pvInfo = { type: 'flat', height: 0, pitch: 0 };
+            const pvNew = !Array.isArray(window.pvList);
+            ensurePvList(pvInfo, pvW, pvD);
+            if (pvNew) {
+                window.pvList = (window.pvList || []).filter(function (p) {
+                    return inPoly(p.posX || 0, -(p.posZ || 0), pts);
+                });
+            }
+            buildPV(null, pvW, pvD, wallTop, pvInfo);
+        }
+
         fitView(Math.max(maxx - minx, maxz - minz, H), (floorTop + H) * 0.5);
     }
 
@@ -10324,7 +10407,8 @@ async function updateDoorType() {
                 if (!closed && cursor) prev = '<line x1="' + pts[pts.length - 1].x + '" y1="' + pts[pts.length - 1].y + '" x2="' + cursor.x + '" y2="' + cursor.y + '" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5 5"/>';
                 s += '<path d="' + d + '" fill="' + (closed ? 'rgba(16,185,129,0.16)' : 'none') + '" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>' + prev;
                 pts.forEach(function (p, i) {
-                    s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (i === 0 ? 7 : 5.5) + '" fill="' + (i === 0 ? '#f6b94b' : '#0b1f3a') + '" stroke="#10b981" stroke-width="2"/>';
+                    const sel = (typeof selVertex !== 'undefined' && i === selVertex && closed);
+                    s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (sel ? 8 : (i === 0 ? 7 : 5.5)) + '" fill="' + (sel ? '#0e7490' : (i === 0 ? '#f6b94b' : '#0b1f3a')) + '" stroke="' + (sel ? '#38bdf8' : '#10b981') + '" stroke-width="' + (sel ? 2.5 : 2) + '"/>';
                 });
                 s += edgeLabels();
             }
@@ -10361,19 +10445,124 @@ async function updateDoorType() {
             if (doApply !== false) apply();
         }
 
+        // ===== Punkt-Editor: Klick auf einen Punkt → beide Wandlängen + Innenwinkel =====
+        // Verhalten (lokal): Länge der ankommenden Wand verschiebt den Punkt selbst,
+        // Länge/Winkel der abgehenden Wand verschiebt den Folgepunkt. Alle weiteren
+        // Punkte bleiben stehen – die übernächste Wand ändert sich implizit mit.
+        let selVertex = -1;
+        const fpv = {
+            panel: document.getElementById('fpVertexPanel'),
+            idx: document.getElementById('fpvIdx'),
+            inNr: document.getElementById('fpvWallInNr'),
+            outNr: document.getElementById('fpvWallOutNr'),
+            lenIn: document.getElementById('fpvLenIn'),
+            lenOut: document.getElementById('fpvLenOut'),
+            angle: document.getElementById('fpvAngle'),
+            note: document.getElementById('fpvNote'),
+            apply: document.getElementById('fpvApply'),
+            close: document.getElementById('fpvClose')
+        };
+        const FPV_NOTE = 'Länge der ankommenden Wand verschiebt diesen Punkt; Länge/Winkel der abgehenden Wand verschiebt den Folgepunkt. Die übrigen Punkte bleiben stehen.';
+        function pipPts(x, y) {
+            let inside = false;
+            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                const xi = pts[i].x, yi = pts[i].y, xj = pts[j].x, yj = pts[j].y;
+                if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+            }
+            return inside;
+        }
+        function normSigned(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a <= -Math.PI) a += 2 * Math.PI; return a; }
+        // Geometrie am Punkt i: Längen beider Wände + Innenwinkel (Innenseite per Polygon-Test)
+        function vertexGeom(i) {
+            const m = pts.length;
+            const pPrev = pts[(i - 1 + m) % m], p = pts[i], pNext = pts[(i + 1) % m];
+            const lenIn = Math.hypot(p.x - pPrev.x, p.y - pPrev.y) / PXPM;
+            const lenOut = Math.hypot(pNext.x - p.x, pNext.y - p.y) / PXPM;
+            const aU = Math.atan2(pPrev.y - p.y, pPrev.x - p.x);   // Punkt → Vorgänger
+            const aV = Math.atan2(pNext.y - p.y, pNext.x - p.x);   // Punkt → Nachfolger
+            const s = normSigned(aV - aU);
+            const bis = aU + s / 2;                                 // Winkelhalbierende des kleineren Sektors
+            const insideSmall = pipPts(p.x + Math.cos(bis) * 6, p.y + Math.sin(bis) * 6);
+            const interior = insideSmall ? Math.abs(s) : 2 * Math.PI - Math.abs(s);
+            return { pPrev: pPrev, p: p, pNext: pNext, lenIn: lenIn, lenOut: lenOut, aU: aU, aV: aV, s: s, insideSmall: insideSmall, interior: interior };
+        }
+        function fillVertexPanel(i) {
+            if (!fpv.panel || !closed || pts.length < 3) return;
+            selVertex = i;
+            const m = pts.length, g = vertexGeom(i);
+            if (fpv.idx) fpv.idx.textContent = String(i + 1);
+            if (fpv.inNr) fpv.inNr.textContent = String(((i - 1 + m) % m) + 1);
+            if (fpv.outNr) fpv.outNr.textContent = String(i + 1);
+            if (fpv.lenIn) fpv.lenIn.value = g.lenIn.toFixed(2);
+            if (fpv.lenOut) fpv.lenOut.value = g.lenOut.toFixed(2);
+            if (fpv.angle) fpv.angle.value = String(Math.round(g.interior * 180 / Math.PI));
+            if (fpv.note) fpv.note.textContent = FPV_NOTE;
+            fpv.panel.style.display = '';
+            render();
+        }
+        function closeVertexPanel() {
+            selVertex = -1;
+            if (fpv.panel) fpv.panel.style.display = 'none';
+            render();
+        }
+        function applyVertexPanel() {
+            const i = selVertex;
+            if (i < 0 || !closed || pts.length < 3) return;
+            const m = pts.length, g = vertexGeom(i);
+            const L1 = Math.max(0.3, parseFloat(fpv.lenIn && fpv.lenIn.value) || g.lenIn) * PXPM;
+            const L2 = Math.max(0.3, parseFloat(fpv.lenOut && fpv.lenOut.value) || g.lenOut) * PXPM;
+            const thDeg = Math.min(350, Math.max(10, parseFloat(fpv.angle && fpv.angle.value) || (g.interior * 180 / Math.PI)));
+            const th = thDeg * Math.PI / 180;
+            // 1) Ankommende Wand: Punkt entlang der bestehenden Richtung auf L1 setzen
+            const dirIn = Math.atan2(g.p.y - g.pPrev.y, g.p.x - g.pPrev.x);
+            const np = { x: g.pPrev.x + Math.cos(dirIn) * L1, y: g.pPrev.y + Math.sin(dirIn) * L1 };
+            // 2) Abgehende Wand: Folgepunkt aus L2 + Innenwinkel (gleiche Innenseite wie bisher)
+            const aU = dirIn + Math.PI;                     // vom (neuen) Punkt zurück zum Vorgänger
+            const sgn = (g.s >= 0) ? 1 : -1;
+            const aV = g.insideSmall ? (aU + sgn * th) : (aU - sgn * th);
+            const nn = { x: np.x + Math.cos(aV) * L2, y: np.y + Math.sin(aV) * L2 };
+            const clampP = function (p) { return { x: Math.min(CW - 4, Math.max(4, p.x)), y: Math.min(CH - 4, Math.max(4, p.y)) }; };
+            const npC = clampP(np), nnC = clampP(nn);
+            const clamped = (npC.x !== np.x || npC.y !== np.y || nnC.x !== nn.x || nnC.y !== nn.y);
+            pts[i] = npC; pts[(i + 1) % m] = nnC;
+            render(); apply();
+            fillVertexPanel(i);   // neue Ist-Werte anzeigen
+            if (fpv.note) fpv.note.textContent = clamped
+                ? '⚠ Punkt an der Zeichenflächen-Grenze begrenzt – Maße wurden entsprechend gekürzt.'
+                : '✓ Übernommen – Werte zeigen den neuen Stand.';
+        }
+        if (fpv.apply) fpv.apply.addEventListener('click', applyVertexPanel);
+        if (fpv.close) fpv.close.addEventListener('click', closeVertexPanel);
+        [fpv.lenIn, fpv.lenOut, fpv.angle].forEach(function (inp) {
+            if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); applyVertexPanel(); } });
+        });
+
         svg.addEventListener('pointerdown', function (e) {
             const t = e.target;
-            if (t && t.classList && t.classList.contains('fp-handle')) { dragIndex = parseInt(t.getAttribute('data-i'), 10); moved = false; e.preventDefault(); return; }
+            if (t && t.classList && t.classList.contains('fp-handle')) { dragIndex = parseInt(t.getAttribute('data-i'), 10); moved = false; downAt = svgPt(e); e.preventDefault(); return; }
             downAt = svgPt(e); moved = false;
         });
         svg.addEventListener('pointermove', function (e) {
             const p = svgPt(e); cursor = p;
-            if (dragIndex >= 0) { pts[dragIndex] = { x: snap(p.x), y: snap(p.y) }; moved = true; render(); if (closed) apply(); return; }
+            if (dragIndex >= 0) {
+                // Totzone: erst ab 4 px Bewegung ziehen, damit ein Klick den Punkt-Editor öffnet
+                if (!moved && downAt && Math.abs(p.x - downAt.x) <= 4 && Math.abs(p.y - downAt.y) <= 4) return;
+                pts[dragIndex] = { x: snap(p.x), y: snap(p.y) }; moved = true; render(); if (closed) apply(); return;
+            }
             if (downAt && (Math.abs(p.x - downAt.x) > 4 || Math.abs(p.y - downAt.y) > 4)) moved = true;
             if (!closed) render();
         });
         svg.addEventListener('pointerup', function (e) {
-            if (dragIndex >= 0) { dragIndex = -1; downAt = null; return; }
+            if (dragIndex >= 0) {
+                const idx = dragIndex, wasDrag = moved;
+                dragIndex = -1; downAt = null;
+                if (!wasDrag && closed) fillVertexPanel(idx);                      // Klick → Punkt-Editor
+                else if (!wasDrag && !closed && idx === 0 && pts.length >= 3) {    // Klick auf Startpunkt → schließen
+                    closed = true; render(); apply();
+                }
+                else if (wasDrag && selVertex >= 0) fillVertexPanel(selVertex);    // nach Drag: Werte aktualisieren
+                return;
+            }
             if (downAt && !moved) addPoint(svgPt(e));
             downAt = null;
         });
@@ -10384,10 +10573,10 @@ async function updateDoorType() {
             const b = e.target.closest ? e.target.closest('[data-fp]') : null;
             if (!b) return;
             const act = b.getAttribute('data-fp');
-            if (act === 'undo') { pts.pop(); closed = false; render(); }
-            else if (act === 'clear') { pts = []; closed = false; render(); }
+            if (act === 'undo') { closeVertexPanel(); pts.pop(); closed = false; render(); }
+            else if (act === 'clear') { closeVertexPanel(); pts = []; closed = false; render(); }
             else if (act === 'close') { if (pts.length >= 3) { closed = true; render(); apply(); } }
-            else setPreset(act, true);
+            else { closeVertexPanel(); setPreset(act, true); }
         });
 
         setPreset('rect', false); // Standard zeichnen, aber noch nicht ins 3D übernehmen
