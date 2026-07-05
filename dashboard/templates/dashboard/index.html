@@ -12660,6 +12660,9 @@ async function updateDoorType() {
             badge(res.rating_color, res.rating_label) + " " + res.rating_message +
             '<div style="margin-top:8px" title="U für den Feuchteschutz mit R_si=0,25 m²K/W nach DIN 4108-3; weicht leicht vom thermischen U (R_si=0,13) ab.">U<sub>Feuchte</sub> = ' + fmt(res.u_wert, 2) + " W/m²K · s_d,gesamt = " + fmt(res.sd_total, 2) + " m · " +
             "Tauwasser M_c = <b>" + fmt(res.mc_total, 3) + "</b> kg/m² · Verdunstung M_ev = <b>" + fmt(res.mev_total, 3) + "</b> kg/m² " + grenzTxt + "</div>" +
+            '<div style="margin-top:4px" title="Temperaturfaktor der Innenoberfläche nach DIN 4108-2 §6.2 (20 °C/50 % innen, −5 °C außen, R_si=0,25): f_Rsi ≥ 0,70 sichert θ_si ≥ 12,6 °C gegen Schimmel/Oberflächentauwasser.">θ<sub>si</sub> = <b>' + fmt(res.theta_si, 1) + " °C</b> · Temperaturfaktor f<sub>Rsi</sub> = <b>" + fmt(res.f_rsi, 2) + "</b> " +
+            badge(res.f_rsi_erfuellt ? "green" : "red", res.f_rsi_erfuellt ? "≥ 0,70 ✓" : "< 0,70") +
+            ' <span style="opacity:.75">(Oberflächen-Tauwasser/Schimmel, DIN 4108-2 §6)</span></div>' +
             '<table class="d48-tbl"><thead><tr><th>Schichtgrenze</th><th>s_d [m]</th><th>θ [°C]</th><th>p_sat [Pa]</th><th>p [Pa]</th></tr></thead><tbody>' +
             prof + "</tbody></table>" +
             d48charts.glaser(res);
