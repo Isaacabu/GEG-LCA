@@ -30,8 +30,12 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     page.on("console", (m) => { if (m.type() === "error" && !isKnown(m.text())) errors.push("console: " + m.text()); });
     page.on("pageerror", (e) => { if (!isKnown(e.message)) errors.push("pageerror: " + e.message); });
     page.on("response", (r) => { if (r.status() >= 400 && !isKnown(r.url())) errors.push(r.status() + ": " + r.url()); });
-    let gebaeudePost = null;  // saveProject() legt ein Gebäude an (nutzt das „Bautechnik"-Backend)
-    page.on("response", (r) => { if (r.request().method() === "POST" && r.url().includes("/api/geb")) gebaeudePost = r.status(); });
+    // „💾 Projekt speichern" (saveProjectSnapshot) fragt per prompt() nach dem Namen und
+    // per confirm() nach dem Dashboard-Wechsel → Name bestätigen, Wechsel ablehnen.
+    page.on("dialog", async (d) => {
+        if (d.type() === "prompt") await d.accept("Smoke-Test-Projekt");
+        else await d.dismiss();
+    });
 
     let pass = true;
     const step = (ok, name) => { console.log((ok ? "  ✓ " : "  ✗ ") + name); pass = pass && ok; };
@@ -125,11 +129,15 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
     await page.screenshot({ path: path.join(OUT, "15_din_wbl.png") });
     step(true, "DIN 4108: Luftdichtheit");
 
-    // 7) Aktive Header-Features, die das verbliebene „Bautechnik"-Backend nutzen
-    //    (Absicherung nach Entfernung des toten Bautechnik-Tabs)
+    // 7) Aktive Header-Features: „💾 Projekt speichern" sichert den kompletten Stand
+    //    als Dashboard-Snapshot in localStorage (geglca_projects_v1)
     await page.click('button:has-text("Projekt speichern")');
-    await page.waitForTimeout(1500);
-    step(gebaeudePost !== null && gebaeudePost < 400, "Projekt speichern → POST /api/gebäude/ " + gebaeudePost);
+    await page.waitForTimeout(1200);
+    const savedProjects = await page.evaluate(() => {
+        try { return JSON.parse(localStorage.getItem("geglca_projects_v1") || "[]"); } catch (e) { return []; }
+    });
+    const snapOk = savedProjects.some((p) => p && p.name === "Smoke-Test-Projekt" && p.state);
+    step(snapOk, "Projekt speichern → Dashboard-Snapshot in localStorage (" + savedProjects.length + " Projekt(e))");
     let popupOk = false;
     try {
         const [pp] = await Promise.all([

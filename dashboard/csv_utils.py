@@ -81,6 +81,109 @@ def read_csv_rows(filename: str) -> List[Dict[str, str]]:
     ]
 
 
+def read_csv_bytes(raw: bytes) -> List[Dict[str, str]]:
+    """Wie read_csv_rows, aber aus einem hochgeladenen Byte-Puffer (kein Dateipfad).
+
+    Erkennt Kodierung (utf-8-sig → cp1252 → latin-1) und Trennzeichen automatisch.
+    """
+    text = None
+    for encoding in ("utf-8-sig", "cp1252", "latin-1"):
+        try:
+            text = raw.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    if text is None:
+        raise ValueError("Keine unterstützte Zeichenkodierung (utf-8/cp1252/latin-1).")
+
+    delimiter = detect_delimiter(text[:4096])
+    reader = csv.DictReader(text.splitlines(), delimiter=delimiter)
+    rows: List[Dict[str, str]] = []
+    for row in reader:
+        rows.append({
+            (key or "").strip(): (value or "").strip()
+            for key, value in row.items()
+            if key is not None
+        })
+    return rows
+
+
+def _cell_str(value: object) -> str:
+    """Excel-Zellwert → String. Ganzzahlige Floats (z. B. Jahr 2024.0) ohne .0."""
+    if value is None:
+        return ""
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+def _read_xlsx(raw: bytes) -> List[Dict[str, str]]:
+    try:
+        import openpyxl
+    except ImportError:
+        raise ValueError("Excel-Import (.xlsx) benötigt das Paket 'openpyxl' – bitte installieren "
+                         "oder die Datei als CSV exportieren.")
+    from io import BytesIO
+    wb = openpyxl.load_workbook(BytesIO(raw), read_only=True, data_only=True)
+    ws = wb.active
+    if ws is None:
+        return []
+    rows_iter = ws.iter_rows(values_only=True)
+    try:
+        header = next(rows_iter)
+    except StopIteration:
+        return []
+    headers = [_cell_str(h).strip() for h in header]
+
+    out: List[Dict[str, str]] = []
+    for values in rows_iter:
+        if values is None:
+            continue
+        if all(v is None or _cell_str(v).strip() == "" for v in values):
+            continue  # Leerzeile überspringen
+        row: Dict[str, str] = {}
+        for idx, head in enumerate(headers):
+            if not head:
+                continue
+            cell = values[idx] if idx < len(values) else None
+            row[head] = _cell_str(cell).strip()
+        out.append(row)
+    return out
+
+
+def _read_xls(raw: bytes) -> List[Dict[str, str]]:
+    try:
+        import xlrd
+    except ImportError:
+        raise ValueError("Alte .xls-Dateien benötigen das Paket 'xlrd' – bitte die Datei als "
+                         ".xlsx oder .csv exportieren.")
+    book = xlrd.open_workbook(file_contents=raw)
+    sheet = book.sheet_by_index(0)
+    if sheet.nrows == 0:
+        return []
+    headers = [_cell_str(sheet.cell_value(0, c)).strip() for c in range(sheet.ncols)]
+    out: List[Dict[str, str]] = []
+    for r in range(1, sheet.nrows):
+        values = [sheet.cell_value(r, c) for c in range(sheet.ncols)]
+        if all(_cell_str(v).strip() == "" for v in values):
+            continue
+        row: Dict[str, str] = {}
+        for c, head in enumerate(headers):
+            if not head:
+                continue
+            row[head] = _cell_str(values[c]).strip()
+        out.append(row)
+    return out
+
+
+def read_excel_bytes(raw: bytes, filename: str = "") -> List[Dict[str, str]]:
+    """Excel-Upload (.xlsx/.xlsm/.xls) → Zeilen als Dicts (1. Zeile = Kopfzeile)."""
+    name = (filename or "").lower()
+    if name.endswith(".xls") and not name.endswith(".xlsx"):
+        return _read_xls(raw)
+    return _read_xlsx(raw)
+
+
 def extract_material_data(row: Dict[str, str]) -> Optional[Dict[str, Optional[object]]]:
     header_map = {key: normalize_header(key) for key in row.keys()}
 
@@ -174,13 +277,16 @@ def import_obd_export(rows: List[Dict[str, str]], model_class):
     }
 
 
-def import_materials_from_csv(filename: str, model_class):
-    rows = read_csv_rows(filename)
+def import_material_rows(rows: List[Dict[str, str]], model_class, source_name: str = "upload"):
+    """Import einer bereits eingelesenen Zeilenliste (aus CSV *oder* Excel).
 
+    Erkennt den offiziellen ÖKOBAUDAT-Export (UUID/Modul) und nutzt sonst den
+    generischen Spalten-Matcher. Gemeinsame Basis für Datei-, Upload- und Excel-Import.
+    """
     # Offizieller ÖKOBAUDAT-Export → eigener Importpfad (Modul A1–A3, GWP)
     if _is_obd_export(rows):
         result = import_obd_export(rows, model_class)
-        result["file"] = filename
+        result["file"] = source_name
         return result
 
     imported = 0
@@ -211,9 +317,15 @@ def import_materials_from_csv(filename: str, model_class):
             updated += 1
 
     return {
-        "file": filename,
+        "file": source_name,
         "rows": len(rows),
         "imported": imported,
         "updated": updated,
         "skipped": skipped,
     }
+
+
+def import_materials_from_csv(filename: str, model_class):
+    """Import aus einer CSV-Datei in dashboard/data/ (Dateipfad-basiert)."""
+    rows = read_csv_rows(filename)
+    return import_material_rows(rows, model_class, source_name=filename)
