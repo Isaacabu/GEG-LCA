@@ -1768,7 +1768,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
-        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 DIN 4108</button>
+        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 Wärme- &amp; Feuchteschutz</button>
         <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()">🌍 Ökobilanz (LCA)</button>
     </div>
 
@@ -2739,6 +2739,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             #innen .in-devrow label { font-size:11px; color:#9bb4c8; display:block; margin-bottom:3px; }
             #innen .in-devrow input, #innen .in-devrow select { background:#0a1830; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; }
             #innen .in-devsum { font-size:12.5px; color:#cfe0f2; padding-bottom:7px; }
+            /* ⓘ-Tooltips nicht von der Folgekarte (backdrop-filter) überlagern lassen:
+               gehoverte Karte in den Vordergrund heben (wie .stat-box:hover) */
+            #innen .card { position:relative; }
+            #innen .card:hover { z-index:60; }
             #innen .in-devsum b { color:#f6b94b; }
             #innen .in-devdel { margin-left:auto; background:#7f1d1d; border:1px solid #7f1d1d; color:#fff; border-radius:7px; padding:6px 12px; cursor:pointer; height:34px; }
         </style>
@@ -2796,10 +2800,23 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             </div>
 
             <div class="card" style="margin-top:14px;">
+                <h3>🧱 Ausbau &amp; Speichermasse <span class="small" style="color:#9bb4c8;font-weight:400;">(je Zimmer → Bauart für den sommerlichen Wärmeschutz)</span></h3>
+                <p class="note" style="margin:2px 0 10px;">Der Innenausbau bestimmt, wie viel <b>Speichermasse</b> im Raum thermisch wirksam ist:
+                   Teppich, abgehängte Decken oder Vorsatzschalen koppeln massive Bauteile ab → der Raum überhitzt im Sommer schneller.
+                   Aus den Angaben wird die wirksame Wärmekapazität <b>C_wirk/A_G</b> geschätzt (10-cm-Regel, Richtwerte) und daraus die
+                   <b>Bauart</b> (leicht &lt; 50 · mittel 50–130 · schwer &gt; 130 Wh/(K·m²), DIN 4108-2 Tab. 8) abgeleitet – sie wird bei der
+                   Zimmer-Übernahme im Nachweis „Sommerlicher Wärmeschutz“ automatisch gesetzt (dort überschreibbar).</p>
+                <div id="innenAusbau"></div>
+            </div>
+
+            <div class="card" style="margin-top:14px;">
                 <h3>Geräte &amp; Ausstattung → Ökobilanz (Modul B4)</h3>
                 <p class="note" style="margin:2px 0 10px;">Je Gerät: Herstellungs-Emissionen (GWP A1–A3, kg&nbsp;CO₂e je Stück) und Nutzungsdauer.
                    Vorbelegt sind typische Richtwerte aus EPD-/Ökobilanz-Literatur – je Gerät überschreibbar. Über den Betrachtungszeitraum der LCA
-                   (<span id="innen_years_echo">50</span>&nbsp;Jahre) werden Ersatzbeschaffungen automatisch mitgerechnet.</p>
+                   (<span id="innen_years_echo">50</span>&nbsp;Jahre) werden Ersatzbeschaffungen automatisch mitgerechnet.
+                   Die Spalte <b>„Zimmer“</b> ordnet jedes Gerät einem gezeichneten Zimmer zu – beim Hinzufügen ist das im Grundriss
+                   ausgewählte Zimmer vorbelegt. In die <b>Ökobilanz fließen immer alle Geräte aller Zimmer</b> ein (LCA = ganzes Gebäude);
+                   die Zuordnung dient der Übersicht: Geräteanzahl je Zimmer in der Liste oben und Ausweis je Gerät in der LCA-Tabelle.</p>
                 <div id="innenDeviceList"></div>
                 <button type="button" class="btn btn-primary" onclick="addInnenDevice()" style="margin-top:10px;padding:7px 14px;">＋ Gerät hinzufügen</button>
                 <div class="stats" style="margin-top:12px;">
@@ -3519,6 +3536,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             #din4108 table.d48-tbl td{color:#1e293b}
             #din4108 table.d48-tbl input,#din4108 table.d48-tbl select{width:100%;box-sizing:border-box;padding:4px 6px;border:1px solid #cbd5e1;border-radius:5px}
             #din4108 .d48-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:10px 0}
+            /* Eingabefelder unten ausrichten: mehrzeilige Labels drücken das Kästchen sonst aus der Reihe */
+            #din4108 .d48-field{display:flex;flex-direction:column;justify-content:flex-end}
             #din4108 .d48-field label{display:block;font-size:12px;color:#cbd5e1;margin-bottom:3px}
             #din4108 .d48-field input,#din4108 .d48-field select{width:100%;box-sizing:border-box;padding:7px;border:1px solid #cbd5e1;border-radius:6px}
             #din4108 .d48-res{margin-top:14px;border-radius:10px;padding:14px 16px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b}
@@ -3569,7 +3588,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             </div>
             <div style="margin-bottom:16px;display:none" id="d48-prefill-som-note" class="d48-src">
                 ℹ️ Keine Übernahme aus den Gebäudedaten: Dieser Nachweis wird <b>raumbezogen</b> für den
-                kritischen Raum geführt – bitte unten die Werte dieses Raums eingeben.
+                kritischen Raum geführt. Die Grundfläche A_G kann aber aus einem im Tab
+                „🛋️ Inneneinrichtung" gezeichneten Zimmer übernommen werden (Auswahl unten).
             </div>
 
             <div class="d48-sub">
@@ -3626,8 +3646,15 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="d48-field"><label>Bauart (Speichermasse)</label><select id="d48-som-bauart"><option value="leicht">leicht (&lt;50 Wh/(m²·K))</option><option value="mittel" selected>mittel (50–130)</option><option value="schwer">schwer (&gt;130)</option></select></div>
                     <div class="d48-field"><label>Nachtlüftung</label><select id="d48-som-nacht"><option value="ohne">ohne</option><option value="erhoeht" selected>erhöht (n≥2)</option><option value="hoch">hoch (n≥5)</option></select></div>
                     <div class="d48-field"><label>Nettogrundfläche A_G des kritischen Raums [m²]</label><input id="d48-som-ag" type="number" value="" placeholder="z. B. 20" step="0.5"></div>
+                    <div class="d48-field"><label>Kritischer Raum aus 🛋️ Inneneinrichtung</label>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <select id="d48-som-room" style="flex:1" onchange="d48SomFromRoom()"><option value="">– Zimmer wählen –</option></select>
+                            <button type="button" class="d48-addbtn" onclick="d48SomRoomsRefresh()" title="Zimmerliste aus dem Inneneinrichtung-Tab neu laden">↻</button>
+                        </div>
+                    </div>
                     <div class="d48-field"><label>passive Kühlung</label><select id="d48-som-passiv"><option value="0">nein</option><option value="1">ja</option></select></div>
                 </div>
+                <div id="d48-som-room-info" class="d48-src"></div>
                 <table class="d48-tbl" id="d48-som-tbl">
                     <thead><tr><th>Fenster</th><th>Fläche [m²]</th><th>Orientierung</th><th>Neigung [°]</th><th>g-Wert</th><th>Sonnenschutz F_C</th><th></th></tr></thead>
                     <tbody></tbody>
@@ -12486,7 +12513,14 @@ async function updateDoorType() {
               '<div class="field"><label>Fläche (m²)</label><input class="lca-int-area" id="' + kind + '_area_display" type="number" min="0" step="0.1" value="' + (area != null ? area : '') + '" oninput="fetchLayerGwp(\'' + kind + '\')"></div>' +
               '<button type="button" class="lca-int-del" onclick="removeInternalPart(\'' + id + '\')">🗑 Bauteil</button>' +
             '</div>' +
-            '<div id="' + kind + '_layers_container"></div>' +
+            '<div class="wall-layers-table" data-layer-kind="' + kind + '">' +
+              '<div class="wall-layers-header">' +
+                '<span class="wl-col-num">#</span><span class="wl-col-type">Schichttyp</span>' +
+                '<span class="wl-col-thick">Dicke (mm)</span><span class="wl-col-mat">Material (λ nach DIN 4108-4 / ÖKOBAUDAT)</span>' +
+                '<span class="wl-col-lambda">λ [W/(m·K)]</span><span class="wl-col-r">R [m²·K/W]</span><span class="wl-col-gwp">kg CO₂e/m²</span><span class="wl-col-del"></span>' +
+              '</div>' +
+              '<div id="' + kind + '_layers_container"></div>' +
+            '</div>' +
             '<button type="button" class="d48-addbtn" style="margin-top:4px;" onclick="addLayer(\'' + kind + '\')">+ Schicht</button>' +
             '<div class="lca-int-gwp">Graue Emissionen: <b><span id="' + kind + '_gwp_display">—</span></b></div>';
         $('lca_internal_list').appendChild(card);
@@ -12857,16 +12891,18 @@ async function updateDoorType() {
         if (!el) return;
         rebuildFloorSelect();
         const list = roomsOnFloor();
-        if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; return; }
+        if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; renderAusbau(); return; }
         el.innerHTML = '';
         list.forEach(function (r) {
             const devCount = (window.innenDevices || []).filter(function (d) { return d.room === r.id; })
                 .reduce(function (s, d) { return s + (parseInt(d.count, 10) || 0); }, 0);
+            const cw = cwirkOfRoom(r);
             const row = document.createElement('div');
             row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
             row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
                 + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
-                + '<span class="in-roommeta">' + polyArea(r.pts).toFixed(1) + ' m² · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)</span>'
+                + '<span class="in-roommeta">' + polyArea(r.pts).toFixed(1) + ' m² · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
+                + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
             row.addEventListener('click', function (e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
@@ -12879,6 +12915,131 @@ async function updateDoorType() {
             });
             el.appendChild(row);
         });
+        renderAusbau();
+    }
+
+    // ---- Ausbau & Speichermasse (je Zimmer) → Bauart für DIN 4108-2 §8.4 ----
+    // Richtwerte der wirksamen Wärmekapazität je m² Oberfläche [Wh/(K·m²)] nach der
+    // 10-cm-Regel (DIN V 18599-2 §6.7.3 / ISO 13786: im Tagesgang wirken nur die
+    // raumseitigen ~10 cm; Beläge/Bekleidungen koppeln die Masse dahinter ab):
+    //   Estrich/Beton 10 cm ≈ 0,1·2200·1,0 kJ ≈ 61 · Ziegel verputzt ≈ 45
+    //   Teppich/GK-Platte/abgehängte Decke ≈ 8–15 · Holz (geringe λ) ≈ 10–15
+    const AUSBAU = {
+        boden:  { label: 'Bodenbelag', opts: [
+            ['fliesen',    'Fliesen/Stein auf Estrich', 60],
+            ['parkett',    'Parkett/Laminat auf Estrich', 40],
+            ['teppich',    'Teppich auf Estrich', 15],
+            ['holz',       'Holzdielen auf Balkenlage', 10]] },
+        decke:  { label: 'Decke', opts: [
+            ['massiv',     'Massivdecke (sichtbar/verputzt)', 55],
+            ['holzbalken', 'Holzbalkendecke', 8],
+            ['abgehaengt', 'abgehängte Decke', 8]] },
+        waende: { label: 'Wände (überwiegend)', opts: [
+            ['massiv',     'massiv, verputzt', 45],
+            ['gk',         'massiv mit GK-Vorsatzschale', 15],
+            ['leicht',     'Leichtbau (Ständerwerk/GK)', 6]] },
+        moebel: { label: 'Möblierung', opts: [
+            ['wenig',      'wenig (Faktor 1,05)', 1.05],
+            ['normal',     'normal (Faktor 1,0)', 1.0],
+            ['viel',       'dicht möbliert (Faktor 0,85)', 0.85]] }
+    };
+    function ausbauVal(group, key) {
+        const o = AUSBAU[group].opts.find(function (x) { return x[0] === key; });
+        return o ? o[2] : null;
+    }
+    function polyPerimeter(pts) {
+        if (!pts || pts.length < 2) return 0;
+        let s = 0;
+        for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s += Math.hypot(b.x - a.x, b.y - a.y); }
+        return s;
+    }
+    // Lichte Raumhöhe ≈ Geschosshöhe − Deckenstärke (mind. 2,2 m)
+    function roomHeight() {
+        const gh = parseFloat(($('building_floor_height') || {}).value) || 2.8;
+        return Math.max(2.2, gh - 0.3);
+    }
+    // C_wirk/A_G [Wh/(K·m²)] – nur schätzbar, wenn Boden, Decke UND Wände angegeben sind.
+    // Wandfläche = Umfang × lichte Höhe × 0,85 (Abschlag für Tür-/Fensteröffnungen).
+    function cwirkOfRoom(r) {
+        const a = r.ausbau || {};
+        const cB = ausbauVal('boden', a.boden), cD = ausbauVal('decke', a.decke), cW = ausbauVal('waende', a.waende);
+        if (cB == null || cD == null || cW == null) return null;
+        const ag = polyArea(r.pts);
+        if (!(ag > 0)) return null;
+        const aWall = polyPerimeter(r.pts) * roomHeight() * 0.85;
+        return ((cB + cD) * ag + cW * aWall) * moebelFaktor(a) / ag;
+    }
+    // Möblierungsfaktor: Preset oder frei eingegebener Wert (plausibel begrenzt auf 0,5–1,2)
+    function moebelFaktor(a) {
+        if (a.moebel === 'custom') {
+            const v = parseFloat(a.moebelFaktor);
+            return isFinite(v) ? Math.min(1.2, Math.max(0.5, v)) : 1.0;
+        }
+        return ausbauVal('moebel', a.moebel) || 1.0;
+    }
+    // Klassengrenzen wie Backend _bauart_aus_cwirk (DIN 4108-2 Tab. 8, Fußnote b)
+    function bauartOfCwirk(cw) { return cw < 50 ? 'leicht' : (cw <= 130 ? 'mittel' : 'schwer'); }
+
+    function ausbauResult(r) {
+        const res = $('innenAusbauRes');
+        if (!res) return;
+        const cw = cwirkOfRoom(r);
+        res.innerHTML = (cw == null)
+            ? '<span style="color:#9bb4c8;">Bauart-Schätzung: Boden, Decke und Wände angeben.</span>'
+            : 'C_wirk/A_G ≈ <b>' + Math.round(cw) + ' Wh/(K·m²)</b> → Bauart <b>' + bauartOfCwirk(cw) + '</b>';
+    }
+    function renderAusbau() {
+        const el = $('innenAusbau');
+        if (!el) return;
+        const r = (window.innenRooms || []).find(function (x) { return x.id === selRoom; });
+        if (!r) {
+            el.innerHTML = '<p class="note" style="margin:0;">Zimmer in der Liste oben anklicken, um seinen Ausbau zu erfassen.</p>';
+            return;
+        }
+        r.ausbau = r.ausbau || { boden: '', decke: '', waende: '', moebel: 'normal' };
+        let h = '<div class="in-devrow" style="border-color:' + r.color + ';">'
+            + '<div class="in-devsum" style="min-width:130px;"><span class="in-roomdot" style="display:inline-block;background:' + r.color + ';margin-right:6px;"></span><b>' + escXml(r.name) + '</b> · ' + floorLabel(r.floor || 0) + '</div>';
+        Object.keys(AUSBAU).forEach(function (g) {
+            h += '<div class="field"><label>' + AUSBAU[g].label + '</label><select class="ausbau-sel" data-group="' + g + '">';
+            if (g !== 'moebel') h += '<option value=""' + (r.ausbau[g] ? '' : ' selected') + '>– nicht angegeben –</option>';
+            AUSBAU[g].opts.forEach(function (o) {
+                h += '<option value="' + o[0] + '"' + (r.ausbau[g] === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+            });
+            if (g === 'moebel') h += '<option value="custom"' + (r.ausbau.moebel === 'custom' ? ' selected' : '') + '>eigener Faktor …</option>';
+            h += '</select></div>';
+        });
+        h += '<div class="field"><label>Möblierungsfaktor <span class="info-i" style="position:relative;display:inline-block;top:0;right:0;margin-left:3px;" data-tip="Mindert die wirksame Speichermasse ab, weil Möbel, Teppiche und Verkleidungen die massiven Oberflächen abschirmen (C_wirk wird damit multipliziert).&#10;1,05 = kaum Möbel · 1,0 = normal möbliert · 0,85 = dicht möbliert.&#10;Frei einstellbar von 0,5 bis 1,2 – die Auswahl links setzt den Wert automatisch, eigene Eingabe schaltet auf „eigener Faktor“.">i</span></label><input class="ausbau-moebel-f" type="number" step="0.05" min="0.5" max="1.2" value="' + moebelFaktor(r.ausbau).toFixed(2) + '" style="width:72px;" title="Abminderung der wirksamen Speichermasse durch Möblierung/Verdeckung – frei einstellbar (0,5–1,2)"></div>';
+        h += '<div class="in-devsum" id="innenAusbauRes" style="margin-left:auto;"></div></div>';
+        el.innerHTML = h;
+        el.querySelectorAll('.ausbau-sel').forEach(function (sel) {
+            sel.addEventListener('change', function () {
+                r.ausbau[this.dataset.group] = this.value;
+                // "eigener Faktor" direkt gewählt: aktuellen Wert aus dem Zahlenfeld übernehmen
+                if (this.dataset.group === 'moebel' && this.value === 'custom' && r.ausbau.moebelFaktor == null) {
+                    const fIn = el.querySelector('.ausbau-moebel-f');
+                    r.ausbau.moebelFaktor = fIn ? (parseFloat(fIn.value) || 1.0) : 1.0;
+                }
+                ausbauResult(r); renderRoomList(); schedulePersist();
+            });
+        });
+        // Zahlenfeld: Eingabe schaltet auf "eigener Faktor" und rechnet live nach
+        // (kein Re-Render während des Tippens, sonst verliert das Feld den Fokus)
+        const fIn = el.querySelector('.ausbau-moebel-f');
+        if (fIn) {
+            fIn.addEventListener('input', function () {
+                const v = parseFloat(this.value);
+                if (!isFinite(v)) return;
+                r.ausbau.moebel = 'custom';
+                r.ausbau.moebelFaktor = v;
+                const sel = el.querySelector('.ausbau-sel[data-group="moebel"]');
+                if (sel) sel.value = 'custom';
+                ausbauResult(r); schedulePersist();
+            });
+            // Re-Render erst nach Abschluss der Event-Verarbeitung (blur/change-Kaskade):
+            // sofortiges innerHTML-Ersetzen während des Dispatch wirft sonst DOM-Fehler.
+            fIn.addEventListener('change', function () { setTimeout(renderRoomList, 0); });
+        }
+        ausbauResult(r);
     }
 
     // ---- Geräte ----
@@ -12896,7 +13057,8 @@ async function updateDoorType() {
         const list = $('innenDeviceList');
         if (!list) return null;
         devSeq += 1;
-        const d = Object.assign({ id: 'g' + devSeq, type: 'kuehlgefrier', name: '', count: 1, gwp: null, life: null, room: '' }, data || {});
+        // Neues Gerät: das im Grundriss ausgewählte Zimmer vorbelegen (überschreibbar)
+        const d = Object.assign({ id: 'g' + devSeq, type: 'kuehlgefrier', name: '', count: 1, gwp: null, life: null, room: selRoom || '' }, data || {});
         d.id = 'g' + devSeq;   // eindeutige ID auch bei Restore
         const p = DEVICE_PRESETS[d.type] || DEVICE_PRESETS.custom;
         if (!d.name) d.name = p.label;
@@ -13052,7 +13214,7 @@ async function updateDoorType() {
     // ---- Projekt-Persistenz ----
     window._captureInnen = function () {
         return {
-            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
+            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, ausbau: r.ausbau || null, pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
             devices: (window.innenDevices || []).map(function (d) { return { type: d.type, name: d.name, count: d.count, gwp: d.gwp, life: d.life, room: d.room }; })
         };
     };
@@ -13064,7 +13226,7 @@ async function updateDoorType() {
             const id = r.id || ('r' + (i + 1));
             const num = parseInt(String(id).replace(/^r/, ''), 10);
             if (isFinite(num)) roomSeq = Math.max(roomSeq, num);
-            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
+            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, ausbau: r.ausbau || null, pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
         });
         curFloor = 0;
         rebuildFloorSelect();
@@ -13074,6 +13236,48 @@ async function updateDoorType() {
         (s.devices || []).forEach(function (d) { window.addInnenDevice(d); });
         renderRoomList(); refreshDeviceRoomSelects(); render(); devSummary();
         schedulePersist();   // localStorage-Spiegel auf den wiederhergestellten Stand bringen
+    };
+
+    // ---- Schnittstelle für den DIN-4108-Tab (sommerlicher Wärmeschutz) ----
+    // Zimmerliste mit Fläche [m²] und den Himmelsrichtungen der Außenkanten.
+    // Außenkante: Kante, deren Außenseite (Probe 0,3 m entlang der Außennormale)
+    // außerhalb des Gebäudeumrisses liegt – Sektor-Logik wie in outlineLabels().
+    function pointInPoly(p, poly) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            const a = poly[i], b = poly[j];
+            if ((a.y > p.y) !== (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+        }
+        return inside;
+    }
+    window.getInnenRoomsInfo = function () {
+        const fp = getFootprint();
+        const az = window.buildingAzimuth || 0;
+        const ORI = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+        return (window.innenRooms || []).map(function (r) {
+            const pts = r.pts || [];
+            let s2 = 0;
+            for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s2 += a.x * b.y - b.x * a.y; }
+            const sgn = s2 > 0 ? 1 : -1;
+            const aussen = [];
+            for (let i = 0; i < pts.length; i++) {
+                const a = pts[i], b = pts[(i + 1) % pts.length];
+                const ex = b.x - a.x, ey = b.y - a.y;
+                const el = Math.hypot(ex, ey);
+                if (el < 1e-6) continue;
+                const nx = sgn * ey / el, ny = -sgn * ex / el;
+                const probe = { x: (a.x + b.x) / 2 + nx * 0.3, y: (a.y + b.y) / 2 + ny * 0.3 };
+                if (pointInPoly(probe, fp)) continue;   // Innenkante (Flur/Nachbarzimmer)
+                const azN = ((Math.atan2(nx, -ny) * 180 / Math.PI + az) % 360 + 360) % 360;
+                const abbr = ORI[Math.round(azN / 45) % 8];
+                if (aussen.indexOf(abbr) < 0) aussen.push(abbr);
+            }
+            const cw = cwirkOfRoom(r);
+            return { id: r.id, name: r.name, floor: r.floor || 0, floorLabel: floorLabel(r.floor || 0),
+                     area: polyArea(pts), aussen: aussen,
+                     cwirk: cw == null ? null : Math.round(cw),
+                     bauart: cw == null ? null : bauartOfCwirk(cw) };
+        });
     };
 
     // Beim Seitenladen: automatisch gesicherten Stand wiederherstellen – außer ein
@@ -13531,6 +13735,8 @@ async function updateDoorType() {
         const som = key === "som";
         if ($("d48-prefill-box")) $("d48-prefill-box").style.display = som ? "none" : "";
         if ($("d48-prefill-som-note")) $("d48-prefill-som-note").style.display = som ? "" : "none";
+        // Beim Öffnen des Sommer-Nachweises die Zimmerliste aus 🛋️ Inneneinrichtung laden
+        if (som && window.d48SomRoomsRefresh) window.d48SomRoomsRefresh();
         // Beim Öffnen von „Wärmebrücken & Luftdichtheit" das n50-Volumen aus den
         // Gebäudedaten vorbelegen (nur wenn das Feld noch leer ist).
         if (key === "wbl" && window.d48PrefillN50Volume) window.d48PrefillN50Volume(false);
@@ -13685,6 +13891,44 @@ async function updateDoorType() {
             '<td><input type="number" step="0.05" value="' + (fc || "1.0") + '"></td>' +
             '<td><button class="d48-rmlbtn" onclick="this.closest(\'tr\').remove()">✕</button></td>';
         tb.appendChild(tr);
+    };
+
+    // --- Übernahme aus 🛋️ Inneneinrichtung: A_G des kritischen Raums --------
+    const d48Esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+    window.d48SomRoomsRefresh = function () {
+        const sel = $("d48-som-room");
+        if (!sel) return;
+        const cur = sel.value;
+        const rooms = (typeof window.getInnenRoomsInfo === "function") ? window.getInnenRoomsInfo() : [];
+        let h = '<option value="">– Zimmer wählen –</option>';
+        rooms.forEach(r => {
+            h += '<option value="' + d48Esc(r.id) + '"' + (r.id === cur ? " selected" : "") + ">"
+                + d48Esc(r.name) + " · " + r.floorLabel + " (" + r.area.toFixed(1) + " m²)</option>";
+        });
+        sel.innerHTML = h;
+        const info = $("d48-som-room-info");
+        if (info && !rooms.length) info.textContent = "Keine Zimmer vorhanden – im Tab „🛋️ Inneneinrichtung“ Zimmer einzeichnen, dann hier übernehmen.";
+    };
+    window.d48SomFromRoom = function () {
+        const sel = $("d48-som-room"), info = $("d48-som-room-info");
+        if (!sel || !sel.value) { if (info) info.textContent = ""; return; }
+        const r = ((typeof window.getInnenRoomsInfo === "function") ? window.getInnenRoomsInfo() : []).find(x => x.id === sel.value);
+        if (!r || !(r.area > 0)) return;
+        $("d48-som-ag").value = r.area.toFixed(1);
+        // Bauart aus dem Zimmer-Ausbau (🧱-Karte im Inneneinrichtung-Tab), falls erfasst
+        if (r.bauart) $("d48-som-bauart").value = r.bauart;
+        const devCount = (window.innenDevices || []).filter(d => d.room === r.id)
+            .reduce((s, d) => s + (parseInt(d.count, 10) || 0), 0);
+        if (info) info.textContent = "↻ A_G = " + r.area.toFixed(1) + " m² aus „" + r.name + "“ (" + r.floorLabel + ") übernommen"
+            + (r.bauart
+                ? " · Bauart „" + r.bauart + "“ aus dem Ausbau übernommen (C_wirk ≈ " + r.cwirk + " Wh/(K·m²))."
+                : " · Bauart: kein Ausbau im Zimmer erfasst (🧱-Karte) – Auswahl oben manuell prüfen.")
+            + (r.aussen.length
+                ? " · Außenkanten: " + r.aussen.join(", ") + " → Orientierung der Fenster unten entsprechend wählen."
+                : " · Zimmer hat keine Kante am Gebäudeumriss (innenliegend) – Fensterorientierung manuell wählen.")
+            + (devCount > 0
+                ? " · " + devCount + " Gerät(e) in diesem Zimmer (interne Wärmelasten sind im Norm-Verfahren über die Nutzungsart pauschal berücksichtigt und gehen nicht direkt in S_vorh/S_zul ein)."
+                : "");
     };
     window.d48RunSom = async function () {
         const rows = [...$("d48-som-tbl").querySelectorAll("tbody tr")];
