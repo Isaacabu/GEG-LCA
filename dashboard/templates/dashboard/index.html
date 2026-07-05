@@ -1764,6 +1764,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
     <div class="tabs" role="tablist" aria-label="Berechnungsbereiche" onkeydown="handleTabKeydown(event)">
         <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
         <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
+        <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
@@ -1996,12 +1997,13 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     </div>
                     <div class="field">
                         <label>Wärmebrückenzuschlag ΔU_WB (GEG §24)
-                            <span class="info-i" data-tip="Pauschaler Wärmebrückenzuschlag auf die gesamte Hüllfläche (DIN V 18599-2, Gl. 47).&#10;0,10 W/(m²·K): ohne Nachweis (GEG-Standard).&#10;0,05 W/(m²·K): mit Gleichwertigkeitsnachweis nach DIN 4108 Beiblatt 2.&#10;0,03 W/(m²·K): wärmebrückenoptimiert (Passivhaus).">i</span>
+                            <span class="info-i" data-tip="Pauschaler Wärmebrückenzuschlag auf die gesamte Hüllfläche (DIN V 18599-2, Gl. 47).&#10;0,10 W/(m²·K): kein Nachweis (GEG-Standard).&#10;0,15 W/(m²·K): Innendämmung + einbindende Massivdecke.&#10;0,05 W/(m²·K): Anschlüsse nach DIN 4108 Beiblatt 2 – Kategorie A.&#10;0,03 W/(m²·K): Anschlüsse nach DIN 4108 Beiblatt 2 – Kategorie B.">i</span>
                         </label>
                         <select id="delta_u_wb" onchange="toggleDeltaUwbCustom()">
-                            <option value="0.10">0,10 W/(m²·K) – pauschal ohne Nachweis (GEG-Standard)</option>
-                            <option value="0.05">0,05 W/(m²·K) – mit Gleichwertigkeitsnachweis (Beiblatt 2)</option>
-                            <option value="0.03">0,03 W/(m²·K) – wärmebrückenoptimiert (Passivhaus)</option>
+                            <option value="0.10">0,10 W/(m²·K) – kein Nachweis (GEG-Standard)</option>
+                            <option value="0.15">0,15 W/(m²·K) – Innendämmung + einbindende Massivdecke</option>
+                            <option value="0.05">0,05 W/(m²·K) – Anschlüsse nach Beiblatt 2 (Kategorie A)</option>
+                            <option value="0.03">0,03 W/(m²·K) – Anschlüsse nach Beiblatt 2 (Kategorie B)</option>
                             <option value="custom">Benutzerdefiniert – manuell eingeben …</option>
                         </select>
                         <input id="delta_u_wb_custom" type="number" step="0.01" min="0" value="0.10"
@@ -2720,6 +2722,97 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
         </div>
     </div>
 
+
+    <!-- ===================== Tab: Inneneinrichtung ===================== -->
+    <div id="innen" class="tab">
+        <style>
+            #innenSvg { display:block; width:100%; height:auto; touch-action:none; cursor:crosshair; }
+            #innen .in-handle { cursor:grab; }
+            #innen .in-roomrow { display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid #21456d; border-radius:9px; margin-top:6px; background:#0f2138; cursor:pointer; }
+            #innen .in-roomrow.sel { border-color:#38bdf8; box-shadow:0 0 0 2px rgba(56,189,248,.18); }
+            #innen .in-roomdot { flex:0 0 12px; width:12px; height:12px; border-radius:3px; }
+            #innen .in-roomrow input[type="text"] { background:#0a1830; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; width:170px; }
+            #innen .in-roommeta { font-size:12.5px; color:#9bb4c8; }
+            #innen .in-roomdel { margin-left:auto; background:#7f1d1d; border:1px solid #7f1d1d; color:#fff; border-radius:7px; padding:5px 10px; cursor:pointer; }
+            #innen .in-devrow { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; padding:10px 12px; border:1px solid #21456d; border-radius:10px; margin-top:8px; background:#0f2138; }
+            #innen .in-devrow .field { margin:0; }
+            #innen .in-devrow label { font-size:11px; color:#9bb4c8; display:block; margin-bottom:3px; }
+            #innen .in-devrow input, #innen .in-devrow select { background:#0a1830; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; }
+            #innen .in-devsum { font-size:12.5px; color:#cfe0f2; padding-bottom:7px; }
+            #innen .in-devsum b { color:#f6b94b; }
+            #innen .in-devdel { margin-left:auto; background:#7f1d1d; border:1px solid #7f1d1d; color:#fff; border-radius:7px; padding:6px 12px; cursor:pointer; height:34px; }
+        </style>
+        <div class="panel">
+            <h2 class="section-title">🛋️ Inneneinrichtung</h2>
+            <p class="note">Zimmer im Grundriss einzeichnen und die Geräte-Ausstattung erfassen. Der Gebäudeumriss kommt automatisch aus den
+               <strong>Gebäudedaten</strong> (einfache Maße oder selbst gezeichnete komplexe Geometrie). Die grauen Emissionen der Geräte fließen
+               automatisch als <strong>Modul B4 (Austausch der Ausstattung)</strong> in die <strong>🌍 Ökobilanz (LCA)</strong> ein.</p>
+
+            <div class="card">
+                <h3>Grundriss &amp; Zimmer <span class="small" style="color:#9bb4c8;font-weight:400;">(je Etage – Anzahl Etagen aus den Gebäudedaten)</span></h3>
+                <p class="note" style="margin:2px 0 10px;">Zeichnen wie in „Komplexe Geometrie": Ecken nacheinander anklicken, zum Schließen auf den ersten
+                   (goldenen) Punkt klicken. Fertige Zimmer <b>verschieben</b>: Zimmer mit gedrückter Maustaste ziehen; einzelne <b>Eckpunkte</b> ziehen
+                   (Zimmer vorher anklicken). <b>Löschen</b>: Zimmer auswählen → „🗑 Zimmer löschen" (oder Entf-Taste bzw. 🗑 in der Liste). Raster ½&nbsp;m.</p>
+                <div class="fp-controls" style="margin-bottom:10px;">
+                    <label class="fp-ctl">Etage
+                        <select id="innen_floor" style="background:#0a1830;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:150px;"></select>
+                    </label>
+                    <span class="fp-ctl" id="innen_floor_hint" style="font-weight:400;"></span>
+                </div>
+                <div class="fp-toolbar" id="innenToolbar">
+                    <span class="fp-group">
+                        <button type="button" class="fp-btn" data-in="rect">▭ Rechteck-Zimmer</button>
+                    </span>
+                    <span class="fp-group">
+                        <button type="button" class="fp-btn" data-in="undo">↶ Punkt zurück</button>
+                        <button type="button" class="fp-btn" data-in="close">Zimmer schließen</button>
+                        <button type="button" class="fp-btn" data-in="cancel">Zeichnung verwerfen</button>
+                        <button type="button" class="fp-btn fp-btn-danger" data-in="delsel">🗑 Zimmer löschen</button>
+                        <button type="button" class="fp-btn fp-btn-danger" data-in="clearall">Alle Zimmer löschen</button>
+                    </span>
+                </div>
+                <div class="fp-canvas-wrap">
+                    <svg id="innenSvg" viewBox="0 0 480 320" preserveAspectRatio="xMidYMid meet" aria-label="Zimmer-Zeichenfläche">
+                        <g id="innenGrid"></g>
+                        <g id="innenOutline"></g>
+                        <g id="innenLayer"></g>
+                        <g id="innenNorth" transform="translate(446,30)" style="pointer-events:none;">
+                            <circle r="17" fill="rgba(11,31,58,0.72)" stroke="rgba(255,255,255,0.18)"/>
+                            <g id="innenNorthArrow">
+                                <path d="M0,-12 L4.5,4 L0,1 L-4.5,4 Z" fill="#10b981"/>
+                                <text x="0" y="-13.5" text-anchor="middle" font-size="8" font-weight="700" fill="#34d399">N</text>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+                <div class="fp-info" id="innenInfo"></div>
+                <div class="stats" style="margin-top:12px;">
+                    <div class="stat-box"><div class="label">Grundfläche (Geschoss)</div><div class="value" id="innen_fp_area">—</div></div>
+                    <div class="stat-box"><div class="label">Zimmer (Etage)</div><div class="value" id="innen_room_count">0</div></div>
+                    <div class="stat-box"><div class="label">Zimmerfläche Σ (Etage)</div><div class="value" id="innen_room_area">0 m²</div></div>
+                    <div class="stat-box"><div class="label">Restfläche (Flur/Wände)</div><div class="value" id="innen_rest_area">—</div></div>
+                </div>
+                <div id="innenRoomList"></div>
+            </div>
+
+            <div class="card" style="margin-top:14px;">
+                <h3>Geräte &amp; Ausstattung → Ökobilanz (Modul B4)</h3>
+                <p class="note" style="margin:2px 0 10px;">Je Gerät: Herstellungs-Emissionen (GWP A1–A3, kg&nbsp;CO₂e je Stück) und Nutzungsdauer.
+                   Vorbelegt sind typische Richtwerte aus EPD-/Ökobilanz-Literatur – je Gerät überschreibbar. Über den Betrachtungszeitraum der LCA
+                   (<span id="innen_years_echo">50</span>&nbsp;Jahre) werden Ersatzbeschaffungen automatisch mitgerechnet.</p>
+                <div id="innenDeviceList"></div>
+                <button type="button" class="btn btn-primary" onclick="addInnenDevice()" style="margin-top:10px;padding:7px 14px;">＋ Gerät hinzufügen</button>
+                <div class="stats" style="margin-top:12px;">
+                    <div class="stat-box"><div class="label">Geräte gesamt</div><div class="value" id="innen_dev_count">0</div></div>
+                    <div class="stat-box"><div class="label">Herstellung einmalig</div><div class="value" id="innen_dev_once">0 kg</div></div>
+                    <div class="stat-box"><div class="label">pro Jahr (amortisiert)</div><div class="value" id="innen_dev_year">0 kg/a</div></div>
+                    <div class="stat-box"><div class="label">über Betrachtungszeitraum</div><div class="value" id="innen_dev_period">0 kg</div></div>
+                </div>
+                <p class="note" style="margin-top:10px;">Ergebnis-Darstellung: Tab <strong>🌍 Ökobilanz (LCA)</strong> → Karte
+                   „Geräte &amp; Ausstattung (Modul B4)" und Lebenszyklus-Balken. Aktualisiert sich automatisch bei jeder Eingabe.</p>
+            </div>
+        </div>
+    </div>
 
     <div id="anlage" class="tab">
         <div class="panel">
@@ -3600,8 +3693,14 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <div class="d48-grid">
                     <div class="d48-field"><label>n₅₀ gemessen [h⁻¹]</label><input id="d48-n50" type="number" step="0.1" value="2.0"></div>
                     <div class="d48-field"><label>Lüftungsanlage (RLT)</label><select id="d48-n50-rlt"><option value="0">ohne (Grenze 3,0)</option><option value="1">mit RLT (Grenze 1,5)</option></select></div>
-                    <div class="d48-field"><label>Gebäudevolumen [m³] (optional)</label><input id="d48-n50-vol" type="number" step="10" placeholder="für q_E50 > 1500 m³"></div>
+                    <div class="d48-field"><label>Gebäudevolumen [m³] (optional)</label>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input id="d48-n50-vol" type="number" step="10" placeholder="für q_E50 > 1500 m³" style="flex:1">
+                            <button type="button" class="d48-addbtn" onclick="d48PrefillN50Volume(true)" title="Brutto-Rauminhalt aus den Gebäudedaten (Hülle-Tab) übernehmen">↻ aus Gebäudedaten</button>
+                        </div>
+                    </div>
                 </div>
+                <div id="d48-n50-vol-info" class="d48-src"></div>
                 <div style="margin-top:6px"><button class="btn btn-primary" onclick="d48RunN50()">Luftdichtheit prüfen</button></div>
                 <div id="d48-n50-res"></div>
 
@@ -3693,6 +3792,15 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
             #lca .lca-int-del{margin-left:auto;background:#7f1d1d;border:1px solid #7f1d1d;color:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;height:34px}
             #lca .lca-int-gwp{font-size:12.5px;color:#cfe0f2;margin-top:6px}
             #lca .lca-int-gwp b{color:#f6b94b}
+            #lca .lca-final-hero{display:flex;gap:26px;flex-wrap:wrap;align-items:center}
+            #lca .lca-final-num{font-size:38px;font-weight:800;color:#f6b94b;font-family:'JetBrains Mono',ui-monospace,monospace;line-height:1.1}
+            #lca .lca-badge{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:700;font-size:13px}
+            #lca .lca-src-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px}
+            #lca .lca-srccard{background:#0f2138;border:1px solid #21456d;border-radius:10px;padding:11px 13px;cursor:pointer;transition:border-color .15s}
+            #lca .lca-srccard:hover{border-color:#38bdf8}
+            #lca .lca-srccard .t{font-weight:700;color:#e7edf5;font-size:13.5px;margin-bottom:6px}
+            #lca .lca-srccard .r{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:#9bb4c8;padding:2px 0}
+            #lca .lca-srccard .r b{color:#e7edf5;font-weight:600;text-align:right}
         </style>
         <div class="panel">
             <h2 class="section-title">🌍 Ökobilanz (LCA)</h2>
@@ -3736,6 +3844,15 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 </div>
             </div>
 
+            <!-- ===== Endresultat + Datengrundlage aus allen Tabs ===== -->
+            <div class="card" style="margin-top:14px;">
+                <h3>📌 Endresultat – Lebenszyklus-Treibhausgase</h3>
+                <div id="lca_final" style="margin-top:8px;"><div class="small" style="color:#9bb;">Noch nicht berechnet – die Auswertung läuft automatisch, sobald Gebäudehülle und Anlagentechnik gerechnet sind.</div></div>
+                <h3 style="margin-top:18px;">Datengrundlage – so setzt sich das Ergebnis zusammen</h3>
+                <p class="note" style="margin:2px 0 4px;">Die relevanten Eingaben und Zwischenergebnisse aus allen Tabs auf einen Blick. Karte anklicken, um zum jeweiligen Tab zu springen – Änderungen dort aktualisieren das Endresultat automatisch.</p>
+                <div id="lca_sources" class="lca-src-grid"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+            </div>
+
             <!-- ===== PHASE 1: Ziel & Untersuchungsrahmen ===== -->
             <div class="lca-phase">
                 <div class="lca-phase-head"><span class="lca-phase-no">1</span><div>
@@ -3756,7 +3873,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                         <tbody>
                             <tr><td>A1–A3</td><td>Herstellung (Rohstoffe → Werk)</td><td class="yes">✓ enthalten · ÖKOBAUDAT 2024</td></tr>
                             <tr><td>A4–A5</td><td>Transport &amp; Einbau auf der Baustelle</td><td class="no">– nicht bilanziert</td></tr>
-                            <tr><td>B1–B5</td><td>Instandhaltung, Reparatur, Austausch</td><td class="no">– nicht bilanziert</td></tr>
+                            <tr><td>B1–B5</td><td>Instandhaltung, Reparatur, Austausch</td><td class="opt">○ B4 teilweise: Geräte-Ausstattung aus „🛋️ Inneneinrichtung" (sonst nicht bilanziert)</td></tr>
                             <tr><td>B6</td><td>Betriebliche Energie</td><td class="yes">✓ enthalten · DIN V 18599</td></tr>
                             <tr><td>B7</td><td>Betriebliches Wasser</td><td class="no">– nicht bilanziert</td></tr>
                             <tr><td>C1–C4</td><td>Lebensende (Rückbau, Entsorgung)</td><td class="opt">○ optional (pauschaler %-Zuschlag)</td></tr>
@@ -3787,6 +3904,14 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div id="lca_internal_list"></div>
                     <button type="button" class="btn btn-primary" onclick="addInternalPart()" style="margin-top:6px;padding:7px 14px;">＋ Internes Bauteil</button>
                 </div>
+
+                <div class="card" style="margin-top:14px;">
+                    <h3>Geräte &amp; Ausstattung (Modul B4 – aus „🛋️ Inneneinrichtung")</h3>
+                    <p class="note" style="margin:2px 0 8px;">Herstellungs-Emissionen der Geräte-Ausstattung inkl. Ersatzbeschaffungen über den
+                       Betrachtungszeitraum (Näherung für Modul B4 nach DIN&nbsp;EN&nbsp;15978). Erfassung und Zimmer-Zuordnung im Tab
+                       „🛋️ Inneneinrichtung" – die Werte hier aktualisieren sich automatisch.</p>
+                    <div id="lca_devices" style="overflow-x:auto;margin-top:6px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+                </div>
             </div>
 
             <!-- ===== PHASE 3: Wirkungsabschätzung (LCIA) ===== -->
@@ -3805,10 +3930,16 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <div class="stat-box"><div class="label">Betrieb B6 pro Jahr</div><div class="value" id="lca_op_year">—</div></div>
                     <div class="stat-box"><div class="label">Betrieb über Zeitraum</div><div class="value" id="lca_op_period">—</div></div>
                     <div class="stat-box" id="lca_eol_box" style="display:none;"><div class="label">Lebensende C (Schätzung)</div><div class="value" id="lca_eol">—</div></div>
+                    <div class="stat-box" id="lca_dev_box" style="display:none;"><div class="label">Geräte B4 (über Zeitraum)</div><div class="value" id="lca_dev">—</div></div>
                 </div>
                 <div class="card" style="margin-top:14px;">
                     <h3>Verteilung über den Lebenszyklus</h3>
                     <div id="lca_bar" style="margin-top:10px;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
+                </div>
+                <div class="card" style="margin-top:14px;">
+                    <h3>Lebenszyklus im Zeitverlauf – kumulierte Emissionen</h3>
+                    <p class="note" style="margin:2px 0 8px;">So wachsen die Treibhausgase über den Betrachtungszeitraum an: Die <b style="color:#f6b94b;">Herstellung (A1–A3)</b> steht ab Tag 1 fest, <b style="color:#a78bfa;">Geräte (B4)</b> kommen mit jeder Ersatzbeschaffung stufenweise dazu, der <b style="color:#38bdf8;">Betrieb (B6)</b> wächst Jahr für Jahr. Die gestrichelte Linie markiert die Amortisation: ab dort hat der Betrieb die Herstellung überholt.</p>
+                    <div id="lca_timeline" style="overflow-x:auto;"><div class="small" style="color:#9bb;">Noch nicht berechnet.</div></div>
                 </div>
             </div>
 
@@ -9969,6 +10100,8 @@ async function updateDoorType() {
         window.complexWindows = null;
         window.complexDoors = null;
         window.complexWallList = null;
+        window.buildingFootprint = null;   // Inneneinrichtung-Tab fällt auf das Rechteck aus den Gebäudemaßen zurück
+        if (typeof window._innenGeometryChanged === 'function') window._innenGeometryChanged();
         if (typeof renderWallBoundaryGrid === 'function') renderWallBoundaryGrid();
         if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
         if (typeof setGeometryFieldsMode === 'function') setGeometryFieldsMode(false);
@@ -10279,6 +10412,8 @@ async function updateDoorType() {
             : +(doorW * doorH).toFixed(2);   // m² je Tür → door_area_per_unit
         window.isComplexGeometry = true;
         window.complexWallList = wallList;   // Wand-Bezeichnungen (Nr. + Orientierung) für spätere Eingaben
+        window.buildingFootprint = pointsM.map(function (p) { return { x: p.x, y: p.y }; });   // Umriss [m] für den Inneneinrichtung-Tab
+        if (typeof window._innenGeometryChanged === 'function') window._innenGeometryChanged();
         window.geometryVolume = A * H;
         // Grenzen für Editor/Drag (Bounding-Box; je Wand gilt zusätzlich wallLen)
         window._geo3d = { W: maxx - minx, D: maxz - minz, halfW: (maxx - minx) / 2, halfD: (maxz - minz) / 2, wallTop: floorTop + H, floorTop: floorTop };
@@ -11668,6 +11803,7 @@ async function updateDoorType() {
             winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0,
             pvEnabled: window.pvEnabled === true,
             internal_parts: (typeof window._captureInternalParts === 'function') ? window._captureInternalParts() : [],
+            innen: (typeof window._captureInnen === 'function') ? window._captureInnen() : null,
             lca_periods: window.lcaPeriods || {}
         };
     }
@@ -11700,6 +11836,7 @@ async function updateDoorType() {
         // PV-Ja/Nein wiederherstellen (alte Projekte ohne Feld → aus PV-Liste ableiten)
         window.pvEnabled = (typeof s.pvEnabled === 'boolean') ? s.pvEnabled : ((s.pvList || []).length > 0);
         if (typeof window._restoreInternalParts === 'function') window._restoreInternalParts(s.internal_parts);
+        if (typeof window._restoreInnen === 'function') window._restoreInnen(s.innen);
         if (s.lca_periods && typeof s.lca_periods === 'object') window.lcaPeriods = s.lca_periods;
         if (window.aggregateWindows) window.aggregateWindows();
         if (window.aggregateDoors) window.aggregateDoors();
@@ -11987,7 +12124,8 @@ async function updateDoorType() {
 
     // Phase 4 – Auswertung (Interpretation) nach ISO 14044 §4.5: signifikante Parameter,
     // Beurteilung (Vollständigkeit/Konsistenz/Sensitivität), Schlussfolgerungen & Einschränkungen.
-    function lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct) {
+    function lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct, dev) {
+        dev = dev || { list: [], total: 0 };
         if (!(total > 0)) return '<div class="small" style="color:#9bb;">Keine Ergebnisse – bitte Gebäudehülle, Anlagentechnik und Schichtaufbauten ausfüllen.</div>';
         const matBound = emb.total + eol;          // herstellungs-/materialgebunden (A1–A3 + C)
         const shareOp = Math.round(opPeriod / total * 100);
@@ -12002,9 +12140,15 @@ async function updateDoorType() {
         html += '<li>Über ' + years + ' Jahre dominiert <b>' + dominant + '</b> die Bilanz: Betrieb ' + shareOp + ' % gegenüber materialgebunden ' + shareMat + ' %.</li>';
         html += '<li>Größter Posten der grauen Emissionen: <b>' + topComp[0] + '</b> (' + fmtKg(topComp[1]) + ', ' + topPct + ' % von A1–A3).</li>';
         if (breakeven && isFinite(breakeven)) html += '<li>Amortisation: Der kumulierte Betrieb übersteigt die Herstellung rechnerisch nach <b>≈ ' + Math.round(breakeven) + ' Jahren</b>.</li>';
+        if (dev.total > 0) {
+            const devTop = dev.list.slice().sort((a, b) => b.total - a.total)[0];
+            html += '<li>Geräte &amp; Ausstattung (B4): <b>' + fmtKg(dev.total) + '</b> über ' + years + ' Jahre'
+                + (total > 0 ? ' (' + Math.round(dev.total / total * 100) + ' % der Gesamtbilanz)' : '')
+                + ' – größter Posten: <b>' + String(devTop.name).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</b> (' + fmtKg(devTop.total) + ').</li>';
+        }
         html += '</ul>';
         html += '<h4>b) Beurteilung – Vollständigkeit, Konsistenz, Sensitivität (§4.5.3)</h4><ul>';
-        html += '<li><b>Vollständigkeit:</b> enthalten sind A1–A3 und B6' + (eolPct > 0 ? ' sowie ein C-Zuschlag' : '') + '; nicht enthalten A4/A5, B1–B5, B7 und D.</li>';
+        html += '<li><b>Vollständigkeit:</b> enthalten sind A1–A3 und B6' + (dev.total > 0 ? ', die Geräte-Ausstattung als B4-Näherung' : '') + (eolPct > 0 ? ' sowie ein C-Zuschlag' : '') + '; nicht enthalten A4/A5, ' + (dev.total > 0 ? 'B1–B3/B5' : 'B1–B5') + ', B7 und D.</li>';
         html += '<li><b>Konsistenz:</b> alle grauen Emissionen aus derselben Datenbasis (ÖKOBAUDAT 2024), Betriebs-CO₂ durchgängig mit GEG-2024-Faktoren.</li>';
         html += '<li><b>Sensitivität:</b> das Ergebnis hängt stark vom Betrachtungszeitraum (' + years + ' a) und von den Energieträger-/CO₂-Faktoren ab – längere Zeiträume erhöhen den Betriebsanteil.</li>';
         html += '</ul>';
@@ -12031,14 +12175,16 @@ async function updateDoorType() {
             const bgf = num(($('bgf') || {}).value) || 0;
             const eol = emb.total * eolPct / 100;
             const opPeriod = (opYear || 0) * years;
-            const total = emb.total + eol + opPeriod;
-            render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct);
+            const dev = (typeof window.gatherInnenDevices === 'function') ? window.gatherInnenDevices(years) : { list: [], total: 0 };
+            const total = emb.total + eol + opPeriod + dev.total;
+            render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct, dev);
             window._lcaHasRun = true;   // ab jetzt zieht die Auto-Neuberechnung die LCA mit
             if (status) status.textContent = '✓ Stand ' + _now();
         } catch (e) { if (status) status.textContent = '⚠ Fehler bei der LCA-Berechnung.'; }
     };
 
-    function render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct) {
+    function render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct, dev) {
+        dev = dev || { list: [], total: 0 };
         const fu = $('lca_fu_val');
         if (fu) fu.innerHTML = 'Das gesamte Gebäude über <b>' + years + ' Jahre</b> Betrachtungszeitraum'
             + (bgf > 0 ? ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr; Gebäude-BGF ' + Math.round(bgf).toLocaleString('de-DE') + '&nbsp;m²).' : ' (Referenz: 1&nbsp;m²&nbsp;BGF · Jahr).');
@@ -12050,8 +12196,11 @@ async function updateDoorType() {
         $('lca_op_period').textContent = fmtKg(opPeriod);
         const eolBox = $('lca_eol_box');
         if (eolPct > 0) { eolBox.style.display = ''; $('lca_eol').textContent = fmtKg(eol); } else eolBox.style.display = 'none';
+        const devBox = $('lca_dev_box');
+        if (devBox) { if (dev.total > 0) { devBox.style.display = ''; $('lca_dev').textContent = fmtKg(dev.total); } else devBox.style.display = 'none'; }
 
         const segs = [['Herstellung A1–A3' + (eolPct > 0 ? ' + Lebensende C' : ''), emb.total + eol, '#f6b94b'], ['Betrieb B6 (' + years + ' a)', opPeriod, '#38bdf8']];
+        if (dev.total > 0) segs.push(['Geräte & Ausstattung B4 (' + years + ' a)', dev.total, '#a78bfa']);
         const sum = segs.reduce((s, x) => s + (x[1] || 0), 0) || 1;
         $('lca_bar').innerHTML =
             '<div style="display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid #21456d;">' +
@@ -12087,8 +12236,210 @@ async function updateDoorType() {
         h += '</tbody></table>';
         $('lca_breakdown').innerHTML = h;
 
+        const devEl = $('lca_devices');
+        if (devEl) devEl.innerHTML = lcaDevicesHtml(dev, years);
+
+        // Endresultat + Datengrundlage aus allen Tabs + Lebenszyklus-Zeitverlauf
+        const finalEl = $('lca_final');
+        if (finalEl) finalEl.innerHTML = lcaFinalHtml(emb, opPeriod, eol, dev, total, years, bgf);
+        const srcEl = $('lca_sources');
+        if (srcEl) srcEl.innerHTML = lcaSourcesHtml(dev, years);
+        const tlEl = $('lca_timeline');
+        if (tlEl) tlEl.innerHTML = lcaTimelineSvg(emb, opYear, dev, eol, total, years);
+
         const interp = $('lca_interpret');
-        if (interp) interp.innerHTML = lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct);
+        if (interp) interp.innerHTML = lcaInterpret(emb, opYear, opPeriod, eol, total, years, bgf, eolPct, dev);
+    }
+
+    // ===== Endresultat: Gesamtzahl + Einordnung + kompakter Phasen-Balken =====
+    function lcaFinalHtml(emb, opPeriod, eol, dev, total, years, bgf) {
+        if (!(total > 0)) return '<div class="small" style="color:#9bb;">Noch nicht berechnet – Gebäudehülle und Anlagentechnik ausfüllen, die LCA läuft automatisch.</div>';
+        const spec = (bgf > 0) ? total / bgf / years : null;
+        // Einordnung in Anlehnung an die QNG-Klimaschutz-Anforderungswerte (Wohngebäude, 50 a)
+        let cls = null;
+        if (spec != null) {
+            if (spec <= 20) cls = { label: 'sehr gut · QNG-PREMIUM-Niveau (≤ 20)', col: '#1a9850' };
+            else if (spec <= 24) cls = { label: 'gut · QNG-PLUS-Niveau (≤ 24)', col: '#66bd63' };
+            else if (spec <= 36) cls = { label: 'mittel (24–36)', col: '#f6b94b' };
+            else cls = { label: 'hoch (> 36)', col: '#ef4444' };
+        }
+        const segs = [
+            ['Herstellung A1–A3', emb.total, '#f6b94b'],
+            ['Geräte B4', dev.total, '#a78bfa'],
+            ['Betrieb B6', opPeriod, '#38bdf8'],
+            ['Lebensende C', eol, '#fb923c']
+        ].filter(function (s) { return s[1] > 0; });
+        const sum = segs.reduce(function (s, x) { return s + x[1]; }, 0) || 1;
+        let h = '<div class="lca-final-hero">'
+            + '<div><div class="small" style="color:#9bb;">Gesamt über ' + years + ' Jahre</div>'
+            + '<div class="lca-final-num">' + fmtKg(total) + '</div>'
+            + '<div class="small" style="color:#cfe0f2;">CO₂-Äquivalente · Module A1–A3' + (dev.total > 0 ? ' · B4' : '') + ' · B6' + (eol > 0 ? ' · C' : '') + '</div></div>';
+        if (spec != null) {
+            h += '<div><div class="small" style="color:#9bb;">bezogen auf BGF und Jahr</div>'
+                + '<div style="font-size:26px;font-weight:800;color:#e7edf5;font-family:JetBrains Mono,ui-monospace,monospace;">' + (Math.round(spec * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/(m²·a)</div>'
+                + '<div style="margin-top:6px;"><span class="lca-badge" style="background:' + cls.col + '22;border:1px solid ' + cls.col + ';color:' + cls.col + ';">' + cls.label + '</span></div></div>';
+        }
+        h += '</div>';
+        h += '<div style="display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid #21456d;margin-top:14px;">'
+            + segs.map(function (s) { return '<div title="' + s[0] + ': ' + fmtKg(s[1]) + '" style="width:' + Math.max(0.5, s[1] / sum * 100) + '%;background:' + s[2] + ';"></div>'; }).join('') + '</div>'
+            + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:#cfe0f2;">'
+            + segs.map(function (s) { return '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:' + s[2] + ';margin-right:5px;"></span>' + s[0] + ' <b style="color:#fff;">' + Math.round(s[1] / sum * 100) + '%</b> (' + fmtKg(s[1]) + ')</span>'; }).join('')
+            + '</div>';
+        if (spec != null) h += '<p class="note" style="margin-top:8px;">Einordnung in Anlehnung an die QNG-Klimaschutz-Anforderungswerte für Wohngebäude (Lebenszyklus 50 Jahre); vereinfachter Modulumfang – Orientierungswert, kein Nachweis.</p>';
+        return h;
+    }
+
+    // ===== Datengrundlage: relevante Eingaben/Zwischenergebnisse aus allen Tabs =====
+    function srcRow(k, v) { return '<div class="r"><span>' + k + '</span><b>' + v + '</b></div>'; }
+    function fld(id) { const el = document.getElementById(id); if (!el) return ''; return String(el.value != null && el.value !== '' ? el.value : (el.textContent || '')).trim(); }
+    function deNum(v, unit) { return (v != null && isFinite(v)) ? Math.round(v).toLocaleString('de-DE') + (unit || '') : '—'; }
+    function lcaSourcesHtml(dev, years) {
+        const env = window.lastEnvelopeResult || {}, sys = window.lastSystemResult || {}, bal = window.lastBalanceResult || {};
+        const hb = env.heat_balance || {};
+        const cards = [];
+        cards.push(['daten', '🏢 Gebäudedaten',
+            srcRow('Maße', fld('building_length') + ' × ' + fld('building_width') + ' m · ' + fld('building_floors') + ' Geschosse')
+            + srcRow('BGF', (fld('bgf') || '—') + ' m²')
+            + srcRow('Brutto-Volumen', fld('geometry_volume') || '—')
+            + (env.climate_location_label ? srcRow('Klima', env.climate_location_label) : '')]);
+        cards.push(['huelle', '🏠 Gebäudehülle',
+            srcRow('Heizwärmebedarf', deNum(hb.heat_demand_kwh, ' kWh/a'))
+            + srcRow('spezifisch', deNum(env.specific_heat_demand, ' kWh/(m²·a)'))
+            + srcRow('ΔU_WB', (window.getDeltaUwb ? window.getDeltaUwb().toFixed(2) : '—') + ' W/(m²·K)')]);
+        const rooms = window.innenRooms || [], devs = window.innenDevices || [];
+        const roomArea = rooms.reduce(function (s, r) {
+            const p = r.pts || []; let a = 0;
+            for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i].x * q.y - q.x * p[i].y; }
+            return s + Math.abs(a / 2);
+        }, 0);
+        cards.push(['innen', '🛋️ Inneneinrichtung',
+            srcRow('Zimmer', rooms.length + (roomArea > 0 ? ' (' + roomArea.toFixed(0) + ' m²)' : ''))
+            + srcRow('Geräte', devs.reduce(function (s, d) { return s + (d.count || 1); }, 0) + ' Stück')
+            + srcRow('Geräte B4 (' + years + ' a)', fmtKg(dev.total))]);
+        const HEAT_NAMES = { gas: 'Gas-Brennwert', oil: 'Öl-Brennwert', heatpump: 'Wärmepumpe', pellet: 'Pellets', pellets: 'Pellets', district: 'Fernwärme', wood: 'Holz', electric: 'Direktstrom' };
+        const hs = sys.din && sys.din.heating_system;
+        cards.push(['anlage', '⚙️ Anlagentechnik',
+            srcRow('Heizsystem', hs ? (HEAT_NAMES[hs] || hs) : '—')
+            + srcRow('Endenergie', deNum(sys.total_end_energy, ' kWh/a'))
+            + srcRow('Primärenergie', deNum(sys.primary_energy, ' kWh/a'))]);
+        const pvOn = window.pvEnabled === true;
+        cards.push(['pv', '☀️ Photovoltaik',
+            srcRow('Status', pvOn ? 'aktiv' : 'deaktiviert')
+            + (pvOn ? srcRow('Jahresertrag', (fld('pv_annual_yield').split('(')[0].trim() || '—')) : srcRow('Wirkung', 'keine PV-Gutschrift'))]);
+        const opCo2 = (bal.co2_total_kg != null) ? bal.co2_total_kg : sys.co2_emissions;
+        cards.push(['bilanz', '🟢 Energiebilanz',
+            srcRow('Betriebs-CO₂', deNum(opCo2, ' kg/a'))
+            + srcRow('→ B6 über ' + years + ' a', fmtKg((parseFloat(opCo2) || 0) * years))]);
+        return cards.map(function (c) {
+            return '<div class="lca-srccard" onclick="lcaJumpTab(\'' + c[0] + '\')" title="Zum Tab „' + c[1].replace(/^[^ ]+ /, '') + '" wechseln"><div class="t">' + c[1] + '</div>' + c[2] + '</div>';
+        }).join('');
+    }
+    window.lcaJumpTab = function (id) {
+        const b = document.querySelector('.tabs button[aria-controls="' + id + '"]');
+        if (b) b.click();
+    };
+
+    // ===== Lebenszyklus im Zeitverlauf: gestapelte kumulierte Emissionen (SVG) =====
+    function lcaTimelineSvg(emb, opYear, dev, eol, total, years) {
+        if (!(total > 0) || !(years >= 1)) return '<div class="small" style="color:#9bb;">Noch nicht berechnet.</div>';
+        const W = 760, H = 300, padL = 64, padR = 18, padT = 24, padB = 44;
+        const iw = W - padL - padR, ih = H - padT - padB;
+        // Kumulierte Verläufe je Quelle (Index = Jahr 0..years)
+        const devices = window.innenDevices || [];
+        const cumDev = [], cumOp = [];
+        let dsum = 0;
+        for (let y = 0; y <= years; y++) {
+            devices.forEach(function (d) {
+                const life = Math.max(1, d.life || 1);
+                if ((y === 0) || (y % life === 0 && y < years)) dsum += (d.count || 1) * (d.gwp || 0);
+            });
+            cumDev.push(dsum);
+            cumOp.push((opYear || 0) * y);
+        }
+        const yMax = Math.max(1, emb.total + cumDev[years] + cumOp[years] + eol);
+        const X = function (y) { return padL + y / years * iw; };
+        const Y = function (v) { return padT + ih - Math.min(1, v / yMax) * ih; };
+        // Fläche zwischen unterer und oberer kumulierter Grenze (als Funktion des Jahres)
+        function band(lowFn, hiFn, col, label) {
+            let up = '', down = '';
+            for (let y = 0; y <= years; y++) up += (y ? ' L' : 'M') + X(y).toFixed(1) + ' ' + Y(hiFn(y)).toFixed(1);
+            for (let y = years; y >= 0; y--) down += ' L' + X(y).toFixed(1) + ' ' + Y(lowFn(y)).toFixed(1);
+            return '<path d="' + up + down + ' Z" fill="' + col + '" fill-opacity="0.55" stroke="' + col + '" stroke-width="1"><title>' + label + '</title></path>';
+        }
+        let s = '';
+        // Gitter + Y-Achse (4 Stufen)
+        for (let i = 0; i <= 4; i++) {
+            const v = yMax * i / 4, yy = Y(v);
+            s += '<line x1="' + padL + '" y1="' + yy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + yy.toFixed(1) + '" stroke="rgba(255,255,255,0.08)"/>'
+                + '<text x="' + (padL - 8) + '" y="' + (yy + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#9bb4c8">' + fmtKg(v) + '</text>';
+        }
+        // X-Achse (Jahre)
+        const stepX = years > 25 ? 10 : 5;
+        for (let y = 0; y <= years; y += stepX) {
+            s += '<text x="' + X(y).toFixed(1) + '" y="' + (H - padB + 16) + '" text-anchor="middle" font-size="10" fill="#9bb4c8">' + y + '</text>'
+                + '<line x1="' + X(y).toFixed(1) + '" y1="' + (padT + ih) + '" x2="' + X(y).toFixed(1) + '" y2="' + (padT + ih + 4) + '" stroke="#9bb4c8"/>';
+        }
+        s += '<text x="' + (padL + iw / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10.5" fill="#9bb4c8">Jahre ab Fertigstellung</text>';
+        // Gestapelte Bänder: Herstellung (konstant) → Geräte (Stufen) → Betrieb (linear)
+        s += band(function () { return 0; }, function () { return emb.total; }, '#f6b94b', 'Herstellung A1–A3: ' + fmtKg(emb.total));
+        if (cumDev[years] > 0) s += band(function () { return emb.total; }, function (y) { return emb.total + cumDev[y]; }, '#a78bfa', 'Geräte B4 (inkl. Austausch): ' + fmtKg(cumDev[years]));
+        if (cumOp[years] > 0) s += band(function (y) { return emb.total + cumDev[y]; }, function (y) { return emb.total + cumDev[y] + cumOp[y]; }, '#38bdf8', 'Betrieb B6: ' + fmtKg(cumOp[years]));
+        // Lebensende C als Marker am Ende
+        if (eol > 0) {
+            const xe = X(years), yTop = Y(yMax);
+            s += '<line x1="' + xe + '" y1="' + Y(yMax - eol).toFixed(1) + '" x2="' + xe + '" y2="' + yTop.toFixed(1) + '" stroke="#fb923c" stroke-width="5"><title>Lebensende C: ' + fmtKg(eol) + '</title></line>';
+        }
+        // Amortisation: kumulierter Betrieb = Herstellung
+        if (opYear > 0) {
+            const be = emb.total / opYear;
+            if (be <= years) {
+                s += '<line x1="' + X(be).toFixed(1) + '" y1="' + padT + '" x2="' + X(be).toFixed(1) + '" y2="' + (padT + ih) + '" stroke="#e7edf5" stroke-width="1.5" stroke-dasharray="5 4"/>'
+                    + '<text x="' + (X(be) + 5).toFixed(1) + '" y="' + (padT + 12) + '" font-size="10.5" font-weight="700" fill="#e7edf5">Amortisation ≈ ' + Math.round(be) + ' a</text>';
+            }
+        }
+        // Endwert annotieren
+        s += '<circle cx="' + X(years).toFixed(1) + '" cy="' + Y(yMax).toFixed(1) + '" r="4" fill="#fff" stroke="#0b1f3a" stroke-width="1.5"/>'
+            + '<text x="' + (X(years) - 6).toFixed(1) + '" y="' + (Y(yMax) - 8).toFixed(1) + '" text-anchor="end" font-size="11.5" font-weight="800" fill="#fff">Σ ' + fmtKg(yMax) + '</text>';
+        const legend = '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:#cfe0f2;">'
+            + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#f6b94b;margin-right:5px;"></span>Herstellung A1–A3</span>'
+            + (cumDev[years] > 0 ? '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#a78bfa;margin-right:5px;"></span>Geräte B4 (Stufen = Ersatzbeschaffung)</span>' : '')
+            + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#38bdf8;margin-right:5px;"></span>Betrieb B6</span>'
+            + (eol > 0 ? '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#fb923c;margin-right:5px;"></span>Lebensende C</span>' : '')
+            + '</div>';
+        return '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;min-width:560px;" role="img" aria-label="Kumulierte Lebenszyklus-Emissionen über die Jahre">' + s + '</svg>' + legend;
+    }
+
+    // Geräte-Inventar (Modul B4) aus dem Inneneinrichtung-Tab: Tabelle + Balken je Gerät.
+    function lcaDevicesHtml(dev, years) {
+        if (!dev || !dev.list || !dev.list.length) {
+            return '<div class="small" style="color:#9bb;">Keine Geräte erfasst – im Tab „🛋️ Inneneinrichtung" hinzufügen.</div>';
+        }
+        const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        const max = dev.list.reduce((m, d) => Math.max(m, d.total), 0) || 1;
+        const thR = 'text-align:right;padding:7px;border-bottom:2px solid #21456d;';
+        const tdL = 'padding:7px;border-bottom:1px solid #16314d;', tdR = tdL + 'text-align:right;';
+        let h = '<table style="width:100%;border-collapse:collapse;font-size:13.5px;"><thead><tr>'
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;">Gerät</th>'
+            + '<th style="' + thR + '">Anzahl</th>'
+            + '<th style="' + thR + '">GWP/Stück</th>'
+            + '<th style="' + thR + '">Nutzungsdauer</th>'
+            + '<th style="' + thR + '" title="Anschaffungen im Betrachtungszeitraum inkl. Erstausstattung">Käufe in ' + years + ' a</th>'
+            + '<th style="' + thR + '">GWP gesamt</th>'
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;width:24%;">Anteil</th></tr></thead><tbody>';
+        dev.list.forEach(function (d) {
+            h += '<tr><td style="' + tdL + '">' + esc(d.name)
+                + (d.roomName ? ' <span style="color:#8aa7c4;">· ' + esc(d.roomName) + '</span>' : '') + '</td>'
+                + '<td style="' + tdR + '">' + d.count + '</td>'
+                + '<td style="' + tdR + '">' + Math.round(d.gwp) + ' kg</td>'
+                + '<td style="' + tdR + '">' + d.life + ' a</td>'
+                + '<td style="' + tdR + '">' + d.purchases + '×</td>'
+                + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#a78bfa;">' + fmtKg(d.total) + '</td>'
+                + '<td style="' + tdL + '"><div style="height:12px;border-radius:4px;background:#a78bfa;width:' + Math.max(2, d.total / max * 100).toFixed(1) + '%;" title="' + esc(d.name) + ': ' + fmtKg(d.total) + '"></div></td></tr>';
+        });
+        h += '<tr><td style="padding:7px;font-weight:700;">Summe</td><td></td><td></td><td></td><td></td>'
+            + '<td style="padding:7px;text-align:right;font-weight:700;font-family:JetBrains Mono,monospace;color:#fff;">' + fmtKg(dev.total) + '</td><td></td></tr>';
+        h += '</tbody></table>';
+        return h;
     }
 })();
 </script>
@@ -12185,6 +12536,557 @@ async function updateDoorType() {
         (window.internalParts || []).slice().forEach(function (pt) { window.removeInternalPart(pt.id); });
         (arr || []).forEach(function (ip) { window.addInternalPart(ip.name, ip.area, ip.layers); });
     };
+})();
+</script>
+
+<!-- ===================== Inneneinrichtung: Zimmer & Geräte (→ LCA Modul B4) ===================== -->
+<script>
+(function () {
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const CW = 480, CH = 320, PAD = 22, MAX_CORNERS = 12;
+    const ROOM_COLORS = ['#38bdf8', '#f6b94b', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#60a5fa', '#f472b6', '#4ade80', '#c084fc'];
+
+    // ---- Datenmodell (global: LCA-Integration + Projekt-Persistenz) ----
+    window.innenRooms = window.innenRooms || [];       // {id, name, color, floor, pts:[{x,y} in m]}
+    window.innenDevices = window.innenDevices || [];   // {id, type, name, count, gwp, life, room}
+    let roomSeq = 0, devSeq = 0, selRoom = null, inited = false;
+    let curFloor = 0;                                   // aktuell angezeigte Etage (0 = EG)
+
+    // ---- Etagen: Anzahl aus den Gebäudedaten; Etagen mit Zimmern bleiben immer wählbar ----
+    function floorLabel(i) { return i === 0 ? 'EG' : i + '. OG'; }
+    function floorCount() {
+        const n = parseInt(($('building_floors') || {}).value, 10) || 1;
+        const maxRoom = (window.innenRooms || []).reduce(function (m, r) { return Math.max(m, (r.floor || 0) + 1); }, 0);
+        return Math.max(1, n, maxRoom);
+    }
+    function roomsOnFloor() { return (window.innenRooms || []).filter(function (r) { return (r.floor || 0) === curFloor; }); }
+    function rebuildFloorSelect() {
+        const sel = $('innen_floor');
+        if (!sel) return;
+        const n = floorCount();
+        if (curFloor >= n) curFloor = n - 1;
+        let h = '';
+        for (let i = 0; i < n; i++) {
+            const cnt = (window.innenRooms || []).filter(function (r) { return (r.floor || 0) === i; }).length;
+            h += '<option value="' + i + '"' + (i === curFloor ? ' selected' : '') + '>' + floorLabel(i) + (cnt ? ' · ' + cnt + ' Zimmer' : '') + '</option>';
+        }
+        sel.innerHTML = h;
+        const hint = $('innen_floor_hint');
+        if (hint) hint.textContent = n + ' Etage(n) laut Gebäudedaten · Zimmer gesamt: ' + (window.innenRooms || []).length;
+    }
+
+    // Typische Herstellungs-Emissionen (GWP A1–A3, kg CO₂e je Stück) und Nutzungsdauern –
+    // Richtwerte aus EPD-/Ökobilanz-Literatur, im Formular je Gerät überschreibbar.
+    const DEVICE_PRESETS = {
+        kuehlgefrier:  { label: 'Kühl-/Gefrierkombination', gwp: 350, life: 15 },
+        kuehlschrank:  { label: 'Kühlschrank (klein)',      gwp: 250, life: 15 },
+        gefrier:       { label: 'Gefrierschrank/-truhe',    gwp: 300, life: 15 },
+        waschmaschine: { label: 'Waschmaschine',            gwp: 300, life: 12 },
+        trockner:      { label: 'Wäschetrockner',           gwp: 280, life: 12 },
+        spuelmaschine: { label: 'Geschirrspüler',           gwp: 250, life: 12 },
+        herd:          { label: 'Herd + Backofen',          gwp: 200, life: 15 },
+        mikrowelle:    { label: 'Mikrowelle',               gwp: 90,  life: 10 },
+        tv:            { label: 'Fernseher (≈55″)',         gwp: 350, life: 8 },
+        pc:            { label: 'Desktop-PC + Monitor',     gwp: 450, life: 6 },
+        laptop:        { label: 'Laptop/Tablet',            gwp: 250, life: 5 },
+        kaffee:        { label: 'Kaffeemaschine/-automat',  gwp: 80,  life: 8 },
+        staubsauger:   { label: 'Staubsauger',              gwp: 60,  life: 8 },
+        custom:        { label: 'Sonstiges Gerät (manuell)', gwp: 100, life: 10 }
+    };
+
+    // ---- Geometrie-Helfer ----
+    // Gebäudeumriss [m]: komplexe Geometrie aus dem Grundriss-Editor, sonst Rechteck aus den Gebäudemaßen.
+    function getFootprint() {
+        if (window.isComplexGeometry && Array.isArray(window.buildingFootprint) && window.buildingFootprint.length >= 3) {
+            return window.buildingFootprint;
+        }
+        const L = parseFloat(($('building_length') || {}).value) || 12;
+        const W = parseFloat(($('building_width') || {}).value) || 10;
+        return [{ x: 0, y: 0 }, { x: L, y: 0 }, { x: L, y: W }, { x: 0, y: W }];
+    }
+    function polyArea(pts) {
+        if (!pts || pts.length < 3) return 0;
+        let s = 0;
+        for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; s += a.x * b.y - b.x * a.y; }
+        return Math.abs(s / 2);
+    }
+    function centroid(pts) { let x = 0, y = 0; pts.forEach(p => { x += p.x; y += p.y; }); return { x: x / pts.length, y: y / pts.length }; }
+    function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
+    function escXml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+
+    // Transformation Meter ↔ Pixel: Umriss (+1 m Rand) mittig in die Zeichenfläche einpassen
+    let view = { S: 24, ox: PAD, oy: PAD, minx: -1, miny: -1 };
+    function computeView() {
+        const fp = getFootprint();
+        let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+        fp.forEach(function (p) { minx = Math.min(minx, p.x); miny = Math.min(miny, p.y); maxx = Math.max(maxx, p.x); maxy = Math.max(maxy, p.y); });
+        minx -= 1; miny -= 1; maxx += 1; maxy += 1;
+        const S = Math.min(30, (CW - 2 * PAD) / Math.max(1, maxx - minx), (CH - 2 * PAD) / Math.max(1, maxy - miny));
+        view = { S: S, minx: minx, miny: miny, ox: (CW - (maxx - minx) * S) / 2, oy: (CH - (maxy - miny) * S) / 2 };
+    }
+    const mx = (p) => view.ox + (p.x - view.minx) * view.S;
+    const my = (p) => view.oy + (p.y - view.miny) * view.S;
+    function toM(e) {
+        const svg = $('innenSvg'), r = svg.getBoundingClientRect();
+        const X = (e.clientX - r.left) / r.width * CW, Y = (e.clientY - r.top) / r.height * CH;
+        return { x: (X - view.ox) / view.S + view.minx, y: (Y - view.oy) / view.S + view.miny };
+    }
+    const snap = (v) => Math.round(v * 2) / 2;   // ½-m-Raster wie im Grundriss-Editor
+
+    // ---- Zeichnen ----
+    let draft = [], cursor = null, dragRoom = null, dragIdx = -1, downAt = null, moved = false;
+    let moveRoom = null, moveStartPts = null, moveStartM = null;   // Ganzes Zimmer verschieben (Drag)
+
+    function gridStep() { return view.S < 9 ? 5 : 1; }   // bei sehr großen Gebäuden 5-m-Raster
+    function gridLines() {
+        const step = gridStep();
+        let s = '';
+        for (let x = Math.ceil(view.minx / step) * step; ; x += step) {
+            const X = mx({ x: x, y: 0 });
+            if (X > CW) break;
+            if (X >= 0) s += '<line x1="' + X.toFixed(1) + '" y1="0" x2="' + X.toFixed(1) + '" y2="' + CH + '" stroke="rgba(255,255,255,0.07)"/>';
+        }
+        for (let y = Math.ceil(view.miny / step) * step; ; y += step) {
+            const Y = my({ x: 0, y: y });
+            if (Y > CH) break;
+            if (Y >= 0) s += '<line x1="0" y1="' + Y.toFixed(1) + '" x2="' + CW + '" y2="' + Y.toFixed(1) + '" stroke="rgba(255,255,255,0.07)"/>';
+        }
+        return s;
+    }
+    function pathOf(pts, closePath) {
+        return pts.map(function (p, i) { return (i ? 'L' : 'M') + mx(p).toFixed(1) + ' ' + my(p).toFixed(1); }).join(' ') + (closePath ? ' Z' : '');
+    }
+    // Himmelsrichtungs-Labels an den Umriss-Kanten (wie im Grundriss-Editor der Gebäudedaten):
+    // Außennormale über den Umlaufsinn, Sektor aus Normale + Gebäude-Azimut (Norden = oben).
+    function outlineLabels() {
+        const fp = getFootprint();
+        if (fp.length < 3) return '';
+        const az = window.buildingAzimuth || 0;
+        const ORI = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+        let s2 = 0;
+        for (let i = 0; i < fp.length; i++) { const a = fp[i], b = fp[(i + 1) % fp.length]; s2 += a.x * b.y - b.x * a.y; }
+        const sgn = s2 > 0 ? 1 : -1;
+        let s = '';
+        for (let i = 0; i < fp.length; i++) {
+            const a = fp[i], b = fp[(i + 1) % fp.length];
+            const ex = b.x - a.x, ey = b.y - a.y;
+            if (Math.hypot(ex, ey) < 1e-6) continue;
+            let nx = sgn * ey, ny = -sgn * ex;
+            const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+            const azN = ((Math.atan2(nx, -ny) * 180 / Math.PI + az) % 360 + 360) % 360;
+            const abbr = ORI[Math.round(azN / 45) % 8];
+            const X = mx({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }) + nx * 13;
+            const Y = my({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }) + ny * 13;
+            s += '<text x="' + X.toFixed(1) + '" y="' + Y.toFixed(1) + '" fill="#7fb4d8" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">'
+                + (window.isComplexGeometry ? (i + 1) + '·' : '') + abbr + '</text>';
+        }
+        return s;
+    }
+    function updateInfo(msg) {
+        const info = $('innenInfo');
+        if (!info) return;
+        if (msg) { info.textContent = msg; return; }
+        const rA = roomsOnFloor().reduce(function (s, r) { return s + polyArea(r.pts); }, 0);
+        info.textContent = (draft.length
+            ? 'Zeichnung läuft: ' + draft.length + ' Ecken – zum Schließen auf den goldenen Punkt klicken.  ·  '
+            : '') + floorLabel(curFloor) + ': ' + roomsOnFloor().length + ' Zimmer (' + rA.toFixed(1) + ' m²)  ·  alle Etagen: '
+            + window.innenRooms.length + ' Zimmer  ·  1 Kästchen = ' + gridStep() + ' m';
+    }
+    function set(id, txt) { const el = $(id); if (el) el.textContent = txt; }
+    function updateStats() {
+        const fpA = polyArea(getFootprint());
+        const rA = roomsOnFloor().reduce(function (s, r) { return s + polyArea(r.pts); }, 0);
+        set('innen_fp_area', fpA.toFixed(1) + ' m²');
+        set('innen_room_count', String(roomsOnFloor().length));
+        set('innen_room_area', rA.toFixed(1) + ' m²');
+        set('innen_rest_area', Math.max(0, fpA - rA).toFixed(1) + ' m²');
+    }
+    function render() {
+        const gridEl = $('innenGrid'), out = $('innenOutline'), layer = $('innenLayer');
+        if (!gridEl || !out || !layer) return;
+        computeView();
+        gridEl.innerHTML = gridLines();
+        out.innerHTML = '<path d="' + pathOf(getFootprint(), true) + '" fill="rgba(16,185,129,0.06)" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>' + outlineLabels();
+        const northArrow = $('innenNorthArrow');
+        if (northArrow) northArrow.setAttribute('transform', 'rotate(' + (-(window.buildingAzimuth || 0)) + ')');
+        let s = '';
+        roomsOnFloor().forEach(function (r) {
+            const sel = r.id === selRoom;
+            s += '<path class="in-room" data-room="' + r.id + '" d="' + pathOf(r.pts, true) + '" fill="' + hexA(r.color, sel ? 0.38 : 0.22) + '" stroke="' + r.color + '" stroke-width="' + (sel ? 2.5 : 1.8) + '" style="cursor:' + (draft.length ? 'crosshair' : 'grab') + ';"/>';
+            const c = centroid(r.pts);
+            s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) - 4).toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" style="pointer-events:none;">' + escXml(r.name) + '</text>';
+            s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) + 9).toFixed(1) + '" text-anchor="middle" font-size="9.5" fill="#cfe0f2" style="pointer-events:none;">' + polyArea(r.pts).toFixed(1) + ' m²</text>';
+            if (sel) r.pts.forEach(function (p, i) {
+                s += '<circle class="in-handle" data-room="' + r.id + '" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="5.5" fill="#0b1f3a" stroke="' + r.color + '" stroke-width="2"/>';
+            });
+        });
+        if (draft.length) {
+            s += '<path d="' + pathOf(draft, false) + '" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>';
+            if (cursor) s += '<line x1="' + mx(draft[draft.length - 1]).toFixed(1) + '" y1="' + my(draft[draft.length - 1]).toFixed(1) + '" x2="' + mx(cursor).toFixed(1) + '" y2="' + my(cursor).toFixed(1) + '" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 5"/>';
+            draft.forEach(function (p, i) {
+                s += '<circle class="in-draft" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (i === 0 ? 7 : 5) + '" fill="' + (i === 0 ? '#f6b94b' : '#0b1f3a') + '" stroke="#38bdf8" stroke-width="2"/>';
+            });
+        }
+        layer.innerHTML = s;
+        updateInfo();
+        updateStats();
+    }
+    // Einzelnes Zimmer löschen (Toolbar, Entf-Taste und Zimmerliste nutzen dieselbe Funktion)
+    function deleteRoom(id) {
+        if (!id) return;
+        window.innenRooms = window.innenRooms.filter(function (x) { return x.id !== id; });
+        (window.innenDevices || []).forEach(function (d) { if (d.room === id) d.room = ''; });
+        if (selRoom === id) selRoom = null;
+        renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
+    }
+    function closeDraft() {
+        if (draft.length < 3) return;
+        roomSeq += 1;
+        const room = { id: 'r' + roomSeq, name: 'Zimmer ' + roomSeq, color: ROOM_COLORS[(roomSeq - 1) % ROOM_COLORS.length], floor: curFloor, pts: draft.slice() };
+        window.innenRooms.push(room);
+        draft = []; selRoom = room.id;
+        renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
+    }
+    function addDraftPoint(p) {
+        const sp = { x: snap(p.x), y: snap(p.y) };
+        if (draft.length >= 3) {
+            const f = draft[0];
+            if (Math.hypot(sp.x - f.x, sp.y - f.y) * view.S < 14) { closeDraft(); return; }
+        }
+        if (draft.length >= MAX_CORNERS) { updateInfo('Maximal ' + MAX_CORNERS + ' Ecken je Zimmer – über den goldenen Punkt (oder „Zimmer schließen") schließen.'); return; }
+        draft.push(sp); selRoom = null; render();
+    }
+    function wireSvg() {
+        const svg = $('innenSvg');
+        if (!svg) return;
+        svg.addEventListener('pointerdown', function (e) {
+            const t = e.target;
+            if (t.classList && t.classList.contains('in-handle')) {
+                dragRoom = t.getAttribute('data-room'); dragIdx = parseInt(t.getAttribute('data-i'), 10);
+                downAt = toM(e); moved = false; e.preventDefault(); return;
+            }
+            if (t.classList && t.classList.contains('in-room') && !draft.length) {
+                // Ganzes Zimmer greifen: Klick ohne Bewegung = auswählen, mit Bewegung = verschieben
+                const room = window.innenRooms.find(function (r) { return r.id === t.getAttribute('data-room'); });
+                if (room) {
+                    moveRoom = room.id;
+                    moveStartPts = room.pts.map(function (p) { return { x: p.x, y: p.y }; });
+                    moveStartM = toM(e);
+                    if (selRoom !== room.id) { selRoom = room.id; renderRoomList(); render(); }
+                    moved = false; e.preventDefault(); return;
+                }
+            }
+            downAt = toM(e); moved = false;
+        });
+        svg.addEventListener('pointermove', function (e) {
+            const p = toM(e); cursor = p;
+            if (dragRoom) {
+                if (!moved && downAt && Math.abs(p.x - downAt.x) < 0.15 && Math.abs(p.y - downAt.y) < 0.15) return;
+                const room = window.innenRooms.find(function (r) { return r.id === dragRoom; });
+                if (room && dragIdx >= 0) { room.pts[dragIdx] = { x: snap(p.x), y: snap(p.y) }; moved = true; render(); }
+                return;
+            }
+            if (moveRoom) {
+                if (!moved && moveStartM && Math.abs(p.x - moveStartM.x) < 0.15 && Math.abs(p.y - moveStartM.y) < 0.15) return;
+                const room = window.innenRooms.find(function (r) { return r.id === moveRoom; });
+                if (room) {
+                    // Verschiebung ans ½-m-Raster fangen – die Zimmerform bleibt dabei exakt erhalten
+                    const dx = snap(p.x - moveStartM.x), dy = snap(p.y - moveStartM.y);
+                    room.pts = moveStartPts.map(function (q) { return { x: q.x + dx, y: q.y + dy }; });
+                    moved = true; render();
+                }
+                return;
+            }
+            if (downAt && (Math.abs(p.x - downAt.x) > 0.15 || Math.abs(p.y - downAt.y) > 0.15)) moved = true;
+            if (draft.length) render();
+        });
+        svg.addEventListener('pointerup', function (e) {
+            if (dragRoom) {
+                if (moved) { renderRoomList(); innenChanged(); }
+                dragRoom = null; dragIdx = -1; downAt = null; return;
+            }
+            if (moveRoom) {
+                if (moved) { renderRoomList(); innenChanged(); }
+                moveRoom = null; moveStartPts = null; moveStartM = null; downAt = null; return;
+            }
+            if (downAt && !moved) addDraftPoint(toM(e));
+            downAt = null;
+        });
+        svg.addEventListener('pointerleave', function () {
+            cursor = null;
+            if (moveRoom) { renderRoomList(); innenChanged(); moveRoom = null; moveStartPts = null; moveStartM = null; }
+            if (draft.length) render();
+        });
+    }
+    function wireToolbar() {
+        const tb = $('innenToolbar');
+        if (!tb) return;
+        tb.addEventListener('click', function (e) {
+            const b = e.target.closest ? e.target.closest('[data-in]') : null;
+            if (!b) return;
+            const act = b.getAttribute('data-in');
+            if (act === 'undo') { draft.pop(); render(); }
+            else if (act === 'cancel') { draft = []; render(); }
+            else if (act === 'close') closeDraft();
+            else if (act === 'delsel') {
+                if (selRoom) deleteRoom(selRoom);
+                else updateInfo('Kein Zimmer ausgewählt – zuerst ein Zimmer im Plan oder in der Liste anklicken.');
+            }
+            else if (act === 'clearall') {
+                draft = [];
+                const del = {};
+                roomsOnFloor().forEach(function (r) { del[r.id] = 1; });
+                window.innenRooms = window.innenRooms.filter(function (r) { return !del[r.id]; });
+                (window.innenDevices || []).forEach(function (d) { if (del[d.room]) d.room = ''; });
+                selRoom = null;
+                renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
+            }
+            else if (act === 'rect') {   // 4×3-m-Zimmer in der Umriss-Mitte, danach Punkte ziehen
+                const c = centroid(getFootprint());
+                draft = [{ x: snap(c.x - 2), y: snap(c.y - 1.5) }, { x: snap(c.x + 2), y: snap(c.y - 1.5) },
+                         { x: snap(c.x + 2), y: snap(c.y + 1.5) }, { x: snap(c.x - 2), y: snap(c.y + 1.5) }];
+                closeDraft();
+            }
+        });
+    }
+
+    // ---- Zimmerliste ----
+    function renderRoomList() {
+        const el = $('innenRoomList');
+        if (!el) return;
+        rebuildFloorSelect();
+        const list = roomsOnFloor();
+        if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; return; }
+        el.innerHTML = '';
+        list.forEach(function (r) {
+            const devCount = (window.innenDevices || []).filter(function (d) { return d.room === r.id; })
+                .reduce(function (s, d) { return s + (parseInt(d.count, 10) || 0); }, 0);
+            const row = document.createElement('div');
+            row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
+            row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
+                + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
+                + '<span class="in-roommeta">' + polyArea(r.pts).toFixed(1) + ' m² · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)</span>'
+                + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
+            row.addEventListener('click', function (e) {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                if (selRoom !== r.id) { selRoom = r.id; renderRoomList(); render(); }
+            });
+            row.querySelector('input').addEventListener('input', function () { r.name = this.value; render(); refreshDeviceRoomSelects(); schedulePersist(); });
+            row.querySelector('.in-roomdel').addEventListener('click', function (e) {
+                e.stopPropagation();
+                deleteRoom(r.id);
+            });
+            el.appendChild(row);
+        });
+    }
+
+    // ---- Geräte ----
+    function fillRoomSelect(sel, val) {
+        let h = '<option value="">– nicht zugeordnet –</option>';
+        window.innenRooms.forEach(function (r) { h += '<option value="' + r.id + '"' + (r.id === val ? ' selected' : '') + '>' + escXml(r.name) + ' · ' + floorLabel(r.floor || 0) + '</option>'; });
+        sel.innerHTML = h;
+    }
+    function refreshDeviceRoomSelects() {
+        document.querySelectorAll('#innenDeviceList .dev-room').forEach(function (sel) { fillRoomSelect(sel, sel.value); });
+    }
+    function lcaYears() { const el = $('lca_years'); return Math.max(1, parseInt(el && el.value, 10) || 50); }
+
+    window.addInnenDevice = function (data) {
+        const list = $('innenDeviceList');
+        if (!list) return null;
+        devSeq += 1;
+        const d = Object.assign({ id: 'g' + devSeq, type: 'kuehlgefrier', name: '', count: 1, gwp: null, life: null, room: '' }, data || {});
+        d.id = 'g' + devSeq;   // eindeutige ID auch bei Restore
+        const p = DEVICE_PRESETS[d.type] || DEVICE_PRESETS.custom;
+        if (!d.name) d.name = p.label;
+        if (d.gwp == null) d.gwp = p.gwp;
+        if (d.life == null) d.life = p.life;
+        window.innenDevices.push(d);
+        const row = document.createElement('div');
+        row.className = 'in-devrow'; row.id = 'devrow_' + d.id;
+        let opts = '';
+        Object.keys(DEVICE_PRESETS).forEach(function (k) { opts += '<option value="' + k + '"' + (k === d.type ? ' selected' : '') + '>' + DEVICE_PRESETS[k].label + '</option>'; });
+        row.innerHTML =
+            '<div class="field"><label>Gerätetyp</label><select class="dev-type">' + opts + '</select></div>' +
+            '<div class="field"><label>Bezeichnung</label><input class="dev-name" type="text" value="' + escXml(d.name) + '" style="width:170px;"></div>' +
+            '<div class="field"><label>Anzahl</label><input class="dev-count" type="number" min="1" step="1" value="' + d.count + '" style="width:64px;"></div>' +
+            '<div class="field"><label>GWP A1–A3 [kg/Stück]</label><input class="dev-gwp" type="number" min="0" step="5" value="' + d.gwp + '" style="width:90px;"></div>' +
+            '<div class="field"><label>Nutzungsdauer [a]</label><input class="dev-life" type="number" min="1" step="1" value="' + d.life + '" style="width:64px;"></div>' +
+            '<div class="field"><label>Zimmer</label><select class="dev-room"></select></div>' +
+            '<div class="in-devsum"><span class="dev-sum"></span></div>' +
+            '<button type="button" class="in-devdel" title="Gerät entfernen">🗑 Gerät</button>';
+        list.appendChild(row);
+        const q = function (c) { return row.querySelector(c); };
+        function sync() {
+            d.name = q('.dev-name').value;
+            d.count = Math.max(1, parseInt(q('.dev-count').value, 10) || 1);
+            d.gwp = Math.max(0, parseFloat(q('.dev-gwp').value) || 0);
+            d.life = Math.max(1, parseFloat(q('.dev-life').value) || 1);
+            d.room = q('.dev-room').value;
+            q('.dev-sum').innerHTML = 'einmalig <b>' + Math.round(d.count * d.gwp) + ' kg</b> · <b>' + (d.count * d.gwp / d.life).toFixed(1) + ' kg/a</b>';
+            renderRoomList();   // Geräteanzahl je Zimmer aktualisieren
+            schedulePersist();
+        }
+        q('.dev-type').addEventListener('change', function () {
+            d.type = this.value;
+            const pp = DEVICE_PRESETS[d.type] || DEVICE_PRESETS.custom;
+            q('.dev-name').value = pp.label; q('.dev-gwp').value = pp.gwp; q('.dev-life').value = pp.life;
+            sync(); devSummary();
+        });
+        ['.dev-name', '.dev-count', '.dev-gwp', '.dev-life'].forEach(function (c) {
+            q(c).addEventListener('input', function () { sync(); devSummary(); });
+        });
+        q('.dev-room').addEventListener('change', function () { sync(); });
+        q('.in-devdel').addEventListener('click', function () {
+            row.remove();
+            window.innenDevices = window.innenDevices.filter(function (x) { return x.id !== d.id; });
+            renderRoomList(); devSummary(); innenChanged();
+        });
+        fillRoomSelect(q('.dev-room'), d.room);
+        sync(); devSummary();
+        return d.id;
+    };
+
+    // Geräte-Sachbilanz für die LCA (Modul B4): Anschaffungen = ⌈Zeitraum / Nutzungsdauer⌉.
+    window.gatherInnenDevices = function (years) {
+        years = Math.max(1, years || lcaYears());
+        const roomName = {};
+        (window.innenRooms || []).forEach(function (r) { roomName[r.id] = r.name + ' · ' + floorLabel(r.floor || 0); });
+        const list = (window.innenDevices || []).map(function (d) {
+            const life = Math.max(1, d.life || 1);
+            const purchases = Math.max(1, Math.ceil(years / life));
+            return { name: d.name || 'Gerät', count: d.count || 1, gwp: d.gwp || 0, life: life,
+                     purchases: purchases, total: (d.count || 1) * (d.gwp || 0) * purchases,
+                     roomName: d.room ? (roomName[d.room] || '') : '' };
+        });
+        return {
+            list: list,
+            total: list.reduce(function (s, x) { return s + x.total; }, 0),
+            perYear: (window.innenDevices || []).reduce(function (s, d) { return s + (d.count || 1) * (d.gwp || 0) / Math.max(1, d.life || 1); }, 0)
+        };
+    };
+    function devSummary() {
+        const years = lcaYears();
+        const g = window.gatherInnenDevices(years);
+        set('innen_dev_count', String((window.innenDevices || []).reduce(function (s, d) { return s + (d.count || 1); }, 0)));
+        set('innen_dev_once', Math.round((window.innenDevices || []).reduce(function (s, d) { return s + (d.count || 1) * (d.gwp || 0); }, 0)).toLocaleString('de-DE') + ' kg');
+        set('innen_dev_year', g.perYear.toFixed(1).replace('.', ',') + ' kg/a');
+        set('innen_dev_period', Math.round(g.total).toLocaleString('de-DE') + ' kg');
+        set('innen_years_echo', String(years));
+        schedulePersist();
+    }
+
+    // ---- Auto-Persistenz (wie die Wandaufbauten, localStorage): Zimmer & Geräte
+    // überstehen damit auch einen Seiten-Reload OHNE „Projekt speichern". ----
+    let persistT = null;
+    function schedulePersist() {
+        clearTimeout(persistT);
+        persistT = setTimeout(function () {
+            try { localStorage.setItem('geglca_innen', JSON.stringify(window._captureInnen())); } catch (e) {}
+        }, 400);
+    }
+
+    // ---- Auto-Aktualisierung: Modelländerung → Zusammenfassungen + LCA nachziehen ----
+    function innenChanged() {
+        devSummary(); updateStats(); schedulePersist();
+        if (window._autoRecalc && window._lcaHasRun && typeof window.calculateLCA === 'function') {
+            setTimeout(function () { try { window.calculateLCA(false); } catch (e) {} }, 50);
+        }
+    }
+    // Wird aus buildSimple/buildComplex gerufen, wenn sich der Gebäudeumriss ändert.
+    window._innenGeometryChanged = function () { if (inited) render(); };
+
+    window.initInnen = function () {
+        if (!$('innenSvg')) return;
+        if (!inited) {
+            inited = true;
+            wireSvg(); wireToolbar();
+            // Entf-Taste löscht das ausgewählte Zimmer (nur wenn der Tab aktiv ist und kein Feld fokussiert)
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+                const tab = $('innen');
+                if (!tab || !tab.classList.contains('active') || !selRoom) return;
+                const tag = (document.activeElement && document.activeElement.tagName) || '';
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+                e.preventDefault();
+                deleteRoom(selRoom);
+            });
+            // Datenabhängigkeit: Gebäudemaße (einfache Geometrie) → Umriss live nachziehen
+            ['building_length', 'building_width'].forEach(function (id) {
+                const el = $(id);
+                if (el) el.addEventListener('input', function () { render(); });
+            });
+            // Datenabhängigkeit: Anzahl Geschosse → Etagen-Auswahl
+            const bf = $('building_floors');
+            if (bf) bf.addEventListener('input', function () { rebuildFloorSelect(); render(); });
+            // Etagen-Wechsel: nur die Zimmer der gewählten Etage anzeigen
+            const fs = $('innen_floor');
+            if (fs) fs.addEventListener('change', function () {
+                curFloor = parseInt(this.value, 10) || 0;
+                selRoom = null; draft = [];
+                renderRoomList(); render();
+            });
+            rebuildFloorSelect();
+            // Datenabhängigkeit: LCA-Betrachtungszeitraum → Geräte-Zeitraumsummen
+            const ly = $('lca_years');
+            if (ly) ly.addEventListener('input', devSummary);
+            // Auto-Neuberechnung wie bei den anderen Tabs (debounced auf Tab-Ebene)
+            const c = $('innen');
+            let t = null;
+            const h = function () {
+                clearTimeout(t);
+                t = setTimeout(function () {
+                    devSummary(); updateStats();
+                    if (window._autoRecalc && window._lcaHasRun && typeof window.calculateLCA === 'function') {
+                        try { window.calculateLCA(false); } catch (e) {}
+                    }
+                }, 400);
+            };
+            c.addEventListener('input', h); c.addEventListener('change', h);
+            renderRoomList(); devSummary();
+        }
+        render();
+    };
+
+    // ---- Projekt-Persistenz ----
+    window._captureInnen = function () {
+        return {
+            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
+            devices: (window.innenDevices || []).map(function (d) { return { type: d.type, name: d.name, count: d.count, gwp: d.gwp, life: d.life, room: d.room }; })
+        };
+    };
+    window._restoreInnen = function (s) {
+        if (!s) return;
+        window.innenRooms = [];
+        selRoom = null;
+        (s.rooms || []).forEach(function (r, i) {
+            const id = r.id || ('r' + (i + 1));
+            const num = parseInt(String(id).replace(/^r/, ''), 10);
+            if (isFinite(num)) roomSeq = Math.max(roomSeq, num);
+            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
+        });
+        curFloor = 0;
+        rebuildFloorSelect();
+        const list = $('innenDeviceList');
+        if (list) list.innerHTML = '';
+        window.innenDevices = [];
+        (s.devices || []).forEach(function (d) { window.addInnenDevice(d); });
+        renderRoomList(); refreshDeviceRoomSelects(); render(); devSummary();
+        schedulePersist();   // localStorage-Spiegel auf den wiederhergestellten Stand bringen
+    };
+
+    // Beim Seitenladen: automatisch gesicherten Stand wiederherstellen – außer ein
+    // gespeichertes Projekt wird geladen (?project=…), dessen Restore hat Vorrang.
+    window.addEventListener('load', function () {
+        try {
+            if (new URLSearchParams(location.search).get('project')) return;
+            const raw = localStorage.getItem('geglca_innen');
+            if (!raw) return;
+            const s = JSON.parse(raw);
+            if (s && ((s.rooms && s.rooms.length) || (s.devices && s.devices.length))) window._restoreInnen(s);
+        } catch (e) {}
+    });
 })();
 </script>
 
@@ -12629,6 +13531,9 @@ async function updateDoorType() {
         const som = key === "som";
         if ($("d48-prefill-box")) $("d48-prefill-box").style.display = som ? "none" : "";
         if ($("d48-prefill-som-note")) $("d48-prefill-som-note").style.display = som ? "" : "none";
+        // Beim Öffnen von „Wärmebrücken & Luftdichtheit" das n50-Volumen aus den
+        // Gebäudedaten vorbelegen (nur wenn das Feld noch leer ist).
+        if (key === "wbl" && window.d48PrefillN50Volume) window.d48PrefillN50Volume(false);
     };
 
     // --- Init: Materialien laden + Default-Zeilen ---------------------------
@@ -12895,7 +13800,7 @@ async function updateDoorType() {
         const custom = document.getElementById('delta_u_wb_custom');
         if (!sel) return;
         const valStr = Number(val).toFixed(2);
-        const fixed = ['0.10', '0.05', '0.03'];
+        const fixed = ['0.10', '0.15', '0.05', '0.03'];
         if (fixed.indexOf(valStr) !== -1) {
             sel.value = valStr;
             if (custom) custom.style.display = 'none';
@@ -12933,6 +13838,25 @@ async function updateDoorType() {
             if (info) info.textContent = "✓ ΔU_WB = " + val.toFixed(2) + " W/(m²·K) im Hülle-Tab übernommen. Heizwärmebedarf dort neu berechnen.";
         } else if (info) {
             info.textContent = "Feld delta_u_wb nicht gefunden – bitte im Hülle-Tab manuell " + val.toFixed(2) + " eintragen.";
+        }
+    };
+    // Schätzt den Brutto-Rauminhalt aus der Gebäudegeometrie (Hülle-Tab) und belegt
+    // das n50-Volumenfeld vor. Ohne force nur, wenn das Feld leer ist (manuelle Eingabe
+    // bleibt erhalten). Volumen = Länge × Breite × Geschosse × Geschosshöhe.
+    window.d48PrefillN50Volume = function (force) {
+        const vol = $("d48-n50-vol");
+        if (!vol) return;
+        if (!force && vol.value.trim() !== "") return;
+        const num = id => parseFloat(document.getElementById(id)?.value) || 0;
+        const brutto = num("building_length") * num("building_width")
+                     * num("building_floors") * num("building_floor_height");
+        const info = $("d48-n50-vol-info");
+        if (brutto > 0) {
+            vol.value = Math.round(brutto);
+            if (info) info.textContent = "≈ " + Math.round(brutto)
+                + " m³ Brutto-Rauminhalt aus den Gebäudedaten (Länge × Breite × Geschosse × Geschosshöhe). Bei Bedarf anpassen.";
+        } else if (info && force) {
+            info.textContent = "Keine Gebäudegeometrie im Hülle-Tab gefunden – Volumen bitte manuell eintragen.";
         }
     };
     window.d48RunN50 = async function () {
