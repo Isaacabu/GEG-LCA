@@ -359,6 +359,11 @@ T_PERIODE_S = 7776e3  # s = 90 d, Dauer Tau- bzw. Verdunstungsperiode (Tab. A.3)
 MC_MAX_ALLG = 1.0    # kg/m² maximal zulässige Tauwassermasse (allgemein)
 MC_MAX_GRENZ = 0.5   # kg/m² an Grenzflächen mit nicht kapillar saugender Schicht
 
+# Temperaturfaktor-Kriterium f_Rsi (DIN 4108-2:2026-05, §6.2) — Schimmel-/
+# Tauwasserfreiheit der Innenoberfläche. Randbedingungen (20 °C/50 %, −5 °C,
+# R_si = 0,25) sind identisch mit der Tauperiode oben.
+F_RSI_MIN = 0.70
+
 # Bemessungswerte λ_B [W/(m·K)] und μ-Richtwerte aus DIN 4108-4:2020-11 (Tab. 1+2).
 # μ als (trocken/feucht); im Glaser-Verfahren ist der für die Schichtposition
 # ungünstigere Wert anzusetzen (Anhang A.2.3) – das Frontend bietet beide an.
@@ -480,6 +485,9 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
     theta_nodes: List[float] = []
     theta_si = TAU_THETA_I - q * GLASER_R_SI
     theta_nodes.append(theta_si)
+    # f_Rsi-Nachweis (DIN 4108-2 §6.2): gleiche Randbedingungen wie Tauperiode.
+    f_rsi = (theta_si - TAU_THETA_E) / (TAU_THETA_I - TAU_THETA_E)
+    f_rsi_erfuellt = f_rsi >= F_RSI_MIN
     acc = GLASER_R_SI
     for k in range(n):
         acc += R_layers[k]
@@ -556,8 +564,9 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
         mev_total += mev
 
     tauwasser = mc_total > 1e-6
-    # Bewertung §5.2.2: M_c ≤ M_ev und M_c ≤ 1,0 kg/m²
-    erfuellt = (not tauwasser) or (mc_total <= mev_total + 1e-9 and mc_total <= MC_MAX_ALLG + 1e-9)
+    # Bewertung §5.2.2: M_c ≤ M_ev und M_c ≤ 1,0 kg/m²; zusätzlich f_Rsi ≥ 0,70
+    glaser_erfuellt = (not tauwasser) or (mc_total <= mev_total + 1e-9 and mc_total <= MC_MAX_ALLG + 1e-9)
+    erfuellt = glaser_erfuellt and f_rsi_erfuellt
 
     # Knotenprofil für die Anzeige (Diffusionsdiagramm)
     profil = []
@@ -573,7 +582,7 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
 
     if not tauwasser:
         msg = "Kein Tauwasserausfall im Bauteilquerschnitt → diffusionstechnisch zulässig."
-    elif erfuellt:
+    elif glaser_erfuellt:
         msg = (f"Tauwasser {mc_total:.3f} kg/m² fällt an, verdunstet aber wieder "
                f"({mev_total:.3f} kg/m²) und bleibt unter 1,0 kg/m² → zulässig.")
     else:
@@ -583,6 +592,9 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
         if mc_total > MC_MAX_ALLG:
             grund.append("M_c > 1,0 kg/m²")
         msg = f"Tauwasser {mc_total:.3f} kg/m² – {', '.join(grund)} → nicht zulässig."
+    if not f_rsi_erfuellt:
+        msg += (f" Zusätzlich f_Rsi = {f_rsi:.2f} < 0,70 → Schimmel-/Tauwassergefahr "
+                "an der Innenoberfläche (DIN 4108-2 §6).")
 
     return {
         "ok": True,
@@ -592,6 +604,10 @@ def berechne_tauwasser_glaser(data: Dict[str, Any]) -> Dict[str, Any]:
         "u_wert": round(U, 3),
         "r_total": round(R_total, 3),
         "sd_total": round(sd_total, 3),
+        "theta_si": round(theta_si, 2),
+        "f_rsi": round(f_rsi, 3),
+        "f_rsi_min": F_RSI_MIN,
+        "f_rsi_erfuellt": f_rsi_erfuellt,
         "profil": profil,
         "tauwasser": tauwasser,
         "tauebenen": tauebenen,
