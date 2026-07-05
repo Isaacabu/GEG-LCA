@@ -82,7 +82,7 @@
             const s = p.summary || {};
             return '<div class="proj"><h3>' + esc(p.name || 'Projekt') + '</h3>'
                 + '<div class="meta">' + esc(p.ts || '') + '</div>'
-                + '<div class="kpis"><span>Heizwärme <b>' + fmt(s.spec_heat, ' kWh/m²a') + '</b></span><span>Endenergie <b>' + fmt(s.spec_end, ' kWh/m²a') + '</b></span></div>'
+                + '<div class="kpis"><span>Heizwärme <b>' + fmt(s.spec_heat, ' kWh/(m²·a)') + '</b></span><span>Endenergie <b>' + fmt(s.spec_end, ' kWh/(m²·a)') + '</b></span></div>'
                 + '<div class="actions"><button class="btn btn-primary" onclick="openProject(' + JSON.stringify(p.id) + ')">Öffnen</button>'
                 + '<button class="btn danger" onclick="deleteProject(' + JSON.stringify(p.id) + ')">Löschen</button></div></div>';
         }).join('') + '</div>';
