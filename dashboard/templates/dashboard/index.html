@@ -3430,6 +3430,58 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 .hb-stufe2{font-size:13px;color:#cbd5e1;}
                 .hb-stufe2 strong{color:#fff;font-family:'JetBrains Mono',monospace;}
                 .hb-muted{color:#94a3b6;font-style:italic;}
+
+                /* Ergebnis: Q_h,b als Hero, Stufe-2-Kennzahlen als Chips */
+                .hb-eq2{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px 14px;}
+                .hb-eq2 .hb-term{font-size:13.5px;color:#cbd5e1;white-space:nowrap;}
+                .hb-eq2 .hb-term b{font-family:'JetBrains Mono',monospace;font-weight:700;color:#fff;}
+                .hb-eq2 .hb-sink b{color:#f6b94b;} .hb-eq2 .hb-gain-t b{color:#34d399;}
+                .hb-eq2 .hb-op{color:#64748b;font-size:17px;font-weight:700;line-height:1;}
+                .hb-hero{display:flex;flex-direction:column;align-items:flex-start;text-align:left;
+                    background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.38);
+                    border-radius:12px;padding:7px 16px;box-shadow:0 0 22px -10px rgba(16,185,129,.6);}
+                .hb-hero b{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:800;color:#fff;
+                    line-height:1.05;letter-spacing:-.5px;font-variant-numeric:tabular-nums;}
+                .hb-hero b .u{font-size:13px;font-weight:600;color:#c4cfdc;margin-left:5px;letter-spacing:0;}
+                .hb-hero small{font-size:10.5px;color:#a7f3d0;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:2px;}
+                .hb-flow{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+                    margin:16px auto 14px;max-width:660px;color:#94a3b6;font-size:11.5px;}
+                .hb-flow::before,.hb-flow::after{content:"";flex:1 1 40px;height:1px;
+                    background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);}
+                .hb-flow span{white-space:normal;} .hb-flow b{color:#c4cfdc;font-weight:700;}
+                .hb-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:540px;margin:0 auto;}
+                .hb-chip{background:rgba(0,0,0,.20);border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center;}
+                .hb-chip b{display:block;font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;}
+                .hb-chip small{display:block;margin-top:3px;font-size:10.5px;color:#94a3b6;line-height:1.3;}
+                @media (max-width:620px){.hb-chips{grid-template-columns:1fr;}.hb-eq2 .hb-op{display:none;}.hb-hero{align-items:center;text-align:center;}}
+
+                /* Bilanz-Legenden: saubere Zeilen mit rechtsbündigem Wert */
+                #hb_sinks_legend,#hb_gains_legend,#bilanz_cost_legend,#bilanz_strom_minilegend{display:grid;gap:0 24px;margin-top:12px;}
+                #hb_sinks_legend{grid-template-columns:1fr 1fr;}
+                #hb_gains_legend,#bilanz_cost_legend,#bilanz_strom_minilegend{grid-template-columns:1fr;}
+                #hb_sinks_legend span,#hb_gains_legend span,#bilanz_cost_legend span,#bilanz_strom_minilegend span{
+                    display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+                #hb_sinks_legend i,#hb_gains_legend i,#bilanz_cost_legend i,#bilanz_strom_minilegend i{margin-right:0;flex:0 0 auto;}
+                .lg-l{flex:1;min-width:0;color:#c4cfdc;font-weight:500;}
+                .lg-v{font-family:'JetBrains Mono',monospace;color:#fff;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+                /* Bilanz-Tabellen (Zusammenfassung + Kosten): klarer, mit Zeilen-Trennern */
+                #bilanz_summary_table,#bilanz_cost_table{width:100%;border-collapse:collapse;font-size:13px;}
+                #bilanz_summary_table th,#bilanz_cost_table th{text-align:left;font-size:10.5px;text-transform:uppercase;
+                    letter-spacing:.07em;color:#94a3b6;font-weight:700;padding:0 10px 8px;border-bottom:1px solid var(--line-strong);}
+                #bilanz_summary_table th.num,#bilanz_cost_table th.num{text-align:right;}
+                #bilanz_summary_table td,#bilanz_cost_table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle;}
+                #bilanz_summary_table tbody tr:hover,#bilanz_cost_table tbody tr:hover{background:rgba(255,255,255,.03);}
+                #bilanz_summary_table td:first-child,#bilanz_cost_table td:first-child{font-weight:600;color:#e2e8f0;white-space:nowrap;}
+                #bilanz_summary_table .num,#bilanz_cost_table .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:#fff;text-align:right;}
+                #bilanz_summary_table .hb-subrow td{color:#94a3b6;font-size:12px;}
+                #bilanz_summary_table .hb-subrow td:first-child{font-weight:400;color:#94a3b6;padding-left:20px;}
+                #bilanz_summary_table tbody tr.pv-total td,#bilanz_cost_table tbody tr.pv-total td{
+                    border-top:1px solid var(--line-strong);border-bottom:none;padding-top:11px;font-weight:800;}
+                #bilanz_summary_table tbody tr.pv-total,#bilanz_cost_table tbody tr.pv-total{background:rgba(16,185,129,.10);}
+                #bilanz_summary_table tbody tr.pv-total td:first-child,#bilanz_cost_table tbody tr.pv-total td:first-child{color:#fff;}
+                .eff-pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:800;
+                    font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
             </style>
             <div class="card" id="heatbalance_card" style="margin-top:6px;">
                 <h3>Wärmebilanz Q_h,b – Verluste &amp; Gewinne (DIN&nbsp;V&nbsp;18599-2)</h3>
@@ -9239,18 +9291,26 @@ function renderHeatBalance() {
     // Ergebnis Stufe 1 → Stufe 2
     const spec = env.specific_heat_demand;
     const sys = window.lastSystemResult;
-    let stufe2 = '<span class="hb-muted">Endenergie / Primärenergie / CO₂ erscheinen automatisch mit der Anlagentechnik-Berechnung</span>';
+    const flow = '<div class="hb-flow"><span>Stufe 2 (Teil 5/6/8): ' +
+        '<b>Übergabe → Verteilung → Speicherung → Erzeugung</b></span></div>';
+    let stufe2 = flow + '<div class="hb-muted" style="text-align:center">Endenergie / Primärenergie / CO₂ ' +
+        'erscheinen automatisch mit der Anlagentechnik-Berechnung</div>';
     if (sys) {
-        stufe2 = 'Endenergie <strong>' + pvNum(sys.total_end_energy, 0) + '</strong> · Primärenergie <strong>' +
-            pvNum(sys.primary_energy, 0) + '</strong> kWh/a · CO₂ <strong>' + pvNum(sys.co2_emissions, 0) + '</strong> kg CO₂e/a';
+        stufe2 = flow + '<div class="hb-chips">' +
+            '<div class="hb-chip"><b>' + pvNum(sys.total_end_energy, 0) + '</b><small>Endenergie kWh/a</small></div>' +
+            '<div class="hb-chip"><b>' + pvNum(sys.primary_energy, 0) + '</b><small>Primärenergie kWh/a</small></div>' +
+            '<div class="hb-chip"><b>' + pvNum(sys.co2_emissions, 0) + '</b><small>CO₂ kg&nbsp;CO₂e/a</small></div>' +
+            '</div>';
     }
     document.getElementById('hb_result').innerHTML =
-        '<div class="hb-eq"><span class="hb-sink">Wärmesenken ' + pvNum(hb.sinks_total_kwh, 0) + '</span> − ' +
-        '<span class="hb-gain-t">nutzbare Gewinne ' + pvNum(hb.usable_gains_kwh, 0) + '</span> = ' +
-        '<span class="hb-qh">Heizwärmebedarf Q_h,b ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a' +
-        (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/(m²·a)' : '') + '</span></div>' +
-        '<div class="hb-arrow">↓ Stufe 2 (Teil 5/6/8): Übergabe → Verteilung → Speicherung → Erzeugung</div>' +
-        '<div class="hb-stufe2">' + stufe2 + '</div>';
+        '<div class="hb-eq2">' +
+            '<span class="hb-term hb-sink">Wärmesenken <b>' + pvNum(hb.sinks_total_kwh, 0) + '</b></span>' +
+            '<span class="hb-op">−</span>' +
+            '<span class="hb-term hb-gain-t">nutzbare Gewinne <b>' + pvNum(hb.usable_gains_kwh, 0) + '</b></span>' +
+            '<span class="hb-op">=</span>' +
+            '<span class="hb-hero"><b>' + pvNum(hb.heat_demand_kwh, 0) + '<span class="u">kWh/a</span></b>' +
+            '<small>Heizwärmebedarf Q_h,b' + (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/(m²·a)' : '') + '</small></span>' +
+        '</div>' + stufe2;
 }
 
 function renderBilanzViz() {
@@ -9461,8 +9521,9 @@ function bilanzStackBar(barId, legId, parts, total, unit) {
     }).join('');
     document.getElementById(barId).innerHTML = bar || '<div class="es-seg" style="width:100%;background:rgba(255,255,255,.06)"></div>';
     document.getElementById(legId).innerHTML = parts.filter(function (p) { return p.val > 0; }).map(function (p) {
-        return '<span><i style="background:' + p.col + '"></i>' + p.label + ' ' + pvNum(p.val, 0) + ' ' + unit +
-            ' (' + Math.round(p.val / fmtTotal * 100) + '%)</span>';
+        return '<span><i style="background:' + p.col + '"></i>' +
+            '<b class="lg-l">' + p.label + '</b>' +
+            '<b class="lg-v">' + pvNum(p.val, 0) + ' ' + unit + ' · ' + Math.round(p.val / fmtTotal * 100) + '%</b></span>';
     }).join('');
 }
 
@@ -9516,16 +9577,26 @@ function bilanzRenderTable(d) {
     const balanceVerdict = hb
         ? 'Senken ' + pvNum(hb.sinks_total_kwh, 0) + ' · Gewinne ' + pvNum(hb.gains_total_kwh, 0) + ' kWh/a'
         : '—';
+    // Effizienzklasse der Gesamt-Zeile als farbige Pille (Textfarbe nach Helligkeit → lesbar auf hell & dunkel)
+    const eff = d.endPerM2 != null ? bilanzEffClass(d.endPerM2) : null;
+    let gesamtVerdict = '—';
+    if (eff) {
+        const n = parseInt(eff.col.slice(1), 16);
+        const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+        gesamtVerdict = '<span class="eff-pill" style="background:' + eff.col + ';color:' +
+            (lum > 150 ? '#0b1f3a' : '#fff') + '">Klasse ' + eff.k + '</span>';
+    }
     const rows = [
         ['① Gebäudehülle', 'Heizwärmebedarf Q_h,b', heatTxt, (d.env && d.env.rating_label) ? d.env.rating_label : '—'],
         ['└ Wärmebilanz', 'Wärmesenken − nutzbare Gewinne', balanceTxt, balanceVerdict],
         ['② Anlagentechnik', 'Endenergie / Primärenergie', pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' kWh/a', sys.system_label || '—'],
         ['③ Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug', pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' kWh/a', d.pvOffset > 0 ? 'PV aktiv' : '—'],
-        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a',
-            (d.endPerM2 != null ? 'Klasse ' + bilanzEffClass(d.endPerM2).k : '—')]
+        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a', gesamtVerdict]
     ];
     tb.innerHTML = rows.map(function (r, i) {
-        const cls = i === rows.length - 1 ? ' class="pv-total"' : '';
+        let cls = '';
+        if (i === rows.length - 1) cls = ' class="pv-total"';
+        else if (i === 1) cls = ' class="hb-subrow"';
         return '<tr' + cls + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num">' + r[2] + '</td><td>' + r[3] + '</td></tr>';
     }).join('');
 }
@@ -14495,7 +14566,13 @@ async function updateDoorType() {
         });
         sel.innerHTML = h;
         const info = $("d48-som-room-info");
-        if (info && !rooms.length) info.textContent = "Keine Zimmer vorhanden – im Tab „🛋️ Inneneinrichtung“ Zimmer einzeichnen, dann hier übernehmen.";
+        if (info && !rooms.length) { info.textContent = "Keine Zimmer vorhanden – im Tab „🛋️ Inneneinrichtung“ Zimmer einzeichnen, dann hier übernehmen."; return; }
+        // Ist noch ein Zimmer gewählt, die Übernahme (A_G, Fenster-Tabelle, Hinweis) sofort
+        // neu ausführen, damit Änderungen am Grundriss – z. B. ein zweites Fenster oder eine
+        // geänderte Raumfläche – automatisch im Nachweis erscheinen, ohne manuelle Neu-Auswahl.
+        if (cur && rooms.some(r => r.id === cur) && typeof window.d48SomFromRoom === "function") {
+            window.d48SomFromRoom();
+        }
     };
     window.d48SomFromRoom = function () {
         const sel = $("d48-som-room"), info = $("d48-som-room-info");
@@ -14509,8 +14586,27 @@ async function updateDoorType() {
         // Grundriss-Zuordnung im Inneneinrichtung-Tab). Vorhandene Zeilen werden ersetzt.
         const wins = r.windows || [];
         if (wins.length) {
-            $("d48-som-tbl").querySelector("tbody").innerHTML = "";
-            wins.forEach(w => window.d48AddSomRow(w.area || 0, w.orientation || "south", w.tilt || 90, (w.g != null ? w.g : 0.6), 1.0));
+            const tbody = $("d48-som-tbl").querySelector("tbody");
+            // Bereits eingetragene manuelle g-/F_C-Werte je Fenster sichern, damit ein
+            // erneutes Übernehmen (z. B. weil im Grundriss ein zweites Fenster hinzukam)
+            // vorhandene Einstellungen nicht überschreibt – nur neue Fenster erhalten Defaults.
+            const prev = [...tbody.querySelectorAll("tr")].map(tr => {
+                const c = tr.querySelectorAll("input,select");
+                return { orient: c[1] ? c[1].value : "", area: c[0] ? (parseFloat(c[0].value) || 0) : 0,
+                         g: c[3] ? parseFloat(c[3].value) : NaN, fc: c[4] ? parseFloat(c[4].value) : NaN, used: false };
+            });
+            const takePrev = (w) => {
+                const i = prev.findIndex(p => !p.used && p.orient === (w.orientation || "south") && Math.abs(p.area - (w.area || 0)) < 0.05);
+                if (i >= 0) { prev[i].used = true; return prev[i]; }
+                return null;
+            };
+            tbody.innerHTML = "";
+            wins.forEach(w => {
+                const p = takePrev(w);
+                const g = (p && isFinite(p.g)) ? p.g : (w.g != null ? w.g : 0.6);
+                const fc = (p && isFinite(p.fc)) ? p.fc : 1.0;
+                window.d48AddSomRow(w.area || 0, w.orientation || "south", w.tilt || 90, g, fc);
+            });
         }
         const devCount = (window.innenDevices || []).filter(d => d.room === r.id)
             .reduce((s, d) => s + (parseInt(d.count, 10) || 0), 0);
