@@ -15,8 +15,9 @@ Bewusst dokumentierte Vereinfachungen für Stufe 1:
 - Konstante Luftwechselrate je Monat (kein detaillierter Teil-6-Anlagenansatz).
 - Nachtabsenkung (Teil 2, Gl. 28–30) ist implementiert (night_setback=false zum Abschalten).
 - Verschattung pauschal (F_S = 0,9); erdberührte F_x über Profil/Frontend.
-- Opake solare Gewinne / langwellige Abstrahlung (§6.4.1) nicht angesetzt (bei
-  Wohnbau klein und teilkompensierend).
+- Opake solare Gewinne / langwellige Abstrahlung (§6.4.1): für das Dach angesetzt
+  (Dacheindeckung hell/dunkel → Strahlungsabsorptionsgrad α), Gl. (117)/(118).
+  Wände weiter vernachlässigt (klein und teilkompensierend).
 """
 from __future__ import annotations
 
@@ -70,6 +71,20 @@ F_SHADING = 0.9       # bauliche Verschattung F_S (Default ohne Verbauung) – �
 F_INCIDENCE = 0.9     # nicht senkrechter Strahlungseinfall F_W – §6.4
 F_SOILING = 1.0       # Verschmutzung F_V – Teil 10 Tab. 4: F_V = 1 (Wohnen).
 #                       Vorher fälschlich 0,9 zusätzlich zu F_W → Gewinne ~10 % zu niedrig.
+
+# Opake solare Wärmeeinträge über das Dach – §6.4.1, Gl. (117)/(118):
+#   Q_S,opak = R_se · U · A · (α · I_S − F_f · h_r · Δθ_er) · t
+# Die Dacheindeckung (hell/dunkel) bestimmt den Strahlungsabsorptionsgrad α. U ist der
+# bereits F_x-reduzierte effektive Dach-U-Wert → grenzt das Dach an einen beheizten Raum
+# (F_x = 0), verschwindet der Term automatisch.
+R_SE_OPAK = 0.04       # äußerer Wärmeübergangswiderstand R_se [m²K/W] (Dach, Wärmestrom aufwärts)
+F_F_ROOF = 1.0         # Formfaktor Bauteil↔Himmel: 1,0 waagerechte Fläche (Dach)
+H_R_OPAK = 4.0         # äußerer Abstrahlungskoeffizient h_r = 5·ε (ε ≈ 0,8) [W/(m²K)]
+DELTA_THETA_ER = 10.0  # mittlere Temperaturdifferenz Außenluft–Himmel Δθ_er [K] (DIN-Vereinfachung)
+# Strahlungsabsorptionsgrad α (DIN V 18599-2 Tab. 8): dunkle Dächer 0,8; heller/Standard 0,5.
+ROOF_ABSORPTION = {"hell": 0.5, "dunkel": 0.8}
+DEFAULT_ROOF_ABSORPTION = 0.5
+
 TAU_0 = 16.0          # h, Monatsbilanz – §6.7.3, Gl. (144)
 A_0 = 1.0             # –, Monatsbilanz – §6.7.3, Gl. (144)
 DELTA_U_WB = 0.10     # W/(m²K) pauschaler Wärmebrückenzuschlag – Gl. (47) / GEG §24
@@ -246,6 +261,16 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     roof_area, roof_u = safe_float(data.get("roof_area")), safe_float(data.get("roof_u"))
     floor_area, floor_u = safe_float(data.get("floor_area")), safe_float(data.get("floor_u"))
 
+    # Dacheindeckung hell/dunkel → Strahlungsabsorptionsgrad α für die opaken Solargewinne.
+    roof_color = str(data.get("roof_color", "hell")).strip().lower()
+    roof_alpha = ROOF_ABSORPTION.get(roof_color, DEFAULT_ROOF_ABSORPTION)
+
+    # Senkrechte (90°) Dachflächen werden als Wand geführt (Punkt 2): rechnerisch bleibt
+    # alles gleich, in der Bilanz-Aufschlüsselung wird ihr Verlust aber von „Dach" nach
+    # „Wände" umgebucht. Fläche kommt vom Frontend (Summe der 90°-Dachseiten).
+    roof_vertical_area = safe_float(data.get("roof_vertical_area"), 0.0)
+    roof_vertical_area = max(0.0, min(roof_vertical_area, roof_area))
+
     windows = {o: safe_float(data.get(f"window_{o}_area")) for o in ORIENTATIONS}
     window_u = safe_float(data.get("window_u"))
 
@@ -289,6 +314,8 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     wall_total = sum(wall_losses.values())
     roof_loss = round(roof_area * roof_u, 2)
     floor_loss = round(floor_area * floor_u, 2)
+    # Verlustanteil der als Wand geführten senkrechten Dachflächen (nur Umbuchung Anzeige).
+    vertical_roof_loss = round(roof_vertical_area * roof_u, 2)
     # Fenster/Türen sitzen in der jeweiligen Wand → gleiche Randbedingung F_x
     window_losses = {o: round(windows[o] * window_u * _wall_fx(o), 2) for o in windows}
     window_total = sum(window_losses.values())
@@ -351,6 +378,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     q_c_year = 0.0
     q_sink_year = 0.0
     q_solar_year = 0.0
+    q_roof_opaque_year = 0.0
     q_internal_year = 0.0
 
     usage_fraction = profile["usage_days"] / 365.0
@@ -404,11 +432,21 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
             q_solar += (windows[orient] * g_value
                         * F_FRAME * F_SHADING * F_INCIDENCE * F_SOILING * irr_kwh)
 
+        # Opake solare Wärmeeinträge über das Dach [kWh] (§6.4.1, Gl. 117/118):
+        # Q_S,opak = R_se·U·A·(α·I_S − F_f·h_r·Δθ_er)·t. I_S = horizontale Strahlung
+        # (regional skaliert); der langwellige Abstrahlungsterm ist absorptionsunabhängig
+        # (Abstrahlung an den kalten Himmel) und kann den Nettobeitrag im Winter negativ
+        # machen. roof_u ist bereits F_x-reduziert → nur exponierte Dachflächen tragen bei.
+        i_s_roof = I_S["horizontal"][m] * radiation_factor          # W/m² (24-h-Mittel)
+        q_roof_opaque = (R_SE_OPAK * roof_u * roof_area
+                         * (roof_alpha * i_s_roof - F_F_ROOF * H_R_OPAK * DELTA_THETA_ER)
+                         * hours / 1000.0)
+
         # Interne Wärmequellen [kWh] (Teil 10): q_i je Nutzungstag
         usage_days_m = days * usage_fraction
         q_internal = profile["q_i"] * bgf * usage_days_m / 1000.0
 
-        q_source = q_solar + q_internal
+        q_source = q_solar + q_roof_opaque + q_internal
 
         if q_sink > 0:
             gamma = q_source / q_sink
@@ -437,6 +475,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         q_c_year += q_c
         q_sink_year += q_sink
         q_solar_year += q_solar
+        q_roof_opaque_year += q_roof_opaque
         q_internal_year += q_internal
 
         months.append({
@@ -444,6 +483,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
             "theta_e": theta_e,
             "q_sink": round(q_sink, 1),
             "q_solar": round(q_solar, 1),
+            "q_roof_opaque": round(q_roof_opaque, 1),
             "q_internal": round(q_internal, 1),
             "gamma": round(gamma, 3),
             "eta": round(eta, 3),
@@ -470,8 +510,9 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
     heat_balance = {
         # Verluste – Wärmesenken Q_Senke (Transmission je Bauteil + Lüftung)
         "transmission": {
-            "walls": round(_sink_share(wall_total), 1),
-            "roof": round(_sink_share(roof_loss), 1),
+            # Senkrechte Dachflächen (90°) zählen in der Aufschlüsselung zu den Wänden.
+            "walls": round(_sink_share(wall_total + vertical_roof_loss), 1),
+            "roof": round(_sink_share(max(roof_loss - vertical_roof_loss, 0.0)), 1),
             "floor": round(_sink_share(floor_loss), 1),
             "windows": round(_sink_share(window_total), 1),
             "doors": round(_sink_share(door_total), 1),
@@ -483,9 +524,10 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # Gewinne – Wärmequellen Q_Quelle
         "gains": {
             "solar": round(q_solar_year, 1),
+            "opaque_solar": round(q_roof_opaque_year, 1),
             "internal": round(q_internal_year, 1),
         },
-        "gains_total_kwh": round(q_solar_year + q_internal_year, 1),
+        "gains_total_kwh": round(q_solar_year + q_roof_opaque_year + q_internal_year, 1),
         "usable_gains_kwh": round(usable_gains, 1),
         # Ergebnis Stufe 1
         "heat_demand_kwh": round(q_h_year, 1),
@@ -527,6 +569,10 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         # --- Energiebilanz (kWh/a) ---
         "annual_heat_demand_kwh": round(q_sink_year, 1),        # Brutto-Wärmesenken
         "solar_gain_kwh": round(q_solar_year, 1),
+        "opaque_solar_gain_kwh": round(q_roof_opaque_year, 1),  # opake Dach-Solargewinne (§6.4.1)
+        "roof_color": roof_color,
+        "roof_absorption": roof_alpha,
+        "roof_vertical_area_m2": round(roof_vertical_area, 1),  # als Wand geführte 90°-Dachfläche
         "internal_gain_kwh": round(q_internal_year, 1),
         "adjusted_heat_demand_kwh": round(q_h_year, 1),         # Heizwärmebedarf netto Q_h,b,a
         "specific_heat_demand": round(specific, 2),

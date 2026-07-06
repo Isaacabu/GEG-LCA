@@ -2533,15 +2533,15 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <div class="grid-2">
                             <div class="field">
                                 <label>Dachneigung Nord/Süd (°)
-                                    <span class="info-i" data-tip="Neigung der nach Nord/Süd geneigten Dachflächen gegen die Horizontale. 0° = flach, 85° = sehr steil. Beeinflusst die geneigte Dachfläche (Fläche = Grundriss / cos α) und damit den Wärmeverlust H_T, außerdem die PV-Dachneigung.">i</span>
+                                    <span class="info-i" data-tip="Neigung der nach Nord/Süd geneigten Dachflächen gegen die Horizontale. 0° = flach, 90° = senkrecht. Beeinflusst die geneigte Dachfläche (Fläche = Grundriss / cos α) und damit den Wärmeverlust H_T, außerdem die PV-Dachneigung. Bei 90° steht die Fläche senkrecht und wird als Wand geführt (in der Bilanz unter den Wänden).">i</span>
                                 </label>
-                                <input id="roof_angle_ns" type="number" step="1" min="0" max="85" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ns" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
                             </div>
                             <div class="field">
                                 <label>Dachneigung Ost/West (°)
-                                    <span class="info-i" data-tip="Neigung der nach Ost/West geneigten Dachflächen (z. B. Walmdach). Wirkt analog zur N/S-Neigung auf die geneigte Fläche und den Wärmeverlust.">i</span>
+                                    <span class="info-i" data-tip="Neigung der nach Ost/West geneigten Dachflächen (z. B. Walmdach). Wirkt analog zur N/S-Neigung. Bei 90° steht die Seite senkrecht → sie wird als Wand geführt und beim Walmdach schaltet die Dachform automatisch auf Satteldach um.">i</span>
                                 </label>
-                                <input id="roof_angle_ew" type="number" step="1" min="0" max="85" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ew" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
                             </div>
                         </div>
                         <div class="grid-2">
@@ -2593,6 +2593,17 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                                 <span class="wl-col-mat" style="color:var(--muted);font-size:12px;">Graue Emissionen A1–A3 <small>(ÖKOBAUDAT 2024)</small></span>
                                 <span class="value-display" id="roof_gwp_display" title="GWP Modul A1–A3 je m² Dachaufbau aus ÖKOBAUDAT 2024">—</span>
                             </div>
+                        </div>
+                    </div>
+                    <!-- Dacheindeckung hell/dunkel → Strahlungsabsorptionsgrad α (DIN V 18599-2 §6.4.1).
+                         Ersetzt den früheren „Dachmaterial"-Punkt (Aufbau steht in der Schichttabelle). -->
+                    <div class="field" id="roof_color_field">
+                        <label>Dacheindeckung
+                            <span class="info-i" data-tip="Strahlungsabsorptionsgrad α der opaken Dachfläche nach DIN V 18599-2 (§6.4.1, Gl. 117/118). Helles Dach α=0,5 (Norm-Standard), dunkles Dach α=0,8. Fließt über die opaken solaren Wärmeeinträge in die Monatsbilanz: ein dunkles Dach absorbiert mehr Solarstrahlung → etwas weniger Heizwärmebedarf im Winter, mehr Kühlbedarf im Sommer.">i</span>
+                        </label>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" id="roof_color_hell" class="btn btn-primary" onclick="setRoofColor('hell')" title="Helle/reflektierende Dacheindeckung: Strahlungsabsorptionsgrad α = 0,5 (DIN V 18599-2 Standard)">☀️ Helles Dach <small>(α 0,5)</small></button>
+                            <button type="button" id="roof_color_dunkel" class="btn" onclick="setRoofColor('dunkel')" title="Dunkle Dacheindeckung: Strahlungsabsorptionsgrad α = 0,8 (DIN V 18599-2 Tab. 8)">🌑 Dunkles Dach <small>(α 0,8)</small></button>
                         </div>
                     </div>
                     <!-- alte Einzelmaterial-Auswahl (durch Schichttabelle ersetzt, bleibt versteckt für Altcode) -->
@@ -3430,58 +3441,6 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 .hb-stufe2{font-size:13px;color:#cbd5e1;}
                 .hb-stufe2 strong{color:#fff;font-family:'JetBrains Mono',monospace;}
                 .hb-muted{color:#94a3b6;font-style:italic;}
-
-                /* Ergebnis: Q_h,b als Hero, Stufe-2-Kennzahlen als Chips */
-                .hb-eq2{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px 14px;}
-                .hb-eq2 .hb-term{font-size:13.5px;color:#cbd5e1;white-space:nowrap;}
-                .hb-eq2 .hb-term b{font-family:'JetBrains Mono',monospace;font-weight:700;color:#fff;}
-                .hb-eq2 .hb-sink b{color:#f6b94b;} .hb-eq2 .hb-gain-t b{color:#34d399;}
-                .hb-eq2 .hb-op{color:#64748b;font-size:17px;font-weight:700;line-height:1;}
-                .hb-hero{display:flex;flex-direction:column;align-items:flex-start;text-align:left;
-                    background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.38);
-                    border-radius:12px;padding:7px 16px;box-shadow:0 0 22px -10px rgba(16,185,129,.6);}
-                .hb-hero b{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:800;color:#fff;
-                    line-height:1.05;letter-spacing:-.5px;font-variant-numeric:tabular-nums;}
-                .hb-hero b .u{font-size:13px;font-weight:600;color:#c4cfdc;margin-left:5px;letter-spacing:0;}
-                .hb-hero small{font-size:10.5px;color:#a7f3d0;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-top:2px;}
-                .hb-flow{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
-                    margin:16px auto 14px;max-width:660px;color:#94a3b6;font-size:11.5px;}
-                .hb-flow::before,.hb-flow::after{content:"";flex:1 1 40px;height:1px;
-                    background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);}
-                .hb-flow span{white-space:normal;} .hb-flow b{color:#c4cfdc;font-weight:700;}
-                .hb-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:540px;margin:0 auto;}
-                .hb-chip{background:rgba(0,0,0,.20);border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center;}
-                .hb-chip b{display:block;font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;}
-                .hb-chip small{display:block;margin-top:3px;font-size:10.5px;color:#94a3b6;line-height:1.3;}
-                @media (max-width:620px){.hb-chips{grid-template-columns:1fr;}.hb-eq2 .hb-op{display:none;}.hb-hero{align-items:center;text-align:center;}}
-
-                /* Bilanz-Legenden: saubere Zeilen mit rechtsbündigem Wert */
-                #hb_sinks_legend,#hb_gains_legend,#bilanz_cost_legend,#bilanz_strom_minilegend{display:grid;gap:0 24px;margin-top:12px;}
-                #hb_sinks_legend{grid-template-columns:1fr 1fr;}
-                #hb_gains_legend,#bilanz_cost_legend,#bilanz_strom_minilegend{grid-template-columns:1fr;}
-                #hb_sinks_legend span,#hb_gains_legend span,#bilanz_cost_legend span,#bilanz_strom_minilegend span{
-                    display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);}
-                #hb_sinks_legend i,#hb_gains_legend i,#bilanz_cost_legend i,#bilanz_strom_minilegend i{margin-right:0;flex:0 0 auto;}
-                .lg-l{flex:1;min-width:0;color:#c4cfdc;font-weight:500;}
-                .lg-v{font-family:'JetBrains Mono',monospace;color:#fff;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;}
-
-                /* Bilanz-Tabellen (Zusammenfassung + Kosten): klarer, mit Zeilen-Trennern */
-                #bilanz_summary_table,#bilanz_cost_table{width:100%;border-collapse:collapse;font-size:13px;}
-                #bilanz_summary_table th,#bilanz_cost_table th{text-align:left;font-size:10.5px;text-transform:uppercase;
-                    letter-spacing:.07em;color:#94a3b6;font-weight:700;padding:0 10px 8px;border-bottom:1px solid var(--line-strong);}
-                #bilanz_summary_table th.num,#bilanz_cost_table th.num{text-align:right;}
-                #bilanz_summary_table td,#bilanz_cost_table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle;}
-                #bilanz_summary_table tbody tr:hover,#bilanz_cost_table tbody tr:hover{background:rgba(255,255,255,.03);}
-                #bilanz_summary_table td:first-child,#bilanz_cost_table td:first-child{font-weight:600;color:#e2e8f0;white-space:nowrap;}
-                #bilanz_summary_table .num,#bilanz_cost_table .num{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:#fff;text-align:right;}
-                #bilanz_summary_table .hb-subrow td{color:#94a3b6;font-size:12px;}
-                #bilanz_summary_table .hb-subrow td:first-child{font-weight:400;color:#94a3b6;padding-left:20px;}
-                #bilanz_summary_table tbody tr.pv-total td,#bilanz_cost_table tbody tr.pv-total td{
-                    border-top:1px solid var(--line-strong);border-bottom:none;padding-top:11px;font-weight:800;}
-                #bilanz_summary_table tbody tr.pv-total,#bilanz_cost_table tbody tr.pv-total{background:rgba(16,185,129,.10);}
-                #bilanz_summary_table tbody tr.pv-total td:first-child,#bilanz_cost_table tbody tr.pv-total td:first-child{color:#fff;}
-                .eff-pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:800;
-                    font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
             </style>
             <div class="card" id="heatbalance_card" style="margin-top:6px;">
                 <h3>Wärmebilanz Q_h,b – Verluste &amp; Gewinne (DIN&nbsp;V&nbsp;18599-2)</h3>
@@ -6790,7 +6749,9 @@ function updateRoofType() {
     }
 
     window.roofMaterialData.type = select.value;
-    materialField.style.display = 'block';
+    // „Dachmaterial"-Einzelauswahl entfernt (Punkt 3): der Dach-U-Wert kommt aus der
+    // Schichttabelle (Dachaufbau), das Legacy-Select bleibt versteckt für Altcode.
+    materialField.style.display = 'none';
     displayField.style.display = 'block';
     // uField bleibt versteckt bis "custom" Material ausgewählt wird
     uField.style.display = 'none';
@@ -6819,6 +6780,19 @@ function updateRoofType() {
         window._roofRebuilding = true;
         try { window._rebuild3D(); } finally { window._roofRebuilding = false; }
     }
+}
+
+// Dacheindeckung hell/dunkel (Punkt 4): setzt den Strahlungsabsorptionsgrad-Fall und
+// rechnet neu. Der α-Wert selbst (0,5 / 0,8) liegt im Backend (din18599.py) – hier nur
+// die Auswahl 'hell'/'dunkel', die als roof_color mitgeschickt wird.
+window.roofColor = window.roofColor || 'hell';
+function setRoofColor(c) {
+    window.roofColor = (c === 'dunkel') ? 'dunkel' : 'hell';
+    const h = document.getElementById('roof_color_hell');
+    const d = document.getElementById('roof_color_dunkel');
+    if (h) h.classList.toggle('btn-primary', window.roofColor === 'hell');
+    if (d) d.classList.toggle('btn-primary', window.roofColor === 'dunkel');
+    if (typeof autoRecalcEnvelope === 'function') autoRecalcEnvelope();
 }
 
 // ===== Veraltet-Hinweis: Stufen Gebäudehülle → Anlagentechnik → Energiebilanz (+ PV) =====
@@ -6949,6 +6923,34 @@ function resetRoofArea() {
     }
 }
 
+// Projektionsflächen (Grundriss) an Dachform + Gebäudemaße koppeln.
+// Walmdach (hip): die beiden O/W-Hip-Enden eines symmetrischen (gleichgeneigten) Walmdachs
+// projizieren zusammen min(L,B)²/2 der Grundfläche; der Rest geht auf N/S. Dadurch bekommt
+// die O/W-Seite automatisch eine Fläche → die O/W-Neigung wirkt sofort auf die Dachfläche.
+// Satteldach/Pultdach: O/W = 0, N/S = gesamte Grundfläche. Manuelle Eingaben bleiben unberührt.
+function syncWalmProjection(nsA, ewA) {
+    nsA = nsA || document.getElementById('roof_area_ns');
+    ewA = ewA || document.getElementById('roof_area_ew');
+    if (!nsA || !ewA) return;
+    if (document.getElementById('roof_type')?.value !== 'steildach') return;
+    const footprint = window._autoRoofArea || 0;
+    if (!(footprint > 0)) return;
+    const isHip = (typeof window._currentRoofForm === 'function') && window._currentRoofForm() === 'hip';
+    if (isHip) {
+        const L = parseFloat(document.getElementById('building_length')?.value) || 0;
+        const B = parseFloat(document.getElementById('building_width')?.value) || 0;
+        if (!(L > 0 && B > 0)) return;   // ohne belastbare Maße (z.B. komplexe Geometrie) nicht aufteilen
+        const s = Math.min(L, B);
+        const ew = Math.min(s * s / 2, footprint * 0.9);   // O/W-Hip-Enden, symmetrisch, gedeckelt
+        const ns = Math.max(footprint - ew, 0);
+        if (!ewA.dataset.manual) ewA.value = ew.toFixed(1);
+        if (!nsA.dataset.manual) nsA.value = ns.toFixed(1);
+    } else {
+        if (!nsA.dataset.manual) nsA.value = footprint.toFixed(1);
+        if (!ewA.dataset.manual && (parseFloat(ewA.value) || 0) === 0) ewA.value = '0';
+    }
+}
+
 // Geneigte Dachfläche aus Grundriss-Projektion + Neigung; setzt Dachfläche (Wärmeverlust)
 // und PV-Dachneigung. Geneigte Fläche = Projektion / cos(Neigung).
 function updateSteildachAreas() {
@@ -6956,20 +6958,30 @@ function updateSteildachAreas() {
     const ewInput = document.getElementById('roof_area_ew');
     const display = document.getElementById('roof_area_display');
     if (!nsInput || !ewInput || !display) return;
+    // Punkt 1: Projektionen an Dachform + Gebäudemaße koppeln (Walmdach → O/W-Hip-Enden
+    // automatisch aus L×B, Satteldach → N/S = gesamte Grundfläche). Läuft bei jeder
+    // Neigungsänderung, damit die (O/W-)Neigung sofort auf die Dachfläche wirkt.
+    syncWalmProjection(nsInput, ewInput);
     const nsProj = parseFloat(nsInput.value) || 0;
     const ewProj = parseFloat(ewInput.value) || 0;
-    const clamp = (v) => Math.min(85, Math.max(0, isFinite(v) ? v : 0));
+    const clamp = (v) => Math.min(90, Math.max(0, isFinite(v) ? v : 0));
     const nsAng = clamp(parseFloat(document.getElementById('roof_angle_ns')?.value));
     const ewAng = clamp(parseFloat(document.getElementById('roof_angle_ew')?.value));
-    const nsSloped = nsProj / Math.cos(nsAng * Math.PI / 180);
-    const ewSloped = ewProj / Math.cos(ewAng * Math.PI / 180);
+    // Punkt 2: Bei 90° steht die Seite senkrecht → sie wird als Wand geführt. Die Formel
+    // Projektion / cos(α) ist dort singulär (cos 90° = 0), daher gilt die Grundfläche-
+    // Eingabe bei 90° direkt als senkrechte Wandfläche. Diese Fläche wird als
+    // roof_vertical_area an die Rechnung gemeldet und dort von „Dach" nach „Wände" umgebucht.
+    const nsVertical = nsAng >= 90, ewVertical = ewAng >= 90;
+    const nsSloped = nsVertical ? nsProj : nsProj / Math.cos(nsAng * Math.PI / 180);
+    const ewSloped = ewVertical ? ewProj : ewProj / Math.cos(ewAng * Math.PI / 180);
     const total = nsSloped + ewSloped;
+    const verticalArea = (nsVertical ? nsSloped : 0) + (ewVertical ? ewSloped : 0);
 
     if (nsProj > 0 || ewProj > 0) {
         display.value = total.toFixed(2);
         display.dataset.manual = '1';                 // gegen Überschreiben durch die Geometrie schützen
         if (window.wallAreas) window.wallAreas.roof = total;
-        window.roofAreaSplit = { ns: nsSloped, ew: ewSloped, total: total, nsProj: nsProj, ewProj: ewProj, nsAng: nsAng, ewAng: ewAng };
+        window.roofAreaSplit = { ns: nsSloped, ew: ewSloped, total: total, nsProj: nsProj, ewProj: ewProj, nsAng: nsAng, ewAng: ewAng, nsVertical: nsVertical, ewVertical: ewVertical, verticalArea: verticalArea };
 
         // Winkel wirkt auf PV: Hauptdachfläche (größere Projektion) → PV-Dachneigung
         const pvTilt = document.getElementById('pv_roof_tilt');
@@ -6988,10 +7000,20 @@ function updateSteildachAreas() {
         if (nsProj > 0 || ewProj > 0) {
             info.innerHTML = 'Geneigte Dachfläche: <b>' + total.toFixed(1) + ' m²</b> ' +
                 '(N/S ' + nsSloped.toFixed(1) + ' m² @ ' + nsAng + '° · O/W ' + ewSloped.toFixed(1) + ' m² @ ' + ewAng + '°) ' +
-                '→ fließt in Wärmeverlust H_T und Heizwärmebedarf. PV-Dachneigung auf ' + (nsProj >= ewProj ? nsAng : ewAng) + '° gesetzt.';
+                '→ fließt in Wärmeverlust H_T und Heizwärmebedarf. PV-Dachneigung auf ' + (nsProj >= ewProj ? nsAng : ewAng) + '° gesetzt.' +
+                (verticalArea > 0 ? '<br><b>' + verticalArea.toFixed(1) + ' m²</b> stehen senkrecht (90°) → als <b>Wand</b> geführt (in der Bilanz unter den Wänden).' : '');
         } else {
             info.textContent = 'Grundriss-Projektion eingeben (oder aus der Geometrie übernehmen) – die geneigte Fläche wird aus Projektion / cos(Neigung) berechnet.';
         }
+    }
+
+    // Walmdach-Sonderfall (Punkt 2): sobald GENAU EINE Seite senkrecht (90°) ist, die
+    // Dachform im Gebäudedaten-Tab automatisch von Walmdach auf Satteldach umschalten.
+    if ((nsVertical !== ewVertical)
+        && typeof window._currentRoofForm === 'function' && window._currentRoofForm() === 'hip'
+        && typeof window._selectRoofForm === 'function' && !window._roofFormSwitching) {
+        window._roofFormSwitching = true;
+        try { window._selectRoofForm('gable'); } finally { window._roofFormSwitching = false; }
     }
     if (typeof aggregateRoofs === 'function') aggregateRoofs();
     // 3D-Modell live an Neigung/Flächen anpassen (Reentrancy-Schutz: buildComplex
@@ -7138,18 +7160,24 @@ function updateExtraRoofArea(i) {
 // Alle Dächer (Dach 1 + Zusatzdächer) zu einem effektiven Dach zusammenfassen.
 // roof_loss = Σ(A_i·U_i·Fx_i); flächengewichteter U_eff und Fx → keine Backend-Änderung nötig.
 function computeAggregatedRoof() {
-    let sumA = 0, sumUA = 0, sumFxA = 0;
+    let sumA = 0, sumUA = 0, sumFxA = 0, sumVert = 0;
     const a1 = parseFloat(document.getElementById('roof_area_display')?.value) || 0;
     const u1 = (typeof getRoofUValue === 'function') ? (getRoofUValue() || 0) : 0;
     const fx1 = (typeof getRoofFxFactor === 'function') ? getRoofFxFactor() : 1;
-    if (a1 > 0 && u1 > 0) { sumA += a1; sumUA += a1 * u1 * fx1; sumFxA += a1 * fx1; }
+    if (a1 > 0 && u1 > 0) {
+        sumA += a1; sumUA += a1 * u1 * fx1; sumFxA += a1 * fx1;
+        // Senkrechte (90°) Dachanteile aus Dach 1 → als Wand umzubuchende Fläche (Punkt 2).
+        if (document.getElementById('roof_type')?.value === 'steildach' && window.roofAreaSplit) {
+            sumVert += Math.min(window.roofAreaSplit.verticalArea || 0, a1);
+        }
+    }
     Object.keys(window.extraRoofs || {}).forEach(function (k) {
         const r = window.extraRoofs[k];
         const a = parseFloat(document.getElementById('roof' + k + '_area_display')?.value) || 0;
         const u = r.u || 0, fx = (r.fx != null ? r.fx : 1);
         if (a > 0 && u > 0) { sumA += a; sumUA += a * u * fx; sumFxA += a * fx; }
     });
-    return { area: sumA, u_eff: sumA > 0 ? sumUA / sumA : 0, fx: sumA > 0 ? sumFxA / sumA : 1 };
+    return { area: sumA, u_eff: sumA > 0 ? sumUA / sumA : 0, fx: sumA > 0 ? sumFxA / sumA : 1, verticalArea: sumVert };
 }
 
 // Live: Summenanzeige aktualisieren, PV-Neigung auf das größte Steildach setzen, neu rechnen.
@@ -7950,6 +7978,8 @@ async function calculateEnvelope() {
             roof_area: aggRoof.area,
             roof_u: aggRoof.u_eff,
             roof_fx: aggRoof.fx,
+            roof_color: window.roofColor || 'hell',   // hell/dunkel → α (opake Solargewinne, §6.4.1)
+            roof_vertical_area: aggRoof.verticalArea || 0,   // senkrechte 90°-Dachflächen → als Wand umgebucht
             floor_area: wallAreas.floor || 0,
             // Effektiver U-Wert: U · F_x (Erdreich 0,6 / unbeheizter Raum aus Temperatur)
             floor_u: getFloorUValue() * getFloorFxFactor(),
@@ -9278,7 +9308,8 @@ function renderHeatBalance() {
 
     // Gewinne – Wärmequellen Q_Quelle (solar + intern)
     bilanzStackBar('hb_gains_bar', 'hb_gains_legend', [
-        { label: 'Solare Gewinne Q_S', val: hb.gains.solar, col: '#fbbf24' },
+        { label: 'Solare Gewinne Q_S (Fenster)', val: hb.gains.solar, col: '#fbbf24' },
+        { label: 'Opake Gewinne Dach (hell/dunkel)', val: hb.gains.opaque_solar, col: '#fdba74' },
         { label: 'Interne Gewinne Q_i', val: hb.gains.internal, col: '#f87171' }
     ], hb.gains_total_kwh, 'kWh/a');
     document.getElementById('hb_gains_total').textContent = pvNum(hb.gains_total_kwh, 0) + ' kWh/a';
@@ -9291,26 +9322,18 @@ function renderHeatBalance() {
     // Ergebnis Stufe 1 → Stufe 2
     const spec = env.specific_heat_demand;
     const sys = window.lastSystemResult;
-    const flow = '<div class="hb-flow"><span>Stufe 2 (Teil 5/6/8): ' +
-        '<b>Übergabe → Verteilung → Speicherung → Erzeugung</b></span></div>';
-    let stufe2 = flow + '<div class="hb-muted" style="text-align:center">Endenergie / Primärenergie / CO₂ ' +
-        'erscheinen automatisch mit der Anlagentechnik-Berechnung</div>';
+    let stufe2 = '<span class="hb-muted">Endenergie / Primärenergie / CO₂ erscheinen automatisch mit der Anlagentechnik-Berechnung</span>';
     if (sys) {
-        stufe2 = flow + '<div class="hb-chips">' +
-            '<div class="hb-chip"><b>' + pvNum(sys.total_end_energy, 0) + '</b><small>Endenergie kWh/a</small></div>' +
-            '<div class="hb-chip"><b>' + pvNum(sys.primary_energy, 0) + '</b><small>Primärenergie kWh/a</small></div>' +
-            '<div class="hb-chip"><b>' + pvNum(sys.co2_emissions, 0) + '</b><small>CO₂ kg&nbsp;CO₂e/a</small></div>' +
-            '</div>';
+        stufe2 = 'Endenergie <strong>' + pvNum(sys.total_end_energy, 0) + '</strong> · Primärenergie <strong>' +
+            pvNum(sys.primary_energy, 0) + '</strong> kWh/a · CO₂ <strong>' + pvNum(sys.co2_emissions, 0) + '</strong> kg CO₂e/a';
     }
     document.getElementById('hb_result').innerHTML =
-        '<div class="hb-eq2">' +
-            '<span class="hb-term hb-sink">Wärmesenken <b>' + pvNum(hb.sinks_total_kwh, 0) + '</b></span>' +
-            '<span class="hb-op">−</span>' +
-            '<span class="hb-term hb-gain-t">nutzbare Gewinne <b>' + pvNum(hb.usable_gains_kwh, 0) + '</b></span>' +
-            '<span class="hb-op">=</span>' +
-            '<span class="hb-hero"><b>' + pvNum(hb.heat_demand_kwh, 0) + '<span class="u">kWh/a</span></b>' +
-            '<small>Heizwärmebedarf Q_h,b' + (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/(m²·a)' : '') + '</small></span>' +
-        '</div>' + stufe2;
+        '<div class="hb-eq"><span class="hb-sink">Wärmesenken ' + pvNum(hb.sinks_total_kwh, 0) + '</span> − ' +
+        '<span class="hb-gain-t">nutzbare Gewinne ' + pvNum(hb.usable_gains_kwh, 0) + '</span> = ' +
+        '<span class="hb-qh">Heizwärmebedarf Q_h,b ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a' +
+        (spec != null ? ' · ' + pvNum(spec, 0) + ' kWh/(m²·a)' : '') + '</span></div>' +
+        '<div class="hb-arrow">↓ Stufe 2 (Teil 5/6/8): Übergabe → Verteilung → Speicherung → Erzeugung</div>' +
+        '<div class="hb-stufe2">' + stufe2 + '</div>';
 }
 
 function renderBilanzViz() {
@@ -9521,9 +9544,8 @@ function bilanzStackBar(barId, legId, parts, total, unit) {
     }).join('');
     document.getElementById(barId).innerHTML = bar || '<div class="es-seg" style="width:100%;background:rgba(255,255,255,.06)"></div>';
     document.getElementById(legId).innerHTML = parts.filter(function (p) { return p.val > 0; }).map(function (p) {
-        return '<span><i style="background:' + p.col + '"></i>' +
-            '<b class="lg-l">' + p.label + '</b>' +
-            '<b class="lg-v">' + pvNum(p.val, 0) + ' ' + unit + ' · ' + Math.round(p.val / fmtTotal * 100) + '%</b></span>';
+        return '<span><i style="background:' + p.col + '"></i>' + p.label + ' ' + pvNum(p.val, 0) + ' ' + unit +
+            ' (' + Math.round(p.val / fmtTotal * 100) + '%)</span>';
     }).join('');
 }
 
@@ -9577,26 +9599,16 @@ function bilanzRenderTable(d) {
     const balanceVerdict = hb
         ? 'Senken ' + pvNum(hb.sinks_total_kwh, 0) + ' · Gewinne ' + pvNum(hb.gains_total_kwh, 0) + ' kWh/a'
         : '—';
-    // Effizienzklasse der Gesamt-Zeile als farbige Pille (Textfarbe nach Helligkeit → lesbar auf hell & dunkel)
-    const eff = d.endPerM2 != null ? bilanzEffClass(d.endPerM2) : null;
-    let gesamtVerdict = '—';
-    if (eff) {
-        const n = parseInt(eff.col.slice(1), 16);
-        const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
-        gesamtVerdict = '<span class="eff-pill" style="background:' + eff.col + ';color:' +
-            (lum > 150 ? '#0b1f3a' : '#fff') + '">Klasse ' + eff.k + '</span>';
-    }
     const rows = [
         ['① Gebäudehülle', 'Heizwärmebedarf Q_h,b', heatTxt, (d.env && d.env.rating_label) ? d.env.rating_label : '—'],
         ['└ Wärmebilanz', 'Wärmesenken − nutzbare Gewinne', balanceTxt, balanceVerdict],
         ['② Anlagentechnik', 'Endenergie / Primärenergie', pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' kWh/a', sys.system_label || '—'],
         ['③ Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug', pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' kWh/a', d.pvOffset > 0 ? 'PV aktiv' : '—'],
-        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a', gesamtVerdict]
+        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a',
+            (d.endPerM2 != null ? 'Klasse ' + bilanzEffClass(d.endPerM2).k : '—')]
     ];
     tb.innerHTML = rows.map(function (r, i) {
-        let cls = '';
-        if (i === rows.length - 1) cls = ' class="pv-total"';
-        else if (i === 1) cls = ' class="hb-subrow"';
+        const cls = i === rows.length - 1 ? ' class="pv-total"' : '';
         return '<tr' + cls + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num">' + r[2] + '</td><td>' + r[3] + '</td></tr>';
     }).join('');
 }
@@ -11584,6 +11596,10 @@ async function updateDoorType() {
         if (window.isComplexGeometry && lastPolygon) buildComplex(lastPolygon);
         else buildSimple();
     };
+
+    // Hooks für Punkt 2 (Walmdach → Satteldach): Dachform lesen/programmatisch setzen.
+    window._currentRoofForm = function () { return currentRoof; };
+    window._selectRoofForm = function (key) { selectRoof(key); };
 
     // Aktuelle Position eines platzierten Objekts auslesen (für die Koordinaten-Eingabe
     // im Editor). Liefert Fassaden-Koordinaten {u,v} für Fenster/Tür bzw. Dachebenen-
@@ -14566,13 +14582,7 @@ async function updateDoorType() {
         });
         sel.innerHTML = h;
         const info = $("d48-som-room-info");
-        if (info && !rooms.length) { info.textContent = "Keine Zimmer vorhanden – im Tab „🛋️ Inneneinrichtung“ Zimmer einzeichnen, dann hier übernehmen."; return; }
-        // Ist noch ein Zimmer gewählt, die Übernahme (A_G, Fenster-Tabelle, Hinweis) sofort
-        // neu ausführen, damit Änderungen am Grundriss – z. B. ein zweites Fenster oder eine
-        // geänderte Raumfläche – automatisch im Nachweis erscheinen, ohne manuelle Neu-Auswahl.
-        if (cur && rooms.some(r => r.id === cur) && typeof window.d48SomFromRoom === "function") {
-            window.d48SomFromRoom();
-        }
+        if (info && !rooms.length) info.textContent = "Keine Zimmer vorhanden – im Tab „🛋️ Inneneinrichtung“ Zimmer einzeichnen, dann hier übernehmen.";
     };
     window.d48SomFromRoom = function () {
         const sel = $("d48-som-room"), info = $("d48-som-room-info");
@@ -14586,27 +14596,8 @@ async function updateDoorType() {
         // Grundriss-Zuordnung im Inneneinrichtung-Tab). Vorhandene Zeilen werden ersetzt.
         const wins = r.windows || [];
         if (wins.length) {
-            const tbody = $("d48-som-tbl").querySelector("tbody");
-            // Bereits eingetragene manuelle g-/F_C-Werte je Fenster sichern, damit ein
-            // erneutes Übernehmen (z. B. weil im Grundriss ein zweites Fenster hinzukam)
-            // vorhandene Einstellungen nicht überschreibt – nur neue Fenster erhalten Defaults.
-            const prev = [...tbody.querySelectorAll("tr")].map(tr => {
-                const c = tr.querySelectorAll("input,select");
-                return { orient: c[1] ? c[1].value : "", area: c[0] ? (parseFloat(c[0].value) || 0) : 0,
-                         g: c[3] ? parseFloat(c[3].value) : NaN, fc: c[4] ? parseFloat(c[4].value) : NaN, used: false };
-            });
-            const takePrev = (w) => {
-                const i = prev.findIndex(p => !p.used && p.orient === (w.orientation || "south") && Math.abs(p.area - (w.area || 0)) < 0.05);
-                if (i >= 0) { prev[i].used = true; return prev[i]; }
-                return null;
-            };
-            tbody.innerHTML = "";
-            wins.forEach(w => {
-                const p = takePrev(w);
-                const g = (p && isFinite(p.g)) ? p.g : (w.g != null ? w.g : 0.6);
-                const fc = (p && isFinite(p.fc)) ? p.fc : 1.0;
-                window.d48AddSomRow(w.area || 0, w.orientation || "south", w.tilt || 90, g, fc);
-            });
+            $("d48-som-tbl").querySelector("tbody").innerHTML = "";
+            wins.forEach(w => window.d48AddSomRow(w.area || 0, w.orientation || "south", w.tilt || 90, (w.g != null ? w.g : 0.6), 1.0));
         }
         const devCount = (window.innenDevices || []).filter(d => d.room === r.id)
             .reduce((s, d) => s + (parseInt(d.count, 10) || 0), 0);
