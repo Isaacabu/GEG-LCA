@@ -857,6 +857,20 @@ body {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
 }
+/* Editierbarer Statistik-Wert (z. B. Personenwärme W/Person) */
+.stat-box .value-edit { display: flex; align-items: baseline; gap: 6px; }
+.stat-box input.value {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px dashed var(--line-strong);
+    border-radius: 0;
+    padding: 0 0 2px;
+    width: 96px;
+    outline: none;
+}
+.stat-box input.value:hover { border-bottom-color: var(--cyan); }
+.stat-box input.value:focus { border-bottom-style: solid; border-bottom-color: var(--cyan);
+}
 
 /* ===== KPI-Bewertung: Ampelfarben + Richtwert-Zeile + Info-Tooltip ===== */
 .stat-box.box-good, .summary-box.box-good { border-left: 3px solid #2ecc71; }
@@ -1358,10 +1372,26 @@ input.wl-lambda {
 }
 input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
 .wl-gwp { text-align: center; font-size: .8rem; color: #f6b94b; font-family: 'JetBrains Mono', monospace; }
+/* R und CO₂ sind ebenfalls editierbar: automatisch berechnet/geladen, überschreibbar.
+   Dezenter als λ (gestrichelte Kante), damit der Auto-Charakter erkennbar bleibt. */
+input.wl-r, input.wl-gwp {
+  width: 100%; padding: 5px 3px;
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.18);
+  border-radius: 6px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input.wl-r::-webkit-outer-spin-button, input.wl-r::-webkit-inner-spin-button,
+input.wl-gwp::-webkit-outer-spin-button, input.wl-gwp::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input.wl-r { color: var(--muted); }
+input.wl-gwp { color: #f6b94b; }
+input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; border-color: var(--cyan); }
 /* Schicht-Tabelle: kompakte, überlaufsichere Zellen (Zahlen dürfen nicht raushängen) */
 .wall-layer-row > * { min-width: 0; }
 .wall-layer-row .value-display { padding: 6px 5px; font-size: .8rem; border-radius: 7px; }
 .wall-layer-row input.wl-thick, .wall-layer-row input.wl-lambda { padding: 6px 5px; }
+.wall-layer-row input.wl-r, .wall-layer-row input.wl-gwp { padding: 6px 3px; }
 .wl-r, .wl-gwp { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wl-custom-lambda {
   width: 100%; padding: 5px 6px;
@@ -2048,9 +2078,12 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                             <div class="label">Interne Gewinne (W)</div>
                             <div class="value" id="usage_internal_gains">—</div>
                         </div>
-                        <div class="stat-box" title="Sensible Personenwärme – jede zusätzliche Person erhöht die internen Gewinne um diesen Betrag.">
+                        <div class="stat-box" title="Sensible Personenwärme – jede zusätzliche Person erhöht die internen Gewinne um diesen Betrag. Manuell anpassbar (Standard: 80 W).">
                             <div class="label">davon je Person (W)</div>
-                            <div class="value" id="usage_gain_per_person">—</div>
+                            <div class="value-edit">
+                                <input class="value" id="usage_gain_per_person" type="number" min="0" max="500" step="5" value="80" oninput="updateUsageStats()">
+                                <span class="value">W</span>
+                            </div>
                         </div>
                         <div class="stat-box">
                             <div class="label">Nutzungsprofil</div>
@@ -2166,8 +2199,9 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <h3>🧱 Außenwände – Schichtenaufbau (von innen → außen)</h3>
                 <p class="note" style="margin-bottom:14px;">Flächen werden aus den Gebäudedaten berechnet. Standard: der Aufbau unten gilt für alle Wände – unter „Aufbau je Wand" kann jeder 3D-Wand ein gespeicherter Aufbau zugewiesen werden. U = 1 / (R<sub>si</sub> + Σ d/λ + R<sub>se</sub>)</p>
 
-                <!-- Wandflächen-Anzeige -->
-                <div class="grid-4" style="margin-bottom:18px;">
+                <!-- Wandflächen-Anzeige: einfache Geometrie → N/S/O/W; komplexe Geometrie →
+                     eine Anzeige je gezeichneter Wand (renderWallAreaGrid) -->
+                <div class="grid-4" style="margin-bottom:18px;" id="wall_area_grid">
                     <div class="field"><label>Nord (m²)</label><div class="value-display" id="north_area_display">—</div></div>
                     <div class="field"><label>Süd (m²)</label><div class="value-display" id="south_area_display">—</div></div>
                     <div class="field"><label>Ost (m²)</label><div class="value-display" id="east_area_display">—</div></div>
@@ -2756,7 +2790,10 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                 <h3>Grundriss &amp; Zimmer <span class="small" style="color:#9bb4c8;font-weight:400;">(je Etage – Anzahl Etagen aus den Gebäudedaten)</span></h3>
                 <p class="note" style="margin:2px 0 10px;">Zeichnen wie in „Komplexe Geometrie": Ecken nacheinander anklicken, zum Schließen auf den ersten
                    (goldenen) Punkt klicken. Fertige Zimmer <b>verschieben</b>: Zimmer mit gedrückter Maustaste ziehen; einzelne <b>Eckpunkte</b> ziehen
-                   (Zimmer vorher anklicken). <b>Löschen</b>: Zimmer auswählen → „🗑 Zimmer löschen" (oder Entf-Taste bzw. 🗑 in der Liste). Raster ½&nbsp;m.</p>
+                   (Zimmer vorher anklicken). <b>Löschen</b>: Zimmer auswählen → „🗑 Zimmer löschen" (oder Entf-Taste bzw. 🗑 in der Liste). Raster ½&nbsp;m.
+                   <br><span style="color:#f6b94b;">🪟 Die <b>Fenster</b> aus den Gebäudedaten werden als dicke Linien an den Außenwänden angezeigt.</span>
+                   Grenzt ein Zimmer an ein Fenster, wird es automatisch diesem Zimmer zugeordnet (Fensterlinie erhält die Zimmerfarbe) und im Nachweis
+                   „Sommerlicher Wärmeschutz" für den <b>kritischen Raum</b> übernommen.</p>
                 <div class="fp-controls" style="margin-bottom:10px;">
                     <label class="fp-ctl">Etage
                         <select id="innen_floor" style="background:#0a1830;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:150px;"></select>
@@ -2779,6 +2816,7 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
                     <svg id="innenSvg" viewBox="0 0 480 320" preserveAspectRatio="xMidYMid meet" aria-label="Zimmer-Zeichenfläche">
                         <g id="innenGrid"></g>
                         <g id="innenOutline"></g>
+                        <g id="innenWindows"></g>
                         <g id="innenLayer"></g>
                         <g id="innenNorth" transform="translate(446,30)" style="pointer-events:none;">
                             <circle r="17" fill="rgba(11,31,58,0.72)" stroke="rgba(255,255,255,0.18)"/>
@@ -4982,9 +5020,10 @@ function updateUsageStats() {
     const hours     = parseFloat(document.getElementById('usage_hours')?.value) || defaults.occupancy_hours;
 
     const personDen = (bgf > 0 && nPersons > 0) ? bgf / nPersons : 0;
-    // Interne Gewinne: Personenwärme (80 W/Person, sensible Wärme)
-    // + Geräte und Beleuchtung als Flächenpauschale (DIN V 18599-10)
-    const HEAT_PER_PERSON_W = 80;
+    // Interne Gewinne: Personenwärme (editierbar in der Statistik-Box, Standard 80 W/Person,
+    // sensible Wärme) + Geräte und Beleuchtung als Flächenpauschale (DIN V 18599-10)
+    const gainPerPerson = parseFloat(document.getElementById('usage_gain_per_person')?.value);
+    const HEAT_PER_PERSON_W = (isFinite(gainPerPerson) && gainPerPerson >= 0) ? gainPerPerson : 80;
     const personHeatW  = nPersons * HEAT_PER_PERSON_W;
     const equipLightW  = bgf > 0 ? (defaults.equip + defaults.light) * bgf : 0;
     const intGainsTotal = personHeatW + equipLightW;
@@ -4995,7 +5034,6 @@ function updateUsageStats() {
         el('usage_internal_gains').innerText = Math.round(intGainsTotal) + ' W';
         el('usage_internal_gains').title = 'Personen: ' + Math.round(personHeatW) + ' W (' + nPersons + ' × ' + HEAT_PER_PERSON_W + ' W) + Geräte/Beleuchtung: ' + Math.round(equipLightW) + ' W';
     }
-    if (el('usage_gain_per_person')) el('usage_gain_per_person').innerText = HEAT_PER_PERSON_W + ' W';
     if (el('usage_profile_label'))  el('usage_profile_label').innerText  = defaults.label;
 
     // Personenzahl → Haushaltsstrom vorbelegen (KEIN DIN-Verfahren; Richtwert ~1250 kWh je Person
@@ -5435,6 +5473,7 @@ function _buildMatOptions(layerType, selectedId) {
     if (!preset) return '';
     return '<option value="">-- Material wählen --</option>' +
         '<option value="__obd__">🔍 ÖKOBAUDAT-Material suchen …</option>' +
+        '<option value="__custom__">✏️ Eigenes Material eingeben …</option>' +
         preset.materials.map(m =>
             `<option value="${m.id}" data-lambda="${m.lambda ?? ''}" ${m.id === selectedId ? 'selected' : ''}>${m.name}${m.lambda ? ' (λ=' + m.lambda + ')' : ''}</option>`
         ).join('');
@@ -5466,6 +5505,40 @@ function _openObdForSelect(sel) {
     });
 }
 
+// ===== Eigenes Material (freie Bezeichnung, Wand + Dach + Boden) =====
+// Setzt einen frei benannten Eintrag als dynamische Option in das Dropdown.
+// λ, R und CO₂ trägt der Nutzer selbst ein (die Felder sind editierbar).
+function _setCustomOnSelect(sel, name) {
+    const row = sel.closest('.wall-layer-row');
+    const val = 'custom:' + name;
+    let opt = Array.prototype.find.call(sel.options, o => o.value === val);
+    if (!opt) { opt = document.createElement('option'); opt.value = val; sel.appendChild(opt); }
+    opt.textContent = '✏️ ' + name;
+    sel.value = val;
+    row.dataset.customName = name;
+    delete row.dataset.obdUuid; delete row.dataset.obdName;
+}
+function _customMatForSelect(sel) {
+    const row = sel.closest('.wall-layer-row');
+    const name = window.prompt('Eigenes Material – Bezeichnung:', row.dataset.customName || '');
+    if (name === null || !name.trim()) { sel.value = ''; }
+    else { _setCustomOnSelect(sel, name.trim()); }
+    if (sel.closest('#wall_layers_container')) onWlMatChange(sel); else onLyMat(sel);
+}
+
+// ===== Manuelle Überschreibung der berechneten Werte (R, kg CO₂e/m²) =====
+// Eingabe → Zeile als „manuell" markieren, leeren → zurück zur Automatik.
+function onLyROverride(el) {
+    const row = el.closest('.wall-layer-row');
+    if (row) row.dataset.rManual = (el.value !== '') ? '1' : '';
+    if (el.closest('#wall_layers_container')) recalcWallU(); else recalcLy(_kindOf(el));
+}
+function onLyGwpOverride(el) {
+    const row = el.closest('.wall-layer-row');
+    if (row) row.dataset.gwpManual = (el.value !== '') ? '1' : '';
+    if (el.closest('#wall_layers_container')) scheduleWallGwp(); else scheduleGwp(_kindOf(el));
+}
+
 function addWallLayer(presetType, presetMatId, presetThickMm) {
     const idx = _wlCounter++;
     const container = document.getElementById('wall_layers_container');
@@ -5487,8 +5560,8 @@ function addWallLayer(presetType, presetMatId, presetThickMm) {
         <input  class="wl-thick" type="number" min="1" step="1" placeholder="mm" value="${presetThickMm || ''}" oninput="recalcWallU()">
         <select class="wl-mat-sel" onchange="onWlMatChange(this)">${matOpts}</select>
         <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcWallU()" title="λ-Wert [W/(m·K)] – nach DIN 4108-4 vorbelegt, hier überschreibbar">
-        <div class="wl-r value-display">—</div>
-        <div class="wl-gwp value-display" title="Graue Emissionen dieser Schicht (GWP A1–A3, ÖKOBAUDAT)">—</div>
+        <input class="wl-r" type="number" step="0.001" min="0" placeholder="R" oninput="onLyROverride(this)" title="R = d/λ [m²·K/W] – automatisch berechnet, hier überschreibbar (Feld leeren = wieder automatisch)">
+        <input class="wl-gwp" type="number" step="0.1" min="0" placeholder="CO₂" oninput="onLyGwpOverride(this)" title="Graue Emissionen dieser Schicht (kg CO₂e/m², GWP A1–A3, ÖKOBAUDAT) – hier überschreibbar (Feld leeren = wieder automatisch)">
         <button class="btn-remove-layer" onclick="removeWallLayer(this)" title="Schicht entfernen">✕</button>`;
     container.appendChild(row);
 
@@ -5506,7 +5579,7 @@ function addWallLayer(presetType, presetMatId, presetThickMm) {
 
 function onWlTypeChange(sel) {
     const row = sel.closest('.wall-layer-row');
-    delete row.dataset.obdUuid; delete row.dataset.obdName;
+    delete row.dataset.obdUuid; delete row.dataset.obdName; delete row.dataset.customName;
     const matSel = row.querySelector('.wl-mat-sel');
     matSel.innerHTML = _buildMatOptions(sel.value, null);
     const preset = WALL_LAYER_PRESETS[sel.value];
@@ -5518,8 +5591,10 @@ function onWlTypeChange(sel) {
 
 function onWlMatChange(sel) {
     if (sel.value === '__obd__') { _openObdForSelect(sel); return; }
+    if (sel.value === '__custom__') { _customMatForSelect(sel); return; }
     const row = sel.closest('.wall-layer-row');
     if (sel.value.indexOf('obd:') !== 0) { delete row.dataset.obdUuid; delete row.dataset.obdName; }
+    if (sel.value.indexOf('custom:') !== 0) { delete row.dataset.customName; }
     const lambdaEl  = row.querySelector('.wl-lambda');
     const chosen    = sel.options[sel.selectedIndex];
     const lambdaVal = chosen ? parseFloat(chosen.dataset.lambda) : NaN;
@@ -5560,13 +5635,18 @@ function recalcWallU() {
             if (pl > 0) lambda = pl;
         }
 
-        if (mm > 0 && lambda > 0) {
+        // Manuell überschriebenes R hat Vorrang vor d/λ (Feld leeren = wieder automatisch)
+        const rManual = (row.dataset.rManual === '1') ? parseFloat(rEl?.value) : NaN;
+        if (rManual > 0) {
+            totalR += rManual;
+            if (mm > 0) totalMm += mm;
+        } else if (mm > 0 && lambda > 0) {
             const R = (mm / 1000) / lambda;
             totalR += R;
             totalMm += mm;
-            if (rEl) rEl.textContent = R.toFixed(3);
+            if (rEl) rEl.value = R.toFixed(3);
         } else {
-            if (rEl) rEl.textContent = '—';
+            if (rEl) rEl.value = '';
             if (mm || matSel?.value) allValid = false; // only flag invalid if partially filled
         }
     });
@@ -5707,42 +5787,56 @@ async function fetchWallGwp() {
     if (!display) return;
 
     const layers = [], gwpRows = [];
+    let manualSum = 0, manualCount = 0;
     document.querySelectorAll('#wall_layers_container .wall-layer-row').forEach(row => {
         const matSel = row.querySelector('.wl-mat-sel');
         const mm = parseFloat(row.querySelector('.wl-thick')?.value);
         const ge = row.querySelector('.wl-gwp');
-        if (!(mm > 0)) { if (ge) ge.textContent = '—'; return; }
+        // Manuell überschriebener CO₂-Wert hat Vorrang – kein ÖKOBAUDAT-Lookup für diese Zeile
+        const gManual = (row.dataset.gwpManual === '1') ? parseFloat(ge?.value) : NaN;
+        if (isFinite(gManual) && gManual >= 0) { manualSum += gManual; manualCount++; return; }
+        if (!(mm > 0)) { if (ge) ge.value = ''; return; }
         if (row.dataset.obdUuid) { layers.push({ uuid: row.dataset.obdUuid, thickness_mm: mm }); gwpRows.push(row); }
-        else if (matSel?.value && matSel.value !== '__obd__') { layers.push({ material: matSel.value, thickness_mm: mm }); gwpRows.push(row); }
-        else if (ge) ge.textContent = '—';
+        else if (matSel?.value && matSel.value !== '__obd__' && matSel.value.indexOf('custom:') !== 0) { layers.push({ material: matSel.value, thickness_mm: mm }); gwpRows.push(row); }
+        else if (ge) ge.value = '';
     });
-    if (layers.length === 0) { display.textContent = '—'; return; }
+    if (layers.length === 0 && manualCount === 0) { display.textContent = '—'; return; }
 
     // Wandfläche (brutto, alle Orientierungen inkl. Diagonalen bei komplexer Geometrie)
     const wa = window.wallAreas || {};
     const wallArea = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest']
         .reduce(function (sum, o) { return sum + (wa[o] || 0); }, 0);
 
-    try {
-        const res = await fetch('/api/ekobaudat-material/wall_gwp/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ layers, wall_area_m2: wallArea })
-        });
-        if (!res.ok) { display.textContent = '—'; return; }
-        const data = await res.json();
-        let text = data.gwp_per_m2 + ' kg CO₂e/m²';
-        if (data.gwp_total !== null && data.gwp_total !== undefined) {
-            text += '  ·  gesamt ' + (data.gwp_total / 1000).toFixed(1) + ' t';
+    let autoSum = 0, titleLines = [], missing = [];
+    if (layers.length) {
+        try {
+            const res = await fetch('/api/ekobaudat-material/wall_gwp/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ layers, wall_area_m2: wallArea })
+            });
+            if (!res.ok) { display.textContent = '—'; return; }
+            const data = await res.json();
+            (data.layers || []).forEach((l, i) => {
+                const r = gwpRows[i]; if (!r) return;
+                const ge = r.querySelector('.wl-gwp');
+                if (l && l.gwp_per_m2 != null) { autoSum += l.gwp_per_m2; if (ge) ge.value = l.gwp_per_m2; }
+                else if (ge) ge.value = '';
+            });
+            titleLines = (data.layers || []).filter(l => l && l.gwp_per_m2 != null).map(l => `• ${l.dataset} (${l.dataset_type}): ${l.gwp_per_m2} kg/m²`);
+            missing = data.missing || [];
+        } catch (e) {
+            display.textContent = '—';
+            return;
         }
-        display.textContent = text;
-        (data.layers || []).forEach((l, i) => { const r = gwpRows[i]; if (!r) return; const ge = r.querySelector('.wl-gwp'); if (ge) ge.textContent = (l && l.gwp_per_m2 != null) ? l.gwp_per_m2 : '—'; });
-        display.title = 'ÖKOBAUDAT 2024, Modul A1–A3 (Herstellung):\n' +
-            (data.layers || []).filter(l => l && l.gwp_per_m2 != null).map(l => `• ${l.dataset} (${l.dataset_type}): ${l.gwp_per_m2} kg/m²`).join('\n') +
-            (data.missing && data.missing.length ? '\nOhne Datensatz: ' + data.missing.join(', ') : '');
-    } catch (e) {
-        display.textContent = '—';
     }
+    const totalPerM2 = Math.round((autoSum + manualSum) * 100) / 100;
+    let text = totalPerM2 + ' kg CO₂e/m²';
+    if (wallArea > 0) text += '  ·  gesamt ' + (totalPerM2 * wallArea / 1000).toFixed(1) + ' t';
+    display.textContent = text;
+    if (manualCount > 0) titleLines.push('• manuell eingetragen: ' + manualSum.toFixed(2) + ' kg/m² (' + manualCount + ' Schicht' + (manualCount > 1 ? 'en' : '') + ')');
+    display.title = 'ÖKOBAUDAT 2024, Modul A1–A3 (Herstellung):\n' + titleLines.join('\n') +
+        (missing.length ? '\nOhne Datensatz: ' + missing.join(', ') : '');
 }
 
 // === Wandaufbau-Visualisierung (maßstabsgetreu) ===
@@ -6254,7 +6348,7 @@ const LAYER_KINDS = {
     floor: { presets: FLOOR_LAYER_PRESETS, rsi: 0.17, rse: 0.04, container: 'floor_layers_container', uDisp: 'floor_u_computed_display', thDisp: 'floor_total_thickness_display', apply: setFloorComputedU,
              standard: [['bodenbelag','fliesen',10],['estrich','zementestrich',50],['daemmung','eps',120],['abdichtung','bitumen',5],['tragschicht','stahlbeton',200]] },
 };
-function _lyMatOptions(presets, type, sel) { const p = presets[type]; if (!p) return ''; return '<option value="">-- Material wählen --</option>' + '<option value="__obd__">🔍 ÖKOBAUDAT-Material suchen …</option>' + p.materials.map(m => `<option value="${m.id}" data-lambda="${m.lambda ?? ''}" ${m.id === sel ? 'selected' : ''}>${m.name}${m.lambda ? ' (λ=' + m.lambda + ')' : ''}</option>`).join(''); }
+function _lyMatOptions(presets, type, sel) { const p = presets[type]; if (!p) return ''; return '<option value="">-- Material wählen --</option>' + '<option value="__obd__">🔍 ÖKOBAUDAT-Material suchen …</option>' + '<option value="__custom__">✏️ Eigenes Material eingeben …</option>' + p.materials.map(m => `<option value="${m.id}" data-lambda="${m.lambda ?? ''}" ${m.id === sel ? 'selected' : ''}>${m.name}${m.lambda ? ' (λ=' + m.lambda + ')' : ''}</option>`).join(''); }
 function _kindOf(el) { const c = el.closest('[data-layer-kind]'); return c ? c.dataset.layerKind : 'roof'; }
 function addLayer(kind, type, matId, mm) {
     const cfg = LAYER_KINDS[kind]; const cont = document.getElementById(cfg.container); if (!cont) return;
@@ -6267,19 +6361,21 @@ function addLayer(kind, type, matId, mm) {
         <input class="wl-thick" type="number" min="1" step="1" placeholder="mm" value="${mm || ''}" oninput="recalcLy('${kind}')">
         <select class="wl-mat-sel" onchange="onLyMat(this)">${_lyMatOptions(cfg.presets, lt, matId)}</select>
         <input class="wl-lambda" type="number" step="0.001" min="0.001" placeholder="λ" oninput="recalcLy('${kind}')" title="λ-Wert [W/(m·K)] – nach DIN 4108-4 vorbelegt, hier überschreibbar">
-        <div class="wl-r value-display">—</div>
-        <div class="wl-gwp value-display" title="Graue Emissionen dieser Schicht (GWP A1–A3, ÖKOBAUDAT)">—</div>
+        <input class="wl-r" type="number" step="0.001" min="0" placeholder="R" oninput="onLyROverride(this)" title="R = d/λ [m²·K/W] – automatisch berechnet, hier überschreibbar (Feld leeren = wieder automatisch)">
+        <input class="wl-gwp" type="number" step="0.1" min="0" placeholder="CO₂" oninput="onLyGwpOverride(this)" title="Graue Emissionen dieser Schicht (kg CO₂e/m², GWP A1–A3, ÖKOBAUDAT) – hier überschreibbar (Feld leeren = wieder automatisch)">
         <button class="btn-remove-layer" onclick="removeLy(this,'${kind}')" title="Schicht entfernen">✕</button>`;
     cont.appendChild(row);
     const matSel = row.querySelector('.wl-mat-sel'); const p = cfg.presets[lt];
     if (p && p.materials.length === 1 && !matId) matSel.value = p.materials[0].id;
     onLyMat(matSel); _renumberLy(kind); recalcLy(kind);
 }
-function onLyType(sel) { const kind = _kindOf(sel); const cfg = LAYER_KINDS[kind]; const row = sel.closest('.wall-layer-row'); delete row.dataset.obdUuid; delete row.dataset.obdName; const matSel = row.querySelector('.wl-mat-sel'); matSel.innerHTML = _lyMatOptions(cfg.presets, sel.value, null); const p = cfg.presets[sel.value]; if (p && p.materials.length === 1) matSel.value = p.materials[0].id; onLyMat(matSel); }
+function onLyType(sel) { const kind = _kindOf(sel); const cfg = LAYER_KINDS[kind]; const row = sel.closest('.wall-layer-row'); delete row.dataset.obdUuid; delete row.dataset.obdName; delete row.dataset.customName; const matSel = row.querySelector('.wl-mat-sel'); matSel.innerHTML = _lyMatOptions(cfg.presets, sel.value, null); const p = cfg.presets[sel.value]; if (p && p.materials.length === 1) matSel.value = p.materials[0].id; onLyMat(matSel); }
 function onLyMat(sel) {
     if (sel.value === '__obd__') { _openObdForSelect(sel); return; }
+    if (sel.value === '__custom__') { _customMatForSelect(sel); return; }
     const kind = _kindOf(sel); const row = sel.closest('.wall-layer-row'); const lambdaEl = row.querySelector('.wl-lambda');
     if (sel.value.indexOf('obd:') !== 0) { delete row.dataset.obdUuid; delete row.dataset.obdName; }
+    if (sel.value.indexOf('custom:') !== 0) { delete row.dataset.customName; }
     const chosen = sel.options[sel.selectedIndex]; const lambdaVal = chosen ? parseFloat(chosen.dataset.lambda) : NaN;
     // λ bleibt IMMER sichtbar: Preset übernehmen, wenn vorhanden; sonst bisherigen Wert behalten (nicht löschen).
     if (lambdaEl && !isNaN(lambdaVal)) lambdaEl.value = lambdaVal;
@@ -6292,7 +6388,10 @@ function recalcLy(kind) {
     document.querySelectorAll('#' + cfg.container + ' .wall-layer-row').forEach(row => {
         const mm = parseFloat(row.querySelector('.wl-thick')?.value); const matSel = row.querySelector('.wl-mat-sel'); const rEl = row.querySelector('.wl-r'); const lambdaEl = row.querySelector('.wl-lambda');
         let lambda = parseFloat(lambdaEl?.value); if (!(lambda > 0)) { const o = matSel?.options[matSel.selectedIndex]; const pl = o ? parseFloat(o.dataset.lambda) : NaN; if (pl > 0) lambda = pl; }
-        if (mm > 0 && lambda > 0) { const R = (mm / 1000) / lambda; totalR += R; totalMm += mm; if (rEl) rEl.textContent = R.toFixed(3); } else if (rEl) rEl.textContent = '—';
+        // Manuell überschriebenes R hat Vorrang vor d/λ (Feld leeren = wieder automatisch)
+        const rManual = (row.dataset.rManual === '1') ? parseFloat(rEl?.value) : NaN;
+        if (rManual > 0) { totalR += rManual; if (mm > 0) totalMm += mm; }
+        else if (mm > 0 && lambda > 0) { const R = (mm / 1000) / lambda; totalR += R; totalMm += mm; if (rEl) rEl.value = R.toFixed(3); } else if (rEl) rEl.value = '';
     });
     const uD = document.getElementById(cfg.uDisp), thD = document.getElementById(cfg.thDisp);
     const rows = document.querySelectorAll('#' + cfg.container + ' .wall-layer-row').length;
@@ -6311,36 +6410,51 @@ async function fetchLayerGwp(kind) {
     const display = document.getElementById(kind + '_gwp_display');
     if (!display) return;
     const layers = [], gwpRows = [];
+    let manualSum = 0, manualCount = 0;
     document.querySelectorAll('#' + cfg.container + ' .wall-layer-row').forEach(row => {
         const mm = parseFloat(row.querySelector('.wl-thick')?.value);
         const matSel = row.querySelector('.wl-mat-sel');
         const ge = row.querySelector('.wl-gwp');
-        if (!(mm > 0)) { if (ge) ge.textContent = '—'; return; }
+        // Manuell überschriebener CO₂-Wert hat Vorrang – kein ÖKOBAUDAT-Lookup für diese Zeile
+        const gManual = (row.dataset.gwpManual === '1') ? parseFloat(ge?.value) : NaN;
+        if (isFinite(gManual) && gManual >= 0) { manualSum += gManual; manualCount++; return; }
+        if (!(mm > 0)) { if (ge) ge.value = ''; return; }
         if (row.dataset.obdUuid) { layers.push({ uuid: row.dataset.obdUuid, thickness_mm: mm }); gwpRows.push(row); }
-        else if (matSel?.value && matSel.value !== '__obd__') { layers.push({ material: matSel.value, thickness_mm: mm }); gwpRows.push(row); }
-        else if (ge) ge.textContent = '—';
+        else if (matSel?.value && matSel.value !== '__obd__' && matSel.value.indexOf('custom:') !== 0) { layers.push({ material: matSel.value, thickness_mm: mm }); gwpRows.push(row); }
+        else if (ge) ge.value = '';
     });
-    if (!layers.length) { display.textContent = '—'; display.title = ''; return; }
+    if (!layers.length && manualCount === 0) { display.textContent = '—'; display.title = ''; return; }
     // Bezugsfläche: Dach- bzw. Bodenfläche (für Dach 1, Zusatzdächer und Boden)
     let area = 0;
     const adisp = document.getElementById(kind + '_area_display');
     if (adisp && adisp.tagName === 'INPUT') area = parseFloat(adisp.value) || 0;
     else if (kind === 'floor') area = parseFloat((document.getElementById('floor_area_display')?.textContent || '').replace(',', '.')) || 0;
-    try {
-        const res = await fetch('/api/ekobaudat-material/wall_gwp/', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ layers, wall_area_m2: area })
-        });
-        if (!res.ok) { display.textContent = '—'; return; }
-        const data = await res.json();
-        let text = data.gwp_per_m2 + ' kg CO₂e/m²';
-        if (data.gwp_total !== null && data.gwp_total !== undefined) text += '  ·  gesamt ' + (data.gwp_total / 1000).toFixed(1) + ' t';
-        display.textContent = text;
-        (data.layers || []).forEach((l, i) => { const r = gwpRows[i]; if (!r) return; const ge = r.querySelector('.wl-gwp'); if (ge) ge.textContent = (l && l.gwp_per_m2 != null) ? l.gwp_per_m2 : '—'; });
-        display.title = 'ÖKOBAUDAT 2024, Modul A1–A3 (Herstellung):\n' +
-            (data.layers || []).filter(l => l && l.gwp_per_m2 != null).map(l => `• ${l.dataset || l.uuid} (${l.dataset_type}): ${l.gwp_per_m2} kg/m²`).join('\n') +
-            (data.missing && data.missing.length ? '\nOhne ÖKOBAUDAT-Datensatz: ' + data.missing.join(', ') : '');
-    } catch (e) { display.textContent = '—'; }
+    let autoSum = 0, titleLines = [], missing = [];
+    if (layers.length) {
+        try {
+            const res = await fetch('/api/ekobaudat-material/wall_gwp/', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ layers, wall_area_m2: area })
+            });
+            if (!res.ok) { display.textContent = '—'; return; }
+            const data = await res.json();
+            (data.layers || []).forEach((l, i) => {
+                const r = gwpRows[i]; if (!r) return;
+                const ge = r.querySelector('.wl-gwp');
+                if (l && l.gwp_per_m2 != null) { autoSum += l.gwp_per_m2; if (ge) ge.value = l.gwp_per_m2; }
+                else if (ge) ge.value = '';
+            });
+            titleLines = (data.layers || []).filter(l => l && l.gwp_per_m2 != null).map(l => `• ${l.dataset || l.uuid} (${l.dataset_type}): ${l.gwp_per_m2} kg/m²`);
+            missing = data.missing || [];
+        } catch (e) { display.textContent = '—'; return; }
+    }
+    const totalPerM2 = Math.round((autoSum + manualSum) * 100) / 100;
+    let text = totalPerM2 + ' kg CO₂e/m²';
+    if (area > 0) text += '  ·  gesamt ' + (totalPerM2 * area / 1000).toFixed(1) + ' t';
+    display.textContent = text;
+    if (manualCount > 0) titleLines.push('• manuell eingetragen: ' + manualSum.toFixed(2) + ' kg/m² (' + manualCount + ' Schicht' + (manualCount > 1 ? 'en' : '') + ')');
+    display.title = 'ÖKOBAUDAT 2024, Modul A1–A3 (Herstellung):\n' + titleLines.join('\n') +
+        (missing.length ? '\nOhne ÖKOBAUDAT-Datensatz: ' + missing.join(', ') : '');
 }
 function loadStandardBuild(kind) { const cfg = LAYER_KINDS[kind]; const c = document.getElementById(cfg.container); if (!c) return; c.innerHTML = ''; cfg.standard.forEach(([t, m, d]) => addLayer(kind, t, m, d)); }
 
@@ -7491,6 +7605,30 @@ const WALL_BOUNDARY_TYPES = [
     ['beheizt', 'Beheizter Raum'],
 ];
 
+// Wandflächen-Anzeige im Hülle-Tab (Außenwände – Schichtenaufbau) neu aufbauen.
+// Einfache Geometrie → die vier N/S/O/W-Anzeigen (werden von updateGeometryStats
+// gefüllt). Komplexe Geometrie → eine Anzeige JE gezeichneter Wand mit der
+// eindeutigen Bezeichnung aus dem Grundriss-Editor (z. B. „Wand 3 · Südost").
+function renderWallAreaGrid() {
+    const grid = document.getElementById('wall_area_grid');
+    if (!grid) return;
+    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+        grid.innerHTML = window.complexWallList.map(function (w) {
+            return '<div class="field">' +
+                '<label>Wand ' + w.nr + ' · ' + (w.oriDe || w.ori) + ' (m²)</label>' +
+                '<div class="value-display" title="Aus dem gezeichneten Grundriss: Länge ' + w.laenge.toFixed(2) + ' m × Gebäudehöhe.">' + w.flaeche.toFixed(1) + ' m²</div>' +
+                '</div>';
+        }).join('');
+        grid.dataset.mode = 'complex';
+    } else if (grid.dataset.mode === 'complex') {
+        // zurück zur einfachen Geometrie → die vier Standard-Anzeigen wiederherstellen
+        grid.innerHTML = [['north', 'Nord'], ['south', 'Süd'], ['east', 'Ost'], ['west', 'West']].map(function (p) {
+            return '<div class="field"><label>' + p[1] + ' (m²)</label><div class="value-display" id="' + p[0] + '_area_display">—</div></div>';
+        }).join('');
+        grid.dataset.mode = 'simple';
+    }
+}
+
 // Wandrandbedingungs-Grid neu aufbauen.
 // Einfache Geometrie → Nord/Süd/Ost/West. Komplexe Geometrie → die tatsächlich
 // vorkommenden Orientierungen mit den Wand-Bezeichnungen aus dem Grundriss-Editor,
@@ -7538,6 +7676,8 @@ function renderWallBoundaryGrid() {
     entries.forEach(function (e) { _renderWallBoundaryFx(e.ori); });
     // „Aufbau je Wand"-Felder an dieselbe Wandliste anpassen
     if (typeof renderWallAufbauGrid === 'function') { try { renderWallAufbauGrid(); } catch (e) {} }
+    // Wandflächen-Anzeige (Schichtenaufbau-Karte) an dieselbe Wandliste anpassen
+    if (typeof renderWallAreaGrid === 'function') { try { renderWallAreaGrid(); } catch (e) {} }
 }
 
 // „Fenster/Tür hinzufügen"-Buttons an die tatsächlichen Wände anpassen.
@@ -9959,25 +10099,28 @@ async function updateDoorType() {
     // Weltachsen: Nord = -z, Süd = +z (Kameraseite), Ost = +x, West = -x.
     const gizmoScene = new THREE.Scene();
     const gizmoCam = new THREE.PerspectiveCamera(38, 1, 0.1, 20);
+    // Klickbare Himmelsrichtungs-Labels: dir = Blickrichtung Kamera→Gebäude-Seite
+    const gizmoLabels = [];
     (function buildGizmo() {
         function axis(dir, len, color, headLen, headW) {
             return new THREE.ArrowHelper(dir.normalize(), new THREE.Vector3(0, 0, 0), len, color, headLen, headW);
         }
-        function label(text, cssColor, pos, scale) {
+        function label(text, cssColor, pos, scale, viewDir) {
             const s = makeTextSprite(text, cssColor, 96);
             s.position.copy(pos); s.scale.set(scale, scale, scale);
             gizmoScene.add(s);
+            if (viewDir) gizmoLabels.push({ name: text, dir: viewDir, spr: s });
         }
         // Nord: rot + prominent
         gizmoScene.add(axis(new THREE.Vector3(0, 0, -1), 1.25, 0xef4444, 0.42, 0.22));
-        label('N', '#ef4444', new THREE.Vector3(0, 0, -1.62), 0.72);
+        label('N', '#ef4444', new THREE.Vector3(0, 0, -1.62), 0.72, new THREE.Vector3(0, 0, -1));
         // Ost / Süd / West: dezenter
         gizmoScene.add(axis(new THREE.Vector3(1, 0, 0), 0.95, 0xf6b94b, 0.3, 0.15));
-        label('O', '#f6b94b', new THREE.Vector3(1.3, 0, 0), 0.5);
+        label('O', '#f6b94b', new THREE.Vector3(1.3, 0, 0), 0.5, new THREE.Vector3(1, 0, 0));
         gizmoScene.add(axis(new THREE.Vector3(0, 0, 1), 0.95, 0x8aa1b8, 0.3, 0.15));
-        label('S', '#8aa1b8', new THREE.Vector3(0, 0, 1.3), 0.5);
+        label('S', '#8aa1b8', new THREE.Vector3(0, 0, 1.3), 0.5, new THREE.Vector3(0, 0, 1));
         gizmoScene.add(axis(new THREE.Vector3(-1, 0, 0), 0.95, 0x8aa1b8, 0.3, 0.15));
-        label('W', '#8aa1b8', new THREE.Vector3(-1.3, 0, 0), 0.5);
+        label('W', '#8aa1b8', new THREE.Vector3(-1.3, 0, 0), 0.5, new THREE.Vector3(-1, 0, 0));
         // Vertikale (oben) für den 3D-Eindruck
         gizmoScene.add(axis(new THREE.Vector3(0, 1, 0), 0.85, 0x38bdf8, 0.26, 0.13));
     })();
@@ -10000,6 +10143,37 @@ async function updateDoorType() {
         renderer.setScissorTest(false);
         renderer.setViewport(0, 0, w, h);
         renderer.autoClear = true;
+    }
+
+    // Klick auf N/O/S/W im Gizmo → Kamera fährt zur jeweiligen Ansicht.
+    // Liefert null, wenn der Zeiger außerhalb des Gizmo-Ausschnitts liegt,
+    // sonst { label } (label = getroffenes Himmelsrichtungs-Label oder null).
+    function gizmoLabelAt(e) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        const x = e.clientX - rect.left, y = e.clientY - rect.top;
+        const gx0 = rect.width - GIZMO_SIZE - GIZMO_PAD;
+        const gy0 = rect.height - GIZMO_SIZE - GIZMO_PAD; // Viewport-y zählt von unten
+        if (x < gx0 || x > gx0 + GIZMO_SIZE || y < gy0 || y > gy0 + GIZMO_SIZE) return null;
+        const nx = ((x - gx0) / GIZMO_SIZE) * 2 - 1;
+        const ny = -((y - gy0) / GIZMO_SIZE) * 2 + 1;
+        let best = null, bestD = 0.4;   // ≈ 19 px Trefferradius um das Label
+        const p = new THREE.Vector3();
+        for (let i = 0; i < gizmoLabels.length; i++) {
+            p.copy(gizmoLabels[i].spr.position).project(gizmoCam);
+            const d = Math.hypot(p.x - nx, p.y - ny);
+            if (d < bestD) { bestD = d; best = gizmoLabels[i]; }
+        }
+        return { label: best };
+    }
+
+    // Sanfte Kamerafahrt zur gewählten Himmelsrichtung (Distanz + Ziel bleiben erhalten)
+    let viewAnim = null;
+    function snapToView(dir) {
+        const dist = Math.max(controls.minDistance, Math.min(controls.maxDistance, camera.position.distanceTo(controls.target)));
+        const to = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+        to.y = 0.35;    // leichte Aufsicht, bleibt innerhalb der Polar-Grenzen
+        to.normalize().multiplyScalar(dist).add(controls.target);
+        viewAnim = { from: camera.position.clone(), to: to, t0: performance.now(), dur: 600 };
     }
 
     function clearHouse() {
@@ -10141,6 +10315,9 @@ async function updateDoorType() {
             glass: currentCat === 'nichtwohn',
             hall: false
         });
+        // Nach dem Aufbau (Fenster-Meshes stehen jetzt) den Inneneinrichtungs-Plan
+        // erneut zeichnen, damit die Fensterlinien die aktuellen Positionen zeigen.
+        if (typeof window._innenGeometryChanged === 'function') window._innenGeometryChanged();
     }
 
     // Polygon-Kante → eine von 8 Himmelsrichtungen (im Uhrzeigersinn ab Norden)
@@ -10178,6 +10355,98 @@ async function updateDoorType() {
             }
         })(0, 0);
         return best;   // Sektor-Index (0..7) je Wand, in Kantenreihenfolge
+    }
+
+    // Walmdach über beliebigem Grundriss (komplexe Geometrie): Dachhöhe je Punkt
+    // h(p) = Abstand zum Polygonrand · tan(Neigung) – das ist exakt die Dachfläche,
+    // bei der ALLE Flächen dieselbe Neigung haben (gerades Skelett / Walmdach),
+    // und funktioniert damit für L-/U-Formen und Achtecke gleichermaßen.
+    // Vermascht wird der Grundriss adaptiv (Kanten-Bisektion mit Mittelpunkt-Cache
+    // → rissfrei); die Traufe liegt exakt auf der Wandoberkante.
+    function buildComplexHipRoof(pts, wallTop, pitchDeg) {
+        const n = pts.length;
+        if (n < 3) return null;
+        const pitch = Math.max(5, Math.min(85, isFinite(pitchDeg) ? pitchDeg : 35)) * Math.PI / 180;
+        function distToBoundary(px, py) {
+            let best = Infinity;
+            for (let i = 0; i < n; i++) {
+                const a = pts[i], b = pts[(i + 1) % n];
+                const ex = b.x - a.x, ey = b.y - a.y;
+                const L2 = ex * ex + ey * ey;
+                let t = L2 > 0 ? ((px - a.x) * ex + (py - a.y) * ey) / L2 : 0;
+                t = Math.max(0, Math.min(1, t));
+                const dx = px - (a.x + ex * t), dy = py - (a.y + ey * t);
+                const d2 = dx * dx + dy * dy;
+                if (d2 < best) best = d2;
+            }
+            return Math.sqrt(best);
+        }
+        // Grundvermaschung (Earcut über den Grundriss) …
+        let faces;
+        try {
+            faces = THREE.ShapeUtils.triangulateShape(pts.map(function (p) { return new THREE.Vector2(p.x, p.y); }), []);
+        } catch (e) { return null; }
+        if (!faces || !faces.length) return null;
+        // … adaptiv verfeinern: längste Kante > res → am Mittelpunkt halbieren.
+        // Der Kanten-Cache stellt sicher, dass Nachbardreiecke denselben Mittelpunkt
+        // nutzen (keine T-Stöße/Risse).
+        let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+        pts.forEach(function (p) { minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); });
+        const span = Math.max(maxx - minx, maxy - miny);
+        const res = Math.max(0.25, Math.min(0.6, span / 64));   // feiner vermascht → ruhigere Firstlinien
+        const verts = pts.map(function (p) { return { x: p.x, y: p.y }; });
+        const midCache = {};
+        function midpoint(i, j) {
+            const key = i < j ? i + '_' + j : j + '_' + i;
+            if (midCache[key] != null) return midCache[key];
+            verts.push({ x: (verts[i].x + verts[j].x) / 2, y: (verts[i].y + verts[j].y) / 2 });
+            return (midCache[key] = verts.length - 1);
+        }
+        const tris = [];
+        const stack = faces.map(function (f) { return [f[0], f[1], f[2]]; });
+        let guard = 200000;   // Sicherheitsnetz gegen entartete Polygone
+        while (stack.length && guard-- > 0) {
+            const t = stack.pop();
+            const e = [[t[0], t[1]], [t[1], t[2]], [t[2], t[0]]];
+            let li = 0, lmax = -1;
+            for (let k = 0; k < 3; k++) {
+                const a = verts[e[k][0]], b = verts[e[k][1]];
+                const L = Math.hypot(b.x - a.x, b.y - a.y);
+                if (L > lmax) { lmax = L; li = k; }
+            }
+            if (lmax <= res) { tris.push(t); continue; }
+            const m = midpoint(e[li][0], e[li][1]);
+            const opp = t[(li + 2) % 3];
+            stack.push([e[li][0], m, opp], [m, e[li][1], opp]);
+        }
+        while (stack.length) tris.push(stack.pop());
+        // Höhenfeld; Firsthöhe optisch deckeln (Neigung wird dann gleichmäßig reduziert,
+        // die Dachform bleibt erhalten) – analog zur Deckelung beim einfachen Steildach.
+        const tanP = Math.tan(pitch);
+        let hMax = 0;
+        const hs = verts.map(function (p) { const h = distToBoundary(p.x, p.y) * tanP; if (h > hMax) hMax = h; return h; });
+        const cap = Math.max(6, span * 0.75);
+        const s = hMax > cap ? cap / hMax : 1;
+        // Vertices in Weltkoordinaten (X = x, Z = −y wie überall in buildComplex)
+        const pos = [];
+        tris.forEach(function (t) {
+            for (let k = 0; k < 3; k++) {
+                const vi = t[k];
+                pos.push(verts[vi].x, wallTop + 0.03 + hs[vi] * s, -verts[vi].y);
+            }
+        });
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        g.computeVertexNormals();
+        const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+            color: COL.roof, emissive: 0x10b981, emissiveIntensity: 0.06, roughness: 0.55,
+            side: THREE.DoubleSide, flatShading: true   // ebene Dachflächen schattieren einheitlich, Grate bleiben sichtbar
+        }));
+        // Traufkante als Linie (klare Dachkante wie addEdges bei den einfachen Dächern)
+        const eavePts = pts.map(function (p) { return new THREE.Vector3(p.x, wallTop + 0.035, -p.y); });
+        mesh.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(eavePts), new THREE.LineBasicMaterial({ color: 0x0c6b50 })));
+        mesh.userData.ridgeH = hMax * s;
+        return mesh;
     }
 
     // Komplexe Geometrie: NUR Geometrie (Form, Ausrichtung, Fenster, Türen).
@@ -10223,11 +10492,22 @@ async function updateDoorType() {
         wall.userData.part = 'wall'; wall.userData.baseEmissiveHex = 0x000000; wall.userData.baseEmInt = 0;
         clickable.push(wall); houseGroup.add(wall); addEdges(wall, 0x0a1830);
 
-        const roofGeo = new THREE.ShapeGeometry(shape);
-        roofGeo.rotateX(-Math.PI / 2); roofGeo.translate(0, wallTop + 0.03, 0);
-        const roof = new THREE.Mesh(roofGeo, new THREE.MeshStandardMaterial({
-            color: COL.roof, emissive: 0x10b981, emissiveIntensity: 0.06, roughness: 0.6, side: THREE.DoubleSide
-        }));
+        // Dach passt sich dem Dachtyp aus dem Hülle-Tab an: Steildach → Walmdach über
+        // dem gezeichneten Grundriss (Neigung aus „Dachneigung N/S"), sonst flache Platte.
+        const roofHType = (document.getElementById('roof_type') || {}).value || '';
+        const roofPitchNS = parseFloat((document.getElementById('roof_angle_ns') || {}).value);
+        let roof = null, roofRidgeH = 0;
+        if (roofHType === 'steildach') {
+            roof = buildComplexHipRoof(pts, wallTop, isFinite(roofPitchNS) ? roofPitchNS : 35);
+            if (roof) roofRidgeH = roof.userData.ridgeH || 0;
+        }
+        if (!roof) {
+            const roofGeo = new THREE.ShapeGeometry(shape);
+            roofGeo.rotateX(-Math.PI / 2); roofGeo.translate(0, wallTop + 0.03, 0);
+            roof = new THREE.Mesh(roofGeo, new THREE.MeshStandardMaterial({
+                color: COL.roof, emissive: 0x10b981, emissiveIntensity: 0.06, roughness: 0.6, side: THREE.DoubleSide
+            }));
+        }
         roof.userData.part = 'roof'; roof.userData.baseEmissiveHex = 0x10b981; roof.userData.baseEmInt = 0.06;
         clickable.push(roof); houseGroup.add(roof);
 
@@ -10475,14 +10755,23 @@ async function updateDoorType() {
             const ewA = document.getElementById('roof_area_ew');
             if (nsA && !nsA.dataset.manual) nsA.value = A.toFixed(1);  // Default: gesamte Grundfläche als N/S
             if (ewA && !ewA.dataset.manual) ewA.value = '0';
-            if (typeof updateSteildachAreas === 'function') updateSteildachAreas();
+            if (typeof updateSteildachAreas === 'function') {
+                // Reentrancy-Schutz: updateSteildachAreas ruft sonst _rebuild3D →
+                // buildComplex würde mitten im laufenden Aufbau komplett neu starten.
+                const wasRebuilding = window._roofRebuilding;
+                window._roofRebuilding = true;
+                try { updateSteildachAreas(); } finally { window._roofRebuilding = wasRebuilding; }
+            }
         }
 
         // PV-Module auf dem Flachdach der komplexen Geometrie – wie beim einfachen
         // Flachdach (aufgeständert, je Modul Neigung/Ausrichtung, klick- und verschiebbar).
         // Auto-platzierte Module, die außerhalb des Grundrisses lägen (L-/U-Form), werden
         // beim ersten Anlegen entfernt; Welt→Shape: x = X, y = -Z.
-        if (window.pvEnabled === true) {
+        // Beim Walmdach (Steildach) entfallen die 3D-Module – sie stünden im Dach;
+        // die PV-Berechnung (eigener Tab) bleibt davon unberührt. Maßgeblich ist das
+        // tatsächlich gebaute Dach (Fallback auf flache Platte → Module wieder zeigen).
+        if (window.pvEnabled === true && !(roofRidgeH > 0)) {
             const pvW = maxx - minx, pvD = maxz - minz;
             const pvInfo = { type: 'flat', height: 0, pitch: 0 };
             const pvNew = !Array.isArray(window.pvList);
@@ -10495,7 +10784,7 @@ async function updateDoorType() {
             buildPV(null, pvW, pvD, wallTop, pvInfo);
         }
 
-        fitView(Math.max(maxx - minx, maxz - minz, H), (floorTop + H) * 0.5);
+        fitView(Math.max(maxx - minx, maxz - minz, H + roofRidgeH), (floorTop + H) * 0.5);
     }
 
     // ----- 2D-Grundriss-Editor (SVG) -----
@@ -10873,6 +11162,7 @@ async function updateDoorType() {
 
     controls.addEventListener('start', function () {
         if (hint) hint.style.opacity = '0';
+        viewAnim = null;   // manuelle Bedienung bricht die Kompass-Kamerafahrt ab
     });
 
     // Hover & Klick per Raycasting
@@ -11050,8 +11340,11 @@ async function updateDoorType() {
         if (item) { item.posU = u; item.posV = v; }
     }
 
+    let gizmoPress = false;
     renderer.domElement.addEventListener('pointerdown', function (e) {
         downX = e.clientX; downY = e.clientY; dragging = false; pressMoved = false; dragItem = null;
+        // Klick im Kompass-Gizmo: Orbit sperren, kein Picking der Hauptszene
+        if (gizmoLabelAt(e)) { gizmoPress = true; controls.enabled = false; pressObj = null; return; }
         updatePointer(e);
         pressObj = pick();
         _clearGhost();
@@ -11062,6 +11355,18 @@ async function updateDoorType() {
     });
     renderer.domElement.addEventListener('pointermove', function (e) {
         if (Math.abs(e.clientX - downX) > 5 || Math.abs(e.clientY - downY) > 5) { dragging = true; pressMoved = true; }
+        if (gizmoPress) return;
+        // Über dem Gizmo: Zeiger-Cursor auf den Labels, kein Hover/Tooltip der Hauptszene
+        if (!pressObj) {
+            const gh = gizmoLabelAt(e);
+            if (gh) {
+                mount.style.cursor = gh.label ? 'pointer' : '';
+                setHover(null);
+                if (tooltip) tooltip.classList.remove('show');
+                return;
+            }
+            mount.style.cursor = '';
+        }
         if (!controls.enabled && _draggable(pressObj) && pressMoved) {   // Objekt wird gezogen
             dragItem = pressObj;
             mount.style.cursor = 'grabbing';
@@ -11091,6 +11396,15 @@ async function updateDoorType() {
         if (tooltip) tooltip.classList.remove('show');
     });
     renderer.domElement.addEventListener('pointerup', function (e) {
+        if (gizmoPress) {   // Klick im Kompass: zur angeklickten Himmelsrichtung drehen
+            gizmoPress = false;
+            controls.enabled = true;
+            if (!dragging) {
+                const gh = gizmoLabelAt(e);
+                if (gh && gh.label) snapToView(gh.label.dir);
+            }
+            return;
+        }
         const wasDrag = !!dragItem;
         const obj0 = pressObj;
         controls.enabled = true;
@@ -11135,6 +11449,12 @@ async function updateDoorType() {
 
     function animate() {
         requestAnimationFrame(animate);
+        if (viewAnim) {   // Kamerafahrt zur per Kompass gewählten Ansicht
+            const k = Math.min(1, (performance.now() - viewAnim.t0) / viewAnim.dur);
+            const s = k * k * (3 - 2 * k);   // smoothstep
+            camera.position.lerpVectors(viewAnim.from, viewAnim.to, s);
+            if (k >= 1) viewAnim = null;
+        }
         controls.update();
         renderer.render(scene, camera);
         renderGizmo();
@@ -11164,6 +11484,44 @@ async function updateDoorType() {
             if (part === 'pv' && ud.pvId === id) { return { x: o.position.x, z: o.position.z }; }
         }
         return null;
+    };
+
+    // Fenster-Positionen im Grundriss-Koordinatensystem (Meter, x rechts / y unten – wie
+    // der Inneneinrichtungs-Editor) auslesen. Quelle sind die real platzierten 3D-Meshes,
+    // damit auto-verteilte und gezogene Fenster gleichermaßen exakt abgebildet werden.
+    // Welt→Editor ist eine reine Verschiebung um den Umriss-Schwerpunkt (siehe buildComplex),
+    // deshalb genügt editorX = weltX + cx, editorY = weltZ + cz.  Rückgabe je Fenster:
+    // { id, orientation, cx, cy (Mittelpunkt), tx, ty (Wand-Tangente, Einheit), width, floor, g, height, area }.
+    window.getWindowsFootprint = function () {
+        // Umriss-Schwerpunkt (komplex: gezeichneter Grundriss; einfach: Rechteck-Mitte = W/2,D/2)
+        let cx, cz;
+        if (window.isComplexGeometry && Array.isArray(window.buildingFootprint) && window.buildingFootprint.length) {
+            cx = 0; cz = 0;
+            window.buildingFootprint.forEach(function (p) { cx += p.x; cz += p.y; });
+            cx /= window.buildingFootprint.length; cz /= window.buildingFootprint.length;
+        } else {
+            const dd = getSimpleDims(); cx = dd.W / 2; cz = dd.D / 2;
+        }
+        const wl = window.windowsList || [];
+        const out = [];
+        for (let i = 0; i < clickable.length; i++) {
+            const o = clickable[i], ud = o.userData || {};
+            if (ud.part !== 'window' || ud.windowId == null) continue;
+            const w = wl.find(function (x) { return x.id === ud.windowId; }) || {};
+            const width = Math.max(0.3, +w.width || 1.0);
+            let tx, ty;
+            if (ud.complexWall) { tx = ud.complexWall.ux; ty = ud.complexWall.uz; }
+            else { const ns = (ud.orientation === 'south' || ud.orientation === 'north'); tx = ns ? 1 : 0; ty = ns ? 0 : 1; }
+            const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+            out.push({
+                id: ud.windowId, orientation: ud.orientation,
+                cx: o.position.x + cx, cy: o.position.z + cz, tx: tx, ty: ty, width: width,
+                floor: (w.etage != null ? Math.max(0, Math.round(w.etage)) : 0),
+                g: (isFinite(+w.g) ? +w.g : null), height: (isFinite(+w.height) ? +w.height : null),
+                area: (w.width && w.height ? +(w.width * w.height).toFixed(2) : null)
+            });
+        }
+        return out;
     };
 
     // Haustyp-Auswähler aufbauen und Standardhaus rendern
@@ -11814,7 +12172,10 @@ async function updateDoorType() {
 
     function layerDump(cid) {
         return Array.from(document.querySelectorAll('#' + cid + ' .wall-layer-row')).map(function (r) {
-            return { type: (r.querySelector('.wl-type-sel') || {}).value, thickness_mm: parseFloat((r.querySelector('.wl-thick') || {}).value) || 0, material: (r.querySelector('.wl-mat-sel') || {}).value, lambda: parseFloat((r.querySelector('.wl-lambda') || {}).value) || null, obdUuid: r.dataset.obdUuid || null, obdName: r.dataset.obdName || null };
+            return { type: (r.querySelector('.wl-type-sel') || {}).value, thickness_mm: parseFloat((r.querySelector('.wl-thick') || {}).value) || 0, material: (r.querySelector('.wl-mat-sel') || {}).value, lambda: parseFloat((r.querySelector('.wl-lambda') || {}).value) || null, obdUuid: r.dataset.obdUuid || null, obdName: r.dataset.obdName || null,
+                custom: r.dataset.customName || null,
+                r_over: (r.dataset.rManual === '1') ? (parseFloat((r.querySelector('.wl-r') || {}).value) || null) : null,
+                gwp_over: (r.dataset.gwpManual === '1') ? (parseFloat((r.querySelector('.wl-gwp') || {}).value) || null) : null };
         });
     }
     function captureProjectState() {
@@ -11846,6 +12207,9 @@ async function updateDoorType() {
                 const row = cont.lastElementChild;
                 if (row && l.obdUuid) { row.dataset.obdUuid = l.obdUuid; if (l.obdName) row.dataset.obdName = l.obdName; }
                 if (row && l.lambda) { const le = row.querySelector('.wl-lambda'); if (le) le.value = l.lambda; }
+                if (row && l.custom) { const ms = row.querySelector('.wl-mat-sel'); if (ms && typeof _setCustomOnSelect === 'function') _setCustomOnSelect(ms, l.custom); }
+                if (row && l.r_over != null) { const re = row.querySelector('.wl-r'); if (re) { re.value = l.r_over; row.dataset.rManual = '1'; } }
+                if (row && l.gwp_over != null) { const ge = row.querySelector('.wl-gwp'); if (ge) { ge.value = l.gwp_over; row.dataset.gwpManual = '1'; } }
             } catch (e) {}
         });
         try { if (kind === 'wall' && typeof recalcWallU === 'function') recalcWallU(); else if (typeof recalcLy === 'function') recalcLy(kind); } catch (e) {}
@@ -12015,7 +12379,10 @@ async function updateDoorType() {
                 thickness_mm: parseFloat((r.querySelector('.wl-thick') || {}).value) || 0,
                 material: (r.querySelector('.wl-mat-sel') || {}).value,
                 lambda: parseFloat((r.querySelector('.wl-lambda') || {}).value) || null,
-                obdUuid: r.dataset.obdUuid || null, obdName: r.dataset.obdName || null
+                obdUuid: r.dataset.obdUuid || null, obdName: r.dataset.obdName || null,
+                custom: r.dataset.customName || null,
+                r_over: (r.dataset.rManual === '1') ? (parseFloat((r.querySelector('.wl-r') || {}).value) || null) : null,
+                gwp_over: (r.dataset.gwpManual === '1') ? (parseFloat((r.querySelector('.wl-gwp') || {}).value) || null) : null
             };
         });
     }
@@ -12029,6 +12396,9 @@ async function updateDoorType() {
                 const row = cont.lastElementChild;
                 if (row && l.obdUuid) { row.dataset.obdUuid = l.obdUuid; if (l.obdName) row.dataset.obdName = l.obdName; }
                 if (row && l.lambda) { const le = row.querySelector('.wl-lambda'); if (le) le.value = l.lambda; }
+                if (row && l.custom) { const ms = row.querySelector('.wl-mat-sel'); if (ms && typeof _setCustomOnSelect === 'function') _setCustomOnSelect(ms, l.custom); }
+                if (row && l.r_over != null) { const re = row.querySelector('.wl-r'); if (re) { re.value = l.r_over; row.dataset.rManual = '1'; } }
+                if (row && l.gwp_over != null) { const ge = row.querySelector('.wl-gwp'); if (ge) { ge.value = l.gwp_over; row.dataset.gwpManual = '1'; } }
             } catch (e) {}
         });
         try { if (kind === 'wall' && typeof recalcWallU === 'function') recalcWallU(); else if (typeof recalcLy === 'function') recalcLy(kind); } catch (e) {}
@@ -12649,6 +13019,72 @@ async function updateDoorType() {
     function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
     function escXml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
 
+    // ---- Fenster im Grundriss (aus dem 3D-Modell) + Zuordnung zu Zimmern ----
+    const WIN_COLOR = '#f6b94b';   // Fenster-Gelb wie im 3D-Modell
+    // Alle Fenster als Grundriss-Segmente [m] (Mittelpunkt + Wand-Tangente + Breite, je Etage).
+    function allWindows() {
+        if (typeof window.getWindowsFootprint !== 'function') return [];
+        try { return window.getWindowsFootprint() || []; } catch (e) { return []; }
+    }
+    // Lot vom Punkt p auf das Segment a→b: {dist, t (0..1 im Segment), ux,uy (Segment-Einheit), len}
+    function projToSeg(p, a, b) {
+        const ex = b.x - a.x, ey = b.y - a.y, L2 = ex * ex + ey * ey;
+        const t = L2 > 0 ? ((p.x - a.x) * ex + (p.y - a.y) * ey) / L2 : 0;
+        const tc = Math.max(0, Math.min(1, t));
+        const qx = a.x + ex * tc, qy = a.y + ey * tc, len = Math.sqrt(L2);
+        return { dist: Math.hypot(p.x - qx, p.y - qy), t: t, ux: len ? ex / len : 0, uy: len ? ey / len : 0, len: len };
+    }
+    // Zimmer, zu dem ein Fenster gehört: dessen Wand parallel zur Fenster-Tangente liegt und
+    // deren Abstand zum Fenster-Mittelpunkt am kleinsten (unter der Schwelle) ist.
+    function roomForWindow(w, rooms) {
+        const c = { x: w.cx, y: w.cy };
+        const THRESH = 0.85;   // m: Wanddicke + Zeichentoleranz (½-m-Raster)
+        let bestId = null, bestD = THRESH;
+        rooms.forEach(function (r) {
+            const pts = r.pts || [];
+            for (let i = 0; i < pts.length; i++) {
+                const pr = projToSeg(c, pts[i], pts[(i + 1) % pts.length]);
+                if (pr.len < 1e-6) continue;
+                if (Math.abs(pr.ux * w.tx + pr.uy * w.ty) < 0.87) continue;   // Wand ∦ Fenster (>~30°)
+                if (pr.t < -0.06 || pr.t > 1.06) continue;                    // Lot außerhalb der Wand
+                if (pr.dist < bestD) { bestD = pr.dist; bestId = r.id; }
+            }
+        });
+        return bestId;
+    }
+    // Fenster → Zimmer (nur gleiche Etage). Setzt w._room und liefert {wins, byRoom:{id:[win]}}.
+    function computeWindowAssignment() {
+        const wins = allWindows();
+        const byRoom = {};
+        wins.forEach(function (w) {
+            const rooms = (window.innenRooms || []).filter(function (r) { return (r.floor || 0) === (w.floor || 0); });
+            const rid = roomForWindow(w, rooms);
+            w._room = rid || null;
+            if (rid) (byRoom[rid] = byRoom[rid] || []).push(w);
+        });
+        return { wins: wins, byRoom: byRoom };
+    }
+    // SVG der Fensterlinien (klassisches Grundriss-Symbol: dicke Wandlinie + heller Kern).
+    // Zugeordnete Fenster werden in der Zimmerfarbe umrandet, freie in Fenster-Gelb.
+    function windowsSvg() {
+        const asg = computeWindowAssignment();
+        let s = '';
+        asg.wins.forEach(function (w) {
+            if ((w.floor || 0) !== curFloor) return;
+            const hw = Math.max(0.35, w.width / 2);
+            const p1 = { x: w.cx - w.tx * hw, y: w.cy - w.ty * hw };
+            const p2 = { x: w.cx + w.tx * hw, y: w.cy + w.ty * hw };
+            const x1 = mx(p1).toFixed(1), y1 = my(p1).toFixed(1), x2 = mx(p2).toFixed(1), y2 = my(p2).toFixed(1);
+            const room = (window.innenRooms || []).find(function (r) { return r.id === w._room; });
+            const halo = room ? room.color : WIN_COLOR;
+            const t = 'aria-label="Fenster ' + (w.area ? w.area.toFixed(1) + ' m²' : '') + '"';
+            // dicke Umrandung (Zuordnungsfarbe) + heller Fensterkern
+            s += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="' + halo + '" stroke-width="6.5" stroke-linecap="round" opacity="' + (room ? 0.95 : 0.8) + '" ' + t + '/>';
+            s += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#eaf4ff" stroke-width="2.2" stroke-linecap="round"/>';
+        });
+        return s;
+    }
+
     // Transformation Meter ↔ Pixel: Umriss (+1 m Rand) mittig in die Zeichenfläche einpassen
     let view = { S: 24, ox: PAD, oy: PAD, minx: -1, miny: -1 };
     function computeView() {
@@ -12742,6 +13178,8 @@ async function updateDoorType() {
         computeView();
         gridEl.innerHTML = gridLines();
         out.innerHTML = '<path d="' + pathOf(getFootprint(), true) + '" fill="rgba(16,185,129,0.06)" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>' + outlineLabels();
+        const winEl = $('innenWindows');
+        if (winEl) winEl.innerHTML = windowsSvg();
         const northArrow = $('innenNorthArrow');
         if (northArrow) northArrow.setAttribute('transform', 'rotate(' + (-(window.buildingAzimuth || 0)) + ')');
         let s = '';
@@ -12893,15 +13331,19 @@ async function updateDoorType() {
         const list = roomsOnFloor();
         if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; renderAusbau(); return; }
         el.innerHTML = '';
+        const winAsg = computeWindowAssignment().byRoom;   // Fensteranzahl je Zimmer
         list.forEach(function (r) {
             const devCount = (window.innenDevices || []).filter(function (d) { return d.room === r.id; })
                 .reduce(function (s, d) { return s + (parseInt(d.count, 10) || 0); }, 0);
             const cw = cwirkOfRoom(r);
+            const wins = winAsg[r.id] || [];
+            const winArea = wins.reduce(function (s, w) { return s + (w.area || 0); }, 0);
             const row = document.createElement('div');
             row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
             row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
                 + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
                 + '<span class="in-roommeta">' + polyArea(r.pts).toFixed(1) + ' m² · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
+                + (wins.length ? ' · <span style="color:' + WIN_COLOR + ';">🪟 ' + wins.length + ' Fenster (' + winArea.toFixed(1) + ' m²)</span>' : '')
                 + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
             row.addEventListener('click', function (e) {
@@ -13250,10 +13692,13 @@ async function updateDoorType() {
         }
         return inside;
     }
+    // Fenster-Orientierung (Sektor-Schlüssel wie 'south') → Kürzel für die Zimmer-Info
+    const ORI_ABBR_MAP = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
     window.getInnenRoomsInfo = function () {
         const fp = getFootprint();
         const az = window.buildingAzimuth || 0;
         const ORI = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+        const asg = computeWindowAssignment();   // Fenster → Zimmer (je Etage)
         return (window.innenRooms || []).map(function (r) {
             const pts = r.pts || [];
             let s2 = 0;
@@ -13273,10 +13718,18 @@ async function updateDoorType() {
                 if (aussen.indexOf(abbr) < 0) aussen.push(abbr);
             }
             const cw = cwirkOfRoom(r);
+            // Die diesem Zimmer zugeordneten Fenster (aus der Grundriss-Erkennung)
+            const windows = (asg.byRoom[r.id] || []).map(function (w) {
+                return { id: w.id, orientation: w.orientation, abbr: ORI_ABBR_MAP[w.orientation] || (w.orientation || '').toUpperCase(),
+                         area: (w.area != null ? w.area : (w.width && w.height ? +(w.width * w.height).toFixed(2) : 0)),
+                         g: (w.g != null ? w.g : 0.6), tilt: 90 };
+            });
+            const windowArea = windows.reduce(function (s, w) { return s + (w.area || 0); }, 0);
             return { id: r.id, name: r.name, floor: r.floor || 0, floorLabel: floorLabel(r.floor || 0),
                      area: polyArea(pts), aussen: aussen,
                      cwirk: cw == null ? null : Math.round(cw),
-                     bauart: cw == null ? null : bauartOfCwirk(cw) };
+                     bauart: cw == null ? null : bauartOfCwirk(cw),
+                     windows: windows, windowArea: +windowArea.toFixed(2) };
         });
     };
 
@@ -13775,7 +14228,8 @@ async function updateDoorType() {
     function d48SumLayerR(containerId) {
         let R = 0, n = 0;
         document.querySelectorAll('#' + containerId + ' .wall-layer-row .wl-r').forEach(function (el) {
-            const v = parseFloat((el.textContent || '').replace(',', '.'));
+            const raw = (el.tagName === 'INPUT') ? el.value : el.textContent;
+            const v = parseFloat((raw || '').replace(',', '.'));
             if (isFinite(v) && v > 0) { R += v; n++; }
         });
         return n > 0 ? R : 0;
@@ -13902,8 +14356,10 @@ async function updateDoorType() {
         const rooms = (typeof window.getInnenRoomsInfo === "function") ? window.getInnenRoomsInfo() : [];
         let h = '<option value="">– Zimmer wählen –</option>';
         rooms.forEach(r => {
+            const nW = (r.windows || []).length;
             h += '<option value="' + d48Esc(r.id) + '"' + (r.id === cur ? " selected" : "") + ">"
-                + d48Esc(r.name) + " · " + r.floorLabel + " (" + r.area.toFixed(1) + " m²)</option>";
+                + d48Esc(r.name) + " · " + r.floorLabel + " (" + r.area.toFixed(1) + " m²"
+                + (nW ? ", " + nW + " Fenster" : "") + ")</option>";
         });
         sel.innerHTML = h;
         const info = $("d48-som-room-info");
@@ -13917,15 +14373,26 @@ async function updateDoorType() {
         $("d48-som-ag").value = r.area.toFixed(1);
         // Bauart aus dem Zimmer-Ausbau (🧱-Karte im Inneneinrichtung-Tab), falls erfasst
         if (r.bauart) $("d48-som-bauart").value = r.bauart;
+        // Fenster des Zimmers automatisch in die Nachweis-Tabelle übernehmen (aus der
+        // Grundriss-Zuordnung im Inneneinrichtung-Tab). Vorhandene Zeilen werden ersetzt.
+        const wins = r.windows || [];
+        if (wins.length) {
+            $("d48-som-tbl").querySelector("tbody").innerHTML = "";
+            wins.forEach(w => window.d48AddSomRow(w.area || 0, w.orientation || "south", w.tilt || 90, (w.g != null ? w.g : 0.6), 1.0));
+        }
         const devCount = (window.innenDevices || []).filter(d => d.room === r.id)
             .reduce((s, d) => s + (parseInt(d.count, 10) || 0), 0);
         if (info) info.textContent = "↻ A_G = " + r.area.toFixed(1) + " m² aus „" + r.name + "“ (" + r.floorLabel + ") übernommen"
             + (r.bauart
                 ? " · Bauart „" + r.bauart + "“ aus dem Ausbau übernommen (C_wirk ≈ " + r.cwirk + " Wh/(K·m²))."
                 : " · Bauart: kein Ausbau im Zimmer erfasst (🧱-Karte) – Auswahl oben manuell prüfen.")
-            + (r.aussen.length
-                ? " · Außenkanten: " + r.aussen.join(", ") + " → Orientierung der Fenster unten entsprechend wählen."
-                : " · Zimmer hat keine Kante am Gebäudeumriss (innenliegend) – Fensterorientierung manuell wählen.")
+            + (wins.length
+                ? " · " + wins.length + " Fenster (" + r.windowArea.toFixed(1) + " m², "
+                    + wins.map(w => w.abbr).filter((v, i, a) => a.indexOf(v) === i).join("/")
+                    + ") aus dem Grundriss übernommen – g-Werte/Sonnenschutz unten prüfen."
+                : (r.aussen.length
+                    ? " · keine Fenster am Zimmer erkannt; Außenkanten: " + r.aussen.join(", ") + " → Fenster unten manuell ergänzen."
+                    : " · Zimmer hat keine Außenkante (innenliegend) – Fenster manuell ergänzen."))
             + (devCount > 0
                 ? " · " + devCount + " Gerät(e) in diesem Zimmer (interne Wärmelasten sind im Norm-Verfahren über die Nutzungsart pauschal berücksichtigt und gehen nicht direkt in S_vorh/S_zul ein)."
                 : "");
