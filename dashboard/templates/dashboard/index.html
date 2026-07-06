@@ -946,6 +946,8 @@ body {
 .wwb-val { width: 118px; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; color: #e6edf5; white-space: nowrap; }
 .wwb-total { background: rgba(255,255,255,.045); }
 .wwb-total .wwb-name, .wwb-total .wwb-val { color: #fff; }
+.wwb-sub { padding: 6px 12px; font-size: 12px; font-weight: 700; color: #7fb4d8; background: rgba(56,189,248,.07); border-top: 1px solid rgba(255,255,255,.08); }
+.wwb-count { color: var(--muted); font-weight: 400; font-size: 11.5px; }
 .wwb-rating { padding: 7px 12px; font-size: 12.5px; font-weight: 700; border-top: 1px solid rgba(255,255,255,.08); }
 .wwb-good { color: #86efac; background: rgba(16,185,129,.10); }
 .wwb-mid  { color: #fcd34d; background: rgba(246,185,75,.10); }
@@ -4090,6 +4092,9 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="field"><label>Höhe (m)</label><input id="win_edit_h" type="number" step="0.05" min="0.2" value="1.4" oninput="updateWinEditArea()"></div>
         </div>
         <div class="field" style="margin-top:8px;"><label>Fläche (B × H)</label><div class="value-display" id="win_edit_area">—</div></div>
+        <div class="field" style="margin-top:8px;"><label>Fenstertyp</label>
+            <select id="win_edit_type" onchange="onWinEditTypeChange()" title="Fenstertyp nur für DIESES Fenster – setzt U- und g-Wert aus dem Typ. &quot;Eigener U-/g-Wert&quot; schaltet die Felder zum Selbst-Eingeben frei."></select>
+        </div>
         <div class="grid-2" style="margin-top:8px;">
             <div class="field"><label>U-Wert [W/(m²·K)]</label><input id="win_edit_u" type="number" step="0.01" min="0.1" value="1.10"></div>
             <div class="field"><label>g-Wert (0–1)</label><input id="win_edit_g" type="number" step="0.01" min="0" max="1" value="0.55"></div>
@@ -4548,9 +4553,11 @@ function updateWindowTotalDisplay() {
 // alle Einzelfenster summiert.  H_WB,Fenster = ψ_Seiten·L_Seiten + ψ_Sturz·L_Sturz + ψ_Brüstung·L_Brüstung.
 function computeWindowBridge() {
     let list = Array.isArray(window.windowsList) ? window.windowsList : null;
+    let estimated = false;
     // Fallback (noch kein 3D-Modell aufgebaut): aus den Orientierungs-Flächen schätzen
     // (gleiche Heuristik wie ensureWindowsList: ~2,4 m² je Fenster, Höhe 1,4 m).
     if (!list || list.length === 0) {
+        estimated = true;
         list = [];
         [['window_north_area'], ['window_south_area'], ['window_east_area'], ['window_west_area']].forEach(function (pair) {
             const elA = document.getElementById(pair[0]);
@@ -4561,19 +4568,33 @@ function computeWindowBridge() {
             for (let i = 0; i < count; i++) list.push({ width: width, height: height });
         });
     }
+    // Gesamt + Gruppierung je Fenstertyp (typeId/typeName am Einzelfenster; ohne Typ → „custom").
     let lSeiten = 0, lSturz = 0, lBruestung = 0, aWin = 0;
+    const typeMap = {};
     list.forEach(function (win) {
         const h = parseFloat(win.height) || 0, b = parseFloat(win.width) || 0;
         lSeiten += 2 * h;   // beide seitlichen Laibungen
         lSturz += b;        // oberer Anschluss
         lBruestung += b;    // unterer Anschluss
         aWin += b * h;      // Fensterfläche (Bezug für den flächenbezogenen Zuschlag)
+        const key = (win.typeId != null) ? String(win.typeId) : 'custom';
+        if (!typeMap[key]) typeMap[key] = { key: key, label: win.typeName || 'Ohne Fenstertyp (eigene U-/g-Werte)', n: 0, aWin: 0, lSeiten: 0, lSturz: 0, lBruestung: 0 };
+        const t = typeMap[key];
+        t.n += 1; t.aWin += b * h; t.lSeiten += 2 * h; t.lSturz += b; t.lBruestung += b;
     });
     const num = (id, def) => { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) && v >= 0 ? v : def; };
     const psiS = num('win_psi_seiten', 0.04), psiSt = num('win_psi_sturz', 0.04), psiB = num('win_psi_bruestung', 0.04);
     const total = psiS * lSeiten + psiSt * lSturz + psiB * lBruestung;   // H_WB,Fenster [W/K]
     const duWb = aWin > 0 ? total / aWin : 0;   // ΔU_WB,Fenster [W/(m²·K)] – auf die Fensterfläche bezogen
-    return { lSeiten, lSturz, lBruestung, psiS, psiSt, psiB, total, aWin, duWb };
+    // Je Typ dieselben ψ-Werte (aus dem Wandaufbau), aber eigene Bezugslängen/Flächen
+    // → eigener H_WB-Anteil (W/K) und eigenes ΔU_WB (W/(m²·K), geometrieabhängig).
+    const types = Object.keys(typeMap).map(function (k) {
+        const t = typeMap[k];
+        t.total = psiS * t.lSeiten + psiSt * t.lSturz + psiB * t.lBruestung;
+        t.duWb = t.aWin > 0 ? t.total / t.aWin : 0;
+        return t;
+    }).sort(function (a, b) { return ((a.key === 'custom') - (b.key === 'custom')) || a.label.localeCompare(b.label, 'de'); });
+    return { lSeiten, lSturz, lBruestung, psiS, psiSt, psiB, total, aWin, duWb, types, estimated };
 }
 
 // Anzeige der Fenster-Wärmebrücken (Bezugslängen + Gesamt) aktualisieren.
@@ -4612,6 +4633,20 @@ function renderWindowBridgePanel(r) {
         '<div class="wwb-row"><span class="wwb-name">' + name + '</span>'
         + '<span class="wwb-calc">ψ ' + de(psi) + ' × ' + de(len, 1) + ' m</span>'
         + '<span class="wwb-val">' + de(psi * len) + ' W/K</span></div>';
+    // Aufschlüsselung je Fenstertyp: eigener ψ-Verlust (H_WB) + eigenes ΔU_WB je Typ.
+    // Entfällt bei geschätzten Fenstern (kein 3D-Modell) und wenn es nur die typlose Gruppe gibt.
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    let typeHtml = '';
+    const types = (!r.estimated && Array.isArray(r.types)) ? r.types : [];
+    if (types.length && !(types.length === 1 && types[0].key === 'custom')) {
+        typeHtml = '<div class="wwb-sub">ψ-Wärmebrücken je Fenstertyp</div>'
+            + types.map(function (t) {
+                return '<div class="wwb-row"><span class="wwb-name">' + esc(t.label)
+                    + ' <span class="wwb-count">(' + t.n + ' Fenster · ' + de(t.aWin, 1) + ' m²)</span></span>'
+                    + '<span class="wwb-calc">H_WB ' + de(t.total) + ' W/K → ΔU_WB</span>'
+                    + '<span class="wwb-val">' + de(t.duWb) + ' W/(m²·K)</span></div>';
+            }).join('');
+    }
     box.innerHTML =
         row('Seiten (Laibung 1+2)', r.psiS, r.lSeiten)
         + row('Sturz (oben)', r.psiSt, r.lSturz)
@@ -4619,6 +4654,7 @@ function renderWindowBridgePanel(r) {
         + '<div class="wwb-row wwb-total"><span class="wwb-name">Gesamt ΔU<sub>WB,Fenster</sub></span>'
         + '<span class="wwb-calc">' + de(r.total) + ' W/K ÷ ' + de(r.aWin, 1) + ' m² Fenster</span>'
         + '<span class="wwb-val">' + de(r.duWb) + ' W/(m²·K)</span></div>'
+        + typeHtml
         + '<div class="wwb-rating wwb-' + cls + '">Einordnung: ' + label + ' · ψ_eff ' + de(effPsi) + ' W/(m·K)</div>';
 }
 
@@ -9578,6 +9614,8 @@ async function updateWindowType() {
         }
         uInput.readOnly = true;
         gInput.readOnly = true;
+        // Typ als Standard auf ALLE Fenster übernehmen (einzelne Fenster danach im Editor anpassbar)
+        if (typeof window.applyGlobalWindowUG === 'function') window.applyGlobalWindowUG();
         return;
     }
 
@@ -9592,6 +9630,7 @@ async function updateWindowType() {
             gInput.value = thermal.g_value;
             gInput.readOnly = true;
         }
+        if (typeof window.applyGlobalWindowUG === 'function') window.applyGlobalWindowUG();
         return;
     }
 
@@ -9882,7 +9921,10 @@ async function updateDoorType() {
         window._winSeq = window._winSeq || 0;
         const list = [];
         const oris = [['window_north_area', 'north'], ['window_south_area', 'south'], ['window_east_area', 'east'], ['window_west_area', 'west']];
-        const u = _winDefaultU(), g = _winDefaultG();
+        // Global gewählten Fenstertyp erben (U/g dann aus dem Preset, Label mitführen)
+        const t = (typeof window._globalWindowType === 'function') ? window._globalWindowType() : null;
+        const u = (t && t.u != null) ? t.u : _winDefaultU();
+        const g = (t && t.g != null) ? t.g : _winDefaultG();
         oris.forEach(function (pair) {
             const el = document.getElementById(pair[0]);
             const A = el ? (parseFloat(el.value) || 0) : 0;
@@ -9890,7 +9932,7 @@ async function updateDoorType() {
             const count = Math.max(1, Math.min(6, Math.round(A / 2.4)));
             const height = 1.4, width = (A / count) / height;
             for (let i = 0; i < count; i++) {
-                list.push({ id: ++window._winSeq, orientation: pair[1], width: +width.toFixed(3), height: height, u: u, g: g });
+                list.push({ id: ++window._winSeq, orientation: pair[1], width: +width.toFixed(3), height: height, u: u, g: g, typeId: (t ? t.id : null), typeName: (t ? t.name : null) });
             }
         });
         window.windowsList = list;
@@ -10627,7 +10669,11 @@ async function updateDoorType() {
         if (!autoCurrent) {
             window.windowsList = window.windowsList.filter(function (w) { return !w.autoComplex; });
             window.doorsList = window.doorsList.filter(function (dd) { return !dd.autoComplex; });
-            const uDef = _winDefaultU(), gDef = _winDefaultG();
+            // Global gewählten Fenstertyp erben (sonst zeigt das ψ-Panel nach WWR-/Grundriss-
+            // änderung irreführend „Ohne Fenstertyp", obwohl global ein Typ für alle gilt).
+            const winT = (typeof window._globalWindowType === 'function') ? window._globalWindowType() : null;
+            const uDef = (winT && winT.u != null) ? winT.u : _winDefaultU();
+            const gDef = (winT && winT.g != null) ? winT.g : _winDefaultG();
             const uDoor = parseFloat((document.getElementById('door_u') || {}).value) || 2.5;
             edges.forEach(function (E) {
                 const L = E.L, wallNr = E.i + 1;
@@ -10649,7 +10695,8 @@ async function updateDoorType() {
                         if (f === 0 && doorTs.some(function (dt) { return Math.abs(t - dt) < skip; })) continue; // Türplatz frei
                         window.windowsList.push({ id: ++window._winSeq, autoComplex: autoSig, wallNr: wallNr,
                             orientation: 'south', width: +winW.toFixed(3), height: +winH.toFixed(2),
-                            u: uDef, g: gDef, posU: +((t - 0.5) * L).toFixed(3), etage: f });
+                            u: uDef, g: gDef, typeId: (winT ? winT.id : null), typeName: (winT ? winT.name : null),
+                            posU: +((t - 0.5) * L).toFixed(3), etage: f });
                     }
                 }
             });
@@ -11540,6 +11587,73 @@ async function updateDoorType() {
     function byId(id) { return document.getElementById(id); }
     function num(v, d) { const x = parseFloat(v); return isFinite(x) ? x : d; }
     function findWin(id) { return (window.windowsList || []).find(function (w) { return w.id === id; }); }
+    function escHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+    // ===== Fenstertyp je Einzelfenster =====
+    // Presets kommen aus /api/ekobaudat-material/popular_windows/ (Cache: window.materialPresets).
+    function windowTypePresets() {
+        const mp = window.materialPresets || {};
+        return Object.keys(mp).map(function (k) { return mp[k]; })
+            .filter(function (p) { return p && p.category === 'window'; })
+            .sort(function (a, b) { return String(a.simple_name || '').localeCompare(String(b.simple_name || ''), 'de'); });
+    }
+    // Global gewählter Fenstertyp (Select oben in der Fenster-Karte) → {id, name, u, g} oder null.
+    // u/g stammen aus dem PRESET (nicht aus #window_u/#g_value – die schreibt aggregateWindows
+    // mit dem flächengewichteten Mittel zurück, sobald einzelne Fenster abweichen).
+    function currentGlobalWindowType() {
+        const sel = byId('window_type');
+        if (!sel || !sel.value || sel.value === 'custom') return null;
+        const id = parseInt(sel.value, 10);
+        if (!isFinite(id)) return null;
+        const p = (window.materialPresets || {})[id];
+        const optText = (sel.options[sel.selectedIndex] || {}).textContent;
+        return {
+            id: id,
+            name: (p && p.simple_name) || optText || ('Typ ' + id),
+            u: (p && p.u_value != null) ? p.u_value : null,
+            g: (p && p.g_value != null) ? p.g_value : null,
+        };
+    }
+    // Für die automatischen Fenster-Erzeuger (ensureWindowsList / autoComplex-Rebuild) in
+    // anderen IIFEs erreichbar machen – Single Source of Truth für den globalen Fenstertyp.
+    window._globalWindowType = currentGlobalWindowType;
+    // Dropdown im Editor aufbauen; Typ des Fensters vorauswählen (auch wenn er nicht
+    // mehr in den Presets ist – dann als eigener Eintrag erhalten).
+    function buildWinTypeSelect(w) {
+        const sel = byId('win_edit_type'); if (!sel) return;
+        let html = '<option value="custom">Eigener U-/g-Wert (ohne Typ)</option>';
+        let found = false;
+        windowTypePresets().forEach(function (p) {
+            const isSel = (w.typeId != null && p.id === w.typeId);
+            if (isSel) found = true;
+            html += '<option value="' + p.id + '"' + (isSel ? ' selected' : '') + '>' + escHtml(p.simple_name || ('Typ ' + p.id)) + '</option>';
+        });
+        if (w.typeId != null && !found) {
+            html += '<option value="' + w.typeId + '" selected>' + escHtml(w.typeName || ('Typ ' + w.typeId)) + '</option>';
+        }
+        sel.innerHTML = html;
+        syncWinEditTypeLock();
+    }
+    // U/g-Felder sperren, solange ein bekannter Typ gewählt ist (Werte kommen vom Typ).
+    function syncWinEditTypeLock() {
+        const sel = byId('win_edit_type');
+        const p = sel && sel.value !== 'custom' ? (window.materialPresets || {})[parseInt(sel.value, 10)] : null;
+        const lock = !!p;
+        const u = byId('win_edit_u'), g = byId('win_edit_g');
+        if (u) u.readOnly = lock;
+        if (g) g.readOnly = lock;
+    }
+    window.onWinEditTypeChange = function () {
+        const sel = byId('win_edit_type'); if (!sel) return;
+        if (sel.value !== 'custom') {
+            const p = (window.materialPresets || {})[parseInt(sel.value, 10)];
+            if (p) {
+                if (p.u_value != null) byId('win_edit_u').value = p.u_value;
+                if (p.g_value != null) byId('win_edit_g').value = p.g_value;
+            }
+        }
+        syncWinEditTypeLock();
+    };
 
     // Summen je Orientierung → schreibt in die (readonly) Felder + flächengewichteten U/g-Wert
     window.aggregateWindows = function () {
@@ -11611,6 +11725,7 @@ async function updateDoorType() {
         byId('win_edit_h').value = w.height;
         byId('win_edit_u').value = w.u;
         byId('win_edit_g').value = w.g;
+        buildWinTypeSelect(w);
         // aktuelle Position (gezogen oder automatisch platziert) in die Felder schreiben
         const ft = (window._geo3d && window._geo3d.floorTop != null) ? window._geo3d.floorTop : 0.2;
         const pos = (typeof window._itemPos === 'function') ? window._itemPos('window', id) : null;
@@ -11642,6 +11757,15 @@ async function updateDoorType() {
         w.height = Math.max(0.2, num(byId('win_edit_h').value, w.height));
         w.u = Math.max(0.1, num(byId('win_edit_u').value, w.u));
         w.g = Math.min(1, Math.max(0, num(byId('win_edit_g').value, w.g)));
+        // Fenstertyp dieses Fensters übernehmen (null = eigener U-/g-Wert ohne Typ)
+        const tSel = byId('win_edit_type');
+        if (tSel && tSel.value && tSel.value !== 'custom') {
+            const tid = parseInt(tSel.value, 10);
+            w.typeId = isFinite(tid) ? tid : null;
+            w.typeName = w.typeId != null ? (((tSel.options[tSel.selectedIndex] || {}).textContent) || null) : null;
+        } else {
+            w.typeId = null; w.typeName = null;
+        }
         // Position per Koordinate übernehmen: X auf der Fassade, Y innerhalb der gewählten Etage
         // (Y ab Fußbodenoberkante; Fenster bleibt im Etagenband)
         const g = window._geo3d || {};
@@ -11677,19 +11801,25 @@ async function updateDoorType() {
     window.addWindowTo = function (ori, wallNr) {
         if (!Array.isArray(window.windowsList)) window.windowsList = [];
         window._winSeq = (window._winSeq || 0) + 1;
-        const u = num((byId('window_u') || {}).value, 1.10);
-        const g = num((byId('g_value') || {}).value, 0.55);
+        const t = currentGlobalWindowType();   // neues Fenster erbt den global gewählten Fenstertyp
+        // Bei aktivem Typ U/g aus dem PRESET (t.u/t.g) – NICHT aus #window_u/#g_value, die
+        // aggregateWindows mit dem Mittelwert überschreibt, sobald Fenster abweichen.
+        const u = (t && t.u != null) ? t.u : num((byId('window_u') || {}).value, 1.10);
+        const g = (t && t.g != null) ? t.g : num((byId('g_value') || {}).value, 0.55);
         // wallNr: Wand-Nr. bei komplexer Geometrie (Button „＋ Wand n") → Fenster haftet an dieser Wand
-        window.windowsList.push({ id: window._winSeq, orientation: ori, width: 1.0, height: 1.4, u: u, g: g, wallNr: (wallNr != null ? wallNr : undefined) });
+        window.windowsList.push({ id: window._winSeq, orientation: ori, width: 1.0, height: 1.4, u: u, g: g, typeId: (t ? t.id : null), typeName: (t ? t.name : null), wallNr: (wallNr != null ? wallNr : undefined) });
         window.aggregateWindows();
         if (typeof window._rebuild3D === 'function') window._rebuild3D();
     };
 
-    // Globalen U_w/g-Standard auf ALLE Fenster anwenden
+    // Globalen U_w/g-Standard (und global gewählten Fenstertyp) auf ALLE Fenster anwenden.
+    // Bei aktivem Typ die PRESET-Werte anwenden (konsistent mit dem Typ-Label); ohne Typ die
+    // Feldwerte (freie U-/g-Eingabe im „custom"-Modus).
     window.applyGlobalWindowUG = function () {
-        const u = num((byId('window_u') || {}).value, 1.10);
-        const g = num((byId('g_value') || {}).value, 0.55);
-        (window.windowsList || []).forEach(function (w) { w.u = u; w.g = g; });
+        const t = currentGlobalWindowType();
+        const u = (t && t.u != null) ? t.u : num((byId('window_u') || {}).value, 1.10);
+        const g = (t && t.g != null) ? t.g : num((byId('g_value') || {}).value, 0.55);
+        (window.windowsList || []).forEach(function (w) { w.u = u; w.g = g; w.typeId = (t ? t.id : null); w.typeName = (t ? t.name : null); });
         window.aggregateWindows();
     };
 
@@ -12060,7 +12190,9 @@ async function updateDoorType() {
 
     window.renderElementLists = function () {
         const wl = $('window_list');
-        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, oriLabel(w) + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g))).join('') : empty('Noch keine Fenster.'); }
+        // Typ-Kürzel für die Zeile: führendes „Fenster - " weglassen (Platz sparen)
+        const winType = (w) => w.typeName ? ' · ' + String(w.typeName).replace(/^Fenster\s*-\s*/, '') : '';
+        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, oriLabel(w) + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g) + winType(w))).join('') : empty('Noch keine Fenster.'); }
         const dl = $('door_list');
         if (dl) { const l = window.doorsList || []; dl.innerHTML = l.length ? l.map(d => row('door', d.id, oriLabel(d) + ' · ' + fmt(d.width) + '×' + fmt(d.height) + ' m · U ' + fmt(d.u))).join('') : empty('Noch keine Türen.'); }
         const pl = $('pv_module_list');
