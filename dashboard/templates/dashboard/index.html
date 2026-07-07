@@ -2535,13 +2535,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                                 <label>Dachneigung Nord/Süd (°)
                                     <span class="info-i" data-tip="Neigung der nach Nord/Süd geneigten Dachflächen gegen die Horizontale. 0° = flach, 90° = senkrecht. Beeinflusst die geneigte Dachfläche (Fläche = Grundriss / cos α) und damit den Wärmeverlust H_T, außerdem die PV-Dachneigung. Bei 90° steht die Fläche senkrecht und wird als Wand geführt (in der Bilanz unter den Wänden).">i</span>
                                 </label>
-                                <input id="roof_angle_ns" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ns" type="number" step="1" min="0" max="90" value="35" oninput="roofAngleChanged()">
                             </div>
                             <div class="field">
                                 <label>Dachneigung Ost/West (°)
-                                    <span class="info-i" data-tip="Neigung der nach Ost/West geneigten Dachflächen (z. B. Walmdach). Wirkt analog zur N/S-Neigung. Bei 90° steht die Seite senkrecht → sie wird als Wand geführt und beim Walmdach schaltet die Dachform automatisch auf Satteldach um.">i</span>
+                                    <span class="info-i" data-tip="Neigung der nach Ost/West geneigten Walm-Enden. 90° = senkrechte Giebel → reines Satteldach (keine O/W-Fläche). Kleiner als 90° = Walmdach: je flacher die O/W-Neigung, desto tiefer ziehen die Walm-Enden in den Grundriss (O/W-Grundfläche wird automatisch berechnet), desto kürzer der First. Wirkt live auf Grundfläche, Dachfläche und 3D-Modell.">i</span>
                                 </label>
-                                <input id="roof_angle_ew" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ew" type="number" step="1" min="0" max="90" value="90" oninput="roofAngleChanged()">
                             </div>
                         </div>
                         <div class="grid-2">
@@ -6767,6 +6767,13 @@ function updateRoofType() {
             const footprint = parseFloat(document.getElementById('roof_area_display')?.value) || 0;
             if (nsA && !nsA.dataset.manual && !nsA.value && footprint > 0) nsA.value = footprint.toFixed(1);
             if (ewA && !ewA.dataset.manual && !ewA.value) ewA.value = '0';
+            // Stehen beide Neigungen noch auf „senkrecht" (Flachdach-Zustand), beim erneuten
+            // Wählen von Steildach die N/S-Neigung auf einen Standard-Pitch zurücksetzen, damit
+            // nicht sofort wieder auf Flachdach umgeschaltet wird.
+            const angNs = document.getElementById('roof_angle_ns'), angEw = document.getElementById('roof_angle_ew');
+            if (angNs && angEw && (parseFloat(angNs.value) || 0) >= 90 && (parseFloat(angEw.value) || 0) >= 90) {
+                angNs.value = '35';
+            }
             updateSteildachAreas();
         } else {
             steildachAreas.style.display = 'none';
@@ -6884,7 +6891,20 @@ function scheduleAuto(stage) {
 window.scheduleAuto = scheduleAuto;
 
 // Alt-Name beibehalten: delegiert jetzt an den zentralen Orchestrator.
-function autoRecalcEnvelope() { scheduleAuto('huelle'); }
+// Sonderfall „frühe Interaktion": Wird eine Hülle-Eingabe (z. B. die Dachneigung)
+// geändert, BEVOR der automatische Erst-Durchlauf beim Laden gegriffen hat, ist
+// window._envelopeHasRun noch false und scheduleAuto() würde still abbrechen – dann
+// aktualisiert sich zwar das 3D-Modell/die Fläche, die Serverrechnungen bleiben aber
+// aus. In diesem Fall die Pipeline einmalig bootstrappen (huelle → … → bilanz);
+// danach ist _envelopeHasRun=true und jede weitere Änderung läuft debounced live.
+function autoRecalcEnvelope() {
+    if (!window._envelopeHasRun && window._autoRecalc !== false
+        && typeof window.recomputeStages === 'function' && !window._recomputing) {
+        window.recomputeStages(['huelle', 'pv']);
+        return;
+    }
+    scheduleAuto('huelle');
+}
 
 // Beim Seitenaufruf einmal komplett durchrechnen (frische Seite, kein ?project) –
 // damit von Anfang an Ergebnisse angezeigt werden, ganz ohne Button-Klick.
@@ -6923,11 +6943,16 @@ function resetRoofArea() {
     }
 }
 
-// Projektionsflächen (Grundriss) an Dachform + Gebäudemaße koppeln.
-// Walmdach (hip): die beiden O/W-Hip-Enden eines symmetrischen (gleichgeneigten) Walmdachs
-// projizieren zusammen min(L,B)²/2 der Grundfläche; der Rest geht auf N/S. Dadurch bekommt
-// die O/W-Seite automatisch eine Fläche → die O/W-Neigung wirkt sofort auf die Dachfläche.
-// Satteldach/Pultdach: O/W = 0, N/S = gesamte Grundfläche. Manuelle Eingaben bleiben unberührt.
+// Projektionsflächen (Grundriss) direkt aus den beiden Dachneigungen ableiten, damit
+// eine Neigungsänderung sofort auf Grundfläche, Dachfläche UND 3D-Modell wirkt.
+// Geometrie eines symmetrischen Walmdachs (Spannweite B = Gebäudebreite Ost/West):
+//   Firsthöhe (Grundriss)  RH = tan(θ_NS)·(B/2)
+//   Walm-Tiefe je O/W-Ende  d  = RH / tan(θ_OW)          → O/W-Neigung = θ_OW
+//   O/W-Projektion  A_OW = B·d = (B²/2)·tan(θ_NS)/tan(θ_OW)
+//   N/S-Projektion  A_NS = Grundriss − A_OW
+// θ_OW = 90° ⇒ tan→∞ ⇒ A_OW = 0 ⇒ senkrechte Giebel = reines Satteldach.
+// θ_OW < 90° ⇒ geneigte Walm-Enden = Walmdach. So ist die O/W-Neigung immer „live".
+// Manuell überschriebene Grundflächen (dataset.manual) bleiben unberührt.
 function syncWalmProjection(nsA, ewA) {
     nsA = nsA || document.getElementById('roof_area_ns');
     ewA = ewA || document.getElementById('roof_area_ew');
@@ -6935,20 +6960,40 @@ function syncWalmProjection(nsA, ewA) {
     if (document.getElementById('roof_type')?.value !== 'steildach') return;
     const footprint = window._autoRoofArea || 0;
     if (!(footprint > 0)) return;
-    const isHip = (typeof window._currentRoofForm === 'function') && window._currentRoofForm() === 'hip';
-    if (isHip) {
-        const L = parseFloat(document.getElementById('building_length')?.value) || 0;
-        const B = parseFloat(document.getElementById('building_width')?.value) || 0;
-        if (!(L > 0 && B > 0)) return;   // ohne belastbare Maße (z.B. komplexe Geometrie) nicht aufteilen
-        const s = Math.min(L, B);
-        const ew = Math.min(s * s / 2, footprint * 0.9);   // O/W-Hip-Enden, symmetrisch, gedeckelt
-        const ns = Math.max(footprint - ew, 0);
-        if (!ewA.dataset.manual) ewA.value = ew.toFixed(1);
-        if (!nsA.dataset.manual) nsA.value = ns.toFixed(1);
+    const B = parseFloat(document.getElementById('building_width')?.value) || 0;   // N/S-Spannweite (Traufe→Traufe)
+    const cl = (v, lo, hi) => Math.min(hi, Math.max(lo, isFinite(v) ? v : lo));
+    const aNS = cl(parseFloat(document.getElementById('roof_angle_ns')?.value), 0, 90);
+    const aEW = cl(parseFloat(document.getElementById('roof_angle_ew')?.value), 0, 90);
+    let ew = 0, ns = footprint;
+    if (aNS >= 90 && aEW < 90) {
+        // N/S senkrecht → um 90° gedrehtes Satteldach: die O/W-Flächen sind die
+        // geneigten Hauptflächen und tragen den gesamten Grundriss; N/S = senkrechte Giebel.
+        ew = footprint; ns = 0;
+    } else if (aEW >= 90) {
+        // O/W senkrecht (oder beide) → normales Satteldach: N/S trägt den ganzen Grundriss.
+        ew = 0; ns = footprint;
     } else {
-        if (!nsA.dataset.manual) nsA.value = footprint.toFixed(1);
-        if (!ewA.dataset.manual && (parseFloat(ewA.value) || 0) === 0) ewA.value = '0';
+        // beide < 90 → Walmdach: O/W-Enden aus der Walm-Geometrie A_OW = (B²/2)·tan θ_NS / tan θ_OW.
+        if (B > 0 && aNS > 0) {
+            ew = (B * B / 2) * Math.tan(aNS * Math.PI / 180) / Math.tan(aEW * Math.PI / 180);
+            ew = Math.min(Math.max(ew, 0), footprint * 0.9);   // O/W-Enden ≤ (fast) ganzer Grundriss
+        }
+        ns = Math.max(footprint - ew, 0);
     }
+    if (!ewA.dataset.manual) ewA.value = ew.toFixed(1);
+    if (!nsA.dataset.manual) nsA.value = ns.toFixed(1);
+}
+
+// Wird bei jeder Änderung EINER DACHNEIGUNG aufgerufen: die Neigung ist maßgeblich, daher
+// werden zuvor manuell überschriebene Grundflächen wieder freigegeben und aus den Neigungen
+// neu abgeleitet (sonst „friert" eine einmal manuell gesetzte Grundfläche das Dach ein und die
+// Neigungsänderung würde Fläche + Modell nicht mehr anpassen).
+function roofAngleChanged() {
+    ['roof_area_ns', 'roof_area_ew'].forEach(function (id) {
+        const e = document.getElementById(id);
+        if (e) delete e.dataset.manual;
+    });
+    updateSteildachAreas();
 }
 
 // Geneigte Dachfläche aus Grundriss-Projektion + Neigung; setzt Dachfläche (Wärmeverlust)
@@ -7007,13 +7052,22 @@ function updateSteildachAreas() {
         }
     }
 
-    // Walmdach-Sonderfall (Punkt 2): sobald GENAU EINE Seite senkrecht (90°) ist, die
-    // Dachform im Gebäudedaten-Tab automatisch von Walmdach auf Satteldach umschalten.
-    if ((nsVertical !== ewVertical)
-        && typeof window._currentRoofForm === 'function' && window._currentRoofForm() === 'hip'
-        && typeof window._selectRoofForm === 'function' && !window._roofFormSwitching) {
-        window._roofFormSwitching = true;
-        try { window._selectRoofForm('gable'); } finally { window._roofFormSwitching = false; }
+    // Dachform-Picker (Gebäudedaten-Tab) mit der O/W-Grundfläche synchronisieren, damit
+    // Picker und 3D-Modell nie auseinanderlaufen: O/W-Fläche > 0 → Walmdach, sonst Satteldach.
+    // (So schaltet z. B. das Absenken der O/W-Neigung unter 90° die Form automatisch auf Walm.)
+    if (typeof window._currentRoofForm === 'function' && typeof window._selectRoofForm === 'function'
+        && !window._roofFormSwitching) {
+        const cur = window._currentRoofForm();
+        // Beide Flächen senkrecht (90°) → keine geneigte Dachfläche mehr → echtes FLACHDACH.
+        // Sonst: Walmdach nur, wenn BEIDE Flächenpaare geneigt sind und tragen (sonst normales
+        // bzw. um 90° gedrehtes Satteldach – der First zeigt in Richtung der geneigten Flächen).
+        let want;
+        if (nsVertical && ewVertical) want = 'flat';
+        else want = (nsProj > 0.05 && ewProj > 0.05) ? 'hip' : 'gable';
+        if ((cur === 'hip' || cur === 'gable' || cur === 'flat') && cur !== want) {
+            window._roofFormSwitching = true;
+            try { window._selectRoofForm(want); } finally { window._roofFormSwitching = false; }
+        }
     }
     if (typeof aggregateRoofs === 'function') aggregateRoofs();
     // 3D-Modell live an Neigung/Flächen anpassen (Reentrancy-Schutz: buildComplex
@@ -9836,7 +9890,8 @@ async function updateDoorType() {
             roughness: opts.rough != null ? opts.rough : 0.8,
             metalness: opts.metal != null ? opts.metal : 0.0,
             emissive: emissive,
-            emissiveIntensity: emInt
+            emissiveIntensity: emInt,
+            side: opts.side || THREE.FrontSide
         });
         const m = new THREE.Mesh(geo, mat);
         m.userData.part = part || null;
@@ -9930,26 +9985,58 @@ async function updateDoorType() {
         if (hType === 'flachdach') a = Object.assign({}, a, { roof: 'flat' });
         if (hType === 'steildach' && a.roof !== 'mono') {
             const rd = function (id, def) { const el = document.getElementById(id); const v = el ? parseFloat(el.value) : NaN; return isFinite(v) ? v : def; };
-            const aNS = Math.max(5, Math.min(85, rd('roof_angle_ns', 35) || 35));
+            // Neigungen 0..90° zulassen. Sonderfälle: θ=0 → tan=0 → flach; θ=90 → senkrecht
+            // (diese Achse trägt keine geneigte Fläche mehr). Ist die N/S-Achse senkrecht, wird
+            // der First um 90° gedreht (O/W-Flächen werden zum geneigten Satteldach) – symmetrisch
+            // zu O/W=90 (normales Satteldach). Beide 90° → entartet → flache Platte.
+            const aNS = Math.max(0, Math.min(90, rd('roof_angle_ns', 35)));
+            const aEW = Math.max(0, Math.min(90, rd('roof_angle_ew', 90)));
             const ewProj = Math.max(0, rd('roof_area_ew', 0));
-            const wx = halfW + eave, dz = halfD + eave;
-            const pitch = aNS * Math.PI / 180;
-            const RH = Math.min(Math.tan(pitch) * dz, Math.max(D * 1.5, 6));   // Firsthöhe, optisch gedeckelt
-            // Walm-Tiefe je Seite aus der O/W-Projektionsfläche (2 Dreiecke: A_ew ≈ D·d)
-            const dEw = ewProj > 0 ? Math.min(ewProj / Math.max(D, 1), wx * 0.98) : 0;
-            const v = [-wx, 0, dz, wx, 0, dz, wx, 0, -dz, -wx, 0, -dz,
-                       -(wx - dEw), RH, 0, (wx - dEw), RH, 0];   // First entlang X (Flächen → N/S)
-            const idx = [0, 1, 5, 0, 5, 4,   // Südfläche (+Z)
-                         2, 3, 4, 2, 4, 5,   // Nordfläche (−Z)
-                         1, 2, 5,            // Ost: Walm (dEw>0) bzw. senkrechter Giebel
-                         3, 0, 4];           // West
+            const nsProj = Math.max(0, rd('roof_area_ns', 0));
+            // Dachgrundriss folgt den Grundflächen: größere Grundfläche → größeres Dach (Überstand) – nie kleiner.
+            const footBuild = Math.max(1, (2 * halfW) * (2 * halfD));
+            const planScale = Math.min(2.5, Math.max(1, Math.sqrt((nsProj + ewProj) / footBuild)));
+            const wx = halfW * planScale + eave, dz = halfD * planScale + eave;
+            const nsVert = aNS >= 90, ewVert = aEW >= 90;
+
+            let v, idx, RH, pitch = 0, dEw = 0, rtype = 'steil_ns';
+            if (nsVert && ewVert) {
+                // beide Flächen senkrecht → entartet → dünne flache Platte
+                RH = 0.05;
+                v = [-wx, RH, dz, wx, RH, dz, wx, RH, -dz, -wx, RH, -dz];
+                idx = [0, 1, 2, 0, 2, 3];
+                rtype = 'flach';
+            } else if (nsVert) {
+                // N/S senkrecht → First entlang Z; die O/W-Flächen sind die geneigten Hauptflächen.
+                pitch = aEW * Math.PI / 180;
+                RH = Math.min(Math.tan(pitch) * wx, Math.max(D * planScale * 1.5, 6));   // Firsthöhe = tan(θ_OW)·(halbe Breite)
+                const dNs = nsProj > 0 ? Math.min(nsProj / Math.max(2 * halfW * planScale, 1), dz * 0.98) : 0;
+                v = [-wx, 0, dz, wx, 0, dz, wx, 0, -dz, -wx, 0, -dz,
+                     0, RH, (dz - dNs), 0, RH, -(dz - dNs)];   // First entlang Z (Flächen → O/W)
+                idx = [1, 2, 5, 1, 5, 4,   // Ostfläche (+X)
+                       3, 0, 4, 3, 4, 5,   // Westfläche (−X)
+                       0, 1, 4,            // Süd: Walm (dNs>0) bzw. senkrechter Giebel
+                       2, 3, 5];           // Nord
+                rtype = 'steil_ew'; dEw = dNs;
+            } else {
+                // Standard: First entlang X; N/S-Flächen geneigt (θ_NS), O/W-Enden = Walm bzw. Giebel.
+                pitch = aNS * Math.PI / 180;
+                RH = Math.min(Math.tan(pitch) * dz, Math.max(D * planScale * 1.5, 6));   // Firsthöhe = tan(θ_NS)·(halbe Tiefe)
+                dEw = ewProj > 0 ? Math.min(ewProj / Math.max(D * planScale, 1), wx * 0.98) : 0;
+                v = [-wx, 0, dz, wx, 0, dz, wx, 0, -dz, -wx, 0, -dz,
+                     -(wx - dEw), RH, 0, (wx - dEw), RH, 0];   // First entlang X (Flächen → N/S)
+                idx = [0, 1, 5, 0, 5, 4,   // Südfläche (+Z)
+                       2, 3, 4, 2, 4, 5,   // Nordfläche (−Z)
+                       1, 2, 5,            // Ost: Walm (dEw>0) bzw. senkrechter Giebel
+                       3, 0, 4];           // West
+            }
             let g = new THREE.BufferGeometry();
             g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
             g.setIndex(idx);
             g = g.toNonIndexed(); g.computeVertexNormals();   // Flat-Shading: harte Dachkanten
-            const r = addMesh(g, COL.roof, 'roof', { rough: 0.55, emissive: 0x10b981, emInt: 0.06 });
+            const r = addMesh(g, COL.roof, 'roof', { rough: 0.55, emissive: 0x10b981, emInt: 0.06, side: THREE.DoubleSide });
             r.position.y = wallTop; addEdges(r, 0x0c6b50);
-            return { type: 'steil_ns', height: RH, pitch: pitch };
+            return { type: rtype, height: RH, pitch: pitch, dEw: dEw, aNS: aNS, aEW: aEW, ewProj: ewProj, nsProj: nsProj };
         }
         if (a.roof === 'gable') {
             const RH = Math.max(1.2, W * 0.38);
@@ -10350,6 +10437,7 @@ async function updateDoorType() {
         }
 
         const info = buildRoof(a, W, D, wallTop);
+        window._roofInfo3D = info;   // Introspektion: aktuelle Dachgeometrie (Firsthöhe, Walm-Tiefe …)
         buildWindows(a, W, D, halfW, halfD);
 
         buildDoors(a, W, D, halfW, halfD);
@@ -10415,6 +10503,25 @@ async function updateDoorType() {
                 finally { window._roofRebuilding = false; }
                 if (typeof markStale === 'function') markStale('huelle');
             }
+        }
+        // O/W-Neigung an die gewählte Dachform koppeln, damit der Picker sofort die passende
+        // 3D-Form erzeugt: Walmdach → geneigte Enden (Standard 35°), Satteldach → senkrechte
+        // Giebel (90°). Danach Grundflächen-Auto-Kopplung reaktivieren und neu ableiten.
+        // (Nicht während des programmatischen Auto-Umschaltens, um Schleifen zu vermeiden.)
+        if (!window._roofFormSwitching && (key === 'hip' || key === 'gable')) {
+            const ewAng = document.getElementById('roof_angle_ew');
+            if (ewAng) {
+                if (key === 'hip' && (parseFloat(ewAng.value) || 90) >= 90) ewAng.value = '35';
+                else if (key === 'gable') ewAng.value = '90';
+            }
+            // Eine geneigte Dachform braucht eine geneigte N/S-Hauptfläche: steht sie auf 90°
+            // (aus einem vorherigen Flachdach-Zustand), auf Standard-Pitch zurücksetzen.
+            const nsAng = document.getElementById('roof_angle_ns');
+            if (nsAng && (parseFloat(nsAng.value) || 0) >= 90) nsAng.value = '35';
+            const ewA = document.getElementById('roof_area_ew'), nsA = document.getElementById('roof_area_ns');
+            if (ewA) delete ewA.dataset.manual;
+            if (nsA) delete nsA.dataset.manual;
+            if (typeof syncWalmProjection === 'function') syncWalmProjection();
         }
         buildSimple(); renderRoofOptions();
     }
