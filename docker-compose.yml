@@ -1,0 +1,20 @@
+# Bequemer Start mit persistenter Datenbank:
+#   docker compose up --build
+# App danach unter http://localhost:8000  (Admin: admin / admin)
+services:
+  web:
+    build: .
+    image: geglca
+    ports:
+      - "8000:8000"
+    environment:
+      # DB in ein Volume auslagern -> bleibt über Container-Neustarts erhalten,
+      # der teure Ökobaudat-Import läuft nur beim allerersten Start.
+      SQLITE_PATH: /app/dbdata/db.sqlite3
+      # Optional: weitere Hostnamen zulassen (kommagetrennt).
+      # ALLOWED_HOSTS: "localhost,127.0.0.1,mein-server.local"
+    volumes:
+      - geglca-db:/app/dbdata
+
+volumes:
+  geglca-db:

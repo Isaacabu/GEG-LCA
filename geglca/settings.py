@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,9 @@ SECRET_KEY = 'django-insecure-7nezp358%oz@(^rr2($inr^p^3tysu3mp64vo0+$b2wlqb#-yn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Per Umgebungsvariable erweiterbar (kommagetrennt), z. B. für den Docker-Zugriff.
+# Standard bleibt [] – im Dev-Betrieb (DEBUG=True) sind localhost/127.0.0.1 ohnehin erlaubt.
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
 
 
 # Application definition
@@ -80,7 +83,8 @@ WSGI_APPLICATION = 'geglca.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # DB-Pfad via Umgebungsvariable überschreibbar (z. B. persistentes Docker-Volume).
+        'NAME': os.environ.get('SQLITE_PATH') or (BASE_DIR / 'db.sqlite3'),
     }
 }
 
