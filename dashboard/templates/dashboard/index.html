@@ -1742,7 +1742,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
 /* „Energie auf einen Blick" – Schritt-Kacheln + Zusammensetzungs-Balken */
 .es-steps { display: flex; align-items: stretch; gap: 6px; flex-wrap: wrap; }
-.es-step { flex: 1 1 96px; min-width: 96px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; background: var(--surface); text-align: center; }
+.es-step { position: relative; flex: 1 1 96px; min-width: 96px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; background: var(--surface); text-align: center; }
 .es-step .es-ic { font-size: 20px; line-height: 1; }
 .es-step .es-lab { font-size: 10.5px; font-weight: 700; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: .03em; }
 .es-step .es-val { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 17px; font-weight: 700; color: var(--text); margin-top: 3px; }
@@ -1763,6 +1763,133 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .es-bar-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 11.5px; color: var(--muted); }
 .es-bar-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 .es-src { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
+
+/* === Energiebilanz – Ergebnis-Hero + KPI-Raster (Redesign) === */
+.bz-hint { margin: 10px 0 4px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.02); }
+.bz-hint > summary { cursor: pointer; padding: 10px 14px; font-size: 12.5px; font-weight: 700; color: var(--muted); list-style: none; display: flex; align-items: center; gap: 8px; }
+.bz-hint > summary::-webkit-details-marker { display: none; }
+.bz-hint > summary::before { content: '▸'; color: var(--cyan); transition: transform .2s ease; }
+.bz-hint[open] > summary::before { transform: rotate(90deg); }
+.bz-hint .bz-hint-body { padding: 0 14px 12px; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+.bz-hint .bz-hint-body strong { color: var(--text); }
+
+.bz-hero { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 16px 24px; align-items: center;
+    padding: 22px 24px; border-radius: 20px; margin: 14px 0 16px; border: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(120,140,170,.10), rgba(14,22,34,.35)); overflow: hidden; transition: border-color .3s ease, background .3s ease; }
+.bz-hero.is-good { border-color: rgba(16,185,129,.45); background: linear-gradient(135deg, rgba(16,185,129,.18), rgba(14,22,34,.35)); }
+.bz-hero.is-mid  { border-color: rgba(246,185,75,.45); background: linear-gradient(135deg, rgba(246,185,75,.16), rgba(14,22,34,.35)); }
+.bz-hero.is-bad  { border-color: rgba(239,68,68,.45); background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(14,22,34,.35)); }
+.bz-badge { width: 96px; height: 96px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', ui-monospace, monospace; background: #555; color: #fff; box-shadow: 0 8px 24px -8px rgba(0,0,0,.7); transition: background .3s ease; }
+.bz-badge b { font-size: 44px; font-weight: 800; line-height: 1; }
+.bz-badge span { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-top: 5px; opacity: .82; }
+.bz-hero-main { min-width: 0; }
+.bz-hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.bz-hero-verdict { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 3px; line-height: 1.3; }
+.bz-hero-hint { font-size: 11.5px; color: var(--dim); margin-top: 8px; }
+
+.bz-band-wrap { grid-column: 1 / -1; position: relative; padding-top: 30px; }
+.bz-band { display: flex; height: 28px; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+.bz-band .seg { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.4); line-height: 1; transition: transform .2s ease; }
+.bz-band .seg b { font-size: 12px; font-weight: 800; } .bz-band .seg small { font-size: 8px; opacity: .9; margin-top: 1px; }
+.bz-band .seg.on { transform: scaleY(1.28); border-radius: 5px; box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(0,0,0,.45); position: relative; z-index: 2; }
+.bz-pointer { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 3; transition: left .4s ease; }
+.bz-pointer span { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 700; color: var(--text); background: var(--surface-strong, rgba(10,15,25,.92)); border: 1px solid var(--line-strong, var(--line)); border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+.bz-pointer i { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--text); margin-top: 2px; }
+
+.bz-kpis { margin-bottom: 18px; }
+.bz-kpis .value { font-size: 22px; }
+
+/* „Bilanz auf einen Blick" – strukturierte Schritt-Liste */
+.bz-steps { display: flex; flex-direction: column; gap: 8px; }
+.bz-steps-empty { color: var(--dim); font-size: 12.5px; padding: 8px 0; }
+.bz-step { display: grid; grid-template-columns: 26px 1fr auto auto; align-items: center; gap: 4px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.bz-step-no { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--muted); background: rgba(255,255,255,.05); }
+.bz-step-txt { display: flex; flex-direction: column; min-width: 0; }
+.bz-step-txt b { font-size: 13px; color: var(--text); font-weight: 700; }
+.bz-step-txt span { font-size: 11.5px; color: var(--muted); }
+.bz-step-val { text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.bz-step-val u { font-size: 10px; color: var(--dim); font-weight: 600; text-decoration: none; margin-left: 3px; }
+.bz-step-val em { display: block; font-style: normal; font-size: 10.5px; color: var(--muted); font-weight: 500; }
+.bz-chip { justify-self: end; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+.bz-chip-green { color: #86efac; background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); }
+.bz-chip-yellow { color: #fcd34d; background: rgba(246,185,75,.12); border-color: rgba(246,185,75,.35); }
+.bz-chip-red { color: #fca5a5; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); }
+.bz-chip-neutral { color: var(--muted); background: rgba(255,255,255,.05); border-color: var(--line); }
+.bz-substep { background: rgba(255,255,255,.02); border-style: dashed; }
+.bz-substep .bz-step-no { background: transparent; }
+.bz-step-total { border-color: var(--cyan); background: linear-gradient(135deg, rgba(34,211,238,.10), rgba(255,255,255,.02)); }
+.bz-step-total .bz-step-val { font-size: 16px; }
+
+/* „Jahres-Energiekosten" – Redesign: große Summe + Aufschlüsselung */
+.bz-cost-hero { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(135deg, rgba(246,185,75,.10), rgba(255,255,255,.02)); margin-bottom: 12px; }
+.bz-cost-hero .lab { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.bz-cost-hero .val { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 30px; font-weight: 800; color: #fcd34d; }
+.bz-cost-hero .val u { font-size: 13px; color: var(--muted); font-weight: 600; text-decoration: none; margin-left: 4px; }
+.bz-cost-list { display: flex; flex-direction: column; gap: 6px; }
+.bz-cost-item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.bz-cost-item .name { font-size: 13px; color: var(--text); font-weight: 600; }
+.bz-cost-item .qty { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.bz-cost-item .eur { text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.bz-cost-item.credit .eur { color: #86efac; }
+.bz-cost-item.credit .name { color: #86efac; }
+
+/* === Energiebilanz-Tab: alles etwas größer (nur in #bilanz) === */
+#bilanz .section-title { font-size: 22px; }
+#bilanz .note { font-size: 13.5px; }
+#bilanz .card h3, #bilanz .bilanz-section-title { font-size: 17px; }
+#bilanz .bz-hint > summary { font-size: 14px; }
+#bilanz .bz-hint .bz-hint-body { font-size: 13.5px; }
+/* Hero */
+#bilanz .bz-hero-eyebrow { font-size: 12.5px; }
+#bilanz .bz-hero-verdict { font-size: 21px; }
+#bilanz .bz-hero-hint { font-size: 13px; }
+#bilanz .bz-badge b { font-size: 48px; }
+#bilanz .bz-badge span { font-size: 10px; }
+#bilanz .bz-band .seg b { font-size: 14px; }
+#bilanz .bz-band .seg small { font-size: 9.5px; }
+#bilanz .bz-pointer span { font-size: 13px; }
+/* Kennzahl-Kacheln */
+#bilanz .stat-box .label { font-size: 13.5px; }
+#bilanz .bz-kpis .value { font-size: 27px; }
+#bilanz .kpi-bench { font-size: 12.5px; }
+/* Energie auf einen Blick */
+#bilanz .sys-flow-title { font-size: 15px; }
+#bilanz .es-step .es-lab { font-size: 12px; }
+#bilanz .es-step .es-val { font-size: 21px; }
+#bilanz .es-step .es-val span { font-size: 11.5px; }
+#bilanz .es-step .es-sub { font-size: 12px; }
+#bilanz .es-comp-title { font-size: 13.5px; }
+#bilanz .es-bar-legend { font-size: 13px; }
+#bilanz .es-src { font-size: 13.5px; }
+/* Wärmebilanz-Karte */
+#bilanz .hb-formula { font-size: 15px; }
+#bilanz .hb-col-head { font-size: 14.5px; }
+#bilanz .hb-col-head strong { font-size: 16px; }
+#bilanz .hb-eq { font-size: 15.5px; }
+#bilanz .hb-stufe2 { font-size: 14px; }
+/* Bilanz auf einen Blick */
+#bilanz .bz-step-no { font-size: 14px; }
+#bilanz .bz-step-txt b { font-size: 15px; }
+#bilanz .bz-step-txt span { font-size: 13px; }
+#bilanz .bz-step-val { font-size: 17px; }
+#bilanz .bz-step-val u { font-size: 11px; }
+#bilanz .bz-step-val em { font-size: 12px; }
+#bilanz .bz-chip { font-size: 12px; }
+#bilanz .bz-steps-empty { font-size: 14px; }
+/* Jahres-Energiekosten */
+#bilanz .bz-cost-hero .lab { font-size: 12.5px; }
+#bilanz .bz-cost-hero .val { font-size: 34px; }
+#bilanz .bz-cost-hero .val u { font-size: 15px; }
+#bilanz .bz-cost-item .name { font-size: 15px; }
+#bilanz .bz-cost-item .qty { font-size: 12.5px; }
+#bilanz .bz-cost-item .eur { font-size: 17px; }
+/* Eingabefelder + Labels */
+#bilanz .field label { font-size: 14px; }
+#bilanz input[type="number"] { font-size: 15px; }
+#bilanz .es-bar-legend i { width: 12px; height: 12px; }
+
+@media (max-width: 640px) { .bz-hero { grid-template-columns: 1fr; } .bz-badge { width: 76px; height: 76px; } .bz-badge b { font-size: 34px; } }
 
 /* Druck-/PDF-Bericht (eigenes Fenster bringt eigene Styles mit) */
 @media print { .topbar .actions, .tabs, .back-to-house { display: none !important; } }
@@ -3128,7 +3255,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Süd-Fassade (senkrecht, Süd)</h4>
                     <div class="field">
                         <label>Verfügbare Fläche (m²)</label>
-                        <input id="pv_ns_facade_available" type="number" step="0.1" value="30">
+                        <input id="pv_ns_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Fassaden-PV ist optional – hier die für PV nutzbare Süd-Fassadenfläche eintragen.">
                     </div>
                     <div class="field">
                         <label>PV-Anteil (%)</label>
@@ -3142,7 +3269,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade (senkrecht)</h4>
                     <div class="field">
                         <label>Verfügbare Fläche (m²)</label>
-                        <input id="pv_ew_facade_available" type="number" step="0.1" value="20">
+                        <input id="pv_ew_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Fassaden-PV ist optional – hier die für PV nutzbare Ost/West-Fassadenfläche eintragen.">
                     </div>
                     <div class="field">
                         <label>PV-Anteil (%)</label>
@@ -3325,101 +3452,91 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <h2 class="section-title">Energiebilanz</h2>
             <p class="note">Die Bilanz fasst die drei Schritte zusammen: ① Gebäudehülle → ② Anlagentechnik
                → ③ Strom &amp; PV. Die Werte aus „Gebäudehülle" und „Anlagentechnik" werden automatisch übernommen.</p>
-            <div class="note" style="border-left:3px solid var(--primary,#10b981);background:rgba(16,185,129,.06);
-                 border-radius:8px;padding:10px 14px;margin:10px 0 4px;">
-                <strong>Hinweis:</strong> Zwei normgerechte Annahmen beeinflussen Ergebnis und Bewertung deutlich –
-                der <strong>Wärmebrückenzuschlag ΔU_WB</strong> (Tab „Gebäudedaten", Stufe 1, DIN&nbsp;V&nbsp;18599-2)
-                und die <strong>Lage der Heizungs-Verteilleitungen</strong> (Tab „Anlagentechnik", Stufe 2,
-                DIN&nbsp;V&nbsp;18599-5). ΔU_WB steht standardmäßig auf dem konservativen GEG-Wert 0,10 (ohne Nachweis);
-                mit Gleichwertigkeitsnachweis nach Beiblatt&nbsp;2 (0,05) sinkt der Heizwärmebedarf spürbar. Die
-                Leitungslage steht auf dem Neubau-Standard „beheizter Bereich"; ein unbeheizter Keller erhöht die
-                nicht rückgewinnbaren Verteilverluste und damit Endenergie und CO₂.
+            <details class="bz-hint">
+                <summary>Wichtige Annahmen, die das Ergebnis beeinflussen (ΔU_WB &amp; Leitungslage)</summary>
+                <div class="bz-hint-body">
+                    Zwei normgerechte Annahmen beeinflussen Ergebnis und Bewertung deutlich –
+                    der <strong>Wärmebrückenzuschlag ΔU_WB</strong> (Tab „Gebäudedaten", Stufe 1, DIN&nbsp;V&nbsp;18599-2)
+                    und die <strong>Lage der Heizungs-Verteilleitungen</strong> (Tab „Anlagentechnik", Stufe 2,
+                    DIN&nbsp;V&nbsp;18599-5). ΔU_WB steht standardmäßig auf dem konservativen GEG-Wert 0,10 (ohne Nachweis);
+                    mit Gleichwertigkeitsnachweis nach Beiblatt&nbsp;2 (0,05) sinkt der Heizwärmebedarf spürbar. Die
+                    Leitungslage steht auf dem Neubau-Standard „beheizter Bereich"; ein unbeheizter Keller erhöht die
+                    nicht rückgewinnbaren Verteilverluste und damit Endenergie und CO₂.
+                </div>
+            </details>
+
+            <!-- ═══════════ Ergebnis-Hero: Gesamtergebnis (Redesign) ═══════════ -->
+            <div class="bz-hero" id="bz_hero">
+                <div class="bz-badge" id="bz_badge"><b id="bz_class">—</b><span>Klasse</span></div>
+                <div class="bz-hero-main">
+                    <div class="bz-hero-eyebrow">Gesamtergebnis · GEG&nbsp;2024 / DIN&nbsp;V&nbsp;18599</div>
+                    <div class="bz-hero-verdict" id="bz_verdict">Noch nicht berechnet – Gebäudehülle &amp; Anlagentechnik laufen automatisch.</div>
+                    <div class="bz-hero-hint">Alle Kennzahlen je m² stehen darunter · Jahres-Gesamtwerte in „Energie auf einen Blick".</div>
+                </div>
+                <div class="bz-band-wrap">
+                    <div class="bz-pointer" id="bz_pointer" style="left:0"><span id="bz_pointer_val"></span><i></i></div>
+                    <div class="bz-band" id="bz_band">
+                        <div class="seg" style="background:#009b4d"><b>A+</b><small>≤30</small></div>
+                        <div class="seg" style="background:#4caf3f"><b>A</b><small>50</small></div>
+                        <div class="seg" style="background:#8bc53f"><b>B</b><small>75</small></div>
+                        <div class="seg" style="background:#c3d52b;color:#3a3000;text-shadow:none"><b>C</b><small>100</small></div>
+                        <div class="seg" style="background:#f7e400;color:#3a3000;text-shadow:none"><b>D</b><small>130</small></div>
+                        <div class="seg" style="background:#f9b000"><b>E</b><small>160</small></div>
+                        <div class="seg" style="background:#f3791f"><b>F</b><small>200</small></div>
+                        <div class="seg" style="background:#e63329"><b>G</b><small>250</small></div>
+                        <div class="seg" style="background:#b71c1c"><b>H</b><small>&gt;250</small></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- ① Gebäudehülle – Heizwärmebedarf (verschoben aus dem Gebäudehülle-Tab; Werte aus „Gebäudehülle auswerten") -->
-            <div class="sys-detail-head" style="margin-top:10px;">① Ergebnis Gebäudehülle</div>
-            <div class="huelle-results">
+            <!-- ═══════════ Kennzahlen je m² (schlichte Kacheln) ═══════════ -->
+            <div class="huelle-results bz-kpis">
                 <div class="stat-box">
-                    <span class="info-i" data-tip="Heizwärmebedarf Q_h,b nach DIN V 18599-2: die Wärme, die die Heizung wirklich liefern muss (Verluste minus nutzbare Sonnen- und interne Gewinne). Dieser Wert geht in die Anlagentechnik.">i</span>
-                    <div class="label">Heizwärmebedarf (Q_h,b)</div>
-                    <div class="value" id="adjusted_heat_result">—</div>
-                </div>
-                <div class="stat-box">
-                    <span class="info-i" data-tip="Heizwärmebedarf geteilt durch die Fläche – der wichtigste Vergleichswert für die Gebäudehülle.&#10;Richtwerte: Passivhaus ≤ 15 · Neubau (GEG) ~ 40–60 · saniert ~ 60–100 · unsanierter Altbau 150–250 kWh/(m²·a).">i</span>
+                    <span class="info-i" data-tip="Heizwärmebedarf Q_h,b je m² nach DIN V 18599-2 – der wichtigste Vergleichswert für die Gebäudehülle.&#10;Passivhaus ≤ 15 · Neubau (GEG) ~ 40–60 · saniert ~ 60–100 · Altbau 150–250 kWh/(m²·a).">i</span>
                     <div class="label">Heizwärmebedarf je m²</div>
-                    <div class="value" id="specific_heat_result">—</div>
+                    <div class="value" id="bz_k_heat">—</div>
+                    <div class="kpi-bench">≤40 sehr gut · 40–80 mittel · &gt;80 hoch</div>
                 </div>
                 <div class="stat-box">
-                    <div class="label">Bewertung Gebäudehülle</div>
-                    <div id="ratingBox" class="rating-box" style="margin:0;">
-                        <div id="ratingTitle" class="rating-title">—</div>
-                        <div id="ratingText" class="rating-text" style="font-size:11px;">—</div>
-                    </div>
+                    <span class="info-i" data-tip="Endenergie je m² (Bezugsfläche). Gleiche Größe wie „Endenergie gesamt" in „Energie auf einen Blick", nur geteilt durch die Fläche.&#10;Beispiel: 43.085 kWh/a ÷ Bezugsfläche = 119,7 kWh/(m²·a). Der m²-Wert ist der Vergleichswert für die Effizienzklasse, der Gesamtwert die Jahressumme fürs ganze Gebäude.">i</span>
+                    <div class="label">Endenergie je m²</div>
+                    <div class="value" id="bz_k_end">—</div>
+                    <div class="kpi-bench">≤75 gut (A–B) · 75–130 mittel · &gt;130 hoch</div>
+                </div>
+                <div class="stat-box">
+                    <span class="info-i" data-tip="Primärenergie je m² (Bezugsfläche). Gleiche Größe wie „Primärenergie gesamt" in „Energie auf einen Blick", nur geteilt durch die Fläche.&#10;Der m²-Wert dient dem Vergleich; der Gesamtwert (kWh/a) ist die Jahressumme fürs ganze Gebäude. Q_p = Endenergie × Primärenergiefaktor (GEG 2024).">i</span>
+                    <div class="label">Primärenergie je m²</div>
+                    <div class="value" id="bz_k_prim">—</div>
+                    <div class="kpi-bench">≤60 sehr gut · 60–120 ok · &gt;120 schwach</div>
                 </div>
             </div>
 
-            <!-- ② Ergebnis Anlagentechnik (verschoben aus dem Anlagentechnik-Tab) -->
-            <div class="sys-detail-head" style="margin-top:14px;">② Ergebnis Anlagentechnik</div>
+            <!-- Energie auf einen Blick (Endenergie → Primärenergie → CO₂) -->
             <div class="card">
-                <h3>Ergebnisse Anlagentechnik</h3>
+                <div class="sys-flow-title">Energie auf einen Blick <span class="wall-viz-sub">Jahres-Gesamtwerte (kWh/a) – vom Verbrauch bis CO₂</span></div>
+                <div id="sys_flow"><div class="sys-flow-empty">Sobald die Anlagentechnik berechnet ist (läuft automatisch), erscheint hier die Energie-Übersicht.</div></div>
+            </div>
 
-                <div class="sys-hero" id="sys_hero">
-                    <div class="ea-head">
-                        <div class="ea-title">Endenergiebedarf des Gebäudes</div>
-                        <div class="ea-value"><span id="ea_value">—</span> <span class="ea-unit">kWh/(m²·a)</span></div>
-                    </div>
-                    <div class="ea-band-wrap">
-                        <div class="ea-pointer" id="ea_pointer" style="left:0">
-                            <span class="ea-pointer-val" id="ea_pointer_val"></span>
-                            <span class="ea-pointer-tip"></span>
-                        </div>
-                        <div class="ea-band">
-                            <div class="ea-seg" style="background:#009b4d"><b>A+</b><small>≤30</small></div>
-                            <div class="ea-seg" style="background:#4caf3f"><b>A</b><small>50</small></div>
-                            <div class="ea-seg" style="background:#8bc53f"><b>B</b><small>75</small></div>
-                            <div class="ea-seg" style="background:#c3d52b;color:#3a3000;text-shadow:none"><b>C</b><small>100</small></div>
-                            <div class="ea-seg" style="background:#f7e400;color:#3a3000;text-shadow:none"><b>D</b><small>130</small></div>
-                            <div class="ea-seg" style="background:#f9b000"><b>E</b><small>160</small></div>
-                            <div class="ea-seg" style="background:#f3791f"><b>F</b><small>200</small></div>
-                            <div class="ea-seg" style="background:#e63329"><b>G</b><small>250</small></div>
-                            <div class="ea-seg" style="background:#b71c1c"><b>H</b><small>&gt;250</small></div>
-                        </div>
-                    </div>
-                    <div class="ea-foot">
-                        <span class="ea-class-label">Energieeffizienzklasse</span>
-                        <span class="ea-class-badge" id="ea_class">—</span>
-                        <span class="ea-foot-note" id="ea_rating">Noch nicht berechnet</span>
-                    </div>
+            <!-- Unsichtbare Legacy-Ziele: die Berechnungskette (calculate/calculate-system,
+                 renderSystemViz, updateRating/updateSystemRating) schreibt weiterhin guard-frei
+                 in diese IDs. Werte fließen von hier in den neuen Hero (renderBilanzHero). -->
+            <div id="bilanz_legacy" style="display:none" aria-hidden="true">
+                <span id="adjusted_heat_result">—</span>
+                <span id="specific_heat_result">—</span>
+                <div id="sys_hero">
+                    <span id="ea_value"></span>
+                    <span id="ea_pointer" style="left:0"><span id="ea_pointer_val"></span></span>
+                    <span id="ea_class"></span><span id="ea_rating"></span>
+                    <span class="ea-seg"></span><span class="ea-seg"></span><span class="ea-seg"></span>
+                    <span class="ea-seg"></span><span class="ea-seg"></span><span class="ea-seg"></span>
+                    <span class="ea-seg"></span><span class="ea-seg"></span><span class="ea-seg"></span>
                 </div>
-
-                <div class="sys-flow-card">
-                    <div class="sys-flow-title">Energie auf einen Blick <span class="wall-viz-sub">vom Verbrauch über die Umweltbewertung bis CO₂</span></div>
-                    <div id="sys_flow"><div class="sys-flow-empty">Sobald die Anlagentechnik berechnet ist (läuft automatisch), erscheint hier die Energie-Übersicht.</div></div>
-                </div>
-
-                <div class="sys-detail-head">Detail-Kennwerte</div>
-                <div class="stats" id="sys_stats">
-                    <div class="stat-box" id="system_total_end_box">
-                        <span class="info-i" data-tip="Summe der Endenergie: Heizung + RLT + Warmwasser + Hilfsstrom + Kühlung. Das ist näherungsweise das, was auf der Energierechnung steht (ohne Haushaltsstrom).">i</span>
-                        <div class="label">Endenergiebedarf (Q_f)</div>
-                        <div class="value" id="system_total_end">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Primärenergie Q_p = Endenergie × Primärenergiefaktor (GEG 2024: Erdgas 1,1 · Strom 1,8 · Pellets 0,2 · Fernwärme 0,7). Bewertet die Umweltwirkung der Energieträger.">i</span>
-                        <div class="label">Primärenergie (Q_p)</div>
-                        <div class="value" id="system_primary">—</div>
-                    </div>
-                    <div class="stat-box">
-                        <span class="info-i" data-tip="Spezifische CO₂-Emissionen je m² Bezugsfläche und Jahr. Basis: CO₂-Äquivalente nach GEG Anlage 9 (Erdgas 0,24 · Strom 0,56 · Pellets 0,02 · Fernwärme 0,18 kg CO₂e/kWh Endenergie), geteilt durch die Bezugsfläche.">i</span>
-                        <div class="label">CO₂-Emissionen je m²</div>
-                        <div class="value" id="system_co2">—</div>
-                    </div>
-                </div>
-
-                <div id="systemRatingBox" class="rating-box">
-                    <div id="systemRatingTitle" class="rating-title">—</div>
-                    <div id="systemRatingText" class="rating-text">—</div>
-                </div>
+                <span id="system_total_end"></span><span id="system_primary"></span><span id="system_co2"></span>
+                <div id="system_total_end_box"></div><div id="system_heat_adjusted_box"></div>
+                <div id="system_jaz_box"><span id="system_jaz"></span></div>
+                <div id="system_lighting_box"><span id="system_lighting"></span></div>
+                <div id="ratingBox"><span id="ratingTitle"></span><span id="ratingText"></span></div>
+                <div id="systemRatingBox"><span id="systemRatingTitle"></span><span id="systemRatingText"></span></div>
             </div>
 
             <!-- Wärmebilanz Q_h,b: Verluste (Wärmesenken) vs. Gewinne (Wärmequellen), DIN V 18599-2 -->
@@ -3488,14 +3605,11 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <div class="pv-split-legend" id="bilanz_co2_legend"></div>
                         </div>
 
-                        <!-- Zusammenfassungstabelle -->
+                        <!-- Zusammenfassung: strukturierte Schritt-Liste (Redesign) -->
                         <div class="card">
                             <h3>Bilanz auf einen Blick</h3>
-                            <div class="pv-table-wrap">
-                                <table class="bautechnik-table pv-table" id="bilanz_summary_table">
-                                    <thead><tr><th>Schritt</th><th>Kennzahl</th><th class="num">Wert</th><th>Bewertung</th></tr></thead>
-                                    <tbody></tbody>
-                                </table>
+                            <div class="bz-steps" id="bilanz_summary">
+                                <div class="bz-steps-empty">Erscheint automatisch, sobald Gebäudehülle und Anlagentechnik gerechnet sind.</div>
                             </div>
                         </div>
                     </div>
@@ -3513,10 +3627,11 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 <div class="grid-2" style="gap:18px; align-items:center;">
                     <div class="field" style="margin:0;">
                         <label>Haushaltsstrom (kWh/a)
-                            <span class="info-i" data-tip="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 000–1 500 kWh je Person und Jahr.&#10;Wird automatisch aus der Personenzahl (Gebäudedaten) vorbelegt – manuelle Eingabe hat Vorrang.">i</span>
+                            <span class="info-i" data-tip="Strom für Geräte, Licht, Kochen – nicht Teil der DIN-Anlagentechnik. Richtwert: ~1 250 kWh je Person und Jahr.&#10;Wird automatisch aus der Personenzahl (Gebäudedaten) vorbelegt – manuelle Eingabe hat Vorrang.">i</span>
                         </label>
-                        <input id="household_electricity" type="number" min="0" step="100" value="2000" oninput="this.dataset.manual='1'" onchange="calculateBalance()">
-                        <div class="note" id="bilanz_strom_note" style="font-size:11px; margin-top:6px;">Die Stromverrechnung erscheint automatisch mit der Energiebilanz.</div>
+                        <input id="household_electricity" type="number" min="0" step="100" value="2000" oninput="this.dataset.manual='1'; if(window.updateHouseholdNote) updateHouseholdNote();" onchange="calculateBalance()">
+                        <div class="note" id="household_auto_note" style="font-size:11px; margin-top:6px;"></div>
+                        <div class="note" id="bilanz_strom_note" style="font-size:11px; margin-top:4px;">Die Stromverrechnung erscheint automatisch mit der Energiebilanz.</div>
                     </div>
                     <div>
                         <div style="font-size:12px; font-weight:700; color:#c4cfdc; margin-bottom:6px;">Strombilanz – Netzbezug vs. PV-Eigenverbrauch</div>
@@ -3546,13 +3661,14 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         </label>
                         <input id="bilanz_fuel_price" type="number" min="0" step="0.01" value="0.10" onchange="calculateBalance()">
                     </div>
-                    <div class="pv-table-wrap">
-                        <table class="bautechnik-table pv-table" id="bilanz_cost_table">
-                            <thead><tr><th>Posten</th><th class="num">Menge</th><th class="num">Preis</th><th class="num">€/a</th></tr></thead>
-                            <tbody><tr><td colspan="4" class="pv-empty">Die Kostenschätzung erscheint automatisch mit der Energiebilanz.</td></tr></tbody>
-                        </table>
+                    <div class="bz-cost-hero">
+                        <span class="lab">Jahreskosten netto</span>
+                        <span class="val"><span id="bz_cost_total">—</span> <u>€/a</u></span>
                     </div>
-                    <div class="es-bar" id="bilanz_cost_bar" style="margin-top:10px;"></div>
+                    <div class="bz-cost-list" id="bilanz_cost_list">
+                        <div class="bz-steps-empty">Die Kostenschätzung erscheint automatisch mit der Energiebilanz.</div>
+                    </div>
+                    <div class="es-bar" id="bilanz_cost_bar" style="margin-top:12px;"></div>
                     <div class="es-bar-legend" id="bilanz_cost_legend"></div>
                     <p class="note" style="margin-top:8px;font-size:11px;">Grobe Schätzung auf Basis der Jahres-Endenergie und konstanter Arbeitspreise – ohne Grundgebühren, Preissteigerung oder Lastgang.</p>
                 </div>
@@ -3978,7 +4094,8 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                 <div class="card" style="margin-top:14px;">
                     <h3>Interne Bauteile (nur LCA)</h3>
-                    <p class="note" style="margin:2px 0 10px;">Innenwände, Treppenhaus, Geschossdecken usw. zählen <strong>nicht</strong> zur Wärmehülle (GEG/Heizwärmebedarf), verursachen aber Material-Emissionen. Sie fließen <strong>nur</strong> in die graue-Emissionen-Summe (A1–A3) ein. Pro Bauteil: Name, Fläche und vollständiger Schichtaufbau (wie bei der Wand).</p>
+                    <p class="note" style="margin:2px 0 10px;">Innenwände, Treppenhaus, Geschossdecken usw. zählen <strong>nicht</strong> zur Wärmehülle (GEG/Heizwärmebedarf), verursachen aber Material-Emissionen. Sie fließen <strong>nur</strong> in die graue-Emissionen-Summe (A1–A3) ein. Pro Bauteil: Name, Fläche und vollständiger Schichtaufbau (wie bei der Wand).
+                       Die <strong>Fläche</strong> wird mit der Geschoss-Grundfläche vorbelegt – bitte je Bauteil anpassen (z.&nbsp;B. Innenwand = Länge × Höhe, Geschossdecke ≈ Grundfläche × Geschosszahl).</p>
                     <div id="lca_internal_list"></div>
                     <button type="button" class="btn btn-primary" onclick="addInternalPart()" style="margin-top:6px;padding:7px 14px;">＋ Internes Bauteil</button>
                 </div>
@@ -5089,6 +5206,7 @@ function updateUsageStats() {
     // Personenzahl fließt dort bewusst NICHT ein.
     const KWH_PER_PERSON = 1250;
     const he = el('household_electricity');
+    window._householdPersons = nPersons;      // für die Note / Auto-Rückstellung merken
     if (he && he.dataset.manual !== '1' && nPersons > 0) {
         const val = Math.round(nPersons * KWH_PER_PERSON / 100) * 100;   // auf 100 kWh gerundet
         if (String(he.value) !== String(val)) {
@@ -5096,7 +5214,34 @@ function updateUsageStats() {
             if (typeof markStale === 'function') markStale('bilanz');
         }
     }
+    if (typeof updateHouseholdNote === 'function') updateHouseholdNote();
 }
+
+// Statushinweis unter dem Haushaltsstrom-Feld: automatisch vs. manuell (+ Rückstell-Link).
+function updateHouseholdNote() {
+    const he = document.getElementById('household_electricity');
+    const note = document.getElementById('household_auto_note');
+    if (!he || !note) return;
+    const n = window._householdPersons || 0;
+    if (he.dataset.manual === '1') {
+        note.innerHTML = '✏️ Manuell gesetzt · <a href="#" onclick="resetHouseholdAuto();return false;" ' +
+            'style="color:var(--cyan);text-decoration:underline;cursor:pointer;">↺ automatisch berechnen</a>';
+    } else {
+        note.innerHTML = '🔄 Automatisch aus ' + (n > 0 ? '<strong>' + n + ' Person' + (n === 1 ? '' : 'en') + '</strong>' : 'der Personenzahl') +
+            ' (~1.250 kWh/Person·a) · frei überschreibbar';
+    }
+}
+
+// Manuelle Überschreibung zurücknehmen → Wert wieder automatisch aus Personenzahl.
+function resetHouseholdAuto() {
+    const he = document.getElementById('household_electricity');
+    if (!he) return;
+    delete he.dataset.manual;
+    if (typeof updateUsageStats === 'function') updateUsageStats();   // setzt Wert neu + Note
+    if (typeof calculateBalance === 'function') calculateBalance();
+}
+window.updateHouseholdNote = updateHouseholdNote;
+window.resetHouseholdAuto = resetHouseholdAuto;
 
 // Wenn der Nutzer Gebäudetyp/Variante wechselt → Personendichte/Stunden auf Profil-Default setzen
 function applyUsageProfileDefaults() {
@@ -6502,6 +6647,9 @@ async function fetchLayerGwp(kind) {
     if (manualCount > 0) titleLines.push('• manuell eingetragen: ' + manualSum.toFixed(2) + ' kg/m² (' + manualCount + ' Schicht' + (manualCount > 1 ? 'en' : '') + ')');
     display.title = 'ÖKOBAUDAT 2024, Modul A1–A3 (Herstellung):\n' + titleLines.join('\n') +
         (missing.length ? '\nOhne ÖKOBAUDAT-Datensatz: ' + missing.join(', ') : '');
+    // Interne Bauteile (kind = "int…"): Änderung an Schicht/Material sofort in die
+    // LCA-Gesamtergebnisse (Embodied/Breakdown) nachziehen.
+    if (kind && kind.indexOf('int') === 0 && typeof window.scheduleLcaRefresh === 'function') window.scheduleLcaRefresh();
 }
 function loadStandardBuild(kind) { const cfg = LAYER_KINDS[kind]; const c = document.getElementById(cfg.container); if (!c) return; c.innerHTML = ''; cfg.standard.forEach(([t, m, d]) => addLayer(kind, t, m, d)); }
 
@@ -8451,9 +8599,11 @@ function renderSystemViz(data) {
             + '<div class="es-val">' + val + '<span>' + unit + '</span></div>'
             + '<div class="es-sub">' + sub + '</div></div>';
     }
-    const steps = step('🔌', 'Endenergie', fmt(endT), 'kWh/a', 'Energie, die Sie einkaufen (Gas, Strom …)', '')
+    const iEnd = '<span class="info-i" data-tip="Absoluter Jahreswert fürs ganze Gebäude (kWh/a). Geteilt durch die Bezugsfläche ergibt das den m²-Wert oben („Endenergie je m²") – gleiche Energie, nur andere Bezugsgröße.">i</span>';
+    const iPrim = '<span class="info-i" data-tip="Absoluter Jahreswert fürs ganze Gebäude (kWh/a). Geteilt durch die Bezugsfläche ergibt das den m²-Wert oben („Primärenergie je m²") – gleiche Energie, nur andere Bezugsgröße.">i</span>';
+    const steps = step('🔌', 'Endenergie gesamt' + iEnd, fmt(endT), 'kWh/a', 'Jahressumme fürs ganze Gebäude (Gas, Strom …)', '')
         + '<div class="es-arrow">×&nbsp;' + ratio + '<small>f<sub>P</sub></small></div>'
-        + step('🌍', 'Primärenergie', fmt(prim), 'kWh/a', (isFinite(qp) ? ('q<sub>p</sub> ' + fmt(qp) + ' kWh/(m²·a) · ') : '') + 'inkl. Erzeugung & Transport', qpCls)
+        + step('🌍', 'Primärenergie gesamt' + iPrim, fmt(prim), 'kWh/a', (isFinite(qp) ? ('q<sub>p</sub> ' + fmt(qp) + ' kWh/(m²·a) · ') : '') + 'inkl. Erzeugung & Transport', qpCls)
         + '<div class="es-arrow">→</div>'
         + step('☁️', 'CO₂-Emissionen', fmt1(co2Spec), 'kg CO₂e/(m²·a)', 'Treibhausgase je m² und Jahr', '');
 
@@ -9438,6 +9588,49 @@ function renderBilanzViz() {
     bilanzRenderCosts({ gridNet: gridNet, fuelEnd: fuelEnd });
     bilanzRenderResult({ pvOffset: pvOffset, gridNet: gridNet, elGross: elGross, totalEnd: totalEnd,
         co2Total: co2Total, endPerM2: endPerM2, co2PerM2: co2PerM2 });
+    try { renderBilanzHero(); } catch (e) { console.error('Bilanz-Hero:', e); }
+}
+
+// Ergebnis-Hero „Gesamtergebnis" + KPI-Raster (Redesign). Liest die aktuellen
+// Ergebnisse aus lastSystemResult/lastEnvelopeResult und speist den Hero oben im
+// Energiebilanz-Tab. GEG-konsistente Basis (Endenergie ohne Haushaltsstrom → Klasse).
+function renderBilanzHero() {
+    const sys = window.lastSystemResult || null;
+    const env = window.lastEnvelopeResult || null;
+    if (!sys) return;
+
+    const ev = parseFloat(sys.specific_end_energy);        // Endenergie kWh/(m²·a) → Klasse
+    const qp = parseFloat(sys.specific_primary_energy);    // Primärenergie kWh/(m²·a)
+    const co2 = parseFloat(sys.co2_emissions);
+    const bgfRef = (isFinite(qp) && qp > 0) ? (parseFloat(sys.primary_energy) / qp) : 0;
+    const co2m2 = bgfRef > 0 ? co2 / bgfRef : NaN;
+    const heat = env ? parseFloat(env.specific_heat_demand) : NaN;
+
+    const f1 = function (v) { return isFinite(v) ? v.toLocaleString('de-DE', { maximumFractionDigits: 1 }) : '—'; };
+    const setTxt = function (id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    const cls = function (v, good, mid) { return !isFinite(v) ? '' : (v <= good ? 'good' : (v <= mid ? 'mid' : 'bad')); };
+
+    // --- Hero: Effizienzklasse-Badge + Verdikt + Band-Zeiger ---
+    const hero = document.getElementById('bz_hero');
+    const badge = document.getElementById('bz_badge');
+    const info = isFinite(ev) ? eaClassFor(ev) : null;
+    if (info) {
+        setTxt('bz_class', info.cls);
+        if (badge) { badge.style.background = info.col; badge.style.color = (info.cls === 'C' || info.cls === 'D') ? '#3a3000' : '#fff'; }
+        if (hero) { hero.classList.remove('is-good', 'is-mid', 'is-bad'); hero.classList.add(info.idx <= 2 ? 'is-good' : (info.idx <= 5 ? 'is-mid' : 'is-bad')); }
+        setTxt('bz_verdict', 'Effizienzklasse ' + info.cls + (sys.system_label ? ' · ' + sys.system_label : ''));
+        // Band-Zeiger positionieren + aktives Segment markieren
+        const left = Math.max(0, Math.min(100, (info.idx + info.frac) * (100 / EA_CLASSES.length)));
+        const ptr = document.getElementById('bz_pointer');
+        if (ptr) ptr.style.left = left + '%';
+        setTxt('bz_pointer_val', f1(ev));
+        document.querySelectorAll('#bz_band .seg').forEach(function (s, i) { s.classList.toggle('on', i === info.idx); });
+    }
+
+    // --- Kennzahlen je m² (schlichte Kacheln, ohne Ampelfarben) ---
+    setTxt('bz_k_heat', isFinite(heat) ? f1(heat) + ' kWh/(m²·a)' : '—');
+    setTxt('bz_k_end', isFinite(ev) ? f1(ev) + ' kWh/(m²·a)' : '—');
+    setTxt('bz_k_prim', isFinite(qp) ? f1(qp) + ' kWh/(m²·a)' : '—');
 }
 
 
@@ -9553,8 +9746,6 @@ function bilanzRenderSankey(d) {
 
 // --- Jahres-Energiekosten (Schätzung) ---
 function bilanzRenderCosts(d) {
-    const tb = document.querySelector('#bilanz_cost_table tbody');
-    if (!tb) return;
     const elPrice = parseFloat(document.getElementById('pv_electricity_price')?.value) || 0.35;
     const feedTariff = parseFloat(document.getElementById('pv_feed_in_tariff')?.value) || 0.08;
     const fuelPrice = parseFloat(document.getElementById('bilanz_fuel_price')?.value);
@@ -9566,17 +9757,20 @@ function bilanzRenderCosts(d) {
     const cFeed = feedKwh * feedTariff;          // Gutschrift (Einspeisung)
     const net = cGrid + cFuel - cFeed;
 
-    const row = function (label, kwh, price, eur, cls) {
-        return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + label + '</td>' +
-            '<td class="num">' + (kwh != null ? pvNum(kwh, 0) + ' kWh' : '—') + '</td>' +
-            '<td class="num">' + (price != null ? pvNum(price, 2) + ' €' : '—') + '</td>' +
-            '<td class="num">' + (eur >= 0 ? '' : '−') + pvNum(Math.abs(eur), 0) + ' €</td></tr>';
+    const item = function (name, kwh, price, eur, credit) {
+        return '<div class="bz-cost-item' + (credit ? ' credit' : '') + '">' +
+            '<span class="name">' + name + '</span>' +
+            '<span class="eur">' + (eur < 0 ? '−' : (credit ? '' : '')) + pvNum(Math.abs(eur), 0) + ' €</span>' +
+            '<span class="qty">' + (kwh != null ? pvNum(kwh, 0) + ' kWh × ' + pvNum(price, 2) + ' €' : '') + '</span>' +
+            '</div>';
     };
-    tb.innerHTML =
-        row('Netzstrombezug', d.gridNet, elPrice, cGrid) +
-        row('Brennstoff/Fernwärme', d.fuelEnd, fp, cFuel) +
-        row('− PV-Einspeisevergütung', feedKwh, feedTariff, -cFeed) +
-        '<tr class="pv-total"><td>Jahreskosten netto</td><td class="num"></td><td class="num"></td><td class="num">' + pvNum(net, 0) + ' €/a</td></tr>';
+    const list = document.getElementById('bilanz_cost_list');
+    if (list) list.innerHTML =
+        item('Netzstrombezug', d.gridNet, elPrice, cGrid, false) +
+        item('Brennstoff/Fernwärme', d.fuelEnd, fp, cFuel, false) +
+        item('PV-Einspeisevergütung (Gutschrift)', feedKwh, feedTariff, -cFeed, true);
+    const totEl = document.getElementById('bz_cost_total');
+    if (totEl) totEl.textContent = pvNum(net, 0);
 
     bilanzStackBar('bilanz_cost_bar', 'bilanz_cost_legend', [
         { label: 'Netzstrom', val: cGrid, col: '#64748b' },
@@ -9641,30 +9835,54 @@ function bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total) {
 
 // --- Zusammenfassungstabelle ---
 function bilanzRenderTable(d) {
-    const tb = document.querySelector('#bilanz_summary_table tbody');
-    if (!tb) return;
+    const box = document.getElementById('bilanz_summary');
+    if (!box) return;
     const sys = d.sys || {};
-    const heatTxt = d.heat != null ? pvNum(d.heat, 0) + ' kWh/a' + (d.spec != null ? ' · ' + pvNum(d.spec, 0) + ' kWh/(m²·a)' : '') : '— (Hülle noch nicht berechnet)';
-    // Wärmebilanz-Zeile (DIN V 18599-2): Wärmesenken − nutzbare Gewinne = Q_h,b
     const hb = d.env && d.env.heat_balance;
-    const balanceTxt = hb
-        ? pvNum(hb.sinks_total_kwh, 0) + ' − ' + pvNum(hb.usable_gains_kwh, 0) + ' = ' + pvNum(hb.heat_demand_kwh, 0) + ' kWh/a'
-        : '— (Hülle noch nicht berechnet)';
-    const balanceVerdict = hb
-        ? 'Senken ' + pvNum(hb.sinks_total_kwh, 0) + ' · Gewinne ' + pvNum(hb.gains_total_kwh, 0) + ' kWh/a'
-        : '—';
-    const rows = [
-        ['① Gebäudehülle', 'Heizwärmebedarf Q_h,b', heatTxt, (d.env && d.env.rating_label) ? d.env.rating_label : '—'],
-        ['└ Wärmebilanz', 'Wärmesenken − nutzbare Gewinne', balanceTxt, balanceVerdict],
-        ['② Anlagentechnik', 'Endenergie / Primärenergie', pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' kWh/a', sys.system_label || '—'],
-        ['③ Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug', pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' kWh/a', d.pvOffset > 0 ? 'PV aktiv' : '—'],
-        ['④ Gesamt', 'Endenergie / CO₂ gesamt', pvNum(d.totalEnd, 0) + ' kWh/a · ' + pvNum(d.co2Total, 0) + ' kg CO₂e/a',
-            (d.endPerM2 != null ? 'Klasse ' + bilanzEffClass(d.endPerM2).k : '—')]
-    ];
-    tb.innerHTML = rows.map(function (r, i) {
-        const cls = i === rows.length - 1 ? ' class="pv-total"' : '';
-        return '<tr' + cls + '><td>' + r[0] + '</td><td>' + r[1] + '</td><td class="num">' + r[2] + '</td><td>' + r[3] + '</td></tr>';
-    }).join('');
+
+    // Farb-Chip aus Backend-Token (green/yellow/red)
+    const chip = function (label, color) {
+        const c = (color === 'green' || color === 'yellow' || color === 'red') ? color : 'neutral';
+        return '<span class="bz-chip bz-chip-' + c + '">' + (label || '—') + '</span>';
+    };
+    const row = function (no, name, metric, valMain, valSub, chipHtml, extra) {
+        return '<div class="bz-step' + (extra || '') + '">' +
+            '<span class="bz-step-no">' + no + '</span>' +
+            '<div class="bz-step-txt"><b>' + name + '</b><span>' + metric + '</span></div>' +
+            '<div class="bz-step-val">' + valMain + (valSub ? '<em>' + valSub + '</em>' : '') + '</div>' +
+            chipHtml + '</div>';
+    };
+
+    let html = '';
+    // ① Gebäudehülle
+    html += row('①', 'Gebäudehülle', 'Heizwärmebedarf Q_h,b',
+        (d.heat != null ? pvNum(d.heat, 0) + ' <u>kWh/a</u>' : '—'),
+        (d.spec != null ? pvNum(d.spec, 0) + ' kWh/(m²·a)' : ''),
+        chip(d.env && d.env.rating_label, d.env && d.env.rating_color), '');
+    // Wärmebilanz (Unterschritt)
+    if (hb) {
+        html += row('Σ', 'Wärmebilanz', 'Senken − nutzbare Gewinne',
+            pvNum(hb.heat_demand_kwh, 0) + ' <u>kWh/a</u>',
+            'Senken ' + pvNum(hb.sinks_total_kwh, 0) + ' · Gewinne ' + pvNum(hb.gains_total_kwh, 0),
+            '<span class="bz-chip bz-chip-neutral">DIN&nbsp;18599-2</span>', ' bz-substep');
+    }
+    // ② Anlagentechnik
+    html += row('②', 'Anlagentechnik', 'Endenergie / Primärenergie',
+        pvNum(sys.total_end_energy, 0) + ' / ' + pvNum(d.primaryAnlage, 0) + ' <u>kWh/a</u>', '',
+        chip(sys.system_label, sys.system_color), '');
+    // ③ Strom & PV
+    html += row('③', 'Strom &amp; PV', 'PV-Eigenverbrauch / Netzbezug',
+        pvNum(d.pvOffset, 0) + ' / ' + pvNum(d.gridNet, 0) + ' <u>kWh/a</u>', '',
+        d.pvOffset > 0 ? '<span class="bz-chip bz-chip-green">PV aktiv</span>' : '<span class="bz-chip bz-chip-neutral">kein PV</span>', '');
+    // ④ Gesamt (hervorgehoben)
+    const cl = d.endPerM2 != null ? bilanzEffClass(d.endPerM2) : null;
+    const clColor = cl ? (['A+', 'A', 'B'].indexOf(cl.k) >= 0 ? 'green' : (['C', 'D', 'E'].indexOf(cl.k) >= 0 ? 'yellow' : 'red')) : 'neutral';
+    html += row('④', 'Gesamt', 'Endenergie · CO₂ gesamt',
+        pvNum(d.totalEnd, 0) + ' <u>kWh/a</u>',
+        pvNum(d.co2Total, 0) + ' kg CO₂e/a',
+        '<span class="bz-chip bz-chip-' + clColor + '">' + (cl ? 'Klasse ' + cl.k : '—') + '</span>', ' bz-step-total');
+
+    box.innerHTML = html;
 }
 
 window.addEventListener('load', function () {
@@ -12313,9 +12531,16 @@ async function updateDoorType() {
     window.setPvEnabled = function (on) {
         window.pvEnabled = !!on;
         window._pvGateUI();
-        if (typeof window._rebuild3D === 'function') window._rebuild3D();   // PV im Modell ein/aus
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();   // PV im Modell ein/aus (baut Module via ensurePvList)
         if (typeof window.markStale === 'function') window.markStale('pv');
-        if (typeof calculatePV === 'function') { try { calculatePV(); } catch (e) {} }
+        // Dachfläche aus den tatsächlich gebauten Modulen übernehmen (sonst bliebe der
+        // HTML-Default 50 m² stehen und der Ertrag wäre viel zu hoch). aggregatePV ruft
+        // calculatePV selbst auf; nur wenn keine Module existieren, direkt rechnen.
+        if (on && Array.isArray(window.pvList) && window.pvList.length && typeof window.aggregatePV === 'function') {
+            try { window.aggregatePV(); } catch (e) {}
+        } else if (typeof calculatePV === 'function') {
+            try { calculatePV(); } catch (e) {}
+        }
     };
 
     // Anfangszustand herstellen (Inhalt verborgen, kein PV im Modell).
@@ -12906,6 +13131,16 @@ async function updateDoorType() {
         } catch (e) { if (status) status.textContent = '⚠ Fehler bei der LCA-Berechnung.'; }
     };
 
+    // Debounced LCA-Nachberechnung: zieht Änderungen an internen Bauteilen (Fläche,
+    // Schichten, Hinzufügen/Entfernen) in die Ergebnisse (Embodied-Summe, Breakdown,
+    // Hero, Zeitachse). Ohne force → nur graue Emissionen neu, keine Energiekette.
+    let _lcaRefreshTimer = null;
+    window.scheduleLcaRefresh = function () {
+        if (!window._lcaHasRun) return;   // erst nach der ersten LCA-Berechnung automatisch nachziehen
+        clearTimeout(_lcaRefreshTimer);
+        _lcaRefreshTimer = setTimeout(function () { try { window.calculateLCA(); } catch (e) {} }, 400);
+    };
+
     function render(emb, opYear, opPeriod, eol, total, years, bgf, eolPct, dev) {
         dev = dev || { list: [], total: 0 };
         const fu = $('lca_fu_val');
@@ -13174,12 +13409,12 @@ async function updateDoorType() {
     const $ = (id) => document.getElementById(id);
     // Presets – Material-IDs sind im Backend (LAYER_OBD_MAP) hinterlegt; zusätzlich immer ÖKOBAUDAT-Suche.
     const INTERNAL_PRESETS = {
-        mauerwerk: { label: 'Mauerwerk', materials: [{ id: '8', name: 'Mauerziegel' }, { id: '1332', name: 'Kalksandstein' }, { id: '354', name: 'Leichtbetonstein' }] },
-        beton:     { label: 'Beton', materials: [{ id: 'stahlbeton', name: 'Stahlbeton C25/30' }] },
-        putz:      { label: 'Putz', materials: [{ id: 'gipsputz', name: 'Gipsputz', lambda: 0.51 }, { id: 'kalk_zement_i', name: 'Kalkzementputz', lambda: 1.0 }] },
+        mauerwerk: { label: 'Mauerwerk', materials: [{ id: '8', name: 'Mauerziegel', lambda: 0.80 }, { id: '1332', name: 'Kalksandstein', lambda: 0.99 }, { id: '354', name: 'Leichtbetonstein', lambda: 0.45 }] },
+        beton:     { label: 'Beton', materials: [{ id: 'stahlbeton', name: 'Stahlbeton C25/30', lambda: 2.30 }] },
+        putz:      { label: 'Putz', materials: [{ id: 'gipsputz', name: 'Gipsputz', lambda: 0.51 }, { id: 'kalk_zement_i', name: 'Kalkzementputz', lambda: 0.87 }] },
         gipsplatte:{ label: 'Gipsplatte', materials: [{ id: 'gipsputz', name: 'Gipswerkstoff', lambda: 0.25 }] },
         daemmung:  { label: 'Dämmung', materials: [{ id: 'mw', name: 'Mineralwolle', lambda: 0.035 }, { id: 'eps', name: 'EPS', lambda: 0.035 }, { id: 'holzfaser', name: 'Holzfaser', lambda: 0.045 }] },
-        holz:      { label: 'Holz', materials: [{ id: 'holz_mass', name: 'Konstruktionsvollholz' }] },
+        holz:      { label: 'Holz', materials: [{ id: 'holz_mass', name: 'Konstruktionsvollholz', lambda: 0.13 }] },
         sonstiges: { label: 'Sonstiges (ÖKOBAUDAT)', materials: [] }
     };
     window.internalParts = window.internalParts || [];
@@ -13196,6 +13431,15 @@ async function updateDoorType() {
 
     window.addInternalPart = function (name, area, layers) {
         if (typeof addLayer !== 'function') return null;
+        // Fläche vorbelegen (nur bei manueller Anlage über den Button, d. h. area == null):
+        // Grundfläche eines Geschosses (L×B) als sinnvoller, editierbarer Startwert. Beim
+        // Wiederherstellen gespeicherter Bauteile bleibt der gespeicherte Wert erhalten.
+        if (area == null) {
+            const fp = (window._autoRoofArea > 0)
+                ? window._autoRoofArea
+                : (parseFloat((($('floor_area_display') || {}).textContent || '').replace(',', '.')) || 0);
+            if (fp > 0) area = Math.round(fp * 10) / 10;
+        }
         _seq += 1;
         const id = 'int' + _seq, kind = id;
         register(kind);
@@ -13206,7 +13450,7 @@ async function updateDoorType() {
         card.innerHTML =
             '<div class="lca-int-head">' +
               '<div class="field"><label>Bezeichnung</label><input class="lca-int-name" type="text" value="' + esc(name) + '" placeholder="z. B. Innenwand EG"></div>' +
-              '<div class="field"><label>Fläche (m²)</label><input class="lca-int-area" id="' + kind + '_area_display" type="number" min="0" step="0.1" value="' + (area != null ? area : '') + '" oninput="fetchLayerGwp(\'' + kind + '\')"></div>' +
+              '<div class="field"><label>Fläche (m²)</label><input class="lca-int-area" id="' + kind + '_area_display" type="number" min="0" step="0.1" value="' + (area != null ? area : '') + '" oninput="fetchLayerGwp(\'' + kind + '\'); if(window.scheduleLcaRefresh)window.scheduleLcaRefresh();"></div>' +
               '<button type="button" class="lca-int-del" onclick="removeInternalPart(\'' + id + '\')">🗑 Bauteil</button>' +
             '</div>' +
             '<div class="wall-layers-table" data-layer-kind="' + kind + '">' +
@@ -13236,6 +13480,8 @@ async function updateDoorType() {
         } else {
             addLayer(kind, 'mauerwerk', '8', 115);
         }
+        // Neues Bauteil sofort in die LCA-Gesamtergebnisse aufnehmen.
+        if (typeof window.scheduleLcaRefresh === 'function') window.scheduleLcaRefresh();
         return id;
     };
 
@@ -13243,6 +13489,8 @@ async function updateDoorType() {
         const card = $('card_' + id); if (card) card.remove();
         window.internalParts = (window.internalParts || []).filter(function (p) { return p.id !== id; });
         const kind = id; if (typeof LAYER_KINDS !== 'undefined') { try { delete LAYER_KINDS[kind]; } catch (e) {} }
+        // Entferntes Bauteil aus den LCA-Gesamtergebnissen herausnehmen.
+        if (typeof window.scheduleLcaRefresh === 'function') window.scheduleLcaRefresh();
     };
 
     // Snapshot-Helfer für die Projekt-Persistenz
