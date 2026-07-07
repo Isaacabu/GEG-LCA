@@ -99,9 +99,26 @@ python manage.py import_ekobaudat "<datei.csv>"   # importieren (überschreibt d
 ### 3) Per Docker
 
 ```bash
-docker build -t geglca .
-docker run -p 8000:8000 geglca
+# Image bauen (der Punkt am Ende ist Pflicht – er ist der Build-Kontext)
+docker build -t geg-lca .
+
+# Container starten
+docker run -p 8000:8000 geg-lca
 ```
+
+Aufrufen: **http://localhost:8000/**
+
+> **Hinweis:** Ein Docker-Image existiert nur lokal auf dem PC, auf dem es gebaut wurde. Auf einem
+> anderen Rechner muss es entweder dort neu gebaut (`docker build -t geg-lca .`) oder als Datei
+> übertragen werden:
+>
+> ```bash
+> # Auf PC A exportieren:
+> docker save -o geg-lca.tar geg-lca:latest
+> # Auf PC B (Docker muss installiert sein) importieren und starten:
+> docker load -i geg-lca.tar
+> docker run -p 8000:8000 geg-lca
+> ```
 
 ---
 
