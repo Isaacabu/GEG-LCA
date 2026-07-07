@@ -1,0 +1,12 @@
+{
+  "name": "geglca-devtools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dev-Tooling für die Django-App GEG/LCA (Playwright-Smoke-Test). Die frühere React-/TypeScript-Monorepo wurde entfernt.",
+  "scripts": {
+    "smoke": "node scripts/smoke_app.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.0"
+  }
+}
