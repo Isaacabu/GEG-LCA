@@ -140,6 +140,9 @@ def din4108_materialien(request):
 #                                stark belüftet/freistehend 0,80
 PV_K_PK = {"mono": 0.182, "poly": 0.166}
 PV_F_PERF = {"integrated": 0.70, "ventilated": 0.75, "free": 0.80}
+# Stromspeicher (Heimbatterie): verschiebt Einspeise-Überschuss in den Eigenverbrauch.
+PV_BATTERY_CYCLES = 250.0  # typische Vollzyklen pro Jahr eines Heimspeichers
+PV_BATTERY_EFF = 0.90      # AC-AC-Systemwirkungsgrad (Laden + Entladen)
 
 # Monatliche Strahlung auf PV-Flächen (Teil 10 Tab. E.6, 24-h-Mittel W/m²).
 # Fassaden = exakte 90°-Werte. Geneigte Dachflächen werden aus realer Neigung und
@@ -209,6 +212,8 @@ def calculate_pv(request):
         self_rate = safe_float(data.get("self_consumption_rate"), 0.30)
         electricity_price = safe_float(data.get("electricity_price"), 0.35)
         feed_in_tariff = safe_float(data.get("feed_in_tariff"), 0.08)
+        # Stromspeicher: nutzbare Batteriekapazität in kWh (0 = kein Speicher)
+        battery_kwh = min(max(safe_float(data.get("battery_capacity_kwh"), 0.0), 0.0), 200.0)
 
         errors = []
         total_area = area_roof + area_south + area_ew
@@ -253,6 +258,13 @@ def calculate_pv(request):
 
         p_pk_total = k_pk * total_area
         self_consumption_kwh = annual * self_rate
+        # Stromspeicher: verschiebt Einspeise-Überschuss in den Eigenverbrauch,
+        # begrenzt durch Kapazität × Vollzyklen × Wirkungsgrad und den Überschuss selbst.
+        battery_shift_kwh = 0.0
+        if battery_kwh > 0:
+            surplus = max(0.0, annual - self_consumption_kwh)
+            battery_shift_kwh = min(surplus, battery_kwh * PV_BATTERY_CYCLES * PV_BATTERY_EFF)
+            self_consumption_kwh += battery_shift_kwh
         feed_in_kwh = max(0.0, annual - self_consumption_kwh)
         savings_eur = self_consumption_kwh * electricity_price
         feed_in_revenue_eur = feed_in_kwh * feed_in_tariff
@@ -281,6 +293,8 @@ def calculate_pv(request):
             "specific_yield_kwh_kwp": round(annual / p_pk_total, 0) if p_pk_total > 0 else 0,
             "self_consumption_kwh": round(self_consumption_kwh, 1),
             "feed_in_kwh": round(feed_in_kwh, 1),
+            "battery_capacity_kwh": round(battery_kwh, 1),
+            "battery_shift_kwh": round(battery_shift_kwh, 1),
             "savings_eur": round(savings_eur, 2),
             "feed_in_revenue_eur": round(feed_in_revenue_eur, 2),
             "total_benefit_eur": round(savings_eur + feed_in_revenue_eur, 2),

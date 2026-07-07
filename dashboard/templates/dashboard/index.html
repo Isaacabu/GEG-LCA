@@ -2662,25 +2662,25 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                                 <label>Dachneigung Nord/Süd (°)
                                     <span class="info-i" data-tip="Neigung der nach Nord/Süd geneigten Dachflächen gegen die Horizontale. 0° = flach, 90° = senkrecht. Beeinflusst die geneigte Dachfläche (Fläche = Grundriss / cos α) und damit den Wärmeverlust H_T, außerdem die PV-Dachneigung. Bei 90° steht die Fläche senkrecht und wird als Wand geführt (in der Bilanz unter den Wänden).">i</span>
                                 </label>
-                                <input id="roof_angle_ns" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ns" type="number" step="1" min="0" max="90" value="35" oninput="onRoofAngleChange()">
                             </div>
                             <div class="field">
                                 <label>Dachneigung Ost/West (°)
                                     <span class="info-i" data-tip="Neigung der nach Ost/West geneigten Dachflächen (z. B. Walmdach). Wirkt analog zur N/S-Neigung. Bei 90° steht die Seite senkrecht → sie wird als Wand geführt und beim Walmdach schaltet die Dachform automatisch auf Satteldach um.">i</span>
                                 </label>
-                                <input id="roof_angle_ew" type="number" step="1" min="0" max="90" value="35" oninput="updateSteildachAreas()">
+                                <input id="roof_angle_ew" type="number" step="1" min="0" max="90" value="90" oninput="onRoofAngleChange()">
                             </div>
                         </div>
                         <div class="grid-2">
                             <div class="field">
                                 <label>Grundfläche N/S (m², Projektion)
-                                    <span class="info-i" data-tip="Horizontale Projektion (Grundriss) der Nord/Süd-Dachflächen. Wird automatisch aus der Gebäudegeometrie gefüllt, kann aber überschrieben werden. Standard (Satteldach): gesamte Grundrissfläche.">i</span>
+                                    <span class="info-i" data-tip="Horizontale Projektion (Grundriss) der Nord/Süd-Dachflächen. Wird automatisch aus Gebäudemaßen (Länge N/S · Breite O/W) UND beiden Neigungswinkeln berechnet (gekoppeltes Walmdach-Modell: N/S = Grundfläche − O/W-Walmenden). Kann überschrieben werden – eine Winkeländerung setzt aber wieder auf Auto.">i</span>
                                 </label>
                                 <input id="roof_area_ns" type="number" step="0.1" min="0" placeholder="z.B. 120" oninput="this.dataset.manual='1'; updateSteildachAreas()">
                             </div>
                             <div class="field">
                                 <label>Grundfläche O/W (m², Projektion)
-                                    <span class="info-i" data-tip="Horizontale Projektion (Grundriss) der Ost/West-Dachflächen. Standard 0 (reines Satteldach); für ein Walmdach hier den O/W-Anteil eintragen. Summe N/S + O/W = Grundrissfläche.">i</span>
+                                    <span class="info-i" data-tip="Horizontale Projektion (Grundriss) der Ost/West-Walmenden. Wird automatisch aus Gebäudemaßen + Neigung berechnet: O/W = (Länge²/2)·tan(α_N/S)/tan(α_O/W), gedeckelt auf die halbe Grundfläche. Bei α_O/W = 90° ist O/W = 0 (reines Satteldach, O/W-Seiten stehen senkrecht → als „Dach Ost/West" unter den Wänden). Überschreibbar.">i</span>
                                 </label>
                                 <input id="roof_area_ew" type="number" step="0.1" min="0" placeholder="z.B. 0" oninput="this.dataset.manual='1'; updateSteildachAreas()">
                             </div>
@@ -2930,7 +2930,9 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 <h3>Grundriss &amp; Zimmer <span class="small" style="color:#9bb4c8;font-weight:400;">(je Etage – Anzahl Etagen aus den Gebäudedaten)</span></h3>
                 <p class="note" style="margin:2px 0 10px;">Zeichnen wie in „Komplexe Geometrie": Ecken nacheinander anklicken, zum Schließen auf den ersten
                    (goldenen) Punkt klicken. Fertige Zimmer <b>verschieben</b>: Zimmer mit gedrückter Maustaste ziehen; einzelne <b>Eckpunkte</b> ziehen
-                   (Zimmer vorher anklicken). <b>Löschen</b>: Zimmer auswählen → „🗑 Zimmer löschen" (oder Entf-Taste bzw. 🗑 in der Liste). Raster ½&nbsp;m.
+                   (Zimmer vorher anklicken). Eckpunkt <b>anklicken</b> (ohne Ziehen) → Längen der beiden angrenzenden Wände und Innenwinkel
+                   exakt eingeben – wie in „Komplexe Geometrie". <b>Löschen</b>: Zimmer auswählen → „🗑 Zimmer löschen" (oder Entf-Taste bzw. 🗑 in der Liste). Raster ½&nbsp;m.
+                   Punkte <b>fangen an den Außenwänden</b> ein (Magnet ab ≈0,4&nbsp;m) und Zimmer bleiben immer <b>innerhalb des Gebäudeumrisses</b>.
                    <br><span style="color:#f6b94b;">🪟 Die <b>Fenster</b> aus den Gebäudedaten werden als dicke Linien an den Außenwänden angezeigt.</span>
                    Grenzt ein Zimmer an ein Fenster, wird es automatisch diesem Zimmer zugeordnet (Fensterlinie erhält die Zimmerfarbe) und im Nachweis
                    „Sommerlicher Wärmeschutz" für den <b>kritischen Raum</b> übernommen.</p>
@@ -2968,6 +2970,18 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     </svg>
                 </div>
                 <div class="fp-info" id="innenInfo"></div>
+                <div class="fp-vertex-panel" id="inVertexPanel" style="display:none;">
+                    <span class="fpv-title">📍 <span id="invRoomName">–</span> · Punkt <span id="invIdx">–</span></span>
+                    <label class="fp-ctl">Wand <span id="invWallInNr">–</span> (→ Punkt)
+                        <input type="number" id="invLenIn" min="0.3" max="40" step="0.1"> m</label>
+                    <label class="fp-ctl">Wand <span id="invWallOutNr">–</span> (Punkt →)
+                        <input type="number" id="invLenOut" min="0.3" max="40" step="0.1"> m</label>
+                    <label class="fp-ctl">Innenwinkel ∠
+                        <input type="number" id="invAngle" min="10" max="350" step="1"> °</label>
+                    <button type="button" class="fp-btn" id="invApply">✓ Übernehmen</button>
+                    <button type="button" class="fp-btn" id="invClose">Schließen</button>
+                    <p class="fpv-note" id="invNote">Länge der ankommenden Wand verschiebt diesen Punkt; Länge/Winkel der abgehenden Wand verschiebt den Folgepunkt. Die übrigen Punkte bleiben stehen.</p>
+                </div>
                 <div class="stats" style="margin-top:12px;">
                     <div class="stat-box"><div class="label">Grundfläche (Geschoss)</div><div class="value" id="innen_fp_area">—</div></div>
                     <div class="stat-box"><div class="label">Zimmer (Etage)</div><div class="value" id="innen_room_count">0</div></div>
@@ -3304,6 +3318,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     </div>
 
                     <div class="field">
+                        <label>Stromspeicher – Batteriekapazität (kWh)</label>
+                        <input id="pv_battery_capacity" type="number" step="0.1" min="0" max="200" value="0">
+                        <small style="color:#888;">0 = kein Speicher. Ein Speicher verschiebt Einspeise-Überschuss
+                        in den Eigenverbrauch (Ansatz: ~250 Vollzyklen/a, 90&nbsp;% Systemwirkungsgrad).</small>
+                    </div>
+
+                    <div class="field">
                         <label>Strompreis (€/kWh)</label>
                         <input id="pv_electricity_price" type="number" step="0.01" value="0.35">
                     </div>
@@ -3333,7 +3354,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <div class="value" id="pv_annual_yield">—</div>
                     </div>
                     <div class="stat-box">
-                        <span class="info-i" data-tip="Anteil des PV-Stroms, der direkt im Gebäude verbraucht wird (Eigenverbrauchsquote). Geht in die Energiebilanz ein und senkt den Netzbezug.">i</span>
+                        <span class="info-i" data-tip="Anteil des PV-Stroms, der direkt im Gebäude verbraucht wird (Eigenverbrauchsquote, ggf. erhöht durch den Stromspeicher). Geht in die Energiebilanz ein und senkt den Netzbezug.">i</span>
                         <div class="label">Eigenverbrauch</div>
                         <div class="value" id="pv_self_kwh">—</div>
                     </div>
@@ -7054,32 +7075,69 @@ function resetRoofArea() {
     }
 }
 
-// Projektionsflächen (Grundriss) an Dachform + Gebäudemaße koppeln.
-// Walmdach (hip): die beiden O/W-Hip-Enden eines symmetrischen (gleichgeneigten) Walmdachs
-// projizieren zusammen min(L,B)²/2 der Grundfläche; der Rest geht auf N/S. Dadurch bekommt
-// die O/W-Seite automatisch eine Fläche → die O/W-Neigung wirkt sofort auf die Dachfläche.
-// Satteldach/Pultdach: O/W = 0, N/S = gesamte Grundfläche. Manuelle Eingaben bleiben unberührt.
+// Grundriss-Projektionen + senkrechte Giebelflächen aus Gebäudemaßen und BEIDEN
+// Neigungswinkeln (gekoppeltes Walmdach-Modell). Konvention: First entlang Ost/West,
+// die N/S-Flächen sind die Hauptdachflächen über die Gebäudetiefe L (Länge N/S).
+//   Firsthöhe H  = (L/2)·tan(α_NS)
+//   Walm-Auskragung der O/W-Enden: e = H/tan(α_OW), begrenzt auf W/2 (First muss bleiben)
+//   O/W-Projektion = L·e  (zwei Walmenden), gedeckelt auf die halbe Grundfläche
+//   α_OW = 90°  → O/W steht senkrecht (Giebel) → Projektion 0, Wandfläche = L·H  („Dach Ost/West")
+//   α_NS = 90°  → analog First N/S, N/S-Seiten senkrecht → Wandfläche = W·H  („Dach Nord/Süd")
+// Ergebnis: {nsProj, ewProj} horizontale Projektionen, {nsVert, ewVert} senkrechte Wandflächen.
+function computeRoofProjection(footprint, L, W, aNS, aEW) {
+    const t = (deg) => Math.tan(deg * Math.PI / 180);
+    const A = footprint;
+    const vNS = aNS >= 90, vEW = aEW >= 90;
+    if (!vNS && !vEW) {                              // Walmdach – beide Seiten geneigt
+        const H = (L / 2) * t(aNS);
+        const e = Math.min(H / Math.max(t(aEW), 1e-4), W / 2);   // First muss existieren
+        const ewProj = Math.min(L * e, A / 2);      // 2 Walmenden, max. halbe Grundfläche
+        return { nsProj: Math.max(A - ewProj, 0), ewProj: ewProj, nsVert: 0, ewVert: 0 };
+    }
+    if (!vNS && vEW) {                               // Satteldach, First O/W → O/W-Giebel senkrecht
+        const H = (L / 2) * t(aNS);
+        return { nsProj: A, ewProj: 0, nsVert: 0, ewVert: L * H };   // 2 Giebeldreiecke = L·H
+    }
+    if (vNS && !vEW) {                               // Satteldach, First N/S → N/S-Giebel senkrecht
+        const H = (W / 2) * t(aEW);
+        return { nsProj: 0, ewProj: A, nsVert: W * H, ewVert: 0 };
+    }
+    return { nsProj: 0, ewProj: 0, nsVert: 0, ewVert: 0 };   // beide senkrecht → kein geneigtes Dach
+}
+
+// Projektionsfelder (Grundriss) automatisch aus Gebäudemaßen + beiden Neigungswinkeln
+// füllen (überschreibbar: manuell editierte Felder mit dataset.manual bleiben unberührt).
+// Die senkrechten Giebelflächen werden in window._roofVert gemerkt und in
+// updateSteildachAreas als Wand („Dach Ost/West") geführt.
 function syncWalmProjection(nsA, ewA) {
+    window._roofVert = { ns: 0, ew: 0 };
     nsA = nsA || document.getElementById('roof_area_ns');
     ewA = ewA || document.getElementById('roof_area_ew');
     if (!nsA || !ewA) return;
     if (document.getElementById('roof_type')?.value !== 'steildach') return;
     const footprint = window._autoRoofArea || 0;
     if (!(footprint > 0)) return;
-    const isHip = (typeof window._currentRoofForm === 'function') && window._currentRoofForm() === 'hip';
-    if (isHip) {
-        const L = parseFloat(document.getElementById('building_length')?.value) || 0;
-        const B = parseFloat(document.getElementById('building_width')?.value) || 0;
-        if (!(L > 0 && B > 0)) return;   // ohne belastbare Maße (z.B. komplexe Geometrie) nicht aufteilen
-        const s = Math.min(L, B);
-        const ew = Math.min(s * s / 2, footprint * 0.9);   // O/W-Hip-Enden, symmetrisch, gedeckelt
-        const ns = Math.max(footprint - ew, 0);
-        if (!ewA.dataset.manual) ewA.value = ew.toFixed(1);
-        if (!nsA.dataset.manual) nsA.value = ns.toFixed(1);
-    } else {
-        if (!nsA.dataset.manual) nsA.value = footprint.toFixed(1);
-        if (!ewA.dataset.manual && (parseFloat(ewA.value) || 0) === 0) ewA.value = '0';
-    }
+    const L = parseFloat(document.getElementById('building_length')?.value) || 0;
+    const W = parseFloat(document.getElementById('building_width')?.value) || 0;
+    if (!(L > 0 && W > 0)) return;   // ohne belastbare Maße (z.B. komplexe Geometrie) nicht koppeln
+    const clamp = (v) => Math.min(90, Math.max(0, isFinite(v) ? v : 0));
+    const aNS = clamp(parseFloat(document.getElementById('roof_angle_ns')?.value));
+    const aEW = clamp(parseFloat(document.getElementById('roof_angle_ew')?.value));
+    const p = computeRoofProjection(footprint, L, W, aNS, aEW);
+    if (!nsA.dataset.manual) nsA.value = p.nsProj.toFixed(1);
+    if (!ewA.dataset.manual) ewA.value = p.ewProj.toFixed(1);
+    window._roofVert = { ns: p.nsVert, ew: p.ewVert };
+}
+
+// Ändert der Nutzer einen Neigungswinkel, sollen die Grundflächen (Projektionen) neu aus
+// den Gebäudemaßen berechnet werden – die manuelle Sperre der Projektionsfelder wird daher
+// aufgehoben, danach übernimmt syncWalmProjection wieder die Auto-Kopplung.
+function onRoofAngleChange() {
+    ['roof_area_ns', 'roof_area_ew'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) delete el.dataset.manual;
+    });
+    updateSteildachAreas();
 }
 
 // Geneigte Dachfläche aus Grundriss-Projektion + Neigung; setzt Dachfläche (Wärmeverlust)
@@ -7099,20 +7157,22 @@ function updateSteildachAreas() {
     const nsAng = clamp(parseFloat(document.getElementById('roof_angle_ns')?.value));
     const ewAng = clamp(parseFloat(document.getElementById('roof_angle_ew')?.value));
     // Punkt 2: Bei 90° steht die Seite senkrecht → sie wird als Wand geführt. Die Formel
-    // Projektion / cos(α) ist dort singulär (cos 90° = 0), daher gilt die Grundfläche-
-    // Eingabe bei 90° direkt als senkrechte Wandfläche. Diese Fläche wird als
-    // roof_vertical_area an die Rechnung gemeldet und dort von „Dach" nach „Wände" umgebucht.
+    // Projektion / cos(α) ist dort singulär (cos 90° = 0). Die senkrechte Wandfläche kommt
+    // aus dem gekoppelten Modell (window._roofVert, in syncWalmProjection gesetzt): Giebel-
+    // dreiecke = L·H bzw. W·H. Bei manuell überschriebener Projektion gilt der Feldwert.
+    // Diese Fläche wird als roof_vertical_area gemeldet und von „Dach" nach „Wände" umgebucht.
+    const rv = window._roofVert || { ns: 0, ew: 0 };
     const nsVertical = nsAng >= 90, ewVertical = ewAng >= 90;
-    const nsSloped = nsVertical ? nsProj : nsProj / Math.cos(nsAng * Math.PI / 180);
-    const ewSloped = ewVertical ? ewProj : ewProj / Math.cos(ewAng * Math.PI / 180);
+    const nsSloped = nsVertical ? (nsInput.dataset.manual ? nsProj : rv.ns) : nsProj / Math.cos(nsAng * Math.PI / 180);
+    const ewSloped = ewVertical ? (ewInput.dataset.manual ? ewProj : rv.ew) : ewProj / Math.cos(ewAng * Math.PI / 180);
     const total = nsSloped + ewSloped;
     const verticalArea = (nsVertical ? nsSloped : 0) + (ewVertical ? ewSloped : 0);
 
-    if (nsProj > 0 || ewProj > 0) {
+    if (nsProj > 0 || ewProj > 0 || verticalArea > 0) {
         display.value = total.toFixed(2);
         display.dataset.manual = '1';                 // gegen Überschreiben durch die Geometrie schützen
         if (window.wallAreas) window.wallAreas.roof = total;
-        window.roofAreaSplit = { ns: nsSloped, ew: ewSloped, total: total, nsProj: nsProj, ewProj: ewProj, nsAng: nsAng, ewAng: ewAng, nsVertical: nsVertical, ewVertical: ewVertical, verticalArea: verticalArea };
+        window.roofAreaSplit = { ns: nsSloped, ew: ewSloped, total: total, nsProj: nsProj, ewProj: ewProj, nsAng: nsAng, ewAng: ewAng, nsVertical: nsVertical, ewVertical: ewVertical, verticalArea: verticalArea, vertNS: (nsVertical ? nsSloped : 0), vertEW: (ewVertical ? ewSloped : 0) };
 
         // Winkel wirkt auf PV: Hauptdachfläche (größere Projektion) → PV-Dachneigung
         const pvTilt = document.getElementById('pv_roof_tilt');
@@ -7128,13 +7188,16 @@ function updateSteildachAreas() {
 
     const info = document.getElementById('roof_steildach_info');
     if (info) {
-        if (nsProj > 0 || ewProj > 0) {
+        if (nsProj > 0 || ewProj > 0 || verticalArea > 0) {
+            const vertNames = [];
+            if (ewVertical && ewSloped > 0) vertNames.push('Dach Ost/West');
+            if (nsVertical && nsSloped > 0) vertNames.push('Dach Nord/Süd');
             info.innerHTML = 'Geneigte Dachfläche: <b>' + total.toFixed(1) + ' m²</b> ' +
                 '(N/S ' + nsSloped.toFixed(1) + ' m² @ ' + nsAng + '° · O/W ' + ewSloped.toFixed(1) + ' m² @ ' + ewAng + '°) ' +
-                '→ fließt in Wärmeverlust H_T und Heizwärmebedarf. PV-Dachneigung auf ' + (nsProj >= ewProj ? nsAng : ewAng) + '° gesetzt.' +
-                (verticalArea > 0 ? '<br><b>' + verticalArea.toFixed(1) + ' m²</b> stehen senkrecht (90°) → als <b>Wand</b> geführt (in der Bilanz unter den Wänden).' : '');
+                '→ Grundflächen automatisch aus Gebäudemaßen + Neigung. PV-Dachneigung auf ' + (nsProj >= ewProj ? nsAng : ewAng) + '° gesetzt.' +
+                (verticalArea > 0 ? '<br><b>' + verticalArea.toFixed(1) + ' m²</b> stehen senkrecht (90°) → als <b>Wand</b> geführt: ' + vertNames.join(' + ') + ' (in der Bilanz unter den Wänden).' : '');
         } else {
-            info.textContent = 'Grundriss-Projektion eingeben (oder aus der Geometrie übernehmen) – die geneigte Fläche wird aus Projektion / cos(Neigung) berechnet.';
+            info.textContent = 'Grundriss-Projektion wird automatisch aus Gebäudemaßen + Neigung berechnet – überschreibbar; die geneigte Fläche = Projektion / cos(Neigung).';
         }
     }
 
@@ -7989,7 +8052,30 @@ function renderWallResultChips(data) {
         chips.push({ label: 'Ost (W/K)', value: fmt(data.east_loss), id: 'east_result' });
         chips.push({ label: 'West (W/K)', value: fmt(data.west_loss), id: 'west_result' });
     }
-    chips.push({ label: 'Wände gesamt (W/K)', value: fmt(data.wall_total), id: 'wall_total_result' });
+    // Senkrechte (90°) Dachseiten werden als Wand geführt → eigene benannte Chips
+    // „Dach Ost/West/Nord/Süd". Fläche aus dem gekoppelten Modell (roofAreaSplit),
+    // Verlust = Fläche · U_Dach · F_x (dieselbe Umbuchung wie in der Bilanz, Punkt 2:
+    // Bilanz-Posten „Wände" = wall_total + vertical_roof_loss). Ihre Summe fließt daher
+    // auch in „Wände gesamt", damit die Chips konsistent aufsummieren.
+    let roofWallTotal = 0;
+    const rs = window.roofAreaSplit;
+    if (document.getElementById('roof_type')?.value === 'steildach' && rs) {
+        const rU = (typeof getRoofUValue === 'function') ? (getRoofUValue() || 0) : 0;
+        const rFx = (typeof getRoofFxFactor === 'function') ? getRoofFxFactor() : 1;
+        const roofWall = function (label, area) {
+            if (!(area > 0)) return;
+            const loss = Math.round(area * rU * rFx * 100) / 100;
+            roofWallTotal += loss;
+            chips.push({ label: label + ' (W/K)', value: fmt(loss) });
+        };
+        roofWall('Dach Ost', (rs.vertEW || 0) / 2);
+        roofWall('Dach West', (rs.vertEW || 0) / 2);
+        roofWall('Dach Nord', (rs.vertNS || 0) / 2);
+        roofWall('Dach Süd', (rs.vertNS || 0) / 2);
+    }
+    const wallTotal = (data.wall_total != null && isFinite(data.wall_total))
+        ? Math.round((data.wall_total + roofWallTotal) * 100) / 100 : data.wall_total;
+    chips.push({ label: 'Wände gesamt (W/K)', value: fmt(wallTotal), id: 'wall_total_result' });
     row.innerHTML = chips.map(function (c) {
         return '<div class="result-chip"><span class="small">' + c.label + '</span><strong' + (c.id ? ' id="' + c.id + '"' : '') + '>' + c.value + '</strong></div>';
     }).join('');
@@ -8692,6 +8778,9 @@ function generateReport() {
             ['<b>Jahresertrag</b>', '<b>' + val(pv.annual_yield_kwh, 'kWh/a', 0) + '</b>'],
             ['Spezifischer Ertrag', val(pv.specific_yield_kwh_kwp, 'kWh/(kWp·a)', 0)],
             ['Eigenverbrauch', val(pv.self_consumption_kwh, 'kWh/a', 0)],
+            ['Stromspeicher', (parseFloat(pv.battery_capacity_kwh) > 0
+                ? val(pv.battery_capacity_kwh, 'kWh', 1) + ' · +' + val(pv.battery_shift_kwh, 'kWh/a Eigenverbrauch', 0)
+                : 'kein Speicher')],
             ['Netzeinspeisung', val(pv.feed_in_kwh, 'kWh/a', 0)],
             ['CO₂-Einsparung', val(pv.co2_savings_kg, 'kg CO₂e/a', 0)],
             ['Finanzieller Nutzen', val(pv.total_benefit_eur, '€/a', 0)]
@@ -8971,6 +9060,7 @@ function calculatePV() {
             mounting: document.getElementById('pv_mounting')?.value || 'ventilated',
             shading: (parseFloat(document.getElementById('pv_losses').value) || 0) / 100,
             self_consumption_rate: parseFloat(document.getElementById('pv_self_rate').value) || 0.30,
+            battery_capacity_kwh: parseFloat(document.getElementById('pv_battery_capacity')?.value) || 0,
             electricity_price: parseFloat(document.getElementById('pv_electricity_price').value) || 0.35,
             feed_in_tariff: parseFloat(document.getElementById('pv_feed_in_tariff').value) || 0.08
         })
@@ -10796,6 +10886,17 @@ async function updateDoorType() {
         // Dachform aus Gebäudedaten → Dachtyp im Hülle-Tab ZUERST übernehmen
         // (flat → Flachdach, gable/hip/mono → Steildach), damit der folgende Neuaufbau
         // bereits mit dem richtigen Typ/Neigung rendert. Neigung bleibt beim Standard.
+        // Dachform → O/W-Neigung koppeln, damit Picker und Grundflächen konsistent sind:
+        //   Satteldach (gable) → O/W-Enden senkrecht (90° → „Dach Ost/West" als Wand),
+        //   Walmdach (hip)     → O/W geneigt wie N/S (symmetrisches Walmdach).
+        const angEw = document.getElementById('roof_angle_ew');
+        const angNs = document.getElementById('roof_angle_ns');
+        if (angEw && (key === 'gable' || key === 'hip')) {
+            angEw.value = (key === 'gable') ? 90 : (parseFloat(angNs?.value) || 35);
+            ['roof_area_ns', 'roof_area_ew'].forEach(function (id) {
+                const el = document.getElementById(id); if (el) delete el.dataset.manual;
+            });
+        }
         const rt = document.getElementById('roof_type');
         if (rt) {
             const want = (key === 'flat') ? 'flachdach' : 'steildach';
@@ -13745,9 +13846,48 @@ async function updateDoorType() {
     }
     const snap = (v) => Math.round(v * 2) / 2;   // ½-m-Raster wie im Grundriss-Editor
 
+    // ---- Wand-Magnet & Begrenzung auf den Gebäudeumriss ----
+    const WALL_SNAP = 0.4;   // m: Fangabstand zu den Außenwänden
+    // Lotfußpunkt q auf dem Segment a→b + Abstand d
+    function distPointSeg(p, a, b) {
+        const ex = b.x - a.x, ey = b.y - a.y, L2 = ex * ex + ey * ey;
+        const t = Math.max(0, Math.min(1, L2 > 0 ? ((p.x - a.x) * ex + (p.y - a.y) * ey) / L2 : 0));
+        const q = { x: a.x + ex * t, y: a.y + ey * t };
+        return { d: Math.hypot(p.x - q.x, p.y - q.y), q: q };
+    }
+    // Nächster Punkt auf dem Gebäudeumriss (alle Kanten)
+    function nearestOnFootprint(p) {
+        const fp = getFootprint();
+        let best = null;
+        for (let i = 0; i < fp.length; i++) {
+            const r = distPointSeg(p, fp[i], fp[(i + 1) % fp.length]);
+            if (!best || r.d < best.d) best = r;
+        }
+        return best;
+    }
+    // Innerhalb des Umrisses? (Punkte exakt AUF der Wand zählen als innen)
+    function insideFootprint(p) {
+        if (pointInPoly(p, getFootprint())) return true;
+        const n = nearestOnFootprint(p);
+        return n ? n.d < 1e-6 : true;
+    }
+    // Punkt fürs Zeichnen/Ziehen: ½-m-Raster; nahe einer Außenwand → exakt auf die Wand
+    // (Umriss-Ecken fangen stärker); außerhalb → auf den Umriss zurückgeholt.
+    function snapPt(raw) {
+        const fp = getFootprint();
+        let bc = null;
+        fp.forEach(function (c) { const d = Math.hypot(raw.x - c.x, raw.y - c.y); if (!bc || d < bc.d) bc = { d: d, q: c }; });
+        if (bc && bc.d < WALL_SNAP * 1.25) return { x: bc.q.x, y: bc.q.y };
+        const n = nearestOnFootprint(raw);
+        let p = (n && n.d < WALL_SNAP) ? { x: n.q.x, y: n.q.y } : { x: snap(raw.x), y: snap(raw.y) };
+        if (!insideFootprint(p)) { const nn = nearestOnFootprint(p); if (nn) p = { x: nn.q.x, y: nn.q.y }; }
+        return p;
+    }
+
     // ---- Zeichnen ----
     let draft = [], cursor = null, dragRoom = null, dragIdx = -1, downAt = null, moved = false;
     let moveRoom = null, moveStartPts = null, moveStartM = null;   // Ganzes Zimmer verschieben (Drag)
+    let moveLast = { dx: 0, dy: 0 }, moveFree = false;             // letzter gültiger Versatz; Alt-Zimmer außerhalb → unbeschränkt
 
     function gridStep() { return view.S < 9 ? 5 : 1; }   // bei sehr großen Gebäuden 5-m-Raster
     function gridLines() {
@@ -13816,6 +13956,11 @@ async function updateDoorType() {
     function render() {
         const gridEl = $('innenGrid'), out = $('innenOutline'), layer = $('innenLayer');
         if (!gridEl || !out || !layer) return;
+        // Punkt-Editor schließen, wenn sein Zimmer nicht mehr ausgewählt/vorhanden ist
+        if (selVertex >= 0) {
+            const vr = vRoom();
+            if (!vr || vRoomId !== selRoom || (vr.floor || 0) !== curFloor || selVertex >= vr.pts.length) closeVertexPanel(true);
+        }
         computeView();
         gridEl.innerHTML = gridLines();
         out.innerHTML = '<path d="' + pathOf(getFootprint(), true) + '" fill="rgba(16,185,129,0.06)" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>' + outlineLabels();
@@ -13831,7 +13976,8 @@ async function updateDoorType() {
             s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) - 4).toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" style="pointer-events:none;">' + escXml(r.name) + '</text>';
             s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) + 9).toFixed(1) + '" text-anchor="middle" font-size="9.5" fill="#cfe0f2" style="pointer-events:none;">' + polyArea(r.pts).toFixed(1) + ' m²</text>';
             if (sel) r.pts.forEach(function (p, i) {
-                s += '<circle class="in-handle" data-room="' + r.id + '" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="5.5" fill="#0b1f3a" stroke="' + r.color + '" stroke-width="2"/>';
+                const vsel = (r.id === vRoomId && i === selVertex);
+                s += '<circle class="in-handle" data-room="' + r.id + '" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (vsel ? 7.5 : 5.5) + '" fill="' + (vsel ? '#0e7490' : '#0b1f3a') + '" stroke="' + (vsel ? '#38bdf8' : r.color) + '" stroke-width="' + (vsel ? 2.5 : 2) + '"/>';
             });
         });
         if (draft.length) {
@@ -13862,7 +14008,7 @@ async function updateDoorType() {
         renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
     }
     function addDraftPoint(p) {
-        const sp = { x: snap(p.x), y: snap(p.y) };
+        const sp = snapPt(p);
         if (draft.length >= 3) {
             const f = draft[0];
             if (Math.hypot(sp.x - f.x, sp.y - f.y) * view.S < 14) { closeDraft(); return; }
@@ -13870,6 +14016,96 @@ async function updateDoorType() {
         if (draft.length >= MAX_CORNERS) { updateInfo('Maximal ' + MAX_CORNERS + ' Ecken je Zimmer – über den goldenen Punkt (oder „Zimmer schließen") schließen.'); return; }
         draft.push(sp); selRoom = null; render();
     }
+    // ===== Punkt-Editor (wie „Komplexe Geometrie"): Klick auf einen Eckpunkt →
+    // beide Wandlängen + Innenwinkel exakt eingeben. Verhalten (lokal): Länge der
+    // ankommenden Wand verschiebt den Punkt selbst, Länge/Winkel der abgehenden Wand
+    // verschiebt den Folgepunkt. Alle weiteren Punkte bleiben stehen. =====
+    let selVertex = -1, vRoomId = null;   // gewählter Eckpunkt + zugehöriges Zimmer
+    const inv = {
+        panel: $('inVertexPanel'),
+        room: $('invRoomName'),
+        idx: $('invIdx'),
+        inNr: $('invWallInNr'),
+        outNr: $('invWallOutNr'),
+        lenIn: $('invLenIn'),
+        lenOut: $('invLenOut'),
+        angle: $('invAngle'),
+        note: $('invNote'),
+        apply: $('invApply'),
+        close: $('invClose')
+    };
+    const INV_NOTE = 'Länge der ankommenden Wand verschiebt diesen Punkt; Länge/Winkel der abgehenden Wand verschiebt den Folgepunkt. Die übrigen Punkte bleiben stehen.';
+    function normSigned(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a <= -Math.PI) a += 2 * Math.PI; return a; }
+    function vRoom() { return (window.innenRooms || []).find(function (r) { return r.id === vRoomId; }); }
+    // Geometrie am Punkt i [m]: Längen beider Wände + Innenwinkel (Innenseite per Polygon-Test)
+    function vertexGeom(r, i) {
+        const pts = r.pts, m = pts.length;
+        const pPrev = pts[(i - 1 + m) % m], p = pts[i], pNext = pts[(i + 1) % m];
+        const lenIn = Math.hypot(p.x - pPrev.x, p.y - pPrev.y);
+        const lenOut = Math.hypot(pNext.x - p.x, pNext.y - p.y);
+        const aU = Math.atan2(pPrev.y - p.y, pPrev.x - p.x);   // Punkt → Vorgänger
+        const aV = Math.atan2(pNext.y - p.y, pNext.x - p.x);   // Punkt → Nachfolger
+        const s = normSigned(aV - aU);
+        const bis = aU + s / 2;                                 // Winkelhalbierende des kleineren Sektors
+        const insideSmall = pointInPoly({ x: p.x + Math.cos(bis) * 0.25, y: p.y + Math.sin(bis) * 0.25 }, pts);
+        const interior = insideSmall ? Math.abs(s) : 2 * Math.PI - Math.abs(s);
+        return { pPrev: pPrev, p: p, pNext: pNext, lenIn: lenIn, lenOut: lenOut, aU: aU, aV: aV, s: s, insideSmall: insideSmall, interior: interior };
+    }
+    function fillVertexPanel(roomId, i) {
+        const r = (window.innenRooms || []).find(function (x) { return x.id === roomId; });
+        if (!inv.panel || !r || r.pts.length < 3 || i < 0 || i >= r.pts.length) return;
+        vRoomId = roomId; selVertex = i;
+        const m = r.pts.length, g = vertexGeom(r, i);
+        if (inv.room) inv.room.textContent = r.name;
+        if (inv.idx) inv.idx.textContent = String(i + 1);
+        if (inv.inNr) inv.inNr.textContent = String(((i - 1 + m) % m) + 1);
+        if (inv.outNr) inv.outNr.textContent = String(i + 1);
+        if (inv.lenIn) inv.lenIn.value = g.lenIn.toFixed(2);
+        if (inv.lenOut) inv.lenOut.value = g.lenOut.toFixed(2);
+        if (inv.angle) inv.angle.value = String(Math.round(g.interior * 180 / Math.PI));
+        if (inv.note) inv.note.textContent = INV_NOTE;
+        inv.panel.style.display = '';
+        render();
+    }
+    function closeVertexPanel(skipRender) {
+        selVertex = -1; vRoomId = null;
+        if (inv.panel) inv.panel.style.display = 'none';
+        if (!skipRender) render();
+    }
+    function applyVertexPanel() {
+        const r = vRoom(), i = selVertex;
+        if (!r || i < 0 || r.pts.length < 3) return;
+        const m = r.pts.length, g = vertexGeom(r, i);
+        const L1 = Math.max(0.3, parseFloat(inv.lenIn && inv.lenIn.value) || g.lenIn);
+        const L2 = Math.max(0.3, parseFloat(inv.lenOut && inv.lenOut.value) || g.lenOut);
+        const thDeg = Math.min(350, Math.max(10, parseFloat(inv.angle && inv.angle.value) || (g.interior * 180 / Math.PI)));
+        const th = thDeg * Math.PI / 180;
+        // 1) Ankommende Wand: Punkt entlang der bestehenden Richtung auf L1 setzen
+        const dirIn = Math.atan2(g.p.y - g.pPrev.y, g.p.x - g.pPrev.x);
+        const np = { x: g.pPrev.x + Math.cos(dirIn) * L1, y: g.pPrev.y + Math.sin(dirIn) * L1 };
+        // 2) Abgehende Wand: Folgepunkt aus L2 + Innenwinkel (gleiche Innenseite wie bisher)
+        const aU = dirIn + Math.PI;                     // vom (neuen) Punkt zurück zum Vorgänger
+        const sgn = (g.s >= 0) ? 1 : -1;
+        const aV = g.insideSmall ? (aU + sgn * th) : (aU - sgn * th);
+        const nn = { x: np.x + Math.cos(aV) * L2, y: np.y + Math.sin(aV) * L2 };
+        // Begrenzung auf den Gebäudeumriss (wie die Zeichenflächen-Grenze in „Komplexe Geometrie")
+        const clampFp = function (q) { if (insideFootprint(q)) return q; const n = nearestOnFootprint(q); return n ? { x: n.q.x, y: n.q.y } : q; };
+        const npC = clampFp(np), nnC = clampFp(nn);
+        const clamped = (npC.x !== np.x || npC.y !== np.y || nnC.x !== nn.x || nnC.y !== nn.y);
+        r.pts[i] = npC;
+        r.pts[(i + 1) % m] = nnC;
+        renderRoomList(); render(); innenChanged();
+        fillVertexPanel(r.id, i);   // neue Ist-Werte anzeigen
+        if (inv.note) inv.note.textContent = clamped
+            ? '⚠ Punkt am Gebäudeumriss begrenzt – Maße wurden entsprechend gekürzt.'
+            : '✓ Übernommen – Werte zeigen den neuen Stand.';
+    }
+    if (inv.apply) inv.apply.addEventListener('click', applyVertexPanel);
+    if (inv.close) inv.close.addEventListener('click', function () { closeVertexPanel(); });
+    [inv.lenIn, inv.lenOut, inv.angle].forEach(function (el) {
+        if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); applyVertexPanel(); } });
+    });
+
     function wireSvg() {
         const svg = $('innenSvg');
         if (!svg) return;
@@ -13886,6 +14122,9 @@ async function updateDoorType() {
                     moveRoom = room.id;
                     moveStartPts = room.pts.map(function (p) { return { x: p.x, y: p.y }; });
                     moveStartM = toM(e);
+                    moveLast = { dx: 0, dy: 0 };
+                    // Alt-Zimmer, die (teilweise) außerhalb liegen, nicht einsperren
+                    moveFree = !moveStartPts.every(insideFootprint);
                     if (selRoom !== room.id) { selRoom = room.id; renderRoomList(); render(); }
                     moved = false; e.preventDefault(); return;
                 }
@@ -13897,7 +14136,7 @@ async function updateDoorType() {
             if (dragRoom) {
                 if (!moved && downAt && Math.abs(p.x - downAt.x) < 0.15 && Math.abs(p.y - downAt.y) < 0.15) return;
                 const room = window.innenRooms.find(function (r) { return r.id === dragRoom; });
-                if (room && dragIdx >= 0) { room.pts[dragIdx] = { x: snap(p.x), y: snap(p.y) }; moved = true; render(); }
+                if (room && dragIdx >= 0) { room.pts[dragIdx] = snapPt(p); moved = true; render(); }
                 return;
             }
             if (moveRoom) {
@@ -13905,8 +14144,23 @@ async function updateDoorType() {
                 const room = window.innenRooms.find(function (r) { return r.id === moveRoom; });
                 if (room) {
                     // Verschiebung ans ½-m-Raster fangen – die Zimmerform bleibt dabei exakt erhalten
-                    const dx = snap(p.x - moveStartM.x), dy = snap(p.y - moveStartM.y);
-                    room.pts = moveStartPts.map(function (q) { return { x: q.x + dx, y: q.y + dy }; });
+                    let dx = snap(p.x - moveStartM.x), dy = snap(p.y - moveStartM.y);
+                    // Wand-Magnet: kleinster Versatz, der einen Eckpunkt exakt auf eine Außenwand legt
+                    let mag = null;
+                    moveStartPts.forEach(function (q) {
+                        const n = nearestOnFootprint({ x: q.x + dx, y: q.y + dy });
+                        if (n && n.d < WALL_SNAP && (!mag || n.d < mag.d)) mag = { d: n.d, vx: n.q.x - (q.x + dx), vy: n.q.y - (q.y + dy) };
+                    });
+                    if (mag) { dx += mag.vx; dy += mag.vy; }
+                    // Begrenzung: Zimmer darf den Umriss nicht verlassen – je Achse zurückfallen
+                    // (Gleiten entlang der Wand), sonst letzter gültiger Stand
+                    const ok = function (ddx, ddy) {
+                        return moveFree || moveStartPts.every(function (q) { return insideFootprint({ x: q.x + ddx, y: q.y + ddy }); });
+                    };
+                    if (ok(dx, dy)) moveLast = { dx: dx, dy: dy };
+                    else if (ok(dx, moveLast.dy)) moveLast = { dx: dx, dy: moveLast.dy };
+                    else if (ok(moveLast.dx, dy)) moveLast = { dx: moveLast.dx, dy: dy };
+                    room.pts = moveStartPts.map(function (q) { return { x: q.x + moveLast.dx, y: q.y + moveLast.dy }; });
                     moved = true; render();
                 }
                 return;
@@ -13916,8 +14170,12 @@ async function updateDoorType() {
         });
         svg.addEventListener('pointerup', function (e) {
             if (dragRoom) {
-                if (moved) { renderRoomList(); innenChanged(); }
-                dragRoom = null; dragIdx = -1; downAt = null; return;
+                const rid = dragRoom, idx = dragIdx, wasDrag = moved;
+                dragRoom = null; dragIdx = -1; downAt = null;
+                if (wasDrag) { renderRoomList(); innenChanged(); }
+                if (!wasDrag) fillVertexPanel(rid, idx);                                   // Klick → Punkt-Editor
+                else if (selVertex >= 0 && vRoomId === rid) fillVertexPanel(rid, selVertex); // nach Drag: Werte aktualisieren
+                return;
             }
             if (moveRoom) {
                 if (moved) { renderRoomList(); innenChanged(); }
@@ -15312,6 +15570,183 @@ window.addEventListener('load', function () {
         d48C.addEventListener('change', dh);
     }
 });
+</script>
+
+<script>
+// ===== Globales Rückgängig (Strg+Z) / Wiederherstellen (Strg+Y bzw. Strg+Shift+Z) =====
+// Überwacht per Event-Delegation ALLE Eingabefelder der Seite (input/select/textarea,
+// auch dynamisch erzeugte in Modals) und setzt die zuletzt bestätigte Eingabe zurück –
+// egal ob das Feld noch den Fokus hat oder in einem anderen Tab liegt.
+// Vollständig additiv: das native Zeichen-Undo eines gerade bearbeiteten Textfelds
+// bleibt unangetastet; sichtbare Grundriss-Editoren behalten ihr eigenes „Punkt zurück".
+(function () {
+    "use strict";
+    var MAX_STEPS = 200;
+    var undoStack = [];
+    var redoStack = [];
+    var restoring = false;
+    var lastValue = new WeakMap();   // Element → zuletzt bestätigter Wert
+    var radioPrev = new WeakMap();   // Radio → zuvor gewähltes Radio derselben Gruppe
+
+    function isTracked(el) {
+        if (!el || !el.tagName) return false;
+        var t = el.tagName;
+        if (t === 'SELECT' || t === 'TEXTAREA') return true;
+        if (t !== 'INPUT') return false;
+        var type = (el.type || 'text').toLowerCase();
+        return ['button', 'submit', 'reset', 'image', 'file', 'password'].indexOf(type) < 0;
+    }
+    function isTextLike(el) {
+        if (!el || !el.tagName) return false;
+        if (el.isContentEditable) return true;
+        if (el.tagName === 'TEXTAREA') return true;
+        if (el.tagName !== 'INPUT') return false;
+        var type = (el.type || 'text').toLowerCase();
+        return ['text', 'number', 'search', 'email', 'url', 'tel', 'password'].indexOf(type) >= 0;
+    }
+    function readValue(el) { return el.type === 'checkbox' ? el.checked : el.value; }
+    function writeValue(el, v) { if (el.type === 'checkbox') el.checked = !!v; else el.value = v; }
+
+    function fireEvents(el) {
+        restoring = true;
+        try {
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        } finally { restoring = false; }
+    }
+
+    // Fokus = Beginn einer Bearbeitung: Ausgangswert merken.
+    document.addEventListener('focusin', function (e) {
+        var el = e.target;
+        if (!isTracked(el)) return;
+        if (el.type === 'radio') {
+            var checked = null;
+            if (el.name) {
+                document.querySelectorAll('input[type="radio"][name="' + CSS.escape(el.name) + '"]')
+                    .forEach(function (r) { if (r.checked) checked = r; });
+            }
+            radioPrev.set(el, checked);
+        } else {
+            lastValue.set(el, readValue(el));
+        }
+    }, true);
+
+    // Bestätigte Änderung → auf den Undo-Stack. Nur echte Nutzereingaben (isTrusted),
+    // damit programmatische Feldbefüllungen (Presets, Projekt laden) nicht einzeln landen.
+    document.addEventListener('change', function (e) {
+        if (restoring || !e.isTrusted) return;
+        var el = e.target;
+        if (!isTracked(el)) return;
+        var entry = null;
+        if (el.type === 'radio') {
+            var prev = radioPrev.has(el) ? radioPrev.get(el) : null;
+            if (prev !== el) entry = { kind: 'radio', el: el, prev: prev };
+        } else if (el.type === 'checkbox') {
+            entry = { kind: 'value', el: el, oldV: !el.checked, newV: el.checked };
+        } else {
+            var oldV = lastValue.has(el) ? lastValue.get(el) : undefined;
+            var newV = readValue(el);
+            if (oldV !== undefined && String(oldV) !== String(newV)) entry = { kind: 'value', el: el, oldV: oldV, newV: newV };
+            lastValue.set(el, newV);
+        }
+        if (!entry) return;
+        undoStack.push(entry);
+        if (undoStack.length > MAX_STEPS) undoStack.shift();
+        redoStack.length = 0;
+    }, true);
+
+    // Einen Schritt anwenden; null, wenn das Element nicht mehr im DOM ist.
+    function applyEntry(entry, undo) {
+        var el = entry.el;
+        if (entry.kind === 'radio') {
+            var target = undo ? entry.prev : el;
+            if (undo && !target) {           // vorher war nichts gewählt → Auswahl aufheben
+                if (!el.isConnected) return null;
+                el.checked = false; fireEvents(el); return el;
+            }
+            if (!target || !target.isConnected) return null;
+            target.checked = true; fireEvents(target); return target;
+        }
+        if (!el.isConnected) return null;
+        writeValue(el, undo ? entry.oldV : entry.newV);
+        lastValue.set(el, readValue(el));
+        fireEvents(el);
+        return el;
+    }
+
+    function step(fromStack, toStack, undo) {
+        while (fromStack.length) {
+            var entry = fromStack.pop();
+            var el = applyEntry(entry, undo);
+            if (el) { toStack.push(entry); announce(el, undo); return; }
+        }
+        toast(undo ? 'Nichts zum Rückgängigmachen' : 'Nichts zum Wiederherstellen');
+    }
+
+    function labelFor(el) {
+        try {
+            if (el.labels && el.labels.length) return el.labels[0].textContent.trim().replace(/\s+/g, ' ');
+            var l = el.closest('label');
+            if (l) return l.textContent.trim().replace(/\s+/g, ' ');
+        } catch (err) {}
+        return el.placeholder || el.name || el.id || 'Eingabe';
+    }
+    function toast(msg) {
+        var t = document.getElementById('undo_toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'undo_toast';
+            t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);'
+                + 'background:#0f2138;color:#e7edf5;border:1px solid #2a4a73;border-radius:10px;'
+                + 'padding:9px 16px;font-size:13px;z-index:99999;box-shadow:0 10px 30px rgba(0,0,0,.5);'
+                + 'pointer-events:none;opacity:0;transition:opacity .15s;max-width:70vw;'
+                + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(t._hide);
+        t._hide = setTimeout(function () { t.style.opacity = '0'; }, 1800);
+    }
+    function announce(el, undo) {
+        var lbl = labelFor(el);
+        if (lbl.length > 60) lbl = lbl.slice(0, 57) + '…';
+        toast((undo ? '↶ Rückgängig: ' : '↷ Wiederhergestellt: ') + lbl);
+        if (el.offsetParent) {               // nur wenn sichtbar (nicht in verstecktem Tab/Modal)
+            try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (err) {}
+            var old = el.style.boxShadow;
+            el.style.boxShadow = '0 0 0 3px rgba(56,189,248,.65)';
+            setTimeout(function () { el.style.boxShadow = old; }, 900);
+        }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+        var k = (e.key || '').toLowerCase();
+        var isUndo = (k === 'z' && !e.shiftKey);
+        var isRedo = (k === 'y') || (k === 'z' && e.shiftKey);
+        if (!isUndo && !isRedo) return;
+
+        // Textfeld mit ungespeicherten Tastatureingaben im Fokus → natives Undo des Browsers.
+        var ae = document.activeElement;
+        if (ae && isTextLike(ae)) {
+            var seed = lastValue.has(ae) ? lastValue.get(ae) : undefined;
+            if (seed === undefined || String(readValue(ae)) !== String(seed)) return;
+        }
+
+        // Sichtbarer Grundriss-/Innenwand-Editor: dessen eigenes „Punkt zurück" hat Vorrang.
+        if (isUndo) {
+            var fpBtn = Array.prototype.find.call(
+                document.querySelectorAll('[data-fp="undo"], [data-in="undo"]'),
+                function (b) { return b.offsetParent !== null; });
+            if (fpBtn) { e.preventDefault(); fpBtn.click(); toast('↶ Punkt zurück (Grundriss)'); return; }
+        }
+
+        e.preventDefault();
+        if (isUndo) step(undoStack, redoStack, true);
+        else step(redoStack, undoStack, false);
+    }, true);
+})();
 </script>
 
 </body>
