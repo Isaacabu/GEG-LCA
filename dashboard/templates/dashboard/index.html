@@ -3219,10 +3219,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <label>Modul-Fläche gesamt (m²) <span class="small" id="pv_panel_count" style="color:#9bb;"></span></label>
                         <input id="pv_roof_available_area" type="number" step="0.1" value="50" readonly title="Automatisch aus den PV-Modulen im 3D-Modell">
                     </div>
-                    <div class="field">
-                        <label>PV-Anteil (%)</label>
-                        <input id="pv_roof_percentage" type="number" step="1" min="0" max="100" value="80" readonly title="Einzelmodul-Modus: 100 % (Fläche kommt direkt aus den Modulen)">
-                    </div>
+                    <input id="pv_roof_percentage" type="hidden" value="100">
                     <div class="grid-2">
                         <div class="field">
                             <label>Dachneigung – Standard (°)
@@ -3254,31 +3251,17 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Süd-Fassade (senkrecht, Süd)</h4>
                     <div class="field">
-                        <label>Verfügbare Fläche (m²)</label>
-                        <input id="pv_ns_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Fassaden-PV ist optional – hier die für PV nutzbare Süd-Fassadenfläche eintragen.">
+                        <label>PV-Fläche (m²)</label>
+                        <input id="pv_ns_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Für PV genutzte Süd-Fassadenfläche (optional).">
                     </div>
-                    <div class="field">
-                        <label>PV-Anteil (%)</label>
-                        <input id="pv_ns_facade_percentage" type="number" step="1" min="0" max="100" value="40">
-                    </div>
-                    <div class="field">
-                        <label style="color: #999;">PV-Fläche (auto)</label>
-                        <div class="value-display" id="pv_ns_facade_area">—</div>
-                    </div>
+                    <input id="pv_ns_facade_percentage" type="hidden" value="100">
 
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Ost/West-Fassade (senkrecht)</h4>
                     <div class="field">
-                        <label>Verfügbare Fläche (m²)</label>
-                        <input id="pv_ew_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Fassaden-PV ist optional – hier die für PV nutzbare Ost/West-Fassadenfläche eintragen.">
+                        <label>PV-Fläche (m²)</label>
+                        <input id="pv_ew_facade_available" type="number" step="0.1" value="0" oninput="if(typeof calculatePV==='function')calculatePV();" title="Für PV genutzte Ost/West-Fassadenfläche (optional).">
                     </div>
-                    <div class="field">
-                        <label>PV-Anteil (%)</label>
-                        <input id="pv_ew_facade_percentage" type="number" step="1" min="0" max="100" value="30">
-                    </div>
-                    <div class="field">
-                        <label style="color: #999;">PV-Fläche (auto)</label>
-                        <div class="value-display" id="pv_ew_facade_area">—</div>
-                    </div>
+                    <input id="pv_ew_facade_percentage" type="hidden" value="100">
 
                     <!-- „Flächen berechnen"-Button entfernt: Flächen werden automatisch aktualisiert (Live-Update). -->
                 </div>
@@ -8576,39 +8559,230 @@ function renderSystemViz(data) {
 
 // Druck-/PDF-Bericht: kompakte Zusammenfassung aus den aktuellen Werten in eigenem Fenster
 function generateReport() {
+    // Werte aus Eingabefeldern/Anzeigen (Text) …
     const t = function (id) {
         const el = document.getElementById(id);
         if (!el) return '—';
         const v = (el.tagName === 'INPUT' || el.tagName === 'SELECT') ? el.value : el.innerText;
         return (v == null ? '' : String(v)).trim() || '—';
     };
-    const num = function (v, u) { const n = parseFloat(v); return isFinite(n) ? (Math.round(n).toLocaleString('de-DE') + (u ? ' ' + u : '')) : '—'; };
-    const sys = window.lastSystemResult || {};
+    const selText = function (id) { const el = document.getElementById(id); if (!el || el.tagName !== 'SELECT' || el.selectedIndex < 0) return '—'; return (el.options[el.selectedIndex].textContent || '').trim() || '—'; };
+    // … und aus den berechneten Ergebnis-Objekten (Zahlen)
+    const env = window.lastEnvelopeResult || {}, sys = window.lastSystemResult || {}, pv = window.pvLastResult || null, bal = window.lastBalanceResult || {};
+    const hb = env.heat_balance || {}, tr = hb.transmission || {}, din = sys.din || {};
+
+    const de = function (v, dec) { const n = parseFloat(v); return isFinite(n) ? n.toLocaleString('de-DE', { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 }) : null; };
+    const val = function (v, unit, dec) { const s = de(v, dec); return s == null ? '—' : (s + (unit ? ' ' + unit : '')); };
+    const table = function (pairs) { return '<table>' + pairs.filter(Boolean).map(function (p) { return '<tr><td>' + p[0] + '</td><td>' + p[1] + '</td></tr>'; }).join('') + '</table>'; };
+    const sec = function (title, inner, note) { return '<section><h2>' + title + '</h2>' + inner + (note ? '<p class="note">' + note + '</p>' : '') + '</section>'; };
+
     const proj = t('project_name'), loc = ((document.getElementById('project_location') || {}).value || t('location_summary')), btype = t('building_type_summary');
-    const rows = function (pairs) { return pairs.map(function (p) { return '<tr><td>' + p[0] + '</td><td>' + p[1] + '</td></tr>'; }).join(''); };
+    const variant = env.building_type_variant || t('building_type_variant');
+    let stamp = '—'; try { stamp = new Date().toLocaleString('de-DE'); } catch (e) {}
 
-    const geom = rows([['Brutto-Rauminhalt', t('geometry_volume')], ['BGF', t('geometry_bgf')], ['Hüllfläche A', t('geometry_envelope_area')], ['Gesamthöhe', t('geometry_total_height')]]);
-    const huelle = rows([['U-Wert Außenwand', t('wall_u_computed_display')], ['U-Wert Dach', t('roof_u_display')], ['U-Wert Boden', t('floor_u_display')], ['Heizwärmebedarf netto', t('adjusted_heat_result')]]);
-    const anlage = rows([
-        ['Endenergie gesamt', sys.total_end_energy != null ? num(sys.total_end_energy, 'kWh/a') : t('system_total_end')],
-        ['Primärenergie', sys.primary_energy != null ? num(sys.primary_energy, 'kWh/a') : t('system_primary')],
-        ['Primärenergie q_p', sys.specific_primary_energy != null ? num(sys.specific_primary_energy, 'kWh/(m²·a)') : t('system_spec_primary')],
-        ['CO₂-Emissionen', sys.co2_emissions != null ? num(sys.co2_emissions, 'kg CO₂e/a') : t('system_co2')],
-        ['Bewertung', sys.system_label || t('ea_rating')]
-    ]);
-    const pvInst = t('pv_installed_kwp');
-    const pv = (pvInst && pvInst !== '—') ? rows([['PV-Leistung', pvInst], ['PV-Ertrag', t('pv_annual_yield')], ['CO₂-Einsparung PV', t('pv_co2_savings')]]) : '';
+    const evc = parseFloat(sys.specific_end_energy);
+    const klasse = (isFinite(evc) && typeof eaClassFor === 'function') ? eaClassFor(evc).cls : '—';
+    const computed = isFinite(parseFloat(sys.total_end_energy));
 
-    const html = '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>GEG-LCA Bericht – ' + proj + '</title>'
-        + '<style>body{font-family:Arial,Helvetica,sans-serif;color:#1e293b;margin:32px;}h1{font-size:20px;margin:0 0 2px;}h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#0d9488;border-bottom:2px solid #0d9488;padding-bottom:3px;margin:22px 0 8px;}table{width:100%;border-collapse:collapse;font-size:13px;}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;}td:first-child{color:#475569;width:60%;}td:last-child{text-align:right;font-weight:600;}.sub{color:#64748b;font-size:12px;margin-bottom:14px;}.foot{margin-top:26px;color:#94a3b8;font-size:11px;}@media print{body{margin:14mm;}}</style>'
-        + '</head><body>'
-        + '<h1>GEG-LCA Bericht</h1><div class="sub">' + proj + ' · ' + loc + ' · ' + btype + '</div>'
-        + '<h2>Gebäudedaten</h2><table>' + geom + '</table>'
-        + '<h2>Gebäudehülle</h2><table>' + huelle + '</table>'
-        + '<h2>Anlagentechnik</h2><table>' + anlage + '</table>'
-        + (pv ? '<h2>Photovoltaik</h2><table>' + pv + '</table>' : '')
-        + '<div class="foot">Erstellt mit GEGenius · Berechnung nach DIN V 18599 / GEG 2024. Werte sind Näherungen ohne Gewähr.</div>'
-        + '</body></html>';
+    const HEAT = { gas: 'Gas-Brennwertkessel', oel: 'Öl-Brennwertkessel', oil: 'Öl-Brennwertkessel', pellet: 'Pelletkessel', pellets: 'Pelletkessel', holz: 'Biomasse/Holz', biomasse: 'Biomasse/Holz', heatpump: 'Wärmepumpe', waermepumpe: 'Wärmepumpe', fernwaerme: 'Fernwärme', districtheating: 'Fernwärme' };
+    const hk = (document.getElementById('heating_system') || {}).value || '';
+    const heatLabel = HEAT[hk] || (hk || '—');
+    const vSel = document.getElementById('ventilation_system');
+    const vLabel = (vSel && vSel.selectedIndex >= 0) ? ((vSel.options[vSel.selectedIndex].dataset.label || vSel.options[vSel.selectedIndex].textContent || '').trim() || '—') : '—';
+
+    // ───────── 1) Gebäudedaten (Geometrie & Nutzung) ─────────
+    const secDaten = sec('1 · Gebäudedaten (Geometrie & Nutzung)', table([
+        ['Brutto-Rauminhalt V<sub>e</sub>', t('geometry_volume')],
+        ['Bezugsfläche BGF', t('geometry_bgf')],
+        ['Wärmeübertragende Hüllfläche A', t('geometry_envelope_area')],
+        ['Gesamthöhe', t('geometry_total_height')],
+        ['Geschosse', t('building_floors')],
+        ['Geschosshöhe', val(t('building_floor_height'), 'm', 2)],
+        ['Personen im Gebäude', env.n_persons != null ? val(env.n_persons, 'Pers.', 1) : t('n_persons_input')],
+        ['Nutzungsprofil (DIN V 18599-10)', (env.usage_label || '—') + (variant && variant !== '—' ? ' – ' + variant : '')],
+        ['Nutzungsstunden', val(t('usage_hours'), 'h/a', 0)],
+        ['Raum-Solltemperatur θ<sub>i</sub>', val(t('indoor_setpoint'), '°C', 1)],
+        ['Interne Gewinne (Dichte)', env.internal_gains_density != null ? val(env.internal_gains_density, 'W/m²', 1) : '—'],
+        ['Standort / Klimaregion', env.climate_location_label || (t('project_state') + ' / ' + t('project_city'))],
+        ['Höhe über NN', val(t('elevation_m'), 'm', 0)],
+        ['Wärmebrückenzuschlag ΔU<sub>WB</sub>', val(t('delta_u_wb'), 'W/(m²·K)', 2)]
+    ]));
+
+    // ───────── 2) Gebäudehülle (U-Werte & Transmission) ─────────
+    const secHuelle = sec('2 · Gebäudehülle – U-Werte & Transmission', table([
+        ['U-Wert Außenwand', t('wall_u_computed_display')],
+        ['U-Wert Dach', t('roof_u_display')],
+        ['U-Wert Boden', t('floor_u_display')],
+        ['H<sub>T</sub> Wände', t('wall_total_result')],
+        ['H<sub>T</sub> Dach', t('roof_result')],
+        ['H<sub>T</sub> Boden', t('floor_result')],
+        ['H<sub>T</sub> Fenster', t('window_total_result')],
+        ['H<sub>T</sub> Türen', t('door_total_result')],
+        ['H<sub>T</sub> Wärmebrücken', t('thermal_bridge_result')],
+        ['H<sub>T</sub> Hülle gesamt', t('envelope_total_result')],
+        ['Solare Gewinne Q<sub>S</sub> (Fenster)', val(env.solar_gain_kwh, 'kWh/a', 0)]
+    ]), 'U-Werte aus den Schichtaufbauten (λ nach DIN 4108-4). Transmissions-Wärmeverluste H<sub>T</sub> in W/K.');
+
+    // ───────── 3) Wärmebilanz (DIN V 18599-2) ─────────
+    let secBilanz = '';
+    if (hb && hb.sinks_total_kwh != null) {
+        const etaPct = hb.gains_total_kwh > 0 ? Math.round(hb.usable_gains_kwh / hb.gains_total_kwh * 100) : 0;
+        secBilanz = sec('3 · Wärmebilanz Q<sub>h,b</sub> (DIN V 18599-2)', table([
+            ['<b>Wärmesenken (Verluste)</b>', ''],
+            ['Wände (A·U)', val(tr.walls, 'kWh/a', 0)],
+            ['Dach (A·U)', val(tr.roof, 'kWh/a', 0)],
+            ['Boden (A·U, F<sub>x</sub>)', val(tr.floor, 'kWh/a', 0)],
+            ['Fenster', val(tr.windows, 'kWh/a', 0)],
+            ['Türen', val(tr.doors, 'kWh/a', 0)],
+            ['Wärmebrücken ΔU<sub>WB</sub>·A', val(tr.thermal_bridges, 'kWh/a', 0)],
+            ['Lüftung H<sub>V</sub> = n·V·0,34', val(hb.ventilation_kwh, 'kWh/a', 0)],
+            ['<b>Summe Wärmesenken</b>', '<b>' + val(hb.sinks_total_kwh, 'kWh/a', 0) + '</b>'],
+            ['<b>Wärmequellen (Gewinne)</b>', ''],
+            ['Solare Gewinne Q<sub>S</sub>', val(hb.gains && hb.gains.solar, 'kWh/a', 0)],
+            ['Opake solare Gewinne (Dach)', val(hb.gains && hb.gains.opaque_solar, 'kWh/a', 0)],
+            ['Interne Gewinne Q<sub>i</sub>', val(hb.gains && hb.gains.internal, 'kWh/a', 0)],
+            ['<b>Summe Wärmequellen</b>', '<b>' + val(hb.gains_total_kwh, 'kWh/a', 0) + '</b>'],
+            ['Nutzbare Gewinne (Ausnutzungsgrad η)', val(hb.usable_gains_kwh, 'kWh/a', 0) + ' (' + etaPct + ' %)'],
+            ['<b>Heizwärmebedarf Q<sub>h,b</sub></b>', '<b>' + val(hb.heat_demand_kwh, 'kWh/a', 0) + '</b>'],
+            ['Heizwärmebedarf je m²', val(env.specific_heat_demand, 'kWh/(m²·a)', 1)],
+            ['Bewertung Gebäudehülle', env.rating_label || '—']
+        ]), 'Q<sub>h</sub> = (H<sub>T</sub> + H<sub>V</sub>)·(θ<sub>i</sub> − θ<sub>e</sub>) − η·(Q<sub>S</sub> + Q<sub>i</sub>). Referenzklima Potsdam, Monatsbilanzverfahren.');
+    }
+
+    // ───────── 4) Anlagentechnik (DIN V 18599-5/-6/-8) ─────────
+    const anlageRows = [
+        ['Heizsystem', heatLabel],
+        ['Wärmeübergabe', selText('heat_emission')],
+        ['Lage Verteilleitungen', selText('heat_distribution_location')],
+        (hk === 'heatpump' ? ['COP (A2/W35)', val(t('cop'), '', 1)] : null),
+        (din.jaz ? ['Jahresarbeitszahl (JAZ)', val(din.jaz, '', 2)] : null),
+        ['Lüftungsanlage', vLabel],
+        ['Endenergie Heizung', val(sys.heating_end_energy, 'kWh/a', 0)],
+        ['Endenergie Warmwasser', val(sys.hotwater_end_energy, 'kWh/a', 0)],
+        ['Hilfsenergie Strom', val(sys.auxiliary_electricity, 'kWh/a', 0)],
+        (sys.cooling_end_energy > 0 ? ['Endenergie Kühlung', val(sys.cooling_end_energy, 'kWh/a', 0)] : null),
+        (din.lighting && din.lighting.applicable ? ['Endenergie Beleuchtung (Teil 4)', val(sys.lighting_end_energy, 'kWh/a', 0)] : null),
+        ['<b>Endenergie gesamt Q<sub>f</sub></b>', '<b>' + val(sys.total_end_energy, 'kWh/a', 0) + '</b>'],
+        ['Endenergie je m²', val(sys.specific_end_energy, 'kWh/(m²·a)', 1)],
+        ['Primärenergie Q<sub>p</sub>', val(sys.primary_energy, 'kWh/a', 0)],
+        ['Primärenergie q<sub>p</sub>', val(sys.specific_primary_energy, 'kWh/(m²·a)', 1)],
+        ['CO₂-Emissionen (Anlagentechnik)', val(sys.co2_emissions, 'kg CO₂e/a', 0)],
+        ['<b>Energieeffizienzklasse</b>', '<b>' + klasse + '</b>'],
+        ['Bewertung Anlagentechnik', sys.system_label || '—']
+    ];
+    const secAnlage = sec('4 · Anlagentechnik (DIN V 18599-5/-6/-8)', table(anlageRows),
+        'Primärenergie- und CO₂-Faktoren nach GEG 2024 (Anlage 8/9). Endenergie Hi-bezogen.');
+
+    // ───────── 5) Photovoltaik (DIN V 18599-9) ─────────
+    let secPV = '';
+    if (pv && parseFloat(pv.installed_kwp) > 0) {
+        let ori = '';
+        if (Array.isArray(pv.by_orientation)) {
+            const r = pv.by_orientation.filter(function (o) { return o.area_m2 > 0; }).map(function (o) {
+                return '<tr><td>' + o.label + '</td><td>' + val(o.area_m2, '', 1) + '</td><td>' + val(o.kwp, '', 2) + '</td><td>' + val(o.annual_kwh, '', 0) + '</td><td>' + val(o.specific_kwh_kwp, '', 0) + '</td></tr>';
+            }).join('');
+            if (r) ori = '<table class="multi"><thead><tr><th>Ausrichtung</th><th>m²</th><th>kWp</th><th>kWh/a</th><th>kWh/kWp</th></tr></thead><tbody>' + r + '</tbody></table>';
+        }
+        secPV = sec('5 · Photovoltaik (DIN V 18599-9)', table([
+            ['Installierte Leistung', val(pv.installed_kwp, 'kWp', 2)],
+            ['Zelltyp / k<sub>pk</sub>', selText('pv_module_type') + (pv.k_pk != null ? ' · ' + val(pv.k_pk * 1000, 'Wp/m²', 0) : '')],
+            ['Montage / f<sub>perf</sub>', selText('pv_mounting') + (pv.f_perf != null ? ' · ' + val(pv.f_perf, '', 2) : '')],
+            ['Neigung / Ausrichtung', val(pv.roof_tilt_deg, '°', 0) + ' / ' + val(pv.roof_azimuth_deg, '° (Abw. Süd)', 0)],
+            ['Klimaregion (Strahlungsfaktor)', (pv.climate_region_label || '—') + (pv.climate_radiation_factor != null ? ' · ' + val(pv.climate_radiation_factor, '', 2) : '')],
+            ['<b>Jahresertrag</b>', '<b>' + val(pv.annual_yield_kwh, 'kWh/a', 0) + '</b>'],
+            ['Spezifischer Ertrag', val(pv.specific_yield_kwh_kwp, 'kWh/(kWp·a)', 0)],
+            ['Eigenverbrauch', val(pv.self_consumption_kwh, 'kWh/a', 0)],
+            ['Netzeinspeisung', val(pv.feed_in_kwh, 'kWh/a', 0)],
+            ['CO₂-Einsparung', val(pv.co2_savings_kg, 'kg CO₂e/a', 0)],
+            ['Finanzieller Nutzen', val(pv.total_benefit_eur, '€/a', 0)]
+        ]) + ori);
+    }
+
+    // ───────── 6) Energiebilanz (Gesamtgebäude) ─────────
+    let secGesamt = '';
+    if (bal && bal.total_end_energy_kwh != null) {
+        secGesamt = sec('6 · Energiebilanz – Gesamtgebäude', table([
+            ['Haushaltsstrom', val(t('household_electricity'), 'kWh/a', 0)],
+            ['Endenergie gesamt (inkl. Haushaltsstrom)', val(bal.total_end_energy_kwh, 'kWh/a', 0)],
+            ['davon Brennstoff/Fernwärme', val(bal.fuel_end_kwh, 'kWh/a', 0)],
+            ['Strombedarf gesamt', val(bal.total_electricity_gross_kwh, 'kWh/a', 0)],
+            ['Netzbezug', val(bal.grid_electricity_net_kwh, 'kWh/a', 0)],
+            ['PV-Eigenverbrauch', val(bal.pv_offset_kwh, 'kWh/a', 0)],
+            ['<b>CO₂-Emissionen gesamt</b>', '<b>' + val(bal.co2_total_kg, 'kg CO₂e/a', 0) + '</b>'],
+            ['Energieeffizienzklasse (GEG)', klasse]
+        ]));
+    }
+
+    // ───────── 7) Jahres-Energiekosten (Schätzung) ─────────
+    let secKosten = '';
+    if (bal && bal.total_end_energy_kwh != null) {
+        const elPrice = parseFloat(t('pv_electricity_price')) || 0.35;
+        const fuelPrice = parseFloat(t('bilanz_fuel_price')); const fp = isNaN(fuelPrice) ? 0.10 : fuelPrice;
+        const feedTariff = parseFloat(t('pv_feed_in_tariff')) || 0.08;
+        const cGrid = (bal.grid_electricity_net_kwh || 0) * elPrice;
+        const cFuel = (bal.fuel_end_kwh || 0) * fp;
+        const cFeed = (pv && pv.feed_in_kwh ? pv.feed_in_kwh : 0) * feedTariff;
+        const cNet = cGrid + cFuel - cFeed;
+        secKosten = sec('7 · Jahres-Energiekosten (Schätzung)', table([
+            ['Netzstrombezug (' + de(elPrice, 2) + ' €/kWh)', val(cGrid, '€/a', 0)],
+            ['Brennstoff/Fernwärme (' + de(fp, 2) + ' €/kWh)', val(cFuel, '€/a', 0)],
+            ['− PV-Einspeisevergütung (' + de(feedTariff, 2) + ' €/kWh)', (cFeed > 0 ? '−' : '') + val(cFeed, '€/a', 0)],
+            ['<b>Jahreskosten netto</b>', '<b>' + val(cNet, '€/a', 0) + '</b>']
+        ]), 'Grobe Schätzung, konstante Arbeitspreise – ohne Grundgebühren, Preissteigerung oder Lastgang.');
+    }
+
+    // ───────── 8) Ökobilanz / LCA (ISO 14040/44) ─────────
+    let secLCA = '';
+    const lcaTotal = t('lca_hero_total');
+    if (lcaTotal && lcaTotal !== '—') {
+        secLCA = sec('8 · Ökobilanz / LCA (ISO 14040/14044, GWP)', table([
+            ['Betrachtungszeitraum', val(t('lca_years'), 'Jahre', 0)],
+            ['Herstellung A1–A3 (grau, einmalig)', t('lca_embodied')],
+            ['Geräte & Ausstattung B4', t('lca_dev')],
+            ['Lebensende C (Schätzung)', t('lca_eol')],
+            ['Betrieb B6 pro Jahr', t('lca_op_year')],
+            ['Betrieb B6 über Zeitraum', t('lca_op_period')],
+            ['<b>Gesamt-GWP über Zeitraum</b>', '<b>' + lcaTotal + '</b>'],
+            ['Spezifisch', t('lca_hero_spec')]
+        ]), 'Herstellung A1–A3 aus ÖKOBAUDAT 2024, Betrieb B6 aus der DIN-V-18599-Energiebilanz. Vereinfacht (eine Wirkungskategorie GWP, reduzierter Modulsatz).');
+    }
+
+    const warn = computed ? '' : '<div class="warn"><b>Hinweis:</b> Die Anlagentechnik wurde noch nicht vollständig berechnet – einige Werte fehlen. Öffne die Tabs „Gebäudehülle" und „Anlagentechnik", damit die automatische Berechnung durchläuft, und erzeuge den Bericht erneut.</div>';
+
+    const html = '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>GEG- &amp; Ökobilanz-Bericht – ' + proj + '</title>'
+        + '<style>'
+        + "body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:#1e293b;margin:26px;font-size:12.5px;line-height:1.45;}"
+        + '.report-head{border-bottom:3px solid #0d9488;padding-bottom:10px;margin-bottom:4px;}'
+        + 'h1{font-size:22px;margin:0;color:#0f172a;font-weight:800;}h1 b{color:#10b981;}'
+        + '.meta{color:#475569;font-size:12px;margin:5px 0 0;}'
+        + '.klasse{display:inline-block;background:#0d9488;color:#fff;font-weight:800;border-radius:6px;padding:1px 9px;margin-left:4px;}'
+        + 'section{margin-top:16px;page-break-inside:avoid;}'
+        + 'h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:#0d9488;border-bottom:1px solid #99e0d6;padding-bottom:3px;margin:0 0 6px;}'
+        + 'table{width:100%;border-collapse:collapse;font-size:12.5px;margin:0 0 2px;}'
+        + 'td{padding:4px 8px;border-bottom:1px solid #eef2f6;vertical-align:top;}'
+        + 'td:first-child{color:#475569;width:58%;}td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;}'
+        + 'table.multi td,table.multi th{text-align:right;width:auto;}'
+        + 'table.multi td:first-child,table.multi th:first-child{text-align:left;color:#475569;font-weight:600;}'
+        + 'th{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid #cbd5e1;padding:4px 8px;}'
+        + '.note{color:#64748b;font-size:11px;margin:3px 0 0;}'
+        + '.warn{background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:6px;font-size:12px;margin:12px 0;}'
+        + '.foot{margin-top:22px;padding-top:8px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:10.5px;line-height:1.5;}'
+        + '@media print{body{margin:12mm;}section{page-break-inside:avoid;}}'
+        + '</style></head><body>'
+        + '<div class="report-head"><h1>GEG<b>enius</b> · GEG- &amp; Ökobilanz-Bericht</h1>'
+        + '<div class="meta"><b>Projekt:</b> ' + proj + '  ·  <b>Standort:</b> ' + loc + '  ·  <b>Gebäudetyp:</b> ' + btype + (variant && variant !== '—' ? ' (' + variant + ')' : '')
+        + '  ·  <b>Effizienzklasse:</b> <span class="klasse">' + klasse + '</span></div>'
+        + '<div class="meta">Erstellt am ' + stamp + ' · Berechnung nach DIN V 18599 & GEG 2024</div></div>'
+        + warn
+        + secDaten + secHuelle + secBilanz + secAnlage + secPV + secGesamt + secKosten + secLCA
+        + '<div class="foot">'
+        + '<b>Methodik & Datenquellen:</b> Heizwärmebedarf nach DIN V 18599-2 (Monatsbilanz, Referenzklima Potsdam, Nutzungsprofile Teil 10); '
+        + 'Anlagentechnik nach Teil 5/6/8, Beleuchtung Teil 4, PV Teil 9. Primärenergie- und CO₂-Faktoren nach GEG 2024 (Anlage 8/9). '
+        + 'U-/λ-Werte nach DIN 4108-4. LCA-Herstellungswerte (A1–A3) aus ÖKOBAUDAT 2024; Betrieb (B6) aus der Energiebilanz. '
+        + 'DIN-4108-Nachweise (Mindest-/sommerlicher Wärmeschutz, Tauwasser, Luftdichtheit) siehe Tab „DIN 4108" der Anwendung.<br>'
+        + 'Erstellt mit GEGenius. Alle Werte sind normbasierte Näherungen ohne Gewähr; keine ersetzende Leistung nach GEG §88.'
+        + '</div></body></html>';
+
     const w = window.open('', '_blank');
     if (!w) { alert('Bitte Pop-ups für diese Seite erlauben, um den Bericht zu öffnen.'); return; }
     w.document.open(); w.document.write(html); w.document.close(); w.focus();
@@ -8738,9 +8912,9 @@ function updatePVAreaCalculations() {
     const nsArea = nsAvailable * nsPct;
     const ewArea = ewAvailable * ewPct;
 
-    document.getElementById('pv_roof_area').innerText = roofArea.toFixed(1) + ' m²';
-    document.getElementById('pv_ns_facade_area').innerText = nsArea.toFixed(1) + ' m²';
-    document.getElementById('pv_ew_facade_area').innerText = ewArea.toFixed(1) + ' m²';
+    const _ra = document.getElementById('pv_roof_area'); if (_ra) _ra.innerText = roofArea.toFixed(1) + ' m²';
+    const _na = document.getElementById('pv_ns_facade_area'); if (_na) _na.innerText = nsArea.toFixed(1) + ' m²';
+    const _ea = document.getElementById('pv_ew_facade_area'); if (_ea) _ea.innerText = ewArea.toFixed(1) + ' m²';
 
     // Modell (2D-Schema und ggf. aktives 3D-Modell) neu zeichnen
     try { pvDrawModel(); } catch (e) {}
