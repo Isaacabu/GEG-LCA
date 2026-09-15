@@ -141,6 +141,20 @@
     <a class="btn btn-primary" href="/projekt/">Rechner öffnen →</a>
   </div>
 
+  <div class="new-card" id="ifcImportCard">
+    <div>
+      <div class="nc-title">📥 IFC-Modell importieren</div>
+      <div class="sub">Liest Projektname, Geschosszahl und Grundfläche aus einer .ifc-Datei aus und befüllt damit
+        „Gebäudedaten" vor. <b>Keine Wand-/Fenstergeometrie</b> – der Grundriss wird danach wie gewohnt im
+        „Komplexe Geometrie"-Editor gezeichnet.</div>
+      <div id="ifcImportStatus" class="sub" style="margin-top:6px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="file" id="ifcFileInput" accept=".ifc" style="display:none;">
+      <button type="button" class="btn btn-primary" id="ifcImportBtn" onclick="document.getElementById('ifcFileInput').click()">Datei wählen …</button>
+    </div>
+  </div>
+
   <h2 class="sec">Gespeicherte Projekte</h2>
   <div id="projects"></div>
 </div>
@@ -153,6 +167,45 @@
     function save(a) { try { localStorage.setItem(LS, JSON.stringify(a)); } catch (e) {} }
     function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function fmt(x, u) { return (x == null || !isFinite(x)) ? '—' : (Math.round(x * 10) / 10).toLocaleString('de-DE') + (u || ''); }
+
+    // ---- IFC-Import (Phase I1: Grunddaten-Extraktion) ----
+    function getCookie(name) {
+        const prefix = name + '=';
+        for (const part of document.cookie.split(';')) {
+            const c = part.trim();
+            if (c.startsWith(prefix)) return decodeURIComponent(c.slice(prefix.length));
+        }
+        return null;
+    }
+    const ifcInput = document.getElementById('ifcFileInput');
+    const ifcStatus = document.getElementById('ifcImportStatus');
+    const ifcBtn = document.getElementById('ifcImportBtn');
+    if (ifcInput) ifcInput.addEventListener('change', async function () {
+        const file = ifcInput.files && ifcInput.files[0];
+        if (!file) return;
+        ifcStatus.textContent = 'Lese IFC-Datei …';
+        ifcBtn.disabled = true;
+        const formData = new FormData();
+        formData.append('ifc_file', file);
+        try {
+            const res = await fetch('/import-ifc/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: formData
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error((data.errors && data.errors[0]) || 'Import fehlgeschlagen');
+            }
+            localStorage.setItem('geglca_ifc_import_v1', JSON.stringify(data));
+            ifcStatus.textContent = '✓ „' + data.building_name + '" gelesen (' + data.storeys + ' Geschosse' +
+                (data.bgf != null ? ', ' + data.bgf + ' m² Grundfläche' : '') + ') – öffne Rechner …';
+            setTimeout(function () { location.href = '/projekt/?ifc_import=1'; }, 600);
+        } catch (err) {
+            ifcStatus.textContent = '✗ ' + err.message;
+            ifcBtn.disabled = false;
+        }
+    });
 
     window.openProject = function (id) { location.href = '/projekt/?project=' + encodeURIComponent(id); };
     window.deleteProject = function (id) { if (!confirm('Projekt wirklich löschen?')) return; save(load().filter(p => String(p.id) !== String(id))); render(); };

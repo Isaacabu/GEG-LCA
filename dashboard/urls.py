@@ -31,6 +31,7 @@ urlpatterns = [
     path("din4108-materialien/", views.din4108_materialien),
     path("upload-ekobaudat/", views.upload_ekobaudat_csv, name="upload-ekobaudat"),
     path("upload-ekobaudat-csv/", views.upload_ekobaudat_csv, name="upload-ekobaudat-csv"),
+    path("import-ifc/", views.import_ifc, name="import-ifc"),
     
     # REST API Routes
     path("", include(router.urls)),

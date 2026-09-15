@@ -63,6 +63,7 @@ def json_calculate_view(func):
     return wrapper
 
 
+@ensure_csrf_cookie
 def home(request):
     """Dashboard-Startseite: gespeicherte Projekte ansehen + neues Projekt anlegen."""
     return render(request, "dashboard/dashboard_home.html")
@@ -430,6 +431,36 @@ def upload_ekobaudat_csv(request):
         "total": result.get("rows", imported + updated + skipped),
         "message": f"{imported} neue Materialien importiert, {updated} aktualisiert",
     })
+
+
+def import_ifc(request):
+    """IFC-Modell-Import, Phase I1 (Grunddaten-Extraktion).
+
+    Multipart-POST mit Feld 'ifc_file'. Liest nur Projektname/Geschosszahl/
+    Grundfläche aus (dashboard/services/ifc_import.py) - keine Wand-/Fenster-
+    Geometrie (Phase I2, Folgeticket). Aufgerufen von der Start-Seite
+    (dashboard_home.html), nicht vom Rechner selbst.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"ok": False, "errors": ["Only POST allowed"]}, status=400)
+
+    upload = request.FILES.get('ifc_file')
+    if upload is None:
+        return JsonResponse({"ok": False, "errors": ["Keine Datei gefunden."]}, status=400)
+    if not (upload.name or "").lower().endswith(".ifc"):
+        return JsonResponse({"ok": False, "errors": ["Nur .ifc-Dateien werden unterstützt."]}, status=400)
+
+    from .services.ifc_import import extract_basic_data, IfcImportError
+
+    try:
+        result = extract_basic_data(upload.read())
+    except IfcImportError as e:
+        return JsonResponse({"ok": False, "errors": [str(e)]}, status=400)
+    except Exception:
+        logger.exception("Unerwarteter Fehler beim IFC-Import")
+        return JsonResponse({"ok": False, "errors": ["Unerwarteter interner Fehler beim IFC-Import."]}, status=500)
+
+    return JsonResponse({"ok": True, **result})
 
 
 # ===== BAUTECHNIK API (REST Framework) =====

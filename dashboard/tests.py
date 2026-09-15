@@ -34,6 +34,7 @@ from dashboard.services.din4108 import (
 from dashboard.services.din18599 import calculate_heat_demand
 from dashboard.services.din18599_anlage import F_CO2, F_PRIMARY, calculate_system_din
 from dashboard.services.din18599_multizone import calculate_heat_demand_multizone
+from dashboard.services.ifc_import import IfcImportError, extract_basic_data
 
 # Referenz-EFH (150 m², GEG-nah) — identisch mit scripts/verify_din18599.py
 # und scripts/verify_din18599_anlage.py. Handrechnung H_T siehe Docstring dort.
@@ -361,3 +362,67 @@ class Din18599MultizoneTests(SimpleTestCase):
         r = calculate_heat_demand_multizone([{**self.WHOLE, "zone_name": "Kaputt", "bgf": 0}])
         self.assertFalse(r["ok"])
         self.assertTrue(any("Kaputt" in e for e in r["errors"]))
+
+
+def _build_test_ifc(name="Testgebaeude", n_storeys=2, space_areas=(60.0, 55.0), project_name="Projekt"):
+    """Baut ein minimales, gültiges IFC4-Modell in-memory (kein Fixture-File nötig) -
+    genug Entitäten, damit extract_basic_data() etwas zum Extrahieren hat. Räume/
+    Geschosse müssen für by_type() nicht räumlich verschachtelt sein."""
+    import ifcopenshell
+    import ifcopenshell.guid as guid
+
+    f = ifcopenshell.file(schema="IFC4")
+    f.create_entity("IfcProject", GlobalId=guid.new(), Name=project_name)
+    if name is not None:
+        f.create_entity("IfcBuilding", GlobalId=guid.new(), Name=name)
+    for i in range(n_storeys):
+        f.create_entity("IfcBuildingStorey", GlobalId=guid.new(), Name=f"Etage {i}")
+    for area in space_areas:
+        space = f.create_entity("IfcSpace", GlobalId=guid.new(), Name="Raum")
+        q = f.create_entity("IfcQuantityArea", Name="GrossFloorArea", AreaValue=area)
+        qset = f.create_entity("IfcElementQuantity", GlobalId=guid.new(), Name="Qto_SpaceBaseQuantities", Quantities=[q])
+        f.create_entity("IfcRelDefinesByProperties", GlobalId=guid.new(), RelatedObjects=[space], RelatingPropertyDefinition=qset)
+    return f.to_string().encode("utf-8")
+
+
+class IfcImportTests(SimpleTestCase):
+    """
+    IFC-Import Phase I1 (services/ifc_import.py) - Grunddaten-Extraktion.
+    Test-IFC wird in-memory generiert (_build_test_ifc), keine Norm-Handrechnung
+    nötig: die Erwartungswerte sind exakt die Eingaben des selbstgebauten Modells.
+    """
+
+    def test_name_geschosse_und_flaeche_korrekt_extrahiert(self):
+        r = extract_basic_data(_build_test_ifc(name="Mein Haus", n_storeys=2, space_areas=(60.0, 55.0)))
+        self.assertEqual(r["building_name"], "Mein Haus")
+        self.assertEqual(r["storeys"], 2)
+        self.assertAlmostEqual(r["bgf"], 115.0, places=1)
+        self.assertEqual(r["warnings"], [])
+        self.assertEqual(r["schema"], "IFC4")
+
+    def test_fehlender_gebaeudename_faellt_auf_projektname_zurueck(self):
+        r = extract_basic_data(_build_test_ifc(name=None, project_name="Mein Projekt", n_storeys=1, space_areas=(40.0,)))
+        self.assertEqual(r["building_name"], "Mein Projekt")
+
+    def test_gar_kein_name_erzeugt_warnung_und_fallback(self):
+        r = extract_basic_data(_build_test_ifc(name=None, project_name=None, n_storeys=1, space_areas=(40.0,)))
+        self.assertEqual(r["building_name"], "IFC-Import")
+        self.assertTrue(any("name" in w.lower() for w in r["warnings"]))
+
+    def test_keine_geschosse_erzeugt_warnung(self):
+        r = extract_basic_data(_build_test_ifc(n_storeys=0, space_areas=(40.0,)))
+        self.assertEqual(r["storeys"], 0)
+        self.assertTrue(any("geschoss" in w.lower() for w in r["warnings"]))
+
+    def test_keine_flaechen_erzeugt_warnung_und_bgf_none(self):
+        r = extract_basic_data(_build_test_ifc(space_areas=()))
+        self.assertIsNone(r["bgf"])
+        self.assertTrue(any("fläche" in w.lower() for w in r["warnings"]))
+
+    def test_ungueltige_datei_wirft_ifcimporterror(self):
+        with self.assertRaises(IfcImportError):
+            extract_basic_data(b"das ist keine IFC-Datei")
+
+    def test_leere_datei_wirft_ifcimporterror(self):
+        with self.assertRaises(IfcImportError):
+            extract_basic_data(b"")
