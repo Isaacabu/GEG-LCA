@@ -2917,6 +2917,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             #innen .in-roomrow.sel { border-color:#38bdf8; box-shadow:0 0 0 2px rgba(56,189,248,.18); }
             #innen .in-roomdot { flex:0 0 12px; width:12px; height:12px; border-radius:3px; }
             #innen .in-roomrow input[type="text"] { background:#040b18; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; width:170px; }
+            #innen .in-roomrow select.in-raumart { background:#040b18; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; max-width:190px; font-size:12.5px; }
             #innen .in-roommeta { font-size:12.5px; color:#9bb4c8; }
             #innen .in-roomdel { margin-left:auto; background:#7f1d1d; border:1px solid #7f1d1d; color:#fff; border-radius:7px; padding:5px 10px; cursor:pointer; }
             #innen .in-devrow { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; padding:10px 12px; border:1px solid #21456d; border-radius:10px; margin-top:8px; background:#0f2138; }
@@ -3003,6 +3004,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <span class="info-i" data-tip="Wohnfläche nach der Wohnflächenverordnung (WoFlV) §4 Abs. 4: Grundfläche unter Dachschrägen zählt bei lichter Höhe ≥2&nbsp;m voll, 1–2&nbsp;m zur Hälfte, &lt;1&nbsp;m gar nicht. Nur die Zimmer der OBERSTEN Etage unter einem Steildach sind betroffen; alle anderen Geschosse zählen mit voller Grundfläche. Rasterschätzung (10&nbsp;cm), keine DIN-277-Größe.">i</span>
                         </div>
                         <div class="value" id="innen_wohnflaeche_total">– m²</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="label">NUF / VF / TF (DIN 277) Σ Gebäude
+                            <span class="info-i" data-tip="Grundflächen-Aufschlüsselung nach DIN 277:2021 aus der Raumart je Zimmer: NUF = Nutzungsfläche (Wohnen/Küche/Bad/Lager), VF = Verkehrsfläche (Flur/Diele/Treppe), TF = Technikfläche. Rohe Grundfläche ohne WoFlV-Dachschrägen-Abzug – DIN 277 kennt diese Abminderung nicht.">i</span>
+                        </div>
+                        <div class="value" id="innen_flaechengruppen_total">– / – / – m²</div>
                     </div>
                 </div>
                 <div id="innenRoomList"></div>
@@ -14054,6 +14061,20 @@ async function updateDoorType() {
     const CW = 480, CH = 320, PAD = 22, MAX_CORNERS = 12;
     const ROOM_COLORS = ['#38bdf8', '#f6b94b', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#60a5fa', '#f472b6', '#4ade80', '#c084fc'];
 
+    // Raumarten nach DIN 277:2021 Hauptgruppen (vereinfacht): NUF (Nutzungsfläche,
+    // Gruppen 1–7), VF (Verkehrsfläche), TF (Technikfläche). Steuert die Flächen-
+    // aufschlüsselung im Stats-Panel; keine Auswirkung auf die Wohnfläche (WoFlV zählt
+    // alle zur Einheit gehörenden Räume unabhängig von der Nutzungsart).
+    const RAUMARTEN = {
+        wohnen:  { label: 'Wohnen/Schlafen/Arbeiten', gruppe: 'NUF' },
+        kueche:  { label: 'Küche', gruppe: 'NUF' },
+        bad:     { label: 'Bad/WC', gruppe: 'NUF' },
+        lager:   { label: 'Lager/Abstellraum', gruppe: 'NUF' },
+        verkehr: { label: 'Verkehrsfläche (Flur/Diele/Treppe)', gruppe: 'VF' },
+        technik: { label: 'Technik-/Heizraum', gruppe: 'TF' }
+    };
+    function raumartGruppe(key) { return (RAUMARTEN[key] || RAUMARTEN.wohnen).gruppe; }
+
     // ---- Datenmodell (global: LCA-Integration + Projekt-Persistenz) ----
     window.innenRooms = window.innenRooms || [];       // {id, name, color, floor, pts:[{x,y} in m]}
     window.innenDevices = window.innenDevices || [];   // {id, type, name, count, gwp, life, room}
@@ -14234,6 +14255,16 @@ async function updateDoorType() {
             totalArea += w.area;
         });
         return { wohnflaeche: total, grundflaeche: totalArea };
+    }
+    // NUF/VF/TF-Aufschlüsselung nach DIN 277 über alle Etagen, aus der Raumart je
+    // Zimmer. Rohe Grundfläche (kein WoFlV-Dachschrägen-Bezug – DIN 277 kennt diese
+    // Abminderung nicht, NGF/NUF sind Grundflächen, keine Wohnflächen-Größen).
+    function computeFlaechenGruppen() {
+        const sums = { NUF: 0, VF: 0, TF: 0 };
+        (window.innenRooms || []).forEach(function (r) {
+            sums[raumartGruppe(r.raumart)] += polyArea(r.pts);
+        });
+        return sums;
     }
 
     // ---- Fenster im Grundriss (aus dem 3D-Modell) + Zuordnung zu Zimmern ----
@@ -14477,7 +14508,7 @@ async function updateDoorType() {
     function closeDraft() {
         if (draft.length < 3) return;
         roomSeq += 1;
-        const room = { id: 'r' + roomSeq, name: 'Zimmer ' + roomSeq, color: ROOM_COLORS[(roomSeq - 1) % ROOM_COLORS.length], floor: curFloor, pts: draft.slice() };
+        const room = { id: 'r' + roomSeq, name: 'Zimmer ' + roomSeq, color: ROOM_COLORS[(roomSeq - 1) % ROOM_COLORS.length], floor: curFloor, raumart: 'wohnen', pts: draft.slice() };
         window.innenRooms.push(room);
         draft = []; selRoom = room.id;
         renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
@@ -14701,6 +14732,13 @@ async function updateDoorType() {
     function updateWohnflaecheStat() {
         const w = computeAllWohnflaeche();
         set('innen_wohnflaeche_total', w.wohnflaeche.toFixed(1) + ' m²' + (roofActive() ? '' : ' (kein Steildach – keine Abminderung)'));
+        const g = computeFlaechenGruppen();
+        set('innen_flaechengruppen_total', g.NUF.toFixed(1) + ' / ' + g.VF.toFixed(1) + ' / ' + g.TF.toFixed(1) + ' m²');
+    }
+    function raumartOptionsHtml(selected) {
+        return Object.keys(RAUMARTEN).map(function (k) {
+            return '<option value="' + k + '"' + (k === selected ? ' selected' : '') + '>' + RAUMARTEN[k].label + '</option>';
+        }).join('');
     }
     function renderRoomList() {
         const el = $('innenRoomList');
@@ -14725,15 +14763,22 @@ async function updateDoorType() {
             row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
             row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
                 + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
+                + '<select class="in-raumart" aria-label="Raumart (DIN 277)" title="Raumart nach DIN 277 – steuert die NUF/VF/TF-Aufschlüsselung">' + raumartOptionsHtml(r.raumart || 'wohnen') + '</select>'
                 + '<span class="in-roommeta">' + areaTxt + ' · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
                 + (wins.length ? ' · <span style="color:' + WIN_COLOR + ';">🪟 ' + wins.length + ' Fenster (' + winArea.toFixed(1) + ' m²)</span>' : '')
                 + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
             row.addEventListener('click', function (e) {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') return;
                 if (selRoom !== r.id) { selRoom = r.id; renderRoomList(); render(); }
             });
             row.querySelector('input').addEventListener('input', function () { r.name = this.value; render(); refreshDeviceRoomSelects(); schedulePersist(); });
+            row.querySelector('.in-raumart').addEventListener('change', function (e) {
+                e.stopPropagation();
+                r.raumart = this.value;
+                updateWohnflaecheStat();
+                schedulePersist();
+            });
             row.querySelector('.in-roomdel').addEventListener('click', function (e) {
                 e.stopPropagation();
                 deleteRoom(r.id);
@@ -15040,7 +15085,7 @@ async function updateDoorType() {
     // ---- Projekt-Persistenz ----
     window._captureInnen = function () {
         return {
-            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, ausbau: r.ausbau || null, pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
+            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
             devices: (window.innenDevices || []).map(function (d) { return { type: d.type, name: d.name, count: d.count, gwp: d.gwp, life: d.life, room: d.room }; })
         };
     };
@@ -15052,7 +15097,7 @@ async function updateDoorType() {
             const id = r.id || ('r' + (i + 1));
             const num = parseInt(String(id).replace(/^r/, ''), 10);
             if (isFinite(num)) roomSeq = Math.max(roomSeq, num);
-            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, ausbau: r.ausbau || null, pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
+            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
         });
         curFloor = 0;
         rebuildFloorSelect();
