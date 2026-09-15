@@ -2127,8 +2127,8 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <div class="value" id="geometry_bgf">360 m²</div>
                         </div>
                         <div class="stat-box">
-                            <div class="label">NGF (geschätzt)
-                                <span class="info-i" data-tip="Netto-Grundfläche nach DIN 277: BGF minus Konstruktions-Grundfläche (Wandquerschnitte).&#10;Näherung: Außenwand-Umfang × mittlere Wanddicke je Geschoss (aus dem Wandaufbau in „Gebäudehülle“, Standard 30&nbsp;cm falls noch nicht gewählt). Innenwände sind nicht erfasst.&#10;Wichtig: die DIN-V-18599-Teil-10-Tabellenwerte (interne Gewinne, Warmwasser, Leitungslängen) sind NGF-bezogen, nicht BGF-bezogen – das Tool nutzt aktuell weiterhin BGF als Bezugsfläche, sofern du unten nicht manuell umstellst.">i</span>
+                            <div class="label">NGF
+                                <span class="info-i" data-tip="Netto-Grundfläche nach DIN 277: BGF minus Konstruktions-Grundfläche (Wandquerschnitte).&#10;Exakt berechnet: jede Wand wird mit ihrer TATSÄCHLICHEN Dicke aus dem Wandaufbau in „Gebäudehülle“ nach innen versetzt (Polygon-Offset über Kanten-Schnittpunkte, kein Umfang-Mittelwert). Bei komplexer Geometrie gilt das exakt für Nord/Süd/Ost/West-Wände; Diagonalwände (NO/SO/SW/NW) haben kein eigenes Dicke-Feld und nutzen den Mittelwert der vier Basiswände. Standard 30&nbsp;cm, solange kein Wandaufbau gewählt ist. Innenwände sind nicht erfasst.&#10;Wichtig: die DIN-V-18599-Teil-10-Tabellenwerte (interne Gewinne, Warmwasser, Leitungslängen) sind NGF-bezogen, nicht BGF-bezogen – das Tool nutzt aktuell weiterhin BGF als Bezugsfläche, sofern du unten nicht manuell umstellst.">i</span>
                             </div>
                             <div class="value" id="geometry_ngf">– m²</div>
                         </div>
@@ -2158,7 +2158,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                     <div class="field">
                         <label>BGF für spezifische Kennwerte (m²)
-                            <span class="info-i" data-tip="Bezugsfläche für alle spezifischen Kennwerte (kWh/m²a) und die DIN-V-18599-Teil-10-Tabellenwerte. Norm-korrekt wäre hier die NGF, nicht die BGF – siehe Hinweis beim Feld „NGF (geschätzt)“ oben. Standardmäßig wird die BGF übernommen (bekannte, dokumentierte Vereinfachung); mit „→ NGF übernehmen“ kannst du stattdessen die geschätzte NGF eintragen.">i</span>
+                            <span class="info-i" data-tip="Bezugsfläche für alle spezifischen Kennwerte (kWh/m²a) und die DIN-V-18599-Teil-10-Tabellenwerte. Norm-korrekt wäre hier die NGF, nicht die BGF – siehe Hinweis beim Feld „NGF“ oben. Standardmäßig wird die BGF übernommen (bekannte, dokumentierte Vereinfachung); mit „→ NGF übernehmen“ kannst du stattdessen die berechnete NGF eintragen.">i</span>
                         </label>
                         <div style="display:flex;gap:8px;align-items:center;">
                             <input id="bgf" type="number" value="360" style="flex:1;">
@@ -5106,22 +5106,59 @@ function setGeometryFieldsMode(complex, extNS, extEW) {
     }
 }
 
-// ===== NGF-Schätzung (DIN 277) aus Grundriss + Wanddicke =====
-// NGF = BGF − Konstruktions-Grundfläche (KGF). KGF wird über den Außenwand-Umfang ×
-// mittlere Wanddicke je Geschoss angenähert (Ring-Näherung ohne Eck-Korrektur zweiter
-// Ordnung – bei Wanddicke << Gebäudekantenlänge vernachlässigbar). Innenwände/Stützen
-// sind mangels Innenwand-Erfassung im Tool nicht enthalten; reine Schätzung, informativ.
-function getAverageWallThicknessM() {
+// ===== NGF-Berechnung (DIN 277) aus Grundriss + echter Wanddicke =====
+// NGF = BGF − Konstruktions-Grundfläche (KGF): die Grundfläche wird um die TATSÄCHLICHE
+// Dicke jeder einzelnen Wand nach innen versetzt (Standard-Polygon-Offset über
+// Kanten-Schnittpunkte), nicht über eine Umfang×Mitteldicke-Näherung. Exakt bei
+// Rechteck-Geometrie (jede Seite hat ihre eigene Dicke); bei komplexer Geometrie exakt
+// für die 4 Basisorientierungen (eigene Dicke-Felder), Diagonalsektoren (NO/SO/SW/NW,
+// kein eigenes Dicke-Feld in der UI) nutzen den Mittelwert der vier Basiswände als
+// Näherung. Innenwände/Stützen sind mangels Innenwand-Erfassung im Tool nicht enthalten.
+function getWallThicknessM(orientation) {
     const wmd = window.wallMaterialData || {};
-    const vals = ['north', 'south', 'east', 'west']
-        .map(function (o) { return (wmd[o] && isFinite(wmd[o].thicknessMm) && wmd[o].thicknessMm > 0) ? wmd[o].thicknessMm : null; })
-        .filter(function (v) { return v != null; });
-    if (!vals.length) return 0.30;   // Standard-Außenwand als Fallback, solange kein Wandaufbau gewählt ist
-    return (vals.reduce(function (a, b) { return a + b; }, 0) / vals.length) / 1000;
+    const t = wmd[orientation] && isFinite(wmd[orientation].thicknessMm) && wmd[orientation].thicknessMm > 0 ? wmd[orientation].thicknessMm : null;
+    return (t != null ? t : 300) / 1000;   // Standard-Außenwand 30 cm als Fallback
 }
-function estimateNGF(bgf, perimeterM, floors) {
-    const kgfPerFloor = perimeterM * getAverageWallThicknessM();
-    return Math.max(bgf - kgfPerFloor * floors, 0);
+function getAverageWallThicknessM() {
+    const vals = ['north', 'south', 'east', 'west'].map(getWallThicknessM);
+    return vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+}
+// Exakte NGF-Grundfläche eines beliebigen Polygons: jede Kante um ihre zugeordnete
+// Wanddicke nach innen versetzt, neue Eckpunkte = Schnittpunkte der Nachbarkanten.
+function polygonAreaXY(vertices) {
+    let s = 0;
+    for (let i = 0; i < vertices.length; i++) {
+        const a = vertices[i], b = vertices[(i + 1) % vertices.length];
+        s += a.x * b.y - b.x * a.y;
+    }
+    return Math.abs(s / 2);
+}
+function lineIntersect(p1, d1, p2, d2, fallback) {
+    const denom = d1.x * d2.y - d1.y * d2.x;
+    if (Math.abs(denom) < 1e-9) return fallback;
+    const t1 = ((p2.x - p1.x) * d2.y - (p2.y - p1.y) * d2.x) / denom;
+    return { x: p1.x + d1.x * t1, y: p1.y + d1.y * t1 };
+}
+// Duplikat von SECTOR_KEYS aus dem Hülle-/3D-Tab (eigene IIFE, nicht erreichbar) –
+// gleiche Reihenfolge, siehe assignWallSectors dort.
+const NGF_SECTOR_KEYS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+function computeExactNgfFootprint(edgesArr, sectorAsgArr) {
+    const n = edgesArr.length;
+    if (n < 3) return 0;
+    const thickness = edgesArr.map(function (e, i) {
+        const key = sectorAsgArr ? NGF_SECTOR_KEYS[sectorAsgArr[i]] : null;
+        return (key === 'north' || key === 'south' || key === 'east' || key === 'west')
+            ? getWallThicknessM(key) : getAverageWallThicknessM();
+    });
+    const offsetLines = edgesArr.map(function (e, i) {
+        return { p: { x: e.AX - e.nx * thickness[i], y: e.AZ - e.nz * thickness[i] }, d: { x: e.ex, y: e.ez } };
+    });
+    const newVerts = [];
+    for (let i = 0; i < n; i++) {
+        const prev = offsetLines[(i - 1 + n) % n], cur = offsetLines[i];
+        newVerts.push(lineIntersect(prev.p, prev.d, cur.p, cur.d, { x: edgesArr[i].AX, y: edgesArr[i].AZ }));
+    }
+    return polygonAreaXY(newVerts);
 }
 function applyEstimatedNgfToBgfField() {
     const el = document.getElementById('geometry_ngf');
@@ -5147,8 +5184,11 @@ function updateGeometryStats() {
     const bgf = length * width * floors;
     const volume = bgf * floorHeight;
     const envelopeArea = (2 * (length + width) * totalHeight) + (2 * length * width);
-    const perimeter = 2 * (length + width);
-    const ngf = estimateNGF(bgf, perimeter, floors);
+    // Exakte NGF: Nord/Süd-Wände liegen quer zur Breite (width), Ost/West-Wände quer zur
+    // Länge (length) – siehe northArea/eastArea-Zuordnung weiter unten in dieser Funktion.
+    const innerLength = Math.max(0, length - getWallThicknessM('west') - getWallThicknessM('east'));
+    const innerWidth = Math.max(0, width - getWallThicknessM('north') - getWallThicknessM('south'));
+    const ngf = innerLength * innerWidth * floors;
 
     document.getElementById('geometry_total_height').innerText = `${totalHeight.toFixed(1)} m`;
     document.getElementById('geometry_volume').innerText = `${volume.toFixed(0)} m³`;
@@ -11717,7 +11757,7 @@ async function updateDoorType() {
         if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
 
         const bgf = A * d.floors;
-        const ngf = estimateNGF(bgf, perim, d.floors);
+        const ngf = computeExactNgfFootprint(edges, sectorAsg) * d.floors;
         const set = function (id, txt) { const el = document.getElementById(id); if (el) el.innerText = txt; };
         set('geometry_total_height', H.toFixed(1) + ' m');
         set('geometry_volume', (A * H).toFixed(0) + ' m³');
