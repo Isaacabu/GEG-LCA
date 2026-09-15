@@ -1,7 +1,12 @@
+import functools
 import json
+import logging
+
 from django.shortcuts import render
-from django.http import JsonResponse, Http404
-from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, JsonResponse, Http404
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+
+logger = logging.getLogger(__name__)
 
 # Importiere zentrale Hilfsfunktionen. Die GEG-/DIN-Faktoren (Primärenergie, CO₂) liegen
 # bewusst in den Service-Modulen (din18599_anlage.py: F_PRIMARY/F_CO2), nicht in constants.py –
@@ -18,58 +23,76 @@ from .services.din4108 import (
 )
 
 
+def json_calculate_view(func):
+    """POST-only JSON-Rechen-Endpunkt: erzwingt POST, parst den JSON-Body und ruft
+    func(data) auf. Ersetzt die vormals 9x duplizierte POST-Check/json.loads/try-except-
+    Blockstruktur (jede calculate_*-View hatte ihre eigene Kopie).
+
+    func(data) darf entweder
+      - ein Dict mit einem "ok"-Schlüssel zurückgeben (wird zu JsonResponse(result,
+        status=200 wenn ok sonst 400)), oder
+      - selbst eine HttpResponse zurückgeben (für Views mit eigener Vor-Validierung,
+        z.B. calculate_pv/calculate_balance mit mehreren 400-Fällen vor der Rechnung).
+
+    Unerwartete Exceptions werden serverseitig geloggt (voller Traceback) und dem
+    Client als generische 500-Fehlermeldung gemeldet statt als rohen str(e) –
+    interne Details (Feldnamen, Stacktrace-Fragmente) sollen nicht durchgereicht werden.
+    """
+    @functools.wraps(func)
+    def wrapper(request, *args, **kwargs):
+        if request.method != "POST":
+            return JsonResponse({"error": "Only POST allowed"}, status=400)
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return JsonResponse({"ok": False, "errors": ["Ungültiges JSON im Request-Body."]}, status=400)
+
+        try:
+            result = func(data, *args, **kwargs)
+        except Exception:
+            logger.exception("Unerwarteter Fehler in %s", func.__name__)
+            return JsonResponse(
+                {"ok": False, "errors": ["Unerwarteter interner Fehler. Bitte Eingaben prüfen."]},
+                status=500,
+            )
+
+        if isinstance(result, HttpResponse):
+            return result
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    return wrapper
+
+
 def home(request):
     """Dashboard-Startseite: gespeicherte Projekte ansehen + neues Projekt anlegen."""
     return render(request, "dashboard/dashboard_home.html")
 
 
+@ensure_csrf_cookie
 def index(request):
     return render(request, "dashboard/index.html")
 
 
 @csrf_exempt
-def calculate(request):
+@json_calculate_view
+def calculate(data):
     """Heizwärmebedarf nach DIN V 18599-2 (Monatsbilanzverfahren).
 
     Die eigentliche Rechenlogik liegt in dashboard/services/din18599.py.
     Siehe docs/DIN18599_Umsetzung.md für die normative Herleitung.
     """
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-
-    try:
-        data = json.loads(request.body)
-        result = calculate_heat_demand(data)
-        status = 200 if result.get("ok") else 400
-        return JsonResponse(result, status=status)
-    except Exception as e:
-        return JsonResponse({
-            "ok": False,
-            "errors": [f"Unerwarteter Fehler: {str(e)}"]
-        }, status=500)
+    return calculate_heat_demand(data)
 
 
 @csrf_exempt
-def calculate_system(request):
+@json_calculate_view
+def calculate_system(data):
     """Anlagentechnik nach DIN V 18599-5/-6/-8 (Stufe 2).
 
     Nutzenergie → Übergabe → Verteilung → Speicherung → Erzeugung → End-/Primärenergie.
     Rechenlogik in dashboard/services/din18599_anlage.py; normative Herleitung in
     docs/DIN18599_Umsetzung.md (Abschnitte 7–9).
     """
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-
-    try:
-        data = json.loads(request.body)
-        result = calculate_system_din(data)
-        status = 200 if result.get("ok") else 400
-        return JsonResponse(result, status=status)
-    except Exception as e:
-        return JsonResponse({
-            "ok": False,
-            "errors": [f"Unerwarteter Fehler: {str(e)}"]
-        }, status=500)
+    return calculate_system_din(data)
 
 
 # ===========================================================================
@@ -77,55 +100,31 @@ def calculate_system(request):
 # normative Herleitung: docs/DIN4108_Umsetzung.md)
 # ===========================================================================
 @csrf_exempt
-def calculate_mindestwaermeschutz(request):
+@json_calculate_view
+def calculate_mindestwaermeschutz(data):
     """Mindestwärmeschutz-Nachweis je Bauteil (DIN 4108-2:2026-05, §5, Tab. 3)."""
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-    try:
-        data = json.loads(request.body)
-        result = pruefe_mindestwaermeschutz(data)
-        return JsonResponse(result, status=200 if result.get("ok") else 400)
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return pruefe_mindestwaermeschutz(data)
 
 
 @csrf_exempt
-def calculate_sommerlicher_waermeschutz(request):
+@json_calculate_view
+def calculate_sommerlicher_waermeschutz(data):
     """Sommerlicher Wärmeschutz – Sonneneintragskennwert (DIN 4108-2:2026-05, §8.4)."""
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-    try:
-        data = json.loads(request.body)
-        result = berechne_sommerlicher_waermeschutz(data)
-        return JsonResponse(result, status=200 if result.get("ok") else 400)
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return berechne_sommerlicher_waermeschutz(data)
 
 
 @csrf_exempt
-def calculate_tauwasser(request):
+@json_calculate_view
+def calculate_tauwasser(data):
     """Tauwassernachweis / Glaser-Periodenbilanzverfahren (DIN 4108-3:2024-03)."""
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-    try:
-        data = json.loads(request.body)
-        result = berechne_tauwasser_glaser(data)
-        return JsonResponse(result, status=200 if result.get("ok") else 400)
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return berechne_tauwasser_glaser(data)
 
 
 @csrf_exempt
-def calculate_luftdichtheit(request):
+@json_calculate_view
+def calculate_luftdichtheit(data):
     """Luftdichtheit n50-Nachweis (DIN 4108-7:2026-04, §5)."""
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
-    try:
-        data = json.loads(request.body)
-        result = pruefe_luftdichtheit(data)
-        return JsonResponse(result, status=200 if result.get("ok") else 400)
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return pruefe_luftdichtheit(data)
 
 
 def din4108_materialien(request):
@@ -192,131 +191,124 @@ def _tilted_irradiation(month, tilt_deg, azimuth_from_south):
 
 
 @csrf_exempt
-def calculate_pv(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
+@json_calculate_view
+def calculate_pv(data):
+    area_roof = safe_float(data.get("area_roof_m2"), 0.0)
+    area_south = safe_float(data.get("area_south_m2"), 0.0)
+    area_ew = safe_float(data.get("area_ew_m2"), 0.0)
+    cell = str(data.get("cell_type", "mono")).strip().lower()
+    mounting = str(data.get("mounting", "ventilated")).strip().lower()
+    shading = min(max(safe_float(data.get("shading"), 0.05), 0.0), 0.5)
+    # Dach-Geometrie: Neigung 0–90° (Default 35° ≈ optimal DE) und Ausrichtung als
+    # Abweichung von Süd (−180…180°, negativ=Ost, positiv=West).
+    roof_tilt = min(max(safe_float(data.get("roof_tilt_deg"), 35.0), 0.0), 90.0)
+    roof_azimuth = min(max(safe_float(data.get("roof_azimuth_deg"), 0.0), -180.0), 180.0)
+    self_rate = safe_float(data.get("self_consumption_rate"), 0.30)
+    electricity_price = safe_float(data.get("electricity_price"), 0.35)
+    feed_in_tariff = safe_float(data.get("feed_in_tariff"), 0.08)
+    # Stromspeicher: nutzbare Batteriekapazität in kWh (0 = kein Speicher)
+    battery_kwh = min(max(safe_float(data.get("battery_capacity_kwh"), 0.0), 0.0), 200.0)
 
-    try:
-        data = json.loads(request.body)
+    errors = []
+    total_area = area_roof + area_south + area_ew
+    if total_area <= 0:
+        errors.append("Gesamte PV-Fläche muss > 0 m² sein.")
+    if not (0.0 <= self_rate <= 1.0):
+        errors.append("Eigenverbrauchsquote muss zwischen 0 und 1 liegen.")
+    if errors:
+        return JsonResponse({"ok": False, "errors": errors}, status=400)
 
-        area_roof = safe_float(data.get("area_roof_m2"), 0.0)
-        area_south = safe_float(data.get("area_south_m2"), 0.0)
-        area_ew = safe_float(data.get("area_ew_m2"), 0.0)
-        cell = str(data.get("cell_type", "mono")).strip().lower()
-        mounting = str(data.get("mounting", "ventilated")).strip().lower()
-        shading = min(max(safe_float(data.get("shading"), 0.05), 0.0), 0.5)
-        # Dach-Geometrie: Neigung 0–90° (Default 35° ≈ optimal DE) und Ausrichtung als
-        # Abweichung von Süd (−180…180°, negativ=Ost, positiv=West).
-        roof_tilt = min(max(safe_float(data.get("roof_tilt_deg"), 35.0), 0.0), 90.0)
-        roof_azimuth = min(max(safe_float(data.get("roof_azimuth_deg"), 0.0), -180.0), 180.0)
-        self_rate = safe_float(data.get("self_consumption_rate"), 0.30)
-        electricity_price = safe_float(data.get("electricity_price"), 0.35)
-        feed_in_tariff = safe_float(data.get("feed_in_tariff"), 0.08)
-        # Stromspeicher: nutzbare Batteriekapazität in kWh (0 = kein Speicher)
-        battery_kwh = min(max(safe_float(data.get("battery_capacity_kwh"), 0.0), 0.0), 200.0)
+    k_pk = PV_K_PK.get(cell, PV_K_PK["mono"])
+    f_perf = PV_F_PERF.get(mounting, PV_F_PERF["ventilated"])
 
-        errors = []
-        total_area = area_roof + area_south + area_ew
-        if total_area <= 0:
-            errors.append("Gesamte PV-Fläche muss > 0 m² sein.")
-        if not (0.0 <= self_rate <= 1.0):
-            errors.append("Eigenverbrauchsquote muss zwischen 0 und 1 liegen.")
-        if errors:
-            return JsonResponse({"ok": False, "errors": errors}, status=400)
+    # Klimaregion aus dem Standort (Bundesland): regionaler Strahlungsfaktor
+    # skaliert die Potsdam-Referenzstrahlung auf das lokale Niveau → wirkt
+    # direkt auf Monats- und Jahresertrag.
+    region = _resolve_region(data.get("project_state"))
+    radiation_factor = float(region["radiation_factor"])
 
-        k_pk = PV_K_PK.get(cell, PV_K_PK["mono"])
-        f_perf = PV_F_PERF.get(mounting, PV_F_PERF["ventilated"])
+    monthly = []
+    annual = 0.0
+    # Jahresertrag je Orientierung getrennt mitführen (für Aufschlüsselung/Tabelle)
+    ann_roof = ann_south = ann_ew = 0.0
+    for m in range(12):
+        hours = _MDAYS[m] * 24.0
+        # E_sol je Fläche [kWh/m² im Monat] (Gl. 66), regional skaliert.
+        # Dach: reale Neigung + Ausrichtung; Fassaden: vertikal (90°).
+        e_roof = _tilted_irradiation(m, roof_tilt, roof_azimuth) * radiation_factor * hours / 1000.0
+        e_south = _I_S["south"][m] * radiation_factor * hours / 1000.0
+        e_ew = 0.5 * (_I_S["east"][m] + _I_S["west"][m]) * radiation_factor * hours / 1000.0
+        # Gl. (64): E_sol · P_pk/I_ref · f_perf  – P_pk/A = k_pk, I_ref = 1 kW/m²
+        f_sys = k_pk * f_perf * (1.0 - shading)
+        q_roof = e_roof * area_roof * f_sys
+        q_south = e_south * area_south * f_sys
+        q_ew = e_ew * area_ew * f_sys
+        q_m = q_roof + q_south + q_ew
+        monthly.append(round(q_m, 1))
+        annual += q_m
+        ann_roof += q_roof
+        ann_south += q_south
+        ann_ew += q_ew
 
-        # Klimaregion aus dem Standort (Bundesland): regionaler Strahlungsfaktor
-        # skaliert die Potsdam-Referenzstrahlung auf das lokale Niveau → wirkt
-        # direkt auf Monats- und Jahresertrag.
-        region = _resolve_region(data.get("project_state"))
-        radiation_factor = float(region["radiation_factor"])
+    p_pk_total = k_pk * total_area
+    self_consumption_kwh = annual * self_rate
+    # Stromspeicher: verschiebt Einspeise-Überschuss in den Eigenverbrauch,
+    # begrenzt durch Kapazität × Vollzyklen × Wirkungsgrad und den Überschuss selbst.
+    battery_shift_kwh = 0.0
+    if battery_kwh > 0:
+        surplus = max(0.0, annual - self_consumption_kwh)
+        battery_shift_kwh = min(surplus, battery_kwh * PV_BATTERY_CYCLES * PV_BATTERY_EFF)
+        self_consumption_kwh += battery_shift_kwh
+    feed_in_kwh = max(0.0, annual - self_consumption_kwh)
+    savings_eur = self_consumption_kwh * electricity_price
+    feed_in_revenue_eur = feed_in_kwh * feed_in_tariff
 
-        monthly = []
-        annual = 0.0
-        # Jahresertrag je Orientierung getrennt mitführen (für Aufschlüsselung/Tabelle)
-        ann_roof = ann_south = ann_ew = 0.0
-        for m in range(12):
-            hours = _MDAYS[m] * 24.0
-            # E_sol je Fläche [kWh/m² im Monat] (Gl. 66), regional skaliert.
-            # Dach: reale Neigung + Ausrichtung; Fassaden: vertikal (90°).
-            e_roof = _tilted_irradiation(m, roof_tilt, roof_azimuth) * radiation_factor * hours / 1000.0
-            e_south = _I_S["south"][m] * radiation_factor * hours / 1000.0
-            e_ew = 0.5 * (_I_S["east"][m] + _I_S["west"][m]) * radiation_factor * hours / 1000.0
-            # Gl. (64): E_sol · P_pk/I_ref · f_perf  – P_pk/A = k_pk, I_ref = 1 kW/m²
-            f_sys = k_pk * f_perf * (1.0 - shading)
-            q_roof = e_roof * area_roof * f_sys
-            q_south = e_south * area_south * f_sys
-            q_ew = e_ew * area_ew * f_sys
-            q_m = q_roof + q_south + q_ew
-            monthly.append(round(q_m, 1))
-            annual += q_m
-            ann_roof += q_roof
-            ann_south += q_south
-            ann_ew += q_ew
+    def _orient(key, label, area, ann):
+        return {
+            "key": key,
+            "label": label,
+            "area_m2": round(area, 1),
+            "kwp": round(k_pk * area, 2),
+            "annual_kwh": round(ann, 1),
+            "specific_kwh_kwp": round(ann / (k_pk * area), 0) if area > 0 else 0,
+            "share_pct": round(ann / annual * 100, 1) if annual > 0 else 0,
+        }
 
-        p_pk_total = k_pk * total_area
-        self_consumption_kwh = annual * self_rate
-        # Stromspeicher: verschiebt Einspeise-Überschuss in den Eigenverbrauch,
-        # begrenzt durch Kapazität × Vollzyklen × Wirkungsgrad und den Überschuss selbst.
-        battery_shift_kwh = 0.0
-        if battery_kwh > 0:
-            surplus = max(0.0, annual - self_consumption_kwh)
-            battery_shift_kwh = min(surplus, battery_kwh * PV_BATTERY_CYCLES * PV_BATTERY_EFF)
-            self_consumption_kwh += battery_shift_kwh
-        feed_in_kwh = max(0.0, annual - self_consumption_kwh)
-        savings_eur = self_consumption_kwh * electricity_price
-        feed_in_revenue_eur = feed_in_kwh * feed_in_tariff
+    by_orientation = [
+        _orient("roof", "Dach (Süd ~40°)", area_roof, ann_roof),
+        _orient("south", "Süd-Fassade (90°)", area_south, ann_south),
+        _orient("ew", "Ost/West-Fassade (90°)", area_ew, ann_ew),
+    ]
 
-        def _orient(key, label, area, ann):
-            return {
-                "key": key,
-                "label": label,
-                "area_m2": round(area, 1),
-                "kwp": round(k_pk * area, 2),
-                "annual_kwh": round(ann, 1),
-                "specific_kwh_kwp": round(ann / (k_pk * area), 0) if area > 0 else 0,
-                "share_pct": round(ann / annual * 100, 1) if annual > 0 else 0,
-            }
-
-        by_orientation = [
-            _orient("roof", "Dach (Süd ~40°)", area_roof, ann_roof),
-            _orient("south", "Süd-Fassade (90°)", area_south, ann_south),
-            _orient("ew", "Ost/West-Fassade (90°)", area_ew, ann_ew),
-        ]
-
-        return JsonResponse({
-            "ok": True,
-            "installed_kwp": round(p_pk_total, 2),
-            "annual_yield_kwh": round(annual, 1),
-            "specific_yield_kwh_kwp": round(annual / p_pk_total, 0) if p_pk_total > 0 else 0,
-            "self_consumption_kwh": round(self_consumption_kwh, 1),
-            "feed_in_kwh": round(feed_in_kwh, 1),
-            "battery_capacity_kwh": round(battery_kwh, 1),
-            "battery_shift_kwh": round(battery_shift_kwh, 1),
-            "savings_eur": round(savings_eur, 2),
-            "feed_in_revenue_eur": round(feed_in_revenue_eur, 2),
-            "total_benefit_eur": round(savings_eur + feed_in_revenue_eur, 2),
-            "co2_savings_kg": round(annual * 0.56, 1),
-            "monthly_yield_kwh": monthly,
-            "by_orientation": by_orientation,
-            "k_pk": k_pk,
-            "f_perf": f_perf,
-            "climate_region_label": region["label"],
-            "climate_radiation_factor": round(radiation_factor, 2),
-            "roof_tilt_deg": round(roof_tilt, 0),
-            "roof_azimuth_deg": round(roof_azimuth, 0),
-            "calculation_basis": "DIN V 18599-9:2018-09, Gl. 64–67 + Anhang B",
-        })
-
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return {
+        "ok": True,
+        "installed_kwp": round(p_pk_total, 2),
+        "annual_yield_kwh": round(annual, 1),
+        "specific_yield_kwh_kwp": round(annual / p_pk_total, 0) if p_pk_total > 0 else 0,
+        "self_consumption_kwh": round(self_consumption_kwh, 1),
+        "feed_in_kwh": round(feed_in_kwh, 1),
+        "battery_capacity_kwh": round(battery_kwh, 1),
+        "battery_shift_kwh": round(battery_shift_kwh, 1),
+        "savings_eur": round(savings_eur, 2),
+        "feed_in_revenue_eur": round(feed_in_revenue_eur, 2),
+        "total_benefit_eur": round(savings_eur + feed_in_revenue_eur, 2),
+        "co2_savings_kg": round(annual * 0.56, 1),
+        "monthly_yield_kwh": monthly,
+        "by_orientation": by_orientation,
+        "k_pk": k_pk,
+        "f_perf": f_perf,
+        "climate_region_label": region["label"],
+        "climate_radiation_factor": round(radiation_factor, 2),
+        "roof_tilt_deg": round(roof_tilt, 0),
+        "roof_azimuth_deg": round(roof_azimuth, 0),
+        "calculation_basis": "DIN V 18599-9:2018-09, Gl. 64–67 + Anhang B",
+    }
 
 
 # --- Energiebilanz: Endenergie-konsistente Gesamtbilanz inkl. PV-Verrechnung ---
 @csrf_exempt
-def calculate_balance(request):
+@json_calculate_view
+def calculate_balance(data):
     """
     Gesamtbilanz auf ENDenergie-Ebene (konsistent zur DIN-Anlagentechnik):
       - fuel_end_kwh:        Brennstoff-Endenergie (Gas/Pellet/Fernwärme) aus /calculate-system/
@@ -326,53 +318,43 @@ def calculate_balance(request):
       - system_co2_kg:       CO₂ der Anlagentechnik (bereits Brennstoff + Anlagenstrom)
     CO₂ gesamt = system_co2 + Haushaltsstrom·f − PV-Eigenverbrauch·f  (f = 0,56 kg/kWh Netzstrom, GEG)
     """
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST allowed"}, status=400)
+    fuel_end_kwh = safe_float(data.get("fuel_end_kwh"), 0.0)
+    system_electricity_kwh = safe_float(data.get("system_electricity_kwh"), 0.0)
+    household_electricity_kwh = safe_float(data.get("household_electricity_kwh"), 2000.0)
+    pv_self_consumption_kwh = safe_float(data.get("pv_self_consumption_kwh"), 0.0)
+    system_co2_kg = safe_float(data.get("system_co2_kg"), 0.0)
+    co2_factor_el = safe_float(data.get("electricity_co2_factor"), 0.56)  # GEG Anlage 9
 
-    try:
-        data = json.loads(request.body)
+    errors = []
+    validate_non_negative("Brennstoff-Endenergie", fuel_end_kwh, errors)
+    validate_non_negative("Anlagenstrom", system_electricity_kwh, errors)
+    validate_non_negative("Haushaltsstrom", household_electricity_kwh, errors)
+    validate_non_negative("PV Eigenverbrauch", pv_self_consumption_kwh, errors)
+    if errors:
+        return JsonResponse({"ok": False, "errors": errors}, status=400)
 
-        fuel_end_kwh = safe_float(data.get("fuel_end_kwh"), 0.0)
-        system_electricity_kwh = safe_float(data.get("system_electricity_kwh"), 0.0)
-        household_electricity_kwh = safe_float(data.get("household_electricity_kwh"), 2000.0)
-        pv_self_consumption_kwh = safe_float(data.get("pv_self_consumption_kwh"), 0.0)
-        system_co2_kg = safe_float(data.get("system_co2_kg"), 0.0)
-        co2_factor_el = safe_float(data.get("electricity_co2_factor"), 0.56)  # GEG Anlage 9
+    electricity_gross_kwh = system_electricity_kwh + household_electricity_kwh
+    # PV-Eigenverbrauch kann nur tatsächlich verbrauchten Strom ersetzen
+    pv_offset_kwh = min(pv_self_consumption_kwh, electricity_gross_kwh)
+    grid_electricity_net_kwh = electricity_gross_kwh - pv_offset_kwh
 
-        errors = []
-        validate_non_negative("Brennstoff-Endenergie", fuel_end_kwh, errors)
-        validate_non_negative("Anlagenstrom", system_electricity_kwh, errors)
-        validate_non_negative("Haushaltsstrom", household_electricity_kwh, errors)
-        validate_non_negative("PV Eigenverbrauch", pv_self_consumption_kwh, errors)
-        if errors:
-            return JsonResponse({"ok": False, "errors": errors}, status=400)
+    total_end_energy_kwh = fuel_end_kwh + electricity_gross_kwh
+    co2_total_kg = max(system_co2_kg + household_electricity_kwh * co2_factor_el
+                       - pv_offset_kwh * co2_factor_el, 0.0)
 
-        electricity_gross_kwh = system_electricity_kwh + household_electricity_kwh
-        # PV-Eigenverbrauch kann nur tatsächlich verbrauchten Strom ersetzen
-        pv_offset_kwh = min(pv_self_consumption_kwh, electricity_gross_kwh)
-        grid_electricity_net_kwh = electricity_gross_kwh - pv_offset_kwh
-
-        total_end_energy_kwh = fuel_end_kwh + electricity_gross_kwh
-        co2_total_kg = max(system_co2_kg + household_electricity_kwh * co2_factor_el
-                           - pv_offset_kwh * co2_factor_el, 0.0)
-
-        return JsonResponse({
-            "ok": True,
-            "total_end_energy_kwh": round(total_end_energy_kwh, 2),
-            "fuel_end_kwh": round(fuel_end_kwh, 2),
-            "total_electricity_gross_kwh": round(electricity_gross_kwh, 2),
-            "grid_electricity_net_kwh": round(grid_electricity_net_kwh, 2),
-            "pv_offset_kwh": round(pv_offset_kwh, 2),
-            "co2_total_kg": round(co2_total_kg, 2),
-            # Abwärtskompatibel (alte Anzeige):
-            "co2_electricity_kg": round(grid_electricity_net_kwh * co2_factor_el, 2),
-        })
-
-    except Exception as e:
-        return JsonResponse({"ok": False, "errors": [f"Unerwarteter Fehler: {str(e)}"]}, status=500)
+    return {
+        "ok": True,
+        "total_end_energy_kwh": round(total_end_energy_kwh, 2),
+        "fuel_end_kwh": round(fuel_end_kwh, 2),
+        "total_electricity_gross_kwh": round(electricity_gross_kwh, 2),
+        "grid_electricity_net_kwh": round(grid_electricity_net_kwh, 2),
+        "pv_offset_kwh": round(pv_offset_kwh, 2),
+        "co2_total_kg": round(co2_total_kg, 2),
+        # Abwärtskompatibel (alte Anzeige):
+        "co2_electricity_kg": round(grid_electricity_net_kwh * co2_factor_el, 2),
+    }
 
 
-@csrf_exempt
 def upload_ekobaudat_csv(request):
     """Upload von ÖKOBAUDAT-Materialdaten als CSV **oder** Excel (.xlsx/.xls).
 

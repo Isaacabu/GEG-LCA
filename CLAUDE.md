@@ -93,8 +93,9 @@ docker build -t geglca . && docker run -p 8000:8000 geglca
 - **CSV import** (`dashboard/csv_utils.py`): auto-detects delimiter and encoding (utf-8-sig → cp1252 →
   latin-1) and fuzzy-matches German/English column headers. Used by both the management command and the
   `/upload-ekobaudat-csv/` view.
-- The served UI is `dashboard/templates/dashboard/index.html` — a ~250 KB hand-written single-file page (no
-  build step). `.bak` files and a stray 30 MB `data` blob under `templates/dashboard/` are cruft, not inputs.
+- The served UI is `dashboard/templates/dashboard/index.html` — a ~965 KB / ~16k-line hand-written
+  single-file page (no build step). The `.bak` files and stray 30 MB `data` blob once mentioned here
+  are gone (verified 2026-09); no known cruft under `templates/dashboard/` currently.
 
 ### Scripts & tooling
 - `scripts/*.py` are standalone tools, not part of the app's runtime. Kept on purpose: the norm-verification

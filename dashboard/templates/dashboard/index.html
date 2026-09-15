@@ -4940,6 +4940,15 @@ function triggerEkobaudatUpload() {
     }
 }
 
+function getCookie(name) {
+    const prefix = name + '=';
+    for (const part of document.cookie.split(';')) {
+        const c = part.trim();
+        if (c.startsWith(prefix)) return decodeURIComponent(c.slice(prefix.length));
+    }
+    return null;
+}
+
 async function handleEkobaudatUpload(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -4950,6 +4959,7 @@ async function handleEkobaudatUpload(event) {
     try {
         const response = await fetch('/upload-ekobaudat/', {
             method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
             body: formData
         });
         const data = await response.json();
