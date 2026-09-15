@@ -16749,10 +16749,15 @@ window.addEventListener('load', function () {
     const params = new URLSearchParams(location.search);
     if (params.get('ifc_import') !== '1') return;
 
+    // Kein window.addEventListener('load', ...) hier: dieses Script steht am Ende von
+    // <body>, das load-Event ist bei größeren Dateien (Geometrie-Payload, IndexedDB-
+    // Lesevorgang) oft schon VOR Abschluss von idbGet() gefeuert - der Callback hätte
+    // sich dann nie mehr ausgelöst (Bug: kleine Testdateien liefen zufällig durch
+    // Timing korrekt, echte Modelle mit mehr Daten nicht). DOM-Felder existieren zu
+    // diesem Zeitpunkt bereits (Script steht nach dem gesamten Tab-HTML).
     idbGet('last_import').then(function (data) {
         if (!data || !data.ok) return;
-        window.addEventListener('load', function () {
-            setTimeout(function () {
+        setTimeout(function () {
                 const nameEl = document.getElementById('project_name');
                 if (nameEl && data.building_name) nameEl.value = data.building_name;
                 if (data.storeys > 0) {
@@ -16773,8 +16778,7 @@ window.addEventListener('load', function () {
                     + (geo.rendered_count ? ' <b>' + geo.rendered_count + ' Bauteile</b> im Tab „🧊 BIM-Viewer" ansehbar.' : '') + warn
                     + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #2a4a73;color:#9bb4c8;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
                 document.body.appendChild(banner);
-            }, 400);
-        });
+        }, 400);
     });
 })();
 </script>
