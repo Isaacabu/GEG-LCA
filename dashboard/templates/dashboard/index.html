@@ -1980,7 +1980,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                                 <button type="button" class="fp-btn" id="fpInteriorToggle" data-fp="interior-toggle">🧱 Innenwand zeichnen</button>
                                 <button type="button" class="fp-btn" data-fp="interior-finish">Wand fertig</button>
                                 <button type="button" class="fp-btn fp-btn-danger" data-fp="interior-delete">Ausgewählte löschen</button>
-                                <button type="button" class="fp-btn fp-btn-danger" data-fp="interior-clear">Alle Innenwände löschen</button>
+                                <button type="button" class="fp-btn fp-btn-danger" data-fp="interior-clear">Innenwände dieser Etage löschen</button>
                             </span>
                         </div>
                         <div class="fp-controls">
@@ -1994,8 +1994,16 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <label class="fp-ctl">Türen
                                 <input type="number" id="fpDoors" min="0" max="20" step="1" value="1">
                             </label>
-                            <label class="fp-ctl">Innenwand-Dicke
-                                <input type="number" id="fpInteriorThickness" min="6" max="40" step="1" value="12"> cm
+                        </div>
+                        <div class="fp-controls" id="fpInteriorControls" style="display:none;">
+                            <label class="fp-ctl">Etage (Innenwände)
+                                <select id="fpInteriorFloor" style="background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:130px;"></select>
+                            </label>
+                            <label class="fp-ctl">Innenwand-Aufbau
+                                <select id="fpInteriorType" style="background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:220px;"></select>
+                            </label>
+                            <label class="fp-ctl">Dicke
+                                <input type="number" id="fpInteriorThickness" min="6" max="40" step="1" value="10"> cm
                             </label>
                         </div>
                         <div class="fp-canvas-wrap">
@@ -11852,17 +11860,63 @@ async function updateDoorType() {
         // Offene Polylinien (keine Fläche) statt geschlossenem Polygon. Punkte in
         // denselben Meter-Koordinaten wie die Außenhülle (pts/PXPM) – dadurch direkt
         // vergleichbar mit getFootprint()/Zimmer-Polygonen im Inneneinrichtung-Tab.
-        window.interiorWalls = window.interiorWalls || [];   // {id, pts:[{x,y} in m], thickness_m}
+        // Etagenbezug: jede Wand trägt ihre Etage (0 = EG); die Zeichenfläche zeigt
+        // immer nur die Wände der gewählten Etage (wie im Inneneinrichtung-Zimmer-Tool).
+        window.interiorWalls = window.interiorWalls || [];   // {id, pts:[{x,y} in m], thickness_m, floor, wandtyp, wandtyp_label}
         let interiorMode = false, interiorDraft = [], selInteriorWall = null, interiorSeq = window.interiorWalls.length;
+
+        // Wandaufbau-Voreinstellungen (Dicke) – ersetzt die reine Zahleneingabe durch eine
+        // Typwahl, wie sie für die Außenwände in "Gebäudehülle" schon existiert (dort mit
+        // vollem Materialschichten-Editor; hier bewusst schlank: Dicke reicht für Grundriss/
+        // NGF/Zonen-Geometrie, U-Wert/GWP je Innenwand ist ein späterer Ausbau).
+        const INTERIOR_WALL_TYPES = {
+            gk_10: { label: 'Gipskarton-Ständerwand (10 cm)', thickness_cm: 10 },
+            gk_125: { label: 'Gipskarton-Ständerwand, doppelt beplankt (12,5 cm)', thickness_cm: 12.5 },
+            ks_115: { label: 'Kalksandstein, nichttragend (11,5 cm)', thickness_cm: 11.5 },
+            ks_175: { label: 'Kalksandstein, tragend (17,5 cm)', thickness_cm: 17.5 },
+            beton_20: { label: 'Stahlbeton, tragend (20 cm)', thickness_cm: 20 },
+            holz_12: { label: 'Holzständerwand (12 cm)', thickness_cm: 12 },
+            custom: { label: 'Benutzerdefiniert …', thickness_cm: null }
+        };
+        function initInteriorTypeSelect() {
+            const sel = document.getElementById('fpInteriorType');
+            if (!sel || sel.options.length) return;
+            sel.innerHTML = Object.keys(INTERIOR_WALL_TYPES).map(function (k) {
+                return '<option value="' + k + '">' + INTERIOR_WALL_TYPES[k].label + '</option>';
+            }).join('');
+            sel.addEventListener('change', function () {
+                const t = INTERIOR_WALL_TYPES[sel.value];
+                const th = document.getElementById('fpInteriorThickness');
+                if (t && t.thickness_cm != null && th) th.value = t.thickness_cm;
+            });
+        }
+        function floorsCountSimple() { return Math.max(1, getSimpleDims().floors || 1); }
+        function floorLabelSimple(i) { return i === 0 ? 'EG' : i + '. OG'; }
+        function syncInteriorFloorOptions() {
+            const sel = document.getElementById('fpInteriorFloor');
+            if (!sel) return;
+            const n = floorsCountSimple();
+            if (sel.options.length === n && sel.value !== '') return;   // schon aktuell, Auswahl erhalten
+            const keep = Math.min(parseInt(sel.value, 10) || 0, n - 1);
+            let h = '';
+            for (let i = 0; i < n; i++) h += '<option value="' + i + '">' + floorLabelSimple(i) + '</option>';
+            sel.innerHTML = h;
+            sel.value = String(Math.max(0, keep));
+        }
+        function getInteriorFloor() {
+            const sel = document.getElementById('fpInteriorFloor');
+            return sel ? (parseInt(sel.value, 10) || 0) : 0;
+        }
         function getInteriorThicknessM() {
             const el = document.getElementById('fpInteriorThickness');
-            const cm = el ? parseFloat(el.value) : 12;
-            return (isFinite(cm) && cm > 0 ? cm : 12) / 100;
+            const cm = el ? parseFloat(el.value) : 10;
+            return (isFinite(cm) && cm > 0 ? cm : 10) / 100;
         }
         function interiorWallsSvg() {
             let s = '';
-            window.interiorWalls.forEach(function (w) {
-                const th = (w.thickness_m || 0.12) * PXPM;
+            const floor = getInteriorFloor();
+            window.interiorWalls.filter(function (w) { return (w.floor || 0) === floor; }).forEach(function (w) {
+                const th = (w.thickness_m || 0.10) * PXPM;
                 const sel = w.id === selInteriorWall;
                 const d = w.pts.map(function (p, i) { return (i ? 'L' : 'M') + (p.x * PXPM).toFixed(1) + ' ' + (p.y * PXPM).toFixed(1); }).join(' ');
                 s += '<path data-interior-id="' + w.id + '" d="' + d + '" fill="none" stroke="' + (sel ? '#38bdf8' : '#cbd5e1') + '" stroke-width="' + th.toFixed(1) + '" stroke-linecap="square" stroke-linejoin="miter" opacity="0.92" style="cursor:pointer;"/>';
@@ -11880,10 +11934,16 @@ async function updateDoorType() {
         function finishInteriorWall() {
             if (interiorDraft.length >= 2) {
                 interiorSeq += 1;
+                const typeSel = document.getElementById('fpInteriorType');
+                const typeKey = typeSel ? typeSel.value : 'custom';
+                const type = INTERIOR_WALL_TYPES[typeKey];
                 window.interiorWalls.push({
                     id: 'iw' + interiorSeq,
                     pts: interiorDraft.map(function (p) { return { x: p.x / PXPM, y: p.y / PXPM }; }),
-                    thickness_m: getInteriorThicknessM()
+                    thickness_m: getInteriorThicknessM(),
+                    floor: getInteriorFloor(),
+                    wandtyp: typeKey,
+                    wandtyp_label: type ? type.label : 'Benutzerdefiniert'
                 });
                 if (typeof schedulePersist === 'function') schedulePersist();
             }
@@ -11918,7 +11978,7 @@ async function updateDoorType() {
             if (!info) return;
             if (msg) { info.textContent = msg; return; }
             const walls = closed ? pts.length : Math.max(0, pts.length - 1);
-            const iw = window.interiorWalls || [];
+            const iw = (window.interiorWalls || []).filter(function (w) { return (w.floor || 0) === getInteriorFloor(); });
             if (interiorMode) {
                 info.textContent = 'Innenwand zeichnen: Ecken anklicken, „Wand fertig" oder erneut auf „🧱 Innenwand zeichnen" klicken zum Beenden.'
                     + (iw.length ? '  ·  Innenwände: ' + iw.length : '');
@@ -11963,6 +12023,9 @@ async function updateDoorType() {
             return s;
         }
         function render() {
+            const ctl = document.getElementById('fpInteriorControls');
+            if (ctl) ctl.style.display = closed ? '' : 'none';
+            if (closed) { initInteriorTypeSelect(); syncInteriorFloorOptions(); }
             let s = '';
             if (pts.length) {
                 const d = pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ') + (closed ? ' Z' : '');
@@ -12164,7 +12227,9 @@ async function updateDoorType() {
                 return;
             }
             if (act === 'interior-clear') {
-                window.interiorWalls = []; selInteriorWall = null; interiorDraft = []; render();
+                const floor = getInteriorFloor();
+                window.interiorWalls = window.interiorWalls.filter(function (w) { return (w.floor || 0) !== floor; });
+                selInteriorWall = null; interiorDraft = []; render();
                 if (typeof schedulePersist === 'function') schedulePersist();
                 return;
             }
@@ -12173,6 +12238,10 @@ async function updateDoorType() {
             else if (act === 'clear') { closeVertexPanel(); pts = []; closed = false; render(); }
             else if (act === 'close') { if (pts.length >= 3) { closed = true; render(); apply(); } }
             else { closeVertexPanel(); setPreset(act, true); }
+        });
+        const floorSel = document.getElementById('fpInteriorFloor');
+        if (floorSel) floorSel.addEventListener('change', function () {
+            selInteriorWall = null; interiorDraft = []; render();
         });
 
         setPreset('rect', false); // Standard zeichnen, aber noch nicht ins 3D übernehmen
