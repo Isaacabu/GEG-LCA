@@ -1929,6 +1929,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
         <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 Wärme- &amp; Feuchteschutz</button>
         <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()">🌍 Ökobilanz (LCA)</button>
+        <button role="tab" aria-selected="false" aria-controls="bimviewer" tabindex="-1" onclick="showTab('bimviewer', this); if (window.loadBimViewer) window.loadBimViewer()">🧊 BIM-Viewer</button>
     </div>
 
     <button id="backToHouseBtn" class="back-to-house" type="button" onclick="backToHouse()" aria-label="Zurück zum 3D-Hausmodell in den Gebäudedaten">
@@ -16708,39 +16709,170 @@ window.addEventListener('load', function () {
 })();
 </script>
 
-<!-- ===================== IFC-Import: Grunddaten übernehmen (Phase I1) ===================== -->
+<!-- ===================== Tab: BIM-Viewer (importiertes IFC-Modell) ===================== -->
+<div id="bimviewer" class="tab">
+    <div class="panel">
+        <h2 class="section-title">🧊 BIM-Viewer</h2>
+        <p class="note">Reine 3D-Vorschau des zuletzt importierten IFC-Modells (Wände, Decken, Dach, Fenster, Türen,
+            Stützen/Träger/Treppen) — zur Kontrolle, was aus der Datei ausgelesen wurde. <b>Keine Bearbeitung, keine
+            Übernahme in die Berechnung</b> — der Grundriss für Energiebilanz/GEG wird weiterhin im Tab
+            „Gebäudedaten" unter „Komplexe Geometrie" gezeichnet.</p>
+        <div class="card">
+            <div id="bimViewerStatus" class="note" style="margin-bottom:8px;"></div>
+            <div id="bimViewerCanvas" style="width:100%;height:520px;border-radius:10px;overflow:hidden;background:#0b1f3a;"></div>
+            <div id="bimViewerInfo" class="small" style="color:#9bb4c8;margin-top:8px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== IFC-Import: Grunddaten übernehmen + BIM-Viewer laden ===================== -->
 <script>
 (function () {
     "use strict";
+    // Gemeinsame IndexedDB mit dashboard_home.html (gleiche Origin) - Geometrie-
+    // Meshes können größer als das localStorage-Limit (~5-10 MB) werden.
+    function idbGet(key) {
+        return new Promise(function (resolve) {
+            const req = indexedDB.open('geglca_ifc_db', 1);
+            req.onupgradeneeded = function () { req.result.createObjectStore('kv'); };
+            req.onsuccess = function () {
+                const tx = req.result.transaction('kv', 'readonly');
+                const getReq = tx.objectStore('kv').get(key);
+                getReq.onsuccess = function () { resolve(getReq.result || null); };
+                getReq.onerror = function () { resolve(null); };
+            };
+            req.onerror = function () { resolve(null); };
+        });
+    }
+    window._loadIfcImportData = function () { return idbGet('last_import'); };
+
     const params = new URLSearchParams(location.search);
     if (params.get('ifc_import') !== '1') return;
-    let data;
-    try { data = JSON.parse(localStorage.getItem('geglca_ifc_import_v1') || 'null'); } catch (e) { data = null; }
-    localStorage.removeItem('geglca_ifc_import_v1');
-    if (!data || !data.ok) return;
 
-    window.addEventListener('load', function () {
-        setTimeout(function () {
-            const nameEl = document.getElementById('project_name');
-            if (nameEl && data.building_name) nameEl.value = data.building_name;
-            if (data.storeys > 0) {
-                const floorsEl = document.getElementById('building_floors');
-                if (floorsEl) { floorsEl.value = data.storeys; if (typeof updateGeometryStats === 'function') updateGeometryStats(); }
-            }
-            if (data.bgf != null) {
-                const bgfEl = document.getElementById('bgf');
-                if (bgfEl) bgfEl.value = data.bgf;
-            }
-            const warn = (data.warnings || []).length ? '<br><span style="color:#f6b94b;">⚠ ' + data.warnings.join(' · ') + '</span>' : '';
-            const banner = document.createElement('div');
-            banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
-            banner.innerHTML = '📥 <b>IFC-Grunddaten übernommen:</b> „' + (data.building_name || '') + '" · ' + data.storeys + ' Geschosse'
-                + (data.bgf != null ? ' · ' + data.bgf + ' m² Grundfläche' : '')
-                + ' — Grundriss bitte im Tab „Gebäudedaten" unter „Komplexe Geometrie" nachzeichnen.' + warn
-                + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #2a4a73;color:#9bb4c8;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
-            document.body.appendChild(banner);
-        }, 400);
+    idbGet('last_import').then(function (data) {
+        if (!data || !data.ok) return;
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                const nameEl = document.getElementById('project_name');
+                if (nameEl && data.building_name) nameEl.value = data.building_name;
+                if (data.storeys > 0) {
+                    const floorsEl = document.getElementById('building_floors');
+                    if (floorsEl) { floorsEl.value = data.storeys; if (typeof updateGeometryStats === 'function') updateGeometryStats(); }
+                }
+                if (data.bgf != null) {
+                    const bgfEl = document.getElementById('bgf');
+                    if (bgfEl) bgfEl.value = data.bgf;
+                }
+                const warn = (data.warnings || []).length ? '<br><span style="color:#f6b94b;">⚠ ' + data.warnings.join(' · ') + '</span>' : '';
+                const geo = data.geometry || {};
+                const banner = document.createElement('div');
+                banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+                banner.innerHTML = '📥 <b>IFC-Grunddaten übernommen:</b> „' + (data.building_name || '') + '" · ' + data.storeys + ' Geschosse'
+                    + (data.bgf != null ? ' · ' + data.bgf + ' m² Grundfläche' : '')
+                    + ' — Grundriss bitte im Tab „Gebäudedaten" unter „Komplexe Geometrie" nachzeichnen.'
+                    + (geo.rendered_count ? ' <b>' + geo.rendered_count + ' Bauteile</b> im Tab „🧊 BIM-Viewer" ansehbar.' : '') + warn
+                    + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #2a4a73;color:#9bb4c8;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
+                document.body.appendChild(banner);
+            }, 400);
+        });
     });
+})();
+</script>
+
+<!-- ===================== BIM-Viewer Tab: 3D-Anzeige des importierten IFC-Modells ===================== -->
+<script>
+(function () {
+    "use strict";
+    let scene, camera, renderer, controls, initialized = false, loadedFor = null;
+
+    function status(msg) { const el = document.getElementById('bimViewerStatus'); if (el) el.textContent = msg; }
+
+    function initScene() {
+        const host = document.getElementById('bimViewerCanvas');
+        if (!host || initialized) return;
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b1f3a);
+        camera = new THREE.PerspectiveCamera(50, host.clientWidth / (host.clientHeight || 480), 0.1, 2000);
+        camera.position.set(15, 12, 15);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(host.clientWidth, host.clientHeight || 480);
+        host.innerHTML = '';
+        host.appendChild(renderer.domElement);
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 2, 0);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x223355, 1.0));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+        sun.position.set(20, 30, 10);
+        scene.add(sun);
+        scene.add(new THREE.GridHelper(60, 60, 0x2a4a73, 0x162b47));
+        window.addEventListener('resize', function () {
+            if (!host.clientWidth) return;
+            camera.aspect = host.clientWidth / (host.clientHeight || 480);
+            camera.updateProjectionMatrix();
+            renderer.setSize(host.clientWidth, host.clientHeight || 480);
+        });
+        (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+        initialized = true;
+    }
+
+    // IFC-Weltkoordinaten (Z=hoch) -> Three.js-Konvention (Y=hoch): Achsen tauschen.
+    function meshFromIfc(m) {
+        const geo = new THREE.BufferGeometry();
+        const verts = new Float32Array(m.vertices.length);
+        for (let i = 0; i < m.vertices.length; i += 3) {
+            verts[i] = m.vertices[i]; verts[i + 1] = m.vertices[i + 2]; verts[i + 2] = -m.vertices[i + 1];
+        }
+        geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+        geo.setIndex(Array.from(m.faces));
+        geo.computeVertexNormals();
+        const transparent = m.type === 'IfcWindow';
+        const mat = new THREE.MeshStandardMaterial({
+            color: m.color, roughness: 0.7, metalness: 0.05, side: THREE.DoubleSide,
+            transparent: transparent, opacity: transparent ? 0.45 : 1.0
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = { type: m.type, name: m.name, id: m.id };
+        return mesh;
+    }
+
+    function fitCameraToScene(group) {
+        const box = new THREE.Box3().setFromObject(group);
+        if (box.isEmpty()) return;
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const radius = Math.max(size.x, size.y, size.z, 4);
+        camera.position.set(center.x + radius, center.y + radius * 0.8, center.z + radius);
+        controls.target.copy(center);
+        controls.update();
+    }
+
+    function renderMeshes(data) {
+        initScene();
+        Array.from(scene.children).forEach(function (c) { if (c.userData && c.userData.type) scene.remove(c); });
+        const group = new THREE.Group();
+        (data.geometry.meshes || []).forEach(function (m) { group.add(meshFromIfc(m)); });
+        scene.add(group);
+        fitCameraToScene(group);
+        const info = document.getElementById('bimViewerInfo');
+        if (info) {
+            const g = data.geometry;
+            info.textContent = (data.building_name || 'IFC-Modell') + ' · ' + g.rendered_count + ' von ' + g.element_count + ' Bauteilen dargestellt'
+                + (g.warnings && g.warnings.length ? ' · ⚠ ' + g.warnings.join(' · ') : '');
+        }
+    }
+
+    window.loadBimViewer = function () {
+        status('Lade …');
+        (window._loadIfcImportData ? window._loadIfcImportData() : Promise.resolve(null)).then(function (data) {
+            if (!data || !data.ok || !data.geometry || !(data.geometry.meshes || []).length) {
+                status('Noch kein IFC-Modell importiert (oder keine darstellbare Geometrie enthalten). Import über die Startseite („📥 IFC-Modell importieren").');
+                return;
+            }
+            status('');
+            loadedFor = data;
+            renderMeshes(data);
+        });
+    };
 })();
 </script>
 

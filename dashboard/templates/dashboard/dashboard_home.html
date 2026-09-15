@@ -168,7 +168,7 @@
     function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function fmt(x, u) { return (x == null || !isFinite(x)) ? '—' : (Math.round(x * 10) / 10).toLocaleString('de-DE') + (u || ''); }
 
-    // ---- IFC-Import (Phase I1: Grunddaten-Extraktion) ----
+    // ---- IFC-Import (Phase I1 Grunddaten + Phase I2 Geometrie für den BIM-Viewer) ----
     function getCookie(name) {
         const prefix = name + '=';
         for (const part of document.cookie.split(';')) {
@@ -176,6 +176,21 @@
             if (c.startsWith(prefix)) return decodeURIComponent(c.slice(prefix.length));
         }
         return null;
+    }
+    // IndexedDB statt localStorage: Geometrie-Meshes können größer als das ~5-10 MB-
+    // Limit von localStorage werden. Gemeinsame DB mit index.html (gleiche Origin).
+    function idbPut(key, value) {
+        return new Promise(function (resolve, reject) {
+            const req = indexedDB.open('geglca_ifc_db', 1);
+            req.onupgradeneeded = function () { req.result.createObjectStore('kv'); };
+            req.onsuccess = function () {
+                const tx = req.result.transaction('kv', 'readwrite');
+                tx.objectStore('kv').put(value, key);
+                tx.oncomplete = function () { resolve(); };
+                tx.onerror = function () { reject(tx.error); };
+            };
+            req.onerror = function () { reject(req.error); };
+        });
     }
     const ifcInput = document.getElementById('ifcFileInput');
     const ifcStatus = document.getElementById('ifcImportStatus');
@@ -197,9 +212,11 @@
             if (!res.ok || !data.ok) {
                 throw new Error((data.errors && data.errors[0]) || 'Import fehlgeschlagen');
             }
-            localStorage.setItem('geglca_ifc_import_v1', JSON.stringify(data));
+            await idbPut('last_import', data);
             ifcStatus.textContent = '✓ „' + data.building_name + '" gelesen (' + data.storeys + ' Geschosse' +
-                (data.bgf != null ? ', ' + data.bgf + ' m² Grundfläche' : '') + ') – öffne Rechner …';
+                (data.bgf != null ? ', ' + data.bgf + ' m² Grundfläche' : '')
+                + (data.geometry ? ', ' + data.geometry.rendered_count + ' Bauteile für BIM-Viewer' : '')
+                + ') – öffne Rechner …';
             setTimeout(function () { location.href = '/projekt/?ifc_import=1'; }, 600);
         } catch (err) {
             ifcStatus.textContent = '✗ ' + err.message;

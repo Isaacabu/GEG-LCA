@@ -34,7 +34,12 @@ from dashboard.services.din4108 import (
 from dashboard.services.din18599 import calculate_heat_demand
 from dashboard.services.din18599_anlage import F_CO2, F_PRIMARY, calculate_system_din
 from dashboard.services.din18599_multizone import calculate_heat_demand_multizone
-from dashboard.services.ifc_import import IfcImportError, extract_basic_data
+from dashboard.services.ifc_import import (
+    IfcImportError,
+    extract_all,
+    extract_basic_data,
+    extract_geometry,
+)
 
 # Referenz-EFH (150 m², GEG-nah) — identisch mit scripts/verify_din18599.py
 # und scripts/verify_din18599_anlage.py. Handrechnung H_T siehe Docstring dort.
@@ -426,3 +431,69 @@ class IfcImportTests(SimpleTestCase):
     def test_leere_datei_wirft_ifcimporterror(self):
         with self.assertRaises(IfcImportError):
             extract_basic_data(b"")
+
+
+def _build_test_ifc_with_walls(n_walls=2):
+    """Baut ein IFC4-Modell mit ECHTER Geometrie (n_walls Wände, je 5×2,7×0,3 m,
+    über geometry.create_2pt_wall) - für Tests der Geometrie-Extraktion
+    (extract_geometry/extract_all). Jede Box-Wand liefert 8 Vertices/12 Dreiecke."""
+    import ifcopenshell
+    import ifcopenshell.api.context as context
+    import ifcopenshell.api.geometry as geometry
+    import ifcopenshell.api.root as root
+    import ifcopenshell.api.unit as unit
+
+    f = ifcopenshell.file(schema="IFC4")
+    root.create_entity(f, ifc_class="IfcProject", name="Testprojekt")
+    unit.assign_unit(f)
+    model_ctx = context.add_context(f, context_type="Model")
+    body_ctx = context.add_context(
+        f, context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=model_ctx
+    )
+    root.create_entity(f, ifc_class="IfcBuilding", name="Testgebaeude")
+    root.create_entity(f, ifc_class="IfcBuildingStorey", name="EG")
+
+    for i in range(n_walls):
+        wall = root.create_entity(f, ifc_class="IfcWall", name=f"Wand {i + 1}")
+        rep = geometry.create_2pt_wall(
+            f, element=wall, context=body_ctx, p1=(0.0, i * 3.0), p2=(5.0, i * 3.0),
+            elevation=0.0, height=2.7, thickness=0.3,
+        )
+        geometry.assign_representation(f, product=wall, representation=rep)
+
+    return f.to_string().encode("utf-8")
+
+
+class IfcGeometryExtractionTests(SimpleTestCase):
+    """IFC-Geometrie-Extraktion für den BIM-Viewer (Phase I2, services/ifc_import.py)."""
+
+    def test_zwei_waende_liefern_zwei_meshes_mit_box_geometrie(self):
+        r = extract_geometry(_build_test_ifc_with_walls(2))
+        self.assertEqual(r["element_count"], 2)
+        self.assertEqual(r["rendered_count"], 2)
+        self.assertEqual(len(r["meshes"]), 2)
+        for mesh in r["meshes"]:
+            self.assertEqual(mesh["type"], "IfcWall")
+            # Box-Wand: 8 Eckpunkte (24 Koordinaten), 12 Dreiecke (36 Indizes)
+            self.assertEqual(len(mesh["vertices"]), 24)
+            self.assertEqual(len(mesh["faces"]), 36)
+            self.assertEqual(mesh["color"], 0x2b4a78)
+
+    def test_kein_darstellbares_bauteil_erzeugt_warnung(self):
+        r = extract_geometry(_build_test_ifc(n_storeys=1, space_areas=()))
+        self.assertEqual(r["rendered_count"], 0)
+        self.assertTrue(any("bauteil" in w.lower() for w in r["warnings"]))
+
+    def test_max_elements_begrenzt_und_warnt(self):
+        r = extract_geometry(_build_test_ifc_with_walls(3), max_elements=2)
+        self.assertEqual(r["element_count"], 3)
+        self.assertEqual(r["rendered_count"], 2)
+        self.assertTrue(any("nur die ersten" in w.lower() for w in r["warnings"]))
+
+    def test_extract_all_liefert_grunddaten_und_geometrie_zusammen(self):
+        r = extract_all(_build_test_ifc_with_walls(1))
+        self.assertEqual(r["building_name"], "Testgebaeude")
+        self.assertIn("geometry", r)
+        self.assertEqual(r["geometry"]["rendered_count"], 1)
+        # Geometrie-Warnungen (z.B. fehlende Flächen) landen in derselben Liste wie Grunddaten-Warnungen
+        self.assertTrue(any("fläche" in w.lower() for w in r["warnings"]))

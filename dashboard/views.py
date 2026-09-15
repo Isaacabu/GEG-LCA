@@ -434,12 +434,14 @@ def upload_ekobaudat_csv(request):
 
 
 def import_ifc(request):
-    """IFC-Modell-Import, Phase I1 (Grunddaten-Extraktion).
+    """IFC-Modell-Import: Grunddaten (Phase I1) + Geometrie für den BIM-Viewer (Phase I2).
 
-    Multipart-POST mit Feld 'ifc_file'. Liest nur Projektname/Geschosszahl/
-    Grundfläche aus (dashboard/services/ifc_import.py) - keine Wand-/Fenster-
-    Geometrie (Phase I2, Folgeticket). Aufgerufen von der Start-Seite
-    (dashboard_home.html), nicht vom Rechner selbst.
+    Multipart-POST mit Feld 'ifc_file'. Liest Projektname/Geschosszahl/Grundfläche
+    UND trianguliert die sichtbaren Bauteile für die reine 3D-Vorschau im
+    BIM-Viewer-Tab (dashboard/services/ifc_import.py, extract_all - EIN
+    Öffnen/Parsen der Datei für beides). Keine Übernahme in den "Komplexe
+    Geometrie"-Grundriss-Editor (siehe Modul-Docstring). Aufgerufen von der
+    Start-Seite (dashboard_home.html), nicht vom Rechner selbst.
     """
     if request.method != 'POST':
         return JsonResponse({"ok": False, "errors": ["Only POST allowed"]}, status=400)
@@ -450,10 +452,10 @@ def import_ifc(request):
     if not (upload.name or "").lower().endswith(".ifc"):
         return JsonResponse({"ok": False, "errors": ["Nur .ifc-Dateien werden unterstützt."]}, status=400)
 
-    from .services.ifc_import import extract_basic_data, IfcImportError
+    from .services.ifc_import import extract_all, IfcImportError
 
     try:
-        result = extract_basic_data(upload.read())
+        result = extract_all(upload.read())
     except IfcImportError as e:
         return JsonResponse({"ok": False, "errors": [str(e)]}, status=400)
     except Exception:
