@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # die dortigen Faktor-Tabellen sind eine ältere, hier nicht genutzte Vereinfachung.
 from .utils import safe_float, validate_non_negative, validate_u_value, get_rating
 from .services.din18599 import calculate_heat_demand
+from .services.din18599_multizone import calculate_heat_demand_multizone
 from .services.din18599_anlage import calculate_system_din
 from .services.din4108 import (
     pruefe_mindestwaermeschutz,
@@ -81,6 +82,21 @@ def calculate(data):
     Siehe docs/DIN18599_Umsetzung.md für die normative Herleitung.
     """
     return calculate_heat_demand(data)
+
+
+@csrf_exempt
+@json_calculate_view
+def calculate_multizone(data):
+    """Mehrzonen-Heizwärmebedarf nach DIN V 18599-2 (Phase Z2a der Mehrzonen-Vision).
+
+    Ruft calculate_heat_demand() unverändert je Zone auf und aggregiert
+    (dashboard/services/din18599_multizone.py). Additiver Endpunkt - /calculate/
+    (Einzonen) bleibt exakt wie bisher. Erwartet {"zones": [<data-dict je Zone>, ...]}.
+    """
+    zones = data.get("zones")
+    if not isinstance(zones, list) or not zones:
+        return {"ok": False, "errors": ["Keine Zonen übergeben."]}
+    return calculate_heat_demand_multizone(zones)
 
 
 @csrf_exempt

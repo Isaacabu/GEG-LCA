@@ -19,6 +19,7 @@ urlpatterns = [
     path("", views.home),
     path("projekt/", views.index),
     path("calculate/", views.calculate),
+    path("calculate-multizone/", views.calculate_multizone),
     path("calculate-system/", views.calculate_system),
     path("calculate-pv/", views.calculate_pv),
     path("calculate-balance/", views.calculate_balance),

@@ -33,6 +33,7 @@ from dashboard.services.din4108 import (
 )
 from dashboard.services.din18599 import calculate_heat_demand
 from dashboard.services.din18599_anlage import F_CO2, F_PRIMARY, calculate_system_din
+from dashboard.services.din18599_multizone import calculate_heat_demand_multizone
 
 # Referenz-EFH (150 m², GEG-nah) — identisch mit scripts/verify_din18599.py
 # und scripts/verify_din18599_anlage.py. Handrechnung H_T siehe Docstring dort.
@@ -282,3 +283,81 @@ class Din18599AnlageTests(SimpleTestCase):
     def test_gas_endenergie_spezifisch_plausibel(self):
         spez = self.gas["total_end_energy"] / 150
         self.assertTrue(60 <= spez <= 130, f"{spez} kWh/m²a außerhalb Plausibilitätsband")
+
+
+class Din18599MultizoneTests(SimpleTestCase):
+    """
+    Mehrzonen-Aggregation (Phase Z2a, services/din18599_multizone.py).
+
+    Konsistenz-Oracle statt unabhängiger Handrechnung: H_T, H_V und die solaren/
+    internen Gewinne sind linear in Fläche/BGF, und der Ausnutzungsgrad η hängt nur
+    vom (skaleninvarianten) Verhältnis Q_Quelle/Q_Senke ab. Ein gleichförmiges
+    Gebäude, exakt in zwei IDENTISCHE Zonen (halbe Flächen/BGF, gleiches Profil)
+    geteilt, muss deshalb exakt (bis auf Rundung der Zwischenwerte) dasselbe
+    Gesamtergebnis liefern wie die Einzonen-Rechnung fürs ganze Gebäude. Referenz-EFH
+    ohne Tür (Türanzahl ist ein Integer, halbiert sich nicht sauber) — sonst
+    identisch mit REFERENZ_EFH_ENVELOPE.
+    """
+
+    WHOLE = {
+        "bgf": 150, "room_height": 2.6, "building_type": "wohngebaeude",
+        "building_type_variant": "EFH",
+        "north_area": 30, "north_u": 0.24, "south_area": 30, "south_u": 0.24,
+        "east_area": 30, "east_u": 0.24, "west_area": 30, "west_u": 0.24,
+        "roof_area": 100, "roof_u": 0.20, "floor_area": 100, "floor_u": 0.175,
+        "window_north_area": 5, "window_south_area": 15,
+        "window_east_area": 5, "window_west_area": 5,
+        "window_u": 1.10, "g_value": 0.60,
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.whole = calculate_heat_demand(cls.WHOLE)
+        # Nur extensive Größen (Flächen, BGF) halbieren - U-Werte/g-Wert/Raumhöhe sind
+        # intensive Größen (pro m²) und bleiben für jede Zone unverändert.
+        flaechenfelder = (
+            "bgf", "north_area", "south_area", "east_area", "west_area",
+            "roof_area", "floor_area",
+            "window_north_area", "window_south_area", "window_east_area", "window_west_area",
+        )
+        half = dict(cls.WHOLE)
+        for k in flaechenfelder:
+            half[k] = half[k] / 2
+        cls.multi = calculate_heat_demand_multizone([dict(half, zone_name="A"), dict(half, zone_name="B")])
+
+    def test_beide_rechnungen_ok(self):
+        self.assertTrue(self.whole["ok"])
+        self.assertTrue(self.multi["ok"])
+        self.assertEqual(self.multi["zone_count"], 2)
+
+    def test_bgf_summe_stimmt(self):
+        self.assertAlmostEqual(self.multi["bgf_total"], 150, delta=0.1)
+
+    def test_h_transmission_summe_gleich_ganzes_gebaeude(self):
+        self.assertAlmostEqual(self.multi["h_transmission"], self.whole["h_transmission"], delta=0.5)
+
+    def test_h_ventilation_summe_gleich_ganzes_gebaeude(self):
+        self.assertAlmostEqual(self.multi["h_ventilation"], self.whole["h_ventilation"], delta=0.5)
+
+    def test_heizwaermebedarf_summe_gleich_ganzes_gebaeude(self):
+        # η ist skaleninvariant (hängt nur vom Verhältnis Q_Quelle/Q_Senke ab) →
+        # zwei identische halbe Zonen liefern in Summe exakt den Wert des ganzen
+        # Gebäudes (bis auf Rundung der Zwischenwerte je Zone).
+        self.assertAlmostEqual(
+            self.multi["adjusted_heat_demand_kwh"], self.whole["adjusted_heat_demand_kwh"], delta=2.0
+        )
+
+    def test_monatswerte_summieren_sich_korrekt(self):
+        for m_whole, m_multi in zip(self.whole["monthly"], self.multi["monthly"]):
+            self.assertEqual(m_whole["month"], m_multi["month"])
+            self.assertAlmostEqual(m_whole["q_heat"], m_multi["q_heat"], delta=1.0)
+
+    def test_leere_zonenliste_liefert_fehler(self):
+        r = calculate_heat_demand_multizone([])
+        self.assertFalse(r["ok"])
+
+    def test_fehlerhafte_zone_wird_mit_namen_gemeldet(self):
+        r = calculate_heat_demand_multizone([{**self.WHOLE, "zone_name": "Kaputt", "bgf": 0}])
+        self.assertFalse(r["ok"])
+        self.assertTrue(any("Kaputt" in e for e in r["errors"]))
