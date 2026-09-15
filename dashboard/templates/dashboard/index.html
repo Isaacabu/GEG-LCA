@@ -2127,6 +2127,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <div class="value" id="geometry_bgf">360 m²</div>
                         </div>
                         <div class="stat-box">
+                            <div class="label">NGF (geschätzt)
+                                <span class="info-i" data-tip="Netto-Grundfläche nach DIN 277: BGF minus Konstruktions-Grundfläche (Wandquerschnitte).&#10;Näherung: Außenwand-Umfang × mittlere Wanddicke je Geschoss (aus dem Wandaufbau in „Gebäudehülle“, Standard 30&nbsp;cm falls noch nicht gewählt). Innenwände sind nicht erfasst.&#10;Wichtig: die DIN-V-18599-Teil-10-Tabellenwerte (interne Gewinne, Warmwasser, Leitungslängen) sind NGF-bezogen, nicht BGF-bezogen – das Tool nutzt aktuell weiterhin BGF als Bezugsfläche, sofern du unten nicht manuell umstellst.">i</span>
+                            </div>
+                            <div class="value" id="geometry_ngf">– m²</div>
+                        </div>
+                        <div class="stat-box">
                             <div class="label">Hüllfläche A</div>
                             <div class="value" id="geometry_envelope_area">702 m²</div>
                         </div>
@@ -2151,8 +2157,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     </div>
 
                     <div class="field">
-                        <label>BGF für spezifische Kennwerte (m²)</label>
-                        <input id="bgf" type="number" value="360">
+                        <label>BGF für spezifische Kennwerte (m²)
+                            <span class="info-i" data-tip="Bezugsfläche für alle spezifischen Kennwerte (kWh/m²a) und die DIN-V-18599-Teil-10-Tabellenwerte. Norm-korrekt wäre hier die NGF, nicht die BGF – siehe Hinweis beim Feld „NGF (geschätzt)“ oben. Standardmäßig wird die BGF übernommen (bekannte, dokumentierte Vereinfachung); mit „→ NGF übernehmen“ kannst du stattdessen die geschätzte NGF eintragen.">i</span>
+                        </label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input id="bgf" type="number" value="360" style="flex:1;">
+                            <button type="button" class="btn" id="useNgfBtn" onclick="applyEstimatedNgfToBgfField()" style="white-space:nowrap;padding:6px 10px;">→ NGF übernehmen</button>
+                        </div>
                     </div>
                     <div class="field">
                         <label>Wärmebrückenzuschlag ΔU_WB (GEG §24)
@@ -5082,6 +5093,31 @@ function setGeometryFieldsMode(complex, extNS, extEW) {
     }
 }
 
+// ===== NGF-Schätzung (DIN 277) aus Grundriss + Wanddicke =====
+// NGF = BGF − Konstruktions-Grundfläche (KGF). KGF wird über den Außenwand-Umfang ×
+// mittlere Wanddicke je Geschoss angenähert (Ring-Näherung ohne Eck-Korrektur zweiter
+// Ordnung – bei Wanddicke << Gebäudekantenlänge vernachlässigbar). Innenwände/Stützen
+// sind mangels Innenwand-Erfassung im Tool nicht enthalten; reine Schätzung, informativ.
+function getAverageWallThicknessM() {
+    const wmd = window.wallMaterialData || {};
+    const vals = ['north', 'south', 'east', 'west']
+        .map(function (o) { return (wmd[o] && isFinite(wmd[o].thicknessMm) && wmd[o].thicknessMm > 0) ? wmd[o].thicknessMm : null; })
+        .filter(function (v) { return v != null; });
+    if (!vals.length) return 0.30;   // Standard-Außenwand als Fallback, solange kein Wandaufbau gewählt ist
+    return (vals.reduce(function (a, b) { return a + b; }, 0) / vals.length) / 1000;
+}
+function estimateNGF(bgf, perimeterM, floors) {
+    const kgfPerFloor = perimeterM * getAverageWallThicknessM();
+    return Math.max(bgf - kgfPerFloor * floors, 0);
+}
+function applyEstimatedNgfToBgfField() {
+    const el = document.getElementById('geometry_ngf');
+    const ngf = el ? parseFloat(el.innerText) : NaN;
+    if (!isFinite(ngf) || ngf <= 0) return;
+    const bgfInput = document.getElementById('bgf');
+    if (bgfInput) { bgfInput.value = ngf.toFixed(0); bgfInput.dispatchEvent(new Event('input')); }
+}
+
 function updateGeometryStats() {
     // Komplexe Geometrie: Maße, Flächen und Volumen kommen aus dem gezeichneten
     // Grundriss (buildComplex) – die Rechteck-Formeln hier würden sie überschreiben.
@@ -5098,10 +5134,13 @@ function updateGeometryStats() {
     const bgf = length * width * floors;
     const volume = bgf * floorHeight;
     const envelopeArea = (2 * (length + width) * totalHeight) + (2 * length * width);
+    const perimeter = 2 * (length + width);
+    const ngf = estimateNGF(bgf, perimeter, floors);
 
     document.getElementById('geometry_total_height').innerText = `${totalHeight.toFixed(1)} m`;
     document.getElementById('geometry_volume').innerText = `${volume.toFixed(0)} m³`;
     document.getElementById('geometry_bgf').innerText = `${bgf.toFixed(0)} m²`;
+    document.getElementById('geometry_ngf').innerText = `${ngf.toFixed(0)} m²`;
     document.getElementById('geometry_envelope_area').innerText = `${envelopeArea.toFixed(0)} m²`;
     document.getElementById('bgf').value = bgf.toFixed(0);
 
@@ -11665,10 +11704,12 @@ async function updateDoorType() {
         if (typeof renderElementAddButtons === 'function') renderElementAddButtons();
 
         const bgf = A * d.floors;
+        const ngf = estimateNGF(bgf, perim, d.floors);
         const set = function (id, txt) { const el = document.getElementById(id); if (el) el.innerText = txt; };
         set('geometry_total_height', H.toFixed(1) + ' m');
         set('geometry_volume', (A * H).toFixed(0) + ' m³');
         set('geometry_bgf', bgf.toFixed(0) + ' m²');
+        set('geometry_ngf', ngf.toFixed(0) + ' m²');
         set('geometry_envelope_area', (perim * H + 2 * A).toFixed(0) + ' m²');
         const bgfInput = document.getElementById('bgf'); if (bgfInput) bgfInput.value = bgf.toFixed(0);
         // Gebäudegeometrie-Felder: Länge/Breite = Ausdehnung des Grundrisses (readonly)
