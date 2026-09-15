@@ -1976,6 +1976,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                                 <button type="button" class="fp-btn" data-fp="close">Polygon schließen</button>
                                 <button type="button" class="fp-btn fp-btn-danger" data-fp="clear">Leeren</button>
                             </span>
+                            <span class="fp-group">
+                                <button type="button" class="fp-btn" id="fpInteriorToggle" data-fp="interior-toggle">🧱 Innenwand zeichnen</button>
+                                <button type="button" class="fp-btn" data-fp="interior-finish">Wand fertig</button>
+                                <button type="button" class="fp-btn fp-btn-danger" data-fp="interior-delete">Ausgewählte löschen</button>
+                                <button type="button" class="fp-btn fp-btn-danger" data-fp="interior-clear">Alle Innenwände löschen</button>
+                            </span>
                         </div>
                         <div class="fp-controls">
                             <label class="fp-ctl">Nordrichtung drehen
@@ -1987,6 +1993,9 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             </label>
                             <label class="fp-ctl">Türen
                                 <input type="number" id="fpDoors" min="0" max="20" step="1" value="1">
+                            </label>
+                            <label class="fp-ctl">Innenwand-Dicke
+                                <input type="number" id="fpInteriorThickness" min="6" max="40" step="1" value="12"> cm
                             </label>
                         </div>
                         <div class="fp-canvas-wrap">
@@ -11839,6 +11848,59 @@ async function updateDoorType() {
         const PXPM = 24, STEP = PXPM * 0.5, CW = 480, CH = 320;
         let pts = [], closed = false, cursor = null, dragIndex = -1, downAt = null, moved = false;
 
+        // ===== Innenwände (eigenes Zeichenwerkzeug, gleiche Fläche) =====
+        // Offene Polylinien (keine Fläche) statt geschlossenem Polygon. Punkte in
+        // denselben Meter-Koordinaten wie die Außenhülle (pts/PXPM) – dadurch direkt
+        // vergleichbar mit getFootprint()/Zimmer-Polygonen im Inneneinrichtung-Tab.
+        window.interiorWalls = window.interiorWalls || [];   // {id, pts:[{x,y} in m], thickness_m}
+        let interiorMode = false, interiorDraft = [], selInteriorWall = null, interiorSeq = window.interiorWalls.length;
+        function getInteriorThicknessM() {
+            const el = document.getElementById('fpInteriorThickness');
+            const cm = el ? parseFloat(el.value) : 12;
+            return (isFinite(cm) && cm > 0 ? cm : 12) / 100;
+        }
+        function interiorWallsSvg() {
+            let s = '';
+            window.interiorWalls.forEach(function (w) {
+                const th = (w.thickness_m || 0.12) * PXPM;
+                const sel = w.id === selInteriorWall;
+                const d = w.pts.map(function (p, i) { return (i ? 'L' : 'M') + (p.x * PXPM).toFixed(1) + ' ' + (p.y * PXPM).toFixed(1); }).join(' ');
+                s += '<path data-interior-id="' + w.id + '" d="' + d + '" fill="none" stroke="' + (sel ? '#38bdf8' : '#cbd5e1') + '" stroke-width="' + th.toFixed(1) + '" stroke-linecap="square" stroke-linejoin="miter" opacity="0.92" style="cursor:pointer;"/>';
+            });
+            if (interiorMode && interiorDraft.length) {
+                const dd = interiorDraft.map(function (p, i) { return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ');
+                s += '<path d="' + dd + '" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6 4"/>';
+                interiorDraft.forEach(function (p) {
+                    s += '<circle cx="' + p.x + '" cy="' + p.y + '" r="4.5" fill="#38bdf8"/>';
+                });
+                if (cursor) s += '<line x1="' + interiorDraft[interiorDraft.length - 1].x + '" y1="' + interiorDraft[interiorDraft.length - 1].y + '" x2="' + cursor.x + '" y2="' + cursor.y + '" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 4"/>';
+            }
+            return s;
+        }
+        function finishInteriorWall() {
+            if (interiorDraft.length >= 2) {
+                interiorSeq += 1;
+                window.interiorWalls.push({
+                    id: 'iw' + interiorSeq,
+                    pts: interiorDraft.map(function (p) { return { x: p.x / PXPM, y: p.y / PXPM }; }),
+                    thickness_m: getInteriorThicknessM()
+                });
+                if (typeof schedulePersist === 'function') schedulePersist();
+            }
+            interiorDraft = [];
+            render();
+        }
+        function setInteriorMode(on) {
+            if (on && !closed) { updateInfo('Erst die Außenhülle schließen, dann Innenwände zeichnen.'); return; }
+            if (interiorMode && !on) finishInteriorWall();
+            interiorMode = on;
+            closeVertexPanel_safe();
+            const btn = document.getElementById('fpInteriorToggle');
+            if (btn) btn.classList.toggle('active', interiorMode);
+            render();
+        }
+        function closeVertexPanel_safe() { if (typeof closeVertexPanel === 'function' && closed) closeVertexPanel(); }
+
         function svgPt(e) {
             const r = svg.getBoundingClientRect();
             return { x: (e.clientX - r.left) / r.width * CW, y: (e.clientY - r.top) / r.height * CH };
@@ -11856,7 +11918,14 @@ async function updateDoorType() {
             if (!info) return;
             if (msg) { info.textContent = msg; return; }
             const walls = closed ? pts.length : Math.max(0, pts.length - 1);
-            info.textContent = 'Wände: ' + walls + '/' + MAX_WALLS + '  ·  Fläche: ' + (closed ? area().toFixed(1) : '–') + ' m²  ·  1 Kästchen = 1 m';
+            const iw = window.interiorWalls || [];
+            if (interiorMode) {
+                info.textContent = 'Innenwand zeichnen: Ecken anklicken, „Wand fertig" oder erneut auf „🧱 Innenwand zeichnen" klicken zum Beenden.'
+                    + (iw.length ? '  ·  Innenwände: ' + iw.length : '');
+                return;
+            }
+            info.textContent = 'Wände: ' + walls + '/' + MAX_WALLS + '  ·  Fläche: ' + (closed ? area().toFixed(1) : '–') + ' m²'
+                + (iw.length ? '  ·  Innenwände: ' + iw.length : '') + '  ·  1 Kästchen = 1 m';
         }
         // Wand-Bezeichnungen (Nr. + Himmelsrichtung) an den Kantenmitten. Nutzt dieselbe
         // eindeutige Sektor-Zuordnung wie buildComplex (assignWallSectors) – dadurch
@@ -11900,6 +11969,7 @@ async function updateDoorType() {
                 let prev = '';
                 if (!closed && cursor) prev = '<line x1="' + pts[pts.length - 1].x + '" y1="' + pts[pts.length - 1].y + '" x2="' + cursor.x + '" y2="' + cursor.y + '" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5 5"/>';
                 s += '<path d="' + d + '" fill="' + (closed ? 'rgba(16,185,129,0.16)' : 'none') + '" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round"/>' + prev;
+                s += interiorWallsSvg();
                 pts.forEach(function (p, i) {
                     const sel = (typeof selVertex !== 'undefined' && i === selVertex && closed);
                     s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (sel ? 8 : (i === 0 ? 7 : 5.5)) + '" fill="' + (sel ? '#0e7490' : (i === 0 ? '#f6b94b' : '#0b1f3a')) + '" stroke="' + (sel ? '#38bdf8' : '#10b981') + '" stroke-width="' + (sel ? 2.5 : 2) + '"/>';
@@ -12032,12 +12102,18 @@ async function updateDoorType() {
         });
 
         svg.addEventListener('pointerdown', function (e) {
+            if (interiorMode) { downAt = svgPt(e); moved = false; return; }
             const t = e.target;
             if (t && t.classList && t.classList.contains('fp-handle')) { dragIndex = parseInt(t.getAttribute('data-i'), 10); moved = false; downAt = svgPt(e); e.preventDefault(); return; }
             downAt = svgPt(e); moved = false;
         });
         svg.addEventListener('pointermove', function (e) {
             const p = svgPt(e); cursor = p;
+            if (interiorMode) {
+                if (downAt && (Math.abs(p.x - downAt.x) > 4 || Math.abs(p.y - downAt.y) > 4)) moved = true;
+                render();
+                return;
+            }
             if (dragIndex >= 0) {
                 // Totzone: erst ab 4 px Bewegung ziehen, damit ein Klick den Punkt-Editor öffnet
                 if (!moved && downAt && Math.abs(p.x - downAt.x) <= 4 && Math.abs(p.y - downAt.y) <= 4) return;
@@ -12047,6 +12123,16 @@ async function updateDoorType() {
             if (!closed) render();
         });
         svg.addEventListener('pointerup', function (e) {
+            if (interiorMode) {
+                const wasDrag = moved; downAt = null; moved = false;
+                if (wasDrag) return;
+                const t = e.target;
+                const iwId = t && t.getAttribute ? t.getAttribute('data-interior-id') : null;
+                if (iwId) { selInteriorWall = (selInteriorWall === iwId ? null : iwId); render(); return; }
+                interiorDraft.push({ x: snap(svgPt(e).x), y: snap(svgPt(e).y) });
+                render();
+                return;
+            }
             if (dragIndex >= 0) {
                 const idx = dragIndex, wasDrag = moved;
                 dragIndex = -1; downAt = null;
@@ -12067,6 +12153,22 @@ async function updateDoorType() {
             const b = e.target.closest ? e.target.closest('[data-fp]') : null;
             if (!b) return;
             const act = b.getAttribute('data-fp');
+            if (act === 'interior-toggle') { setInteriorMode(!interiorMode); return; }
+            if (act === 'interior-finish') { finishInteriorWall(); return; }
+            if (act === 'interior-delete') {
+                if (selInteriorWall) {
+                    window.interiorWalls = window.interiorWalls.filter(function (w) { return w.id !== selInteriorWall; });
+                    selInteriorWall = null; render();
+                    if (typeof schedulePersist === 'function') schedulePersist();
+                }
+                return;
+            }
+            if (act === 'interior-clear') {
+                window.interiorWalls = []; selInteriorWall = null; interiorDraft = []; render();
+                if (typeof schedulePersist === 'function') schedulePersist();
+                return;
+            }
+            if (interiorMode) return;   // Außenhüllen-Werkzeuge im Innenwand-Modus deaktiviert
             if (act === 'undo') { closeVertexPanel(); pts.pop(); closed = false; render(); }
             else if (act === 'clear') { closeVertexPanel(); pts = []; closed = false; render(); }
             else if (act === 'close') { if (pts.length >= 3) { closed = true; render(); apply(); } }
@@ -12166,6 +12268,7 @@ async function updateDoorType() {
         updateNorthArrow();
 
         floorplanApi = initFloorplan();
+        window._floorplanApi = floorplanApi;
         renderRoofOptions();
         buildSimple();
     }
@@ -13330,6 +13433,7 @@ async function updateDoorType() {
             winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0,
             pvEnabled: window.pvEnabled === true,
             internal_parts: (typeof window._captureInternalParts === 'function') ? window._captureInternalParts() : [],
+            interior_walls: JSON.parse(JSON.stringify(window.interiorWalls || [])),
             innen: (typeof window._captureInnen === 'function') ? window._captureInnen() : null,
             lca_periods: window.lcaPeriods || {}
         };
@@ -13366,6 +13470,8 @@ async function updateDoorType() {
         // PV-Ja/Nein wiederherstellen (alte Projekte ohne Feld → aus PV-Liste ableiten)
         window.pvEnabled = (typeof s.pvEnabled === 'boolean') ? s.pvEnabled : ((s.pvList || []).length > 0);
         if (typeof window._restoreInternalParts === 'function') window._restoreInternalParts(s.internal_parts);
+        window.interiorWalls = Array.isArray(s.interior_walls) ? JSON.parse(JSON.stringify(s.interior_walls)) : [];
+        if (window._floorplanApi && typeof window._floorplanApi.refresh === 'function') window._floorplanApi.refresh();
         if (typeof window._restoreInnen === 'function') window._restoreInnen(s.innen);
         if (s.lca_periods && typeof s.lca_periods === 'object') window.lcaPeriods = s.lca_periods;
         if (window.aggregateWindows) window.aggregateWindows();
