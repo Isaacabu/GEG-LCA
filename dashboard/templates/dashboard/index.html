@@ -3013,6 +3013,18 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     </div>
                 </div>
                 <div id="innenRoomList"></div>
+
+                <div class="card" id="innenMultizoneCard" style="margin-top:12px;display:none;">
+                    <h3>🧩 Mehrzonen-Vorschau (DIN V 18599-2)
+                        <span class="info-i" data-tip="Erscheint, sobald mindestens zwei Zimmer unterschiedliche Nutzungsprofile haben (Dropdown je Zimmer oben). Rechnet jede Zone einzeln mit ihrem eigenen Nutzungsprofil (Teil 10) + ihrer eigenen, aus dem Grundriss abgeleiteten Hülle und aggregiert. Rein informativ – fließt noch NICHT in Anlagentechnik/Energiebilanz/GEG-Kennwerte ein (die nutzen weiterhin die Einzonen-Rechnung des ganzen Gebäudes).">i</span>
+                    </h3>
+                    <p class="note">Vergleicht die Einzonen-Rechnung (ganzes Gebäude, ein Nutzungsprofil) mit einer
+                        Mehrzonen-Rechnung (jedes Zimmer mit seinem eigenen Nutzungsprofil + seiner eigenen, aus dem
+                        Grundriss abgeleiteten Außenhülle). <b>Nur Vorschau</b> – die übrigen Tabs rechnen unverändert
+                        mit dem Einzonen-Ergebnis weiter.</p>
+                    <button type="button" class="btn" onclick="window.runMultizonePreview()">Mehrzonen-Bilanz berechnen</button>
+                    <div id="innenMultizoneResult" class="fp-info" style="margin-top:10px;"></div>
+                </div>
             </div>
 
             <div class="card" style="margin-top:14px;">
@@ -14867,7 +14879,108 @@ async function updateDoorType() {
         set('innen_wohnflaeche_total', w.wohnflaeche.toFixed(1) + ' m²' + (roofActive() ? '' : ' (kein Steildach – keine Abminderung)'));
         const g = computeFlaechenGruppen();
         set('innen_flaechengruppen_total', g.NUF.toFixed(1) + ' / ' + g.VF.toFixed(1) + ' / ' + g.TF.toFixed(1) + ' m²');
+        updateMultizoneCardVisibility();
     }
+
+    // ---- Phase Z3: Mehrzonen-Vorschau (informativ, speist noch keine andere Rechnung) ----
+    function distinctProfiles() {
+        const set2 = {};
+        (window.innenRooms || []).forEach(function (r) { if (r.nutzungsprofil) set2[r.nutzungsprofil] = true; });
+        return Object.keys(set2);
+    }
+    function updateMultizoneCardVisibility() {
+        const card = $('innenMultizoneCard');
+        if (!card) return;
+        card.style.display = distinctProfiles().length >= 2 ? '' : 'none';
+    }
+    // Baut je Zimmer ein data-Dict im Format von /calculate/ (Einzonen), aus der Z1-
+    // Zonen-Geometrie (computeZoneEdges) + der bestehenden Fenster-Zimmer-Zuordnung
+    // (computeWindowAssignment) + den gebäudeweiten Bauteil-Kennwerten aus
+    // window.lastEnvelopePayload (U-Wert/Fx/g-Wert sind je Orientierung gebäudeweit
+    // gepflegt, nicht je Zimmer – reines Übernehmen, keine Neuerhebung).
+    function buildZonePayloads() {
+        const base = window.lastEnvelopePayload || {};
+        const floorH = floorHeightM();
+        const topFloor = topFloorIndex();
+        const winAsg = computeWindowAssignment();
+        const orientations = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+        return (window.innenRooms || []).map(function (room) {
+            const roomsSameFloor = (window.innenRooms || []).filter(function (r) { return (r.floor || 0) === (room.floor || 0); });
+            const edges = computeZoneEdges(room, roomsSameFloor);
+            const aussenLaenge = {};
+            edges.filter(function (e) { return e.art === 'aussen'; }).forEach(function (e) {
+                aussenLaenge[e.orientation] = (aussenLaenge[e.orientation] || 0) + e.laenge;
+            });
+            const winAreas = {};
+            winAsg.wins.forEach(function (w) {
+                if (w._room !== room.id) return;
+                const o = w.orientation || 'north';
+                winAreas[o] = (winAreas[o] || 0) + (w.area || 0);
+            });
+            const area = polyArea(room.pts);
+            const isTop = (room.floor || 0) === topFloor;
+            const isGround = (room.floor || 0) === 0;
+            const zdata = {
+                zone_name: room.name,
+                bgf: area,
+                building_type_variant: room.nutzungsprofil || base.building_type_variant || '',
+                building_type: base.building_type || 'wohngebaeude',
+                project_state: base.project_state || '',
+                elevation_m: base.elevation_m || 0,
+                room_height: floorH,
+                delta_u_wb: base.delta_u_wb,
+                window_u: base.window_u,
+                g_value: base.g_value,
+                roof_area: isTop ? area : 0,
+                roof_u: base.roof_u || 0,
+                roof_fx: base.roof_fx != null ? base.roof_fx : 1,
+                roof_color: base.roof_color || 'hell',
+                floor_area: isGround ? area : 0,
+                floor_u: base.floor_u || 0,
+                floor_fx: base.floor_fx != null ? base.floor_fx : 1
+            };
+            orientations.forEach(function (o) {
+                const laenge = aussenLaenge[o] || 0;
+                zdata[o + '_area'] = laenge * floorH;
+                zdata[o + '_u'] = base[o + '_u'] != null ? base[o + '_u'] : 0.28;
+                zdata[o + '_fx'] = base[o + '_fx'] != null ? base[o + '_fx'] : 1;
+                if (o === 'north' || o === 'south' || o === 'east' || o === 'west') {
+                    zdata['window_' + o + '_area'] = winAreas[o] || 0;
+                }
+            });
+            return zdata;
+        });
+    }
+    window.runMultizonePreview = function () {
+        const resultEl = $('innenMultizoneResult');
+        if (!resultEl) return;
+        resultEl.textContent = 'Berechne …';
+        const zones = buildZonePayloads();
+        fetch('/calculate-multizone/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ zones: zones })
+        })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    resultEl.innerHTML = '<span style="color:#f87171;">Fehler: ' + (data.errors || []).join('; ') + '</span>';
+                    return;
+                }
+                const einzeln = zones.map(function (z, i) {
+                    const zr = data.zones[i];
+                    return z.zone_name + ': ' + (zr ? zr.adjusted_heat_demand_kwh.toFixed(0) : '–') + ' kWh/a (' + z.building_type_variant + ')';
+                }).join(' · ');
+                const einzonWert = window.lastEnvelopeResult && window.lastEnvelopeResult.adjusted_heat_demand_kwh;
+                resultEl.innerHTML = '<b>Mehrzonen Q_h,b gesamt: ' + data.adjusted_heat_demand_kwh.toFixed(0) + ' kWh/a</b>'
+                    + (einzonWert != null ? ' · Einzonen-Vergleichswert: ' + einzonWert.toFixed(0) + ' kWh/a' : '')
+                    + '<br><span style="color:#9bb4c8;font-size:12px;">Je Zone: ' + einzeln + '</span>'
+                    + '<br><span style="color:#9bb4c8;font-size:12px;">' + data.calculation_basis + '</span>';
+            })
+            .catch(function (err) {
+                resultEl.innerHTML = '<span style="color:#f87171;">Fehler: ' + err.message + '</span>';
+            });
+    };
     function raumartOptionsHtml(selected) {
         return Object.keys(RAUMARTEN).map(function (k) {
             return '<option value="' + k + '"' + (k === selected ? ' selected' : '') + '>' + RAUMARTEN[k].label + '</option>';
