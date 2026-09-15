@@ -14115,6 +14115,99 @@ async function updateDoorType() {
     };
     function raumartGruppe(key) { return (RAUMARTEN[key] || RAUMARTEN.wohnen).gruppe; }
 
+    // Nutzungsprofile nach DIN V 18599-10 (Phase Z1 der Mehrzonen-Vision) – Duplikat der
+    // Schlüssel/Labels aus dashboard/services/din18599.py PROFILES (Backend ist die
+    // Quelle der Wahrheit für die Rechenwerte, hier nur Anzeige/Auswahl). Leerer Key =
+    // „wie Gebäude" (Standardfall, keine Zonen-Abweichung).
+    const NUTZUNGSPROFILE = {
+        '': { label: '— wie Gebäude —' },
+        wohngebaeude_efh: { label: 'Wohngebäude (EFH)' },
+        wohngebaeude_mfh: { label: 'Wohngebäude (MFH)' },
+        einzelbuero: { label: 'Einzelbüro' },
+        gruppenbuero: { label: 'Gruppenbüro' },
+        grossraumbuero: { label: 'Großraumbüro' },
+        besprechung: { label: 'Besprechung/Sitzung' },
+        klassenzimmer: { label: 'Klassenzimmer (Schule)' }
+    };
+    function nutzungsprofilOptionsHtml(selected) {
+        return Object.keys(NUTZUNGSPROFILE).map(function (k) {
+            return '<option value="' + k + '"' + (k === (selected || '') ? ' selected' : '') + '>' + NUTZUNGSPROFILE[k].label + '</option>';
+        }).join('');
+    }
+
+    // ---- Zonen-Geometrie (Phase Z1 der Mehrzonen-Vision) ----
+    // Ordnet jeder Zimmerkante zu: 'aussen' (liegt auf der Gebäudehülle, mit
+    // Orientierung) | 'trennwand' (liegt auf der Kante eines Nachbarzimmers gleicher
+    // Etage) | 'unbestimmt' (grenzt an keinen erfassten Rand – z. B. offener Flur/Treppe
+    // ohne eigenes Zimmerpolygon). Reine Geometrie-Ableitung, fließt noch in KEINE
+    // Berechnung ein – Grundlage für die spätere Mehrzonen-Bilanz (Phase Z2).
+    const ZONE_TOUCH_TOL_M = 0.15;   // Toleranz Kante-auf-Kante (Zeichenraster/Snap-Ungenauigkeit)
+    // Außennormalen-Orientierung einer Gebäudehüllen-Kante, auf 8 Himmelsrichtungen
+    // gerundet. Duplikat der Azimut-Logik aus dem Hülle-/3D-Tab (eigene IIFE, nicht
+    // erreichbar) – ohne dessen Eindeutigkeits-Solver, da mehrere Zimmerkanten
+    // durchaus derselben Hüllen-Orientierung zugeordnet sein können.
+    function footprintEdgeOrientation(fp, edgeIndex) {
+        const n = fp.length;
+        let signedArea = 0;
+        for (let i = 0; i < n; i++) { const a = fp[i], b = fp[(i + 1) % n]; signedArea += a.x * b.y - b.x * a.y; }
+        const sgn = signedArea > 0 ? 1 : -1;
+        const az = window.buildingAzimuth || 0;
+        const a = fp[edgeIndex], b = fp[(edgeIndex + 1) % n];
+        const ex = b.x - a.x, ey = b.y - a.y;
+        let nx = sgn * ey, ny = -sgn * ex;
+        const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+        const dirs = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+        const azDeg = ((Math.atan2(nx, -ny) * 180 / Math.PI) + az + 360) % 360;
+        return dirs[Math.round(azDeg / 45) % 8];
+    }
+    const ORI_DE_SHORT = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
+    function computeZoneEdges(room, roomsSameFloor) {
+        const fp = getFootprint();
+        const n = fp.length;
+        return room.pts.map(function (p1, i) {
+            const p2 = room.pts[(i + 1) % room.pts.length];
+            const mid = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+            const laenge = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            for (let j = 0; j < n; j++) {
+                const pr = projToSeg(mid, fp[j], fp[(j + 1) % n]);
+                if (pr.len < 1e-6) continue;
+                if (pr.dist < ZONE_TOUCH_TOL_M && pr.t > -0.05 && pr.t < 1.05) {
+                    return { i: i, art: 'aussen', orientation: footprintEdgeOrientation(fp, j), laenge: laenge };
+                }
+            }
+            for (let k = 0; k < roomsSameFloor.length; k++) {
+                const other = roomsSameFloor[k];
+                if (other.id === room.id) continue;
+                for (let j = 0; j < other.pts.length; j++) {
+                    const pr = projToSeg(mid, other.pts[j], other.pts[(j + 1) % other.pts.length]);
+                    if (pr.len < 1e-6) continue;
+                    if (pr.dist < ZONE_TOUCH_TOL_M && pr.t > -0.05 && pr.t < 1.05) {
+                        return { i: i, art: 'trennwand', nachbarId: other.id, nachbarName: other.name, laenge: laenge };
+                    }
+                }
+            }
+            return { i: i, art: 'unbestimmt', laenge: laenge };
+        });
+    }
+    // Kurzbericht je Zimmer für die Zimmerliste: "2 Außenwände (N 4,0 m, O 3,0 m) ·
+    // Trennwand → Küche". Rein informativ (Phase Z1) – keine Berechnung.
+    function zoneSummaryText(room, roomsSameFloor) {
+        const edges = computeZoneEdges(room, roomsSameFloor);
+        const aussen = edges.filter(function (e) { return e.art === 'aussen'; });
+        const trennwaende = edges.filter(function (e) { return e.art === 'trennwand'; });
+        const parts = [];
+        if (aussen.length) {
+            parts.push(aussen.length + (aussen.length > 1 ? ' Außenwände (' : ' Außenwand (') +
+                aussen.map(function (e) { return (ORI_DE_SHORT[e.orientation] || e.orientation) + ' ' + e.laenge.toFixed(1) + 'm'; }).join(', ') + ')');
+        }
+        if (trennwaende.length) {
+            const namen = trennwaende.map(function (e) { return e.nachbarName; })
+                .filter(function (v, idx, arr) { return arr.indexOf(v) === idx; });
+            parts.push('Trennwand → ' + namen.join(', '));
+        }
+        return parts.join(' · ');
+    }
+
     // ---- Datenmodell (global: LCA-Integration + Projekt-Persistenz) ----
     window.innenRooms = window.innenRooms || [];       // {id, name, color, floor, pts:[{x,y} in m]}
     window.innenDevices = window.innenDevices || [];   // {id, type, name, count, gwp, life, room}
@@ -14548,7 +14641,7 @@ async function updateDoorType() {
     function closeDraft() {
         if (draft.length < 3) return;
         roomSeq += 1;
-        const room = { id: 'r' + roomSeq, name: 'Zimmer ' + roomSeq, color: ROOM_COLORS[(roomSeq - 1) % ROOM_COLORS.length], floor: curFloor, raumart: 'wohnen', pts: draft.slice() };
+        const room = { id: 'r' + roomSeq, name: 'Zimmer ' + roomSeq, color: ROOM_COLORS[(roomSeq - 1) % ROOM_COLORS.length], floor: curFloor, raumart: 'wohnen', nutzungsprofil: '', pts: draft.slice() };
         window.innenRooms.push(room);
         draft = []; selRoom = room.id;
         renderRoomList(); refreshDeviceRoomSelects(); render(); innenChanged();
@@ -14799,14 +14892,17 @@ async function updateDoorType() {
             const areaTxt = wf.reduced
                 ? wf.wohnflaeche.toFixed(1) + ' m² Wohnfläche (' + wf.area.toFixed(1) + ' m² Grundfläche, Dachschräge WoFlV §4)'
                 : wf.area.toFixed(1) + ' m²';
+            const zonesTxt = zoneSummaryText(r, list);
             const row = document.createElement('div');
             row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
             row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
                 + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
                 + '<select class="in-raumart" aria-label="Raumart (DIN 277)" title="Raumart nach DIN 277 – steuert die NUF/VF/TF-Aufschlüsselung">' + raumartOptionsHtml(r.raumart || 'wohnen') + '</select>'
+                + '<select class="in-raumart in-nutzungsprofil" aria-label="Nutzungsprofil (DIN V 18599-10)" title="Nutzungsprofil nach DIN V 18599-10 – Grundlage einer künftigen Mehrzonen-Energiebilanz je Zimmer">' + nutzungsprofilOptionsHtml(r.nutzungsprofil) + '</select>'
                 + '<span class="in-roommeta">' + areaTxt + ' · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
                 + (wins.length ? ' · <span style="color:' + WIN_COLOR + ';">🪟 ' + wins.length + ' Fenster (' + winArea.toFixed(1) + ' m²)</span>' : '')
-                + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '') + '</span>'
+                + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '')
+                + (zonesTxt ? '<br><span style="color:#7fb4d8;">📐 ' + zonesTxt + '</span>' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
             row.addEventListener('click', function (e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') return;
@@ -14817,6 +14913,11 @@ async function updateDoorType() {
                 e.stopPropagation();
                 r.raumart = this.value;
                 updateWohnflaecheStat();
+                schedulePersist();
+            });
+            row.querySelector('.in-nutzungsprofil').addEventListener('change', function (e) {
+                e.stopPropagation();
+                r.nutzungsprofil = this.value;
                 schedulePersist();
             });
             row.querySelector('.in-roomdel').addEventListener('click', function (e) {
@@ -15125,7 +15226,7 @@ async function updateDoorType() {
     // ---- Projekt-Persistenz ----
     window._captureInnen = function () {
         return {
-            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
+            rooms: (window.innenRooms || []).map(function (r) { return { id: r.id, name: r.name, color: r.color, floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', nutzungsprofil: r.nutzungsprofil || '', pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }) }; }),
             devices: (window.innenDevices || []).map(function (d) { return { type: d.type, name: d.name, count: d.count, gwp: d.gwp, life: d.life, room: d.room }; })
         };
     };
@@ -15137,7 +15238,7 @@ async function updateDoorType() {
             const id = r.id || ('r' + (i + 1));
             const num = parseInt(String(id).replace(/^r/, ''), 10);
             if (isFinite(num)) roomSeq = Math.max(roomSeq, num);
-            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
+            window.innenRooms.push({ id: id, name: r.name || ('Zimmer ' + (i + 1)), color: r.color || ROOM_COLORS[i % ROOM_COLORS.length], floor: r.floor || 0, ausbau: r.ausbau || null, raumart: r.raumart || 'wohnen', nutzungsprofil: r.nutzungsprofil || '', pts: (r.pts || []).map(function (p) { return { x: p.x, y: p.y }; }) });
         });
         curFloor = 0;
         rebuildFloorSelect();
