@@ -16771,7 +16771,7 @@ window.addEventListener('load', function () {
                 const warn = (data.warnings || []).length ? '<br><span style="color:#f6b94b;">⚠ ' + data.warnings.join(' · ') + '</span>' : '';
                 const geo = data.geometry || {};
                 const banner = document.createElement('div');
-                banner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+                banner.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
                 banner.innerHTML = '📥 <b>IFC-Grunddaten übernommen:</b> „' + (data.building_name || '') + '" · ' + data.storeys + ' Geschosse'
                     + (data.bgf != null ? ' · ' + data.bgf + ' m² Grundfläche' : '')
                     + ' — Grundriss bitte im Tab „Gebäudedaten" unter „Komplexe Geometrie" nachzeichnen.'
