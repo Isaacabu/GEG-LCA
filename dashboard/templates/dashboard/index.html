@@ -2998,6 +2998,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <div class="stat-box"><div class="label">Zimmer (Etage)</div><div class="value" id="innen_room_count">0</div></div>
                     <div class="stat-box"><div class="label">Zimmerfläche Σ (Etage)</div><div class="value" id="innen_room_area">0 m²</div></div>
                     <div class="stat-box"><div class="label">Restfläche (Flur/Wände)</div><div class="value" id="innen_rest_area">—</div></div>
+                    <div class="stat-box">
+                        <div class="label">Wohnfläche (WoFlV) Σ Gebäude
+                            <span class="info-i" data-tip="Wohnfläche nach der Wohnflächenverordnung (WoFlV) §4 Abs. 4: Grundfläche unter Dachschrägen zählt bei lichter Höhe ≥2&nbsp;m voll, 1–2&nbsp;m zur Hälfte, &lt;1&nbsp;m gar nicht. Nur die Zimmer der OBERSTEN Etage unter einem Steildach sind betroffen; alle anderen Geschosse zählen mit voller Grundfläche. Rasterschätzung (10&nbsp;cm), keine DIN-277-Größe.">i</span>
+                        </div>
+                        <div class="value" id="innen_wohnflaeche_total">– m²</div>
+                    </div>
                 </div>
                 <div id="innenRoomList"></div>
             </div>
@@ -14116,6 +14122,120 @@ async function updateDoorType() {
     function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
     function escXml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
 
+    // ---- Wohnfläche nach WoFlV (Dachschrägen-Abminderung, §4 Abs. 4) ----
+    // Grundfläche unter Dachschrägen zählt bei lichter Höhe ≥2 m voll, 1–2 m zur Hälfte,
+    // <1 m gar nicht. Nur die OBERSTE Etage unter einem Steildach ist betroffen –
+    // darunterliegende Geschosse haben eine flache Decke auf voller Raumhöhe.
+    // Die Dach-Höhenformeln duplizieren bewusst buildComplexHipRoof/buildRoof aus dem
+    // Hülle-/3D-Tab (eigene IIFE, exportiert nichts außer window._floorMeta) – so bleibt
+    // die WoFlV-Zahl konsistent mit dem, was das 3D-Modell tatsächlich zeigt.
+    const ROOF_EAVE_M = 0.5;   // Dachüberstand, identisch zur Konstante `eave` im Hülle-Tab
+    function roofActive() { return (($('roof_type') || {}).value) === 'steildach'; }
+    function topFloorIndex() {
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : null;
+        return (fm ? fm.floors : floorCount()) - 1;
+    }
+    function floorHeightM() {
+        const fm = (typeof window._floorMeta === 'function') ? window._floorMeta() : null;
+        return fm ? fm.fh : (parseFloat(($('building_floor_height') || {}).value) || 2.5);
+    }
+    // f(x,y) = Dachhöhe [m] über der Traufe (wallTop) am Punkt (x,y), im Grundriss-
+    // Koordinatensystem (identisch zu getFootprint()/Zimmer-pts).
+    function makeRoofHeightFn() {
+        const fp = getFootprint();
+        if (window.isComplexGeometry) {
+            // Walmdach über beliebigem Grundriss: Höhe = Randabstand × tan(Neigung),
+            // global gedeckelt – exakt dieselbe Formel wie buildComplexHipRoof (3D-Tab).
+            const n = fp.length;
+            const pitchDeg = parseFloat(($('roof_angle_ns') || {}).value);
+            const pitch = Math.max(5, Math.min(85, isFinite(pitchDeg) ? pitchDeg : 35)) * Math.PI / 180;
+            const tanP = Math.tan(pitch);
+            function distToBoundary(px, py) {
+                let best = Infinity;
+                for (let i = 0; i < n; i++) {
+                    const a = fp[i], b = fp[(i + 1) % n];
+                    const ex = b.x - a.x, ey = b.y - a.y;
+                    const L2 = ex * ex + ey * ey;
+                    let t = L2 > 0 ? ((px - a.x) * ex + (py - a.y) * ey) / L2 : 0;
+                    t = Math.max(0, Math.min(1, t));
+                    const dx = px - (a.x + ex * t), dy = py - (a.y + ey * t);
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < best) best = d2;
+                }
+                return Math.sqrt(best);
+            }
+            let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+            fp.forEach(function (p) { minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); });
+            const span = Math.max(maxx - minx, maxy - miny);
+            let hMax = 0;
+            fp.forEach(function (p) { const h = distToBoundary(p.x, p.y) * tanP; if (h > hMax) hMax = h; });
+            const cap = Math.max(6, span * 0.75);
+            const s = hMax > cap ? cap / hMax : 1;
+            return function (x, y) { return distToBoundary(x, y) * tanP * s; };
+        }
+        // Einfache Rechteck-Geometrie: First entlang der Länge (X), Neigung in
+        // Breiten-Richtung (Y) – dieselbe Formel wie buildRoof (3D-Tab). Walmenden
+        // (roof_area_ew > 0) werden hier vereinfachend vernachlässigt.
+        const D = parseFloat(($('building_width') || {}).value) || 10;
+        const halfD = D / 2, dz = halfD + ROOF_EAVE_M;
+        const pitchDeg = parseFloat(($('roof_angle_ns') || {}).value);
+        const pitch = Math.max(5, Math.min(85, isFinite(pitchDeg) ? pitchDeg : 35)) * Math.PI / 180;
+        const RH = Math.min(Math.tan(pitch) * dz, Math.max(D * 1.5, 6));
+        return function (x, y) {
+            const z = y - halfD;
+            return Math.max(0, RH * (1 - Math.abs(z) / dz));
+        };
+    }
+    function pointInPolygon(x, y, pts) {
+        let inside = false;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+            const xi = pts[i].x, yi = pts[i].y, xj = pts[j].x, yj = pts[j].y;
+            const hit = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (hit) inside = !inside;
+        }
+        return inside;
+    }
+    // Wohnfläche eines Zimmers: Rasterung (10 cm) über das Zimmerpolygon, je Zelle die
+    // lichte Höhe prüfen und mit 100 %/50 %/0 % gewichten. Nur für Zimmer in der obersten
+    // Etage unter einem Steildach – sonst zählt die volle Grundfläche (flache Decke).
+    function computeRoomWoflv(room, roofHeightFn) {
+        const area = polyArea(room.pts);
+        const isTop = (room.floor || 0) === topFloorIndex();
+        if (!roofHeightFn || !isTop) {
+            return { area: area, full: area, half: 0, low: 0, wohnflaeche: area, reduced: false };
+        }
+        const fh = floorHeightM();
+        let minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+        room.pts.forEach(function (p) { minx = Math.min(minx, p.x); maxx = Math.max(maxx, p.x); miny = Math.min(miny, p.y); maxy = Math.max(maxy, p.y); });
+        const STEP = 0.10, cell = STEP * STEP;
+        let full = 0, half = 0, low = 0;
+        for (let x = minx + STEP / 2; x < maxx; x += STEP) {
+            for (let y = miny + STEP / 2; y < maxy; y += STEP) {
+                if (!pointInPolygon(x, y, room.pts)) continue;
+                const h = fh + roofHeightFn(x, y);
+                if (h >= 2) full += cell;
+                else if (h >= 1) half += cell;
+                else low += cell;
+            }
+        }
+        const sampled = full + half + low;
+        // Raster erfasst selten exakt die reale Polygonfläche (Randzellen) – auf die
+        // echte Fläche skalieren, das Verhältnis der Höhenbänder bleibt dabei erhalten.
+        const scale = sampled > 0 ? area / sampled : 1;
+        full *= scale; half *= scale; low *= scale;
+        return { area: area, full: full, half: half, low: low, wohnflaeche: full + half * 0.5, reduced: (half > 0.01 || low > 0.01) };
+    }
+    function computeAllWohnflaeche() {
+        const roofHeightFn = roofActive() ? makeRoofHeightFn() : null;
+        let total = 0, totalArea = 0;
+        (window.innenRooms || []).forEach(function (r) {
+            const w = computeRoomWoflv(r, roofHeightFn);
+            total += w.wohnflaeche;
+            totalArea += w.area;
+        });
+        return { wohnflaeche: total, grundflaeche: totalArea };
+    }
+
     // ---- Fenster im Grundriss (aus dem 3D-Modell) + Zuordnung zu Zimmern ----
     const WIN_COLOR = '#f6b94b';   // Fenster-Gelb wie im 3D-Modell
     // Alle Fenster als Grundriss-Segmente [m] (Mittelpunkt + Wand-Tangente + Breite, je Etage).
@@ -14578,25 +14698,34 @@ async function updateDoorType() {
     }
 
     // ---- Zimmerliste ----
+    function updateWohnflaecheStat() {
+        const w = computeAllWohnflaeche();
+        set('innen_wohnflaeche_total', w.wohnflaeche.toFixed(1) + ' m²' + (roofActive() ? '' : ' (kein Steildach – keine Abminderung)'));
+    }
     function renderRoomList() {
         const el = $('innenRoomList');
         if (!el) return;
         rebuildFloorSelect();
         const list = roomsOnFloor();
-        if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; renderAusbau(); return; }
+        if (!list.length) { el.innerHTML = '<p class="note" style="margin-top:10px;">Noch keine Zimmer in ' + floorLabel(curFloor) + ' eingezeichnet.</p>'; renderAusbau(); updateWohnflaecheStat(); return; }
         el.innerHTML = '';
         const winAsg = computeWindowAssignment().byRoom;   // Fensteranzahl je Zimmer
+        const roofHeightFn = roofActive() ? makeRoofHeightFn() : null;
         list.forEach(function (r) {
             const devCount = (window.innenDevices || []).filter(function (d) { return d.room === r.id; })
                 .reduce(function (s, d) { return s + (parseInt(d.count, 10) || 0); }, 0);
             const cw = cwirkOfRoom(r);
             const wins = winAsg[r.id] || [];
             const winArea = wins.reduce(function (s, w) { return s + (w.area || 0); }, 0);
+            const wf = computeRoomWoflv(r, roofHeightFn);
+            const areaTxt = wf.reduced
+                ? wf.wohnflaeche.toFixed(1) + ' m² Wohnfläche (' + wf.area.toFixed(1) + ' m² Grundfläche, Dachschräge WoFlV §4)'
+                : wf.area.toFixed(1) + ' m²';
             const row = document.createElement('div');
             row.className = 'in-roomrow' + (r.id === selRoom ? ' sel' : '');
             row.innerHTML = '<span class="in-roomdot" style="background:' + r.color + '"></span>'
                 + '<input type="text" value="' + escXml(r.name) + '" aria-label="Zimmername">'
-                + '<span class="in-roommeta">' + polyArea(r.pts).toFixed(1) + ' m² · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
+                + '<span class="in-roommeta">' + areaTxt + ' · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
                 + (wins.length ? ' · <span style="color:' + WIN_COLOR + ';">🪟 ' + wins.length + ' Fenster (' + winArea.toFixed(1) + ' m²)</span>' : '')
                 + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
@@ -14612,6 +14741,7 @@ async function updateDoorType() {
             el.appendChild(row);
         });
         renderAusbau();
+        updateWohnflaecheStat();
     }
 
     // ---- Ausbau & Speichermasse (je Zimmer) → Bauart für DIN 4108-2 §8.4 ----
