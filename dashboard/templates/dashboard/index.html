@@ -1922,7 +1922,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
     <div class="tabs" role="tablist" aria-label="Berechnungsbereiche" onkeydown="handleTabKeydown(event)">
         <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
-        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard()">🏠 Gebäudehülle</button>
+        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog();">🏠 Gebäudehülle</button>
         <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
@@ -2365,6 +2365,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="section-divider"></div>
 
             <div id="errorBox" class="alert-box"></div>
+
+            <div class="card" id="bauteilkatalogCard">
+                <h3>📚 Bauteilkatalog
+                    <span class="info-i" data-tip="Übersicht aller gespeicherten Wand-/Dach-/Boden-Aufbauten (aus „💾 Aufbau speichern" in den jeweiligen Sektionen unten). Hier nur anschauen/löschen - ein Aufbau wird in seiner Sektion (Außenwände/Dach/Boden) über „📁 Gespeicherten Aufbau laden" aktiv gesetzt oder über „Aufbau je Wand" einzelnen Wänden zugewiesen.">i</span>
+                </h3>
+                <div id="bauteilkatalogList"></div>
+            </div>
 
             <div class="card" id="ifcEnvelopeCard" style="display:none;">
                 <h3>📥 Aus IFC übernommen
@@ -6036,7 +6043,16 @@ window.wallAufbauSel = (function () {
     try { const o = JSON.parse(localStorage.getItem('geglca_wall_aufbau_sel') || '{}'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
 })();
 function getSavedWallBuilds() {
-    try { const a = JSON.parse(localStorage.getItem('geglca_layers_wall') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+    // Migration: ältere Einträge ohne stabile ID (vor der ID-Einführung) einmalig
+    // nachrüsten - dieselbe Logik wie im Katalog-Skript (separate IIFE, nicht erreichbar).
+    try {
+        const a = JSON.parse(localStorage.getItem('geglca_layers_wall') || '[]');
+        const list = Array.isArray(a) ? a : [];
+        let migrated = false;
+        list.forEach(function (it) { if (!it.id) { it.id = 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); migrated = true; } });
+        if (migrated) { try { localStorage.setItem('geglca_layers_wall', JSON.stringify(list)); } catch (e) {} }
+        return list;
+    } catch (e) { return []; }
 }
 // U-Wert aus einem gespeicherten Schichten-Array – gleiche Mathematik wie recalcWallU, ohne DOM
 function computeUFromLayers(layers) {
@@ -6048,11 +6064,13 @@ function computeUFromLayers(layers) {
     });
     return any ? 1 / r : null;
 }
-// U-Wert der Wand `key`: zugewiesener gespeicherter Aufbau, sonst Tabellen-U (Fallback)
+// U-Wert der Wand `key`: zugewiesener gespeicherter Aufbau (per stabiler ID referenziert,
+// nicht per Array-Index - Index bräche beim Löschen/Umsortieren anderer Einträge still
+// auf den falschen Aufbau), sonst Tabellen-U (Fallback)
 function wallUFor(key, tableU) {
     const sel = (window.wallAufbauSel || {})[key];
     if (sel !== '' && sel != null) {
-        const it = getSavedWallBuilds()[parseInt(sel, 10)];
+        const it = getSavedWallBuilds().find(function (b) { return b.id === sel; });
         const u = it ? computeUFromLayers(it.layers) : null;
         if (u > 0) return u;
     }
@@ -6096,7 +6114,7 @@ function renderWallAufbauGrid() {
         const cur = String((window.wallAufbauSel || {})[e.key] != null ? window.wallAufbauSel[e.key] : '');
         const u = wallUFor(e.key, window._wallTableU);
         const opts = '<option value=""' + (cur === '' ? ' selected' : '') + '>Standard (Tabelle)</option>'
-            + saved.map(function (it, i) { return '<option value="' + i + '"' + (cur === String(i) ? ' selected' : '') + '>' + esc(it.name) + '</option>'; }).join('');
+            + saved.map(function (it) { return '<option value="' + esc(it.id) + '"' + (cur === it.id ? ' selected' : '') + '>' + esc(it.name) + '</option>'; }).join('');
         return '<div class="field" style="margin:0;">'
             + '<label>' + e.label + '</label>'
             + '<select onchange="onWallAufbauSelect(\'' + e.key + '\', this.value)">' + opts + '</select>'
@@ -13706,8 +13724,31 @@ async function updateDoorType() {
     function _label(cat) { return cat === 'roof' ? 'Dach' : (cat === 'floor' ? 'Boden' : 'Wand'); }
     function _containerOf(kind) { return kind === 'wall' ? 'wall_layers_container' : (kind + '_layers_container'); }
     const _key = (cat) => 'geglca_layers_' + cat;
-    function _store(cat) { try { const r = localStorage.getItem(_key(cat)); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    function _newId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+    // Migration: ältere Einträge (vor der ID-Einführung) hatten keine stabile ID und
+    // wurden per Array-Index referenziert (window.wallAufbauSel) - brach beim Löschen/
+    // Umsortieren still auf den FALSCHEN Aufbau. Beim ersten Lesen einmalig nachrüsten.
+    function _store(cat) {
+        try {
+            const r = localStorage.getItem(_key(cat));
+            const a = r ? JSON.parse(r) : [];
+            const list = Array.isArray(a) ? a : [];
+            let migrated = false;
+            list.forEach(function (it) { if (!it.id) { it.id = _newId(); migrated = true; } });
+            if (migrated) _setStore(cat, list);
+            return list;
+        } catch (e) { return []; }
+    }
     function _setStore(cat, a) { try { localStorage.setItem(_key(cat), JSON.stringify(a)); } catch (e) {} }
+    function _uFromLayers(layers) {
+        const R_SI = 0.13, R_SE = 0.04;
+        let r = R_SI + R_SE, any = false;
+        (layers || []).forEach(function (l) {
+            const mm = parseFloat(l.thickness_mm), lam = parseFloat(l.lambda);
+            if (mm > 0 && lam > 0) { r += (mm / 1000) / lam; any = true; }
+        });
+        return any ? 1 / r : null;
+    }
 
     function captureRows(kind) {
         const cid = _containerOf(kind);
@@ -13743,33 +13784,77 @@ async function updateDoorType() {
     }
     function fillSelect(sel) {
         const kind = sel.id.replace('_saved_select', ''); const cat = _cat(kind); const list = _store(cat);
-        sel.innerHTML = '<option value="">📂 Gespeicherten Aufbau laden …</option>' + list.map(function (it, i) { return '<option value="' + i + '">' + _esc(it.name) + ' (' + _esc(it.ts || '') + ')</option>'; }).join('');
+        sel.innerHTML = '<option value="">📂 Gespeicherten Aufbau laden …</option>' + list.map(function (it) { return '<option value="' + _esc(it.id) + '">' + _esc(it.name) + ' (' + _esc(it.ts || '') + ')</option>'; }).join('');
     }
     function refreshCat(cat) { document.querySelectorAll('select[id$="_saved_select"]').forEach(function (sel) { if (_cat(sel.id.replace('_saved_select', '')) === cat) fillSelect(sel); }); }
-    window.refreshLayerBuildSelects = function () { document.querySelectorAll('select[id$="_saved_select"]').forEach(fillSelect); };
+    window.refreshLayerBuildSelects = function () {
+        document.querySelectorAll('select[id$="_saved_select"]').forEach(fillSelect);
+        if (typeof window.renderBauteilkatalog === 'function') window.renderBauteilkatalog();
+    };
 
     window.saveLayerBuild = function (kind) {
         const cat = _cat(kind); const rows = captureRows(kind);
         if (!rows.length) { alert('Es sind keine Schichten zum Speichern vorhanden.'); return; }
         let name = prompt('Name für diesen ' + _label(cat) + '-Aufbau:', '');
         if (name === null) return; name = name.trim(); if (!name) name = _label(cat) + '-Aufbau ' + (_store(cat).length + 1);
-        const list = _store(cat); list.push({ name: name, ts: _now(), layers: rows }); _setStore(cat, list);
+        const list = _store(cat); const entry = { id: _newId(), name: name, ts: _now(), layers: rows };
+        list.push(entry); _setStore(cat, list);
         refreshCat(cat);
-        const sel = document.getElementById(kind + '_saved_select'); if (sel) sel.value = String(list.length - 1);
+        if (typeof window.renderBauteilkatalog === 'function') window.renderBauteilkatalog();
+        const sel = document.getElementById(kind + '_saved_select'); if (sel) sel.value = entry.id;
         alert('„' + name + '" gespeichert.');
     };
-    window.loadLayerBuild = function (kind, idxStr) {
-        if (idxStr === '' || idxStr == null) return;
-        const cat = _cat(kind); const item = _store(cat)[parseInt(idxStr, 10)];
+    window.loadLayerBuild = function (kind, idStr) {
+        if (!idStr) return;
+        const cat = _cat(kind); const item = _store(cat).find(function (it) { return it.id === idStr; });
         if (item) rebuildRows(kind, item.layers);
     };
     window.deleteLayerBuild = function (kind) {
         const cat = _cat(kind); const sel = document.getElementById(kind + '_saved_select'); const list = _store(cat);
         if (!list.length) { alert('Es sind keine gespeicherten ' + _label(cat) + '-Aufbauten vorhanden.'); return; }
-        const idx = (sel && sel.value !== '') ? parseInt(sel.value, 10) : -1;
-        if (idx < 0 || !list[idx]) { alert('Bitte zuerst oben im Auswahlmenü einen gespeicherten Aufbau wählen, dann auf 🗑 klicken.'); return; }
+        const id = (sel && sel.value !== '') ? sel.value : null;
+        const idx = id ? list.findIndex(function (it) { return it.id === id; }) : -1;
+        if (idx < 0) { alert('Bitte zuerst oben im Auswahlmenü einen gespeicherten Aufbau wählen, dann auf 🗑 klicken.'); return; }
         if (!confirm('„' + list[idx].name + '" löschen?')) return;
         list.splice(idx, 1); _setStore(cat, list); refreshCat(cat);
+        if (typeof window.renderBauteilkatalog === 'function') window.renderBauteilkatalog();
+    };
+    window.deleteCatalogEntry = function (cat, id) {
+        const list = _store(cat); const idx = list.findIndex(function (it) { return it.id === id; });
+        if (idx < 0) return;
+        if (!confirm('„' + list[idx].name + '" (' + _label(cat) + ') löschen?')) return;
+        list.splice(idx, 1); _setStore(cat, list); refreshCat(cat);
+        window.renderBauteilkatalog();
+    };
+
+    // ===== 📚 Bauteilkatalog: EINE Übersicht über alle gespeicherten Wand-/Dach-/
+    // Boden-Aufbauten (statt drei versteckte Speichern/Laden-Bereiche einzeln
+    // durchsuchen zu müssen). Rein lesend/verwaltend - Anlegen bleibt weiterhin über
+    // "💾 Aufbau speichern" in der jeweiligen Sektion (dort sind die Schichten gerade
+    // im Bearbeiten-Kontext).
+    window.renderBauteilkatalog = function () {
+        const el = document.getElementById('bauteilkatalogList');
+        if (!el) return;
+        const cats = [['wall', 'Wand'], ['roof', 'Dach'], ['floor', 'Boden']];
+        const rows = [];
+        cats.forEach(function (c) {
+            _store(c[0]).forEach(function (it) {
+                rows.push({ catKey: c[0], catLabel: c[1], id: it.id, name: it.name, ts: it.ts, u: _uFromLayers(it.layers), n: (it.layers || []).length });
+            });
+        });
+        if (!rows.length) {
+            el.innerHTML = '<p class="note">Noch keine gespeicherten Bauteil-Aufbauten. In „Außenwände"/„Dach"/„Boden" Schichten festlegen und über „💾 Aufbau speichern" hier eintragen.</p>';
+            return;
+        }
+        rows.sort(function (a, b) { return a.catLabel === b.catLabel ? a.name.localeCompare(b.name) : a.catLabel.localeCompare(b.catLabel); });
+        el.innerHTML = '<table class="kv" style="width:100%;"><thead><tr>'
+            + '<th style="text-align:left;">Typ</th><th style="text-align:left;">Name</th><th style="text-align:left;">U-Wert</th>'
+            + '<th style="text-align:left;">Schichten</th><th style="text-align:left;">Gespeichert</th><th></th></tr></thead><tbody>'
+            + rows.map(function (r) {
+                return '<tr><td>' + _esc(r.catLabel) + '</td><td>' + _esc(r.name) + '</td>'
+                    + '<td>' + (r.u > 0 ? r.u.toFixed(3) + ' W/(m²·K)' : '—') + '</td><td>' + r.n + '</td><td>' + _esc(r.ts || '') + '</td>'
+                    + '<td><button type="button" class="btn btn-sm" style="padding:3px 8px;" onclick="window.deleteCatalogEntry(\'' + r.catKey + '\',\'' + r.id + '\')">🗑</button></td></tr>';
+            }).join('') + '</tbody></table>';
     };
 
     window.addEventListener('load', function () { setTimeout(function () { try { window.refreshLayerBuildSelects(); } catch (e) {} }, 700); });
