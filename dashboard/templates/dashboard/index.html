@@ -1922,7 +1922,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
     <div class="tabs" role="tablist" aria-label="Berechnungsbereiche" onkeydown="handleTabKeydown(event)">
         <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
-        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog();">🏠 Gebäudehülle</button>
+        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog(); if (window.updateEnvelopeSourceBadge) window.updateEnvelopeSourceBadge();">🏠 Gebäudehülle</button>
         <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
@@ -2071,6 +2071,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <div id="bimViewerStatus" class="note" style="margin-bottom:8px;"></div>
                     <div id="bimViewerCanvas" style="width:100%;height:480px;border-radius:10px;overflow:hidden;background:#0b1f3a;"></div>
                     <div id="bimViewerInfo" class="small" style="color:#9bb4c8;margin-top:8px;"></div>
+                    <div id="bimViewerSelection" class="card" style="display:none;margin-top:10px;"></div>
                 </div>
                 <div style="margin-top:10px;">
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
@@ -2365,6 +2366,8 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="section-divider"></div>
 
             <div id="errorBox" class="alert-box"></div>
+
+            <div id="envelopeSourceBadge" style="margin-bottom:14px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;text-align:center;"></div>
 
             <div class="card" id="bauteilkatalogCard">
                 <h3>📚 Bauteilkatalog
@@ -11393,6 +11396,8 @@ async function updateDoorType() {
     function buildSimple() {
         // Zustand auf rechteckig zurücksetzen: Rechteck-Hüllflächen wiederherstellen
         window.isComplexGeometry = false;
+        window._envelopeSource = 'simple';
+        if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
         window.complexWindows = null;
         window.complexDoors = null;
         window.complexWallList = null;
@@ -11548,6 +11553,8 @@ async function updateDoorType() {
     // Wandaufbau/U-Wert/CO₂ kommen ausschließlich aus dem Tab „Gebäudehülle".
     function buildComplex(pointsM) {
         if (!pointsM || pointsM.length < 3) return;
+        window._envelopeSource = 'draw';
+        if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
         clearHouse();
         const d = getSimpleDims();
         const H = d.floors * d.fh, wallTop = floorTop + H;
@@ -16909,8 +16916,69 @@ window.addEventListener('load', function () {
             renderer.setSize(host.clientWidth, host.clientHeight || 480);
         });
         (function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); })();
+        initSelection(renderer.domElement);
         initialized = true;
     }
+
+    // ===== Bauteil anklicken: Name/Typ/Maße anzeigen + Sprung zum Bauteilkatalog =====
+    // Reine Anzeige/Navigation - Bearbeiten selbst passiert weiterhin im Bauteilkatalog
+    // (Gebäudehülle), da die 3D-Geometrie hier importiert (nicht editierbar) ist.
+    let selectedMesh = null;
+    function initSelection(dom) {
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+        let downAt = null;
+        dom.addEventListener('pointerdown', function (e) { downAt = { x: e.clientX, y: e.clientY }; });
+        dom.addEventListener('pointerup', function (e) {
+            if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 4) return;   // Drag (Orbit) ignorieren
+            const rect = dom.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(scene.children, true).filter(function (h) { return h.object.userData && h.object.userData.type; });
+            if (!hits.length) { clearSelection(); return; }
+            selectMesh(hits[0].object);
+        });
+    }
+    function clearSelection() {
+        if (selectedMesh) selectedMesh.material.emissive && selectedMesh.material.emissive.setHex(0x000000);
+        selectedMesh = null;
+        const panel = document.getElementById('bimViewerSelection');
+        if (panel) panel.style.display = 'none';
+    }
+    const TYPE_LABEL = {
+        IfcWall: 'Wand', IfcWallStandardCase: 'Wand', IfcCurtainWall: 'Vorhangfassade',
+        IfcSlab: 'Decke/Platte', IfcRoof: 'Dach', IfcCovering: 'Bekleidung',
+        IfcWindow: 'Fenster', IfcDoor: 'Tür', IfcColumn: 'Stütze', IfcBeam: 'Träger', IfcStair: 'Treppe', IfcRailing: 'Geländer'
+    };
+    function selectMesh(mesh) {
+        if (selectedMesh) selectedMesh.material.emissive && selectedMesh.material.emissive.setHex(0x000000);
+        selectedMesh = mesh;
+        if (mesh.material.emissive) mesh.material.emissive.setHex(0x38bdf8);
+        mesh.geometry.computeBoundingBox();
+        const box = mesh.geometry.boundingBox;
+        const size = new THREE.Vector3(); box.getSize(size);
+        // Größte Ausdehnung = Länge, zweitgrößte = Höhe, kleinste = Dicke (Näherung für
+        // box-förmige Bauteile - exakte Maße/Orientierung siehe "Aus IFC übernommen").
+        const dims = [size.x, size.y, size.z].sort(function (a, b) { return b - a; });
+        const panel = document.getElementById('bimViewerSelection');
+        if (!panel) return;
+        const label = TYPE_LABEL[mesh.userData.type] || mesh.userData.type;
+        panel.style.display = '';
+        panel.innerHTML = '<h3 style="margin-top:0;">' + label + ': ' + (mesh.userData.name || '–') + '</h3>'
+            + '<p class="note">Geschätzte Maße (Bounding-Box, kein exakter Wandverlauf): '
+            + dims[0].toFixed(2) + ' × ' + dims[1].toFixed(2) + ' × ' + dims[2].toFixed(2) + ' m (L × H × T).</p>'
+            + '<p class="note">Bearbeiten (Wandaufbau/U-Wert zuweisen) geschieht im Bauteilkatalog, nicht direkt am importierten 3D-Modell (das ist unveränderliche Import-Geometrie).</p>'
+            + '<button type="button" class="btn btn-primary" onclick="window.jumpToBauteilkatalog()">📚 Zum Bauteilkatalog (Gebäudehülle)</button>';
+    }
+    window.jumpToBauteilkatalog = function () {
+        const btn = document.querySelector('[aria-controls="huelle"]');
+        if (btn) btn.click();
+        setTimeout(function () {
+            const card = document.getElementById('bauteilkatalogCard');
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+    };
 
     // IFC-Weltkoordinaten (Z=hoch) -> Three.js-Konvention (Y=hoch): Achsen tauschen.
     function meshFromIfc(m) {
@@ -16945,6 +17013,7 @@ window.addEventListener('load', function () {
 
     function renderMeshes(data) {
         initScene();
+        clearSelection();
         Array.from(scene.children).forEach(function (c) { if (c.userData && c.userData.type) scene.remove(c); });
         const group = new THREE.Group();
         (data.geometry.meshes || []).forEach(function (m) { group.add(meshFromIfc(m)); });
@@ -16995,6 +17064,26 @@ window.addEventListener('load', function () {
     "use strict";
     const ORI8 = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
     const ORI_DE = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
+
+    // Permanent sichtbare Kennzeichnung, welche Datenquelle GERADE aktiv in die
+    // Berechnung geht - behebt die Verwirrung "rechnet er mit dem gezeichneten oder
+    // dem importierten Modell?" (Zeichnen und IFC-Import schreiben in denselben
+    // internen Zustand, ohne diese Anzeige war das auf dem Bildschirm nicht erkennbar).
+    window.updateEnvelopeSourceBadge = function () {
+        const el = document.getElementById('envelopeSourceBadge');
+        if (!el) return;
+        const src = window._envelopeSource || (window.isComplexGeometry ? 'draw' : 'simple');
+        if (src === 'ifc') {
+            el.style.background = 'rgba(16,185,129,0.12)'; el.style.border = '1px solid #10b981'; el.style.color = '#34d399';
+            el.innerHTML = '📥 Aktive Datenquelle: <b>IFC-Import — „' + (window._envelopeSourceName || 'importiertes Modell') + '"</b> · Flächen kommen aus der importierten Datei, nicht aus „Komplexe Geometrie".';
+        } else if (src === 'draw') {
+            el.style.background = 'rgba(56,189,248,0.10)'; el.style.border = '1px solid #38bdf8'; el.style.color = '#7fd4f5';
+            el.innerHTML = '✏️ Aktive Datenquelle: <b>Gezeichnetes Modell („Komplexe Geometrie")</b>.';
+        } else {
+            el.style.background = 'rgba(255,255,255,0.06)'; el.style.border = '1px solid #2a4a73'; el.style.color = '#9bb4c8';
+            el.innerHTML = '📐 Aktive Datenquelle: <b>Einfache Geometrie</b> (Länge × Breite aus Gebäudedaten).';
+        }
+    };
 
     window.checkIfcEnvelopeCard = function () {
         const card = document.getElementById('ifcEnvelopeCard');
@@ -17053,6 +17142,9 @@ window.addEventListener('load', function () {
             window.complexDoorArea = doorAreas.length ? doorAreas.reduce(function (a, b) { return a + b; }, 0) / doorAreas.length : 2.0;
 
             window.isComplexGeometry = true;
+            window._envelopeSource = 'ifc';
+            window._envelopeSourceName = data.building_name || 'IFC-Import';
+            if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
             if (typeof renderWallAreaGrid === 'function') renderWallAreaGrid();
 
             if (statusEl) statusEl.textContent = '⏳ Berechne Heizwärmebedarf mit den übernommenen Flächen …';
