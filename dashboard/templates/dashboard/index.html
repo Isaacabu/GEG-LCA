@@ -215,24 +215,18 @@ body {
     box-shadow: 0 8px 32px -6px var(--cyan-glow);
 }
 
-/* Schritt-Navigation (R3): vertikale, nummerierte Liste statt horizontaler Pillen -
-   führt durch den Ablauf wie in professioneller Energieberater-Software (ZUB Helena/
-   Hottgenroth), statt einer flachen Tab-Reihe. Container/Buttons behalten bewusst
-   dieselben Klassen/Attribute (role="tab", onclick, aria-*) - showTab()/
-   handleTabKeydown()/backToHouse() greifen unverändert darauf zu, nur die
-   Darstellung ändert sich. */
 .tabs {
     display: flex;
-    flex-direction: column;
-    gap: 3px;
+    gap: 6px;
+    flex-wrap: wrap;
     margin: 18px 0 18px;
     background: rgba(11, 31, 58, 0.85);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 8px;
+    border-radius: 999px;
+    padding: 6px;
     backdrop-filter: blur(16px);
-    width: 100%;
-    max-width: 340px;
+    width: fit-content;
+    max-width: 100%;
     position: sticky;
     top: 12px;
     z-index: 50;
@@ -244,37 +238,14 @@ body {
     border: 0;
     background: transparent;
     color: var(--muted);
-    border-radius: 10px;
-    padding: 10px 14px;
+    border-radius: 999px;
+    padding: 9px 18px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     font-family: inherit;
     transition: color 0.18s ease, background 0.18s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-align: left;
-    width: 100%;
-}
-
-.tabs button .step-num {
-    flex: 0 0 auto;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--muted);
-    font-size: 11.5px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tabs button.active .step-num {
-    background: #05111e;
-    color: var(--cyan);
+    white-space: nowrap;
 }
 
 .tabs button:hover {
@@ -287,10 +258,6 @@ body {
     color: #05111e;
     font-weight: 650;
     box-shadow: 0 2px 12px -2px var(--cyan-glow);
-}
-
-@media (max-width: 780px) {
-    .tabs { max-width: 100%; position: static; }
 }
 
 .tab {
@@ -1954,14 +1921,14 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
     </div>
 
     <div class="tabs" role="tablist" aria-label="Berechnungsbereiche" onkeydown="handleTabKeydown(event)">
-        <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)"><span class="step-num">1</span>🏢 Gebäudedaten</button>
-        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog(); if (window.updateEnvelopeSourceBadge) window.updateEnvelopeSourceBadge();"><span class="step-num">2</span>🏠 Gebäudehülle</button>
-        <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()"><span class="step-num">3</span>🛋️ Inneneinrichtung</button>
-        <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()"><span class="step-num">4</span>⚙️ Anlagentechnik</button>
-        <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)"><span class="step-num">5</span>☀️ Photovoltaik</button>
-        <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)"><span class="step-num">6</span>🟢 Energiebilanz</button>
-        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();"><span class="step-num">7</span>📋 Wärme- &amp; Feuchteschutz</button>
-        <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()"><span class="step-num">8</span>🌍 Ökobilanz (LCA)</button>
+        <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
+        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog(); if (window.updateEnvelopeSourceBadge) window.updateEnvelopeSourceBadge();">🏠 Gebäudehülle</button>
+        <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
+        <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
+        <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
+        <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
+        <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 Wärme- &amp; Feuchteschutz</button>
+        <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()">🌍 Ökobilanz (LCA)</button>
     </div>
 
     <button id="backToHouseBtn" class="back-to-house" type="button" onclick="backToHouse()" aria-label="Zurück zum 3D-Hausmodell in den Gebäudedaten">
