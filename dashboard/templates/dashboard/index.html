@@ -1922,7 +1922,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
     <div class="tabs" role="tablist" aria-label="Berechnungsbereiche" onkeydown="handleTabKeydown(event)">
         <button class="active" role="tab" aria-selected="true" aria-controls="daten" onclick="showTab('daten', this)">🏢 Gebäudedaten</button>
-        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this)">🏠 Gebäudehülle</button>
+        <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard()">🏠 Gebäudehülle</button>
         <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
         <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
@@ -2351,6 +2351,15 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="section-divider"></div>
 
             <div id="errorBox" class="alert-box"></div>
+
+            <div class="card" id="ifcEnvelopeCard" style="display:none;">
+                <h3>📥 Aus IFC übernommen
+                    <span class="info-i" data-tip="Wand-/Fenster-/Tür-/Dach-/Bodenflächen aus dem zuletzt importierten IFC-Modell (Startseite → IFC-Import). U-Werte kommen NICHT aus IFC (die meisten Modelle tragen keine) - unten im Wandaufbau wie gewohnt festlegen. Der 3D-Grundriss unten zeigt weiterhin die Standardgeometrie, nicht das importierte Modell - nur die Kennwerte werden übernommen.">i</span>
+                </h3>
+                <p class="note" id="ifcEnvelopeSummary"></p>
+                <button type="button" class="btn btn-primary" onclick="window.applyIfcEnvelopeToHuelle()">Werte übernehmen &amp; Heizwärmebedarf berechnen</button>
+                <div id="ifcEnvelopeApplyStatus" class="small" style="margin-top:8px;color:#9bb4c8;"></div>
+            </div>
 
             <!-- ① Außenwände -->
             <div class="card" id="card-aussenwand">
@@ -16875,6 +16884,85 @@ window.addEventListener('load', function () {
             status('');
             loadedFor = data;
             renderMeshes(data);
+        });
+    };
+})();
+</script>
+
+<!-- ===================== IFC-Envelope → Gebäudehülle (Phase I3) ===================== -->
+<script>
+(function () {
+    "use strict";
+    const ORI8 = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+    const ORI_DE = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
+
+    window.checkIfcEnvelopeCard = function () {
+        const card = document.getElementById('ifcEnvelopeCard');
+        if (!card || !window._loadIfcImportData) return;
+        window._loadIfcImportData().then(function (data) {
+            const env = data && data.ok ? data.envelope : null;
+            if (!env || !Object.keys(env.walls || {}).length) { card.style.display = 'none'; return; }
+            card.style.display = '';
+            const wallTxt = ORI8.filter(function (o) { return env.walls[o]; })
+                .map(function (o) { return ORI_DE[o] + ' ' + env.walls[o] + ' m²'; }).join(' · ');
+            const winTxt = ORI8.filter(function (o) { return env.windows[o]; })
+                .map(function (o) { return ORI_DE[o] + ' ' + env.windows[o] + ' m²'; }).join(' · ');
+            const doorTxt = ORI8.filter(function (o) { return env.doors[o]; })
+                .map(function (o) { return ORI_DE[o] + ' ' + env.doors[o].count + '× (' + env.doors[o].area_per_unit + ' m²)'; }).join(' · ');
+            document.getElementById('ifcEnvelopeSummary').innerHTML =
+                '<b>Wände:</b> ' + (wallTxt || '—') + '<br>'
+                + '<b>Fenster:</b> ' + (winTxt || '—') + '<br>'
+                + '<b>Türen:</b> ' + (doorTxt || '—') + '<br>'
+                + '<b>Dach:</b> ' + (env.roof_area != null ? env.roof_area + ' m²' : '— (bitte manuell)') + ' · '
+                + '<b>Bodenplatte:</b> ' + (env.floor_area != null ? env.floor_area + ' m²' : '— (bitte manuell)');
+        });
+    };
+
+    // Baut aus den extrahierten IFC-Flächen den minimalen synthetischen Zustand, den
+    // calculateEnvelope() für den 8-Orientierungen-Pfad (window.isComplexGeometry)
+    // bereits erwartet (siehe dortige Payload-Konstruktion) - dadurch wird der
+    // bestehende, getestete Berechnungs-Pfad wiederverwendet statt dupliziert.
+    // U-Werte kommen weiterhin aus dem normalen Wandaufbau-Formular (unverändert) -
+    // nur die FLÄCHEN werden hier ersetzt. Bewusst NICHT verändert: die 3D-/Grundriss-
+    // Ansicht (zeigt weiterhin die Standardgeometrie, nicht das importierte Modell).
+    window.applyIfcEnvelopeToHuelle = function () {
+        if (!window._loadIfcImportData) return;
+        window._loadIfcImportData().then(function (data) {
+            const env = data && data.ok ? data.envelope : null;
+            const statusEl = document.getElementById('ifcEnvelopeApplyStatus');
+            if (!env) { if (statusEl) statusEl.textContent = 'Kein IFC-Modell gefunden.'; return; }
+
+            window.wallAreas = window.wallAreas || {};
+            ORI8.forEach(function (o) { window.wallAreas[o] = env.walls[o] || 0; });
+            if (env.roof_area != null) window.wallAreas.roof = env.roof_area;
+            if (env.floor_area != null) window.wallAreas.floor = env.floor_area;
+
+            window.complexWallList = ORI8.filter(function (o) { return env.walls[o] > 0; })
+                .map(function (o, i) { return { nr: i + 1, ori: o, oriEnergy: o, oriDe: ORI_DE[o], laenge: 0, flaeche: env.walls[o] }; });
+
+            window.complexWindows = {};
+            ORI8.forEach(function (o) { window.complexWindows[o] = env.windows[o] || 0; });
+
+            window.complexDoors = {};
+            const doorAreas = [];
+            ORI8.forEach(function (o) {
+                const d = env.doors[o];
+                window.complexDoors[o] = d ? d.count : 0;
+                if (d) for (let k = 0; k < d.count; k++) doorAreas.push(d.area_per_unit);
+            });
+            window.complexDoorArea = doorAreas.length ? doorAreas.reduce(function (a, b) { return a + b; }, 0) / doorAreas.length : 2.0;
+
+            window.isComplexGeometry = true;
+            if (typeof renderWallAreaGrid === 'function') renderWallAreaGrid();
+
+            if (statusEl) statusEl.textContent = '⏳ Berechne Heizwärmebedarf mit den übernommenen Flächen …';
+            Promise.resolve(typeof calculateEnvelope === 'function' ? calculateEnvelope() : null).then(function () {
+                if (statusEl) statusEl.textContent = '✓ Werte übernommen und Heizwärmebedarf berechnet (siehe Ergebnisse unten). '
+                    + 'U-Werte im Wandaufbau oben bitte prüfen — IFC liefert dafür keine zuverlässigen Angaben. '
+                    + 'Die 3D-Ansicht/„Komplexe Geometrie" zeigt weiterhin die Standardgeometrie, nicht das importierte Modell.';
+            }).catch(function (err) {
+                if (statusEl) statusEl.textContent = '✗ Fehler bei der Berechnung: ' + (err && err.message ? err.message : err);
+            });
         });
     };
 })();

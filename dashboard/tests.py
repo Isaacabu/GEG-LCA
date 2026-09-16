@@ -38,7 +38,14 @@ from dashboard.services.ifc_import import (
     IfcImportError,
     extract_all,
     extract_basic_data,
+    extract_envelope,
     extract_geometry,
+)
+from dashboard.services.ifc_import import (
+    _host_wall,
+    _is_external,
+    _orientation_from_vector,
+    _wall_length_height_dir,
 )
 
 # Referenz-EFH (150 m², GEG-nah) — identisch mit scripts/verify_din18599.py
@@ -497,3 +504,184 @@ class IfcGeometryExtractionTests(SimpleTestCase):
         self.assertEqual(r["geometry"]["rendered_count"], 1)
         # Geometrie-Warnungen (z.B. fehlende Flächen) landen in derselben Liste wie Grunddaten-Warnungen
         self.assertTrue(any("fläche" in w.lower() for w in r["warnings"]))
+
+
+class IfcEnvelopeHelperTests(SimpleTestCase):
+    """Reine Helferfunktionen der Gebäudehüllen-Extraktion (Phase I3, keine IFC-Datei nötig)."""
+
+    def test_orientation_from_vector_haupthimmelsrichtungen(self):
+        # north_offset=0: Modell-Y = Norden (dokumentierte Vereinfachung ohne TrueNorth)
+        self.assertEqual(_orientation_from_vector(0, 1, 0), "north")
+        self.assertEqual(_orientation_from_vector(1, 0, 0), "east")
+        self.assertEqual(_orientation_from_vector(0, -1, 0), "south")
+        self.assertEqual(_orientation_from_vector(-1, 0, 0), "west")
+
+    def test_orientation_from_vector_true_north_offset(self):
+        # north_offset = atan2(TrueNorth.dx, TrueNorth.dy) im Modell-Koordinatensystem;
+        # bearing = raw_angle - offset. TrueNorth bei -90° (Modell-Richtung (-1,0)):
+        # Vektor (1,0) hat raw_angle=atan2(1,0)=90°, bearing=90-(-90)=180° -> Süden.
+        self.assertEqual(_orientation_from_vector(1, 0, -90), "south")
+
+    def test_wall_length_height_dir_einfache_box(self):
+        # Box 5m lang (x), 0.3m dick (y), 2.7m hoch (z) - wie eine create_2pt_wall-Wand.
+        # Der Algorithmus sucht das am WEITESTEN entfernte Punktpaar in der XY-Projektion;
+        # bei einer dünnen Box ist das die Diagonale (5,0)-(0,0.3), nicht exakt die lange
+        # Kante - Differenz bei einer 5m/0,3m-Wand ~0,18 % (5,009 statt 5,0 m), für die
+        # Flächenermittlung vernachlässigbar (siehe IfcEnvelopeExtractionTests mit
+        # delta-Toleranz). Erwartungswerte hier bewusst exakt auf die Diagonale gerechnet.
+        import math
+        verts = [
+            0, 0, 0,  5, 0, 0,  5, 0.3, 0,  0, 0.3, 0,
+            0, 0, 2.7,  5, 0, 2.7,  5, 0.3, 2.7,  0, 0.3, 2.7,
+        ]
+        length, height, direction, midpoint = _wall_length_height_dir(verts)
+        expected_length = math.hypot(5.0, 0.3)
+        self.assertAlmostEqual(length, expected_length, places=6)
+        self.assertAlmostEqual(height, 2.7, places=6)
+        self.assertAlmostEqual(direction[0], 5.0 / expected_length, places=6)
+        self.assertAlmostEqual(midpoint[0], 2.5, places=6)
+
+    def test_host_wall_ueber_ifc_beziehungen(self):
+        import ifcopenshell
+        import ifcopenshell.guid as guid
+        f = ifcopenshell.file(schema="IFC4")
+        wall = f.create_entity("IfcWall", GlobalId=guid.new(), Name="Wand")
+        window = f.create_entity("IfcWindow", GlobalId=guid.new(), Name="Fenster")
+        opening = f.create_entity("IfcOpeningElement", GlobalId=guid.new(), Name="Opening")
+        f.create_entity("IfcRelVoidsElement", GlobalId=guid.new(), RelatingBuildingElement=wall, RelatedOpeningElement=opening)
+        f.create_entity("IfcRelFillsElement", GlobalId=guid.new(), RelatingOpeningElement=opening, RelatedBuildingElement=window)
+        self.assertEqual(_host_wall(window), wall)
+
+    def test_host_wall_ohne_beziehung_liefert_none(self):
+        import ifcopenshell
+        import ifcopenshell.guid as guid
+        f = ifcopenshell.file(schema="IFC4")
+        window = f.create_entity("IfcWindow", GlobalId=guid.new(), Name="Fenster")
+        self.assertIsNone(_host_wall(window))
+
+    def test_is_external_liest_pset_wallcommon(self):
+        import ifcopenshell
+        import ifcopenshell.guid as guid
+        f = ifcopenshell.file(schema="IFC4")
+        wall = f.create_entity("IfcWall", GlobalId=guid.new(), Name="Wand")
+        nv = f.create_entity("IfcBoolean", True)
+        prop = f.create_entity("IfcPropertySingleValue", Name="IsExternal", NominalValue=nv)
+        pset = f.create_entity("IfcPropertySet", GlobalId=guid.new(), Name="Pset_WallCommon", HasProperties=[prop])
+        f.create_entity("IfcRelDefinesByProperties", GlobalId=guid.new(), RelatedObjects=[wall], RelatingPropertyDefinition=pset)
+        self.assertTrue(_is_external(wall))
+
+    def test_is_external_ohne_angabe_liefert_none(self):
+        import ifcopenshell
+        import ifcopenshell.guid as guid
+        f = ifcopenshell.file(schema="IFC4")
+        wall = f.create_entity("IfcWall", GlobalId=guid.new(), Name="Wand")
+        self.assertIsNone(_is_external(wall))
+
+
+def _build_test_house_ifc():
+    """Rechteck-Haus 6×5 m, Wandhöhe 2,7 m, achsparallel (x=Länge, y=Breite) - für einen
+    Ende-zu-Ende-Test der Gebäudehüllen-Extraktion mit VORHERSEHBAREN Orientierungen
+    (Süd/Ost/Nord/West bei north_offset=0). Süd-Wand hat ein Fenster (1,2×1,2 m),
+    Ost-Wand eine Tür (0,9×2,1 m), beide über echte IFC-Opening-Beziehungen verknüpft.
+    Bodenplatte (BASESLAB, 30 m² Qto) und Dach (IfcSlab ROOF, 35 m² Qto) mit
+    expliziten Mengenangaben (wie z.B. ArchiCAD sie oft nur für Dach als Slab liefert)."""
+    import ifcopenshell
+    import ifcopenshell.api.context as context
+    import ifcopenshell.api.geometry as geometry
+    import ifcopenshell.api.root as root
+    import ifcopenshell.api.unit as unit
+    import ifcopenshell.guid as guid
+
+    f = ifcopenshell.file(schema="IFC4")
+    root.create_entity(f, ifc_class="IfcProject", name="Testprojekt")
+    unit.assign_unit(f)
+    model_ctx = context.add_context(f, context_type="Model")
+    body_ctx = context.add_context(
+        f, context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=model_ctx
+    )
+    root.create_entity(f, ifc_class="IfcBuilding", name="Testhaus")
+    root.create_entity(f, ifc_class="IfcBuildingStorey", name="EG")
+
+    W, D, H = 6.0, 5.0, 2.7
+    edges = {
+        "south": ((0, 0), (W, 0)),
+        "east": ((W, 0), (W, D)),
+        "north": ((W, D), (0, D)),
+        "west": ((0, D), (0, 0)),
+    }
+    walls = {}
+    for key, (p1, p2) in edges.items():
+        wall = root.create_entity(f, ifc_class="IfcWall", name=f"Wand {key}")
+        rep = geometry.create_2pt_wall(f, element=wall, context=body_ctx, p1=p1, p2=p2, elevation=0.0, height=H, thickness=0.3)
+        geometry.assign_representation(f, product=wall, representation=rep)
+        walls[key] = wall
+
+    def add_opening(host_wall, ifc_class, name, w, h):
+        product = root.create_entity(f, ifc_class=ifc_class, name=name)
+        rep = geometry.create_2pt_wall(f, element=product, context=body_ctx, p1=(0, 0), p2=(w, 0), elevation=0.0, height=h, thickness=0.1)
+        geometry.assign_representation(f, product=product, representation=rep)
+        opening = f.create_entity("IfcOpeningElement", GlobalId=guid.new(), Name="Opening")
+        f.create_entity("IfcRelVoidsElement", GlobalId=guid.new(), RelatingBuildingElement=host_wall, RelatedOpeningElement=opening)
+        f.create_entity("IfcRelFillsElement", GlobalId=guid.new(), RelatingOpeningElement=opening, RelatedBuildingElement=product)
+        return product
+
+    add_opening(walls["south"], "IfcWindow", "Fenster Süd", 1.2, 1.2)
+    add_opening(walls["east"], "IfcDoor", "Tür Ost", 0.9, 2.1)
+
+    def add_qto_area(product, qto_name, qty_name, value):
+        q = f.create_entity("IfcQuantityArea", Name=qty_name, AreaValue=value)
+        qset = f.create_entity("IfcElementQuantity", GlobalId=guid.new(), Name=qto_name, Quantities=[q])
+        f.create_entity("IfcRelDefinesByProperties", GlobalId=guid.new(), RelatedObjects=[product], RelatingPropertyDefinition=qset)
+
+    base_slab = root.create_entity(f, ifc_class="IfcSlab", name="Bodenplatte")
+    base_slab.PredefinedType = "BASESLAB"
+    add_qto_area(base_slab, "Qto_SlabBaseQuantities", "GrossArea", 30.0)
+
+    roof_slab = root.create_entity(f, ifc_class="IfcSlab", name="Dach")
+    roof_slab.PredefinedType = "ROOF"
+    add_qto_area(roof_slab, "Qto_SlabBaseQuantities", "GrossArea", 35.0)
+
+    return f.to_string().encode("utf-8")
+
+
+class IfcEnvelopeExtractionTests(SimpleTestCase):
+    """Ende-zu-Ende-Test der Gebäudehüllen-Extraktion (Phase I3) an einem synthetischen
+    Rechteck-Haus mit bekannten, vorhersehbaren Sollwerten."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.r = extract_envelope(_build_test_house_ifc())
+
+    def test_alle_vier_wandorientierungen_erkannt(self):
+        self.assertEqual(set(self.r["walls"].keys()), {"north", "south", "east", "west"})
+
+    def test_wandflaechen_geometrisch_plausibel(self):
+        # Süd/Nord-Wände: Länge 6 m × Höhe 2,7 m = 16,2 m²; Ost/West: 5 × 2,7 = 13,5 m²
+        self.assertAlmostEqual(self.r["walls"]["south"], 16.2, delta=0.1)
+        self.assertAlmostEqual(self.r["walls"]["north"], 16.2, delta=0.1)
+        self.assertAlmostEqual(self.r["walls"]["east"], 13.5, delta=0.1)
+        self.assertAlmostEqual(self.r["walls"]["west"], 13.5, delta=0.1)
+
+    def test_fenster_der_suedwand_zugeordnet(self):
+        self.assertIn("south", self.r["windows"])
+        self.assertAlmostEqual(self.r["windows"]["south"], 1.2 * 1.2, delta=0.05)
+        self.assertNotIn("east", self.r["windows"])
+
+    def test_tuer_der_ostwand_zugeordnet(self):
+        self.assertIn("east", self.r["doors"])
+        self.assertEqual(self.r["doors"]["east"]["count"], 1)
+        self.assertAlmostEqual(self.r["doors"]["east"]["area_per_unit"], 0.9 * 2.1, delta=0.05)
+        self.assertNotIn("south", self.r["doors"])
+
+    def test_dach_und_boden_aus_slab_qto_uebernommen(self):
+        self.assertAlmostEqual(self.r["roof_area"], 35.0, places=1)
+        self.assertAlmostEqual(self.r["floor_area"], 30.0, places=1)
+
+    def test_geometrischer_aussen_fallback_wird_verwendet_ohne_isexternal(self):
+        self.assertTrue(any("geometrisch" in w.lower() for w in self.r["warnings"]))
+
+    def test_leeres_modell_ohne_waende_liefert_warnung(self):
+        r = extract_envelope(_build_test_ifc(n_storeys=1, space_areas=()))
+        self.assertEqual(r["walls"], {})
+        self.assertTrue(any("wände" in w.lower() for w in r["warnings"]))
