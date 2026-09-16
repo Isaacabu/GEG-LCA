@@ -1929,7 +1929,6 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
         <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 Wärme- &amp; Feuchteschutz</button>
         <button role="tab" aria-selected="false" aria-controls="lca" tabindex="-1" onclick="showTab('lca', this); calculateLCA()">🌍 Ökobilanz (LCA)</button>
-        <button role="tab" aria-selected="false" aria-controls="bimviewer" tabindex="-1" onclick="showTab('bimviewer', this); if (window.loadBimViewer) window.loadBimViewer()">🧊 BIM-Viewer</button>
     </div>
 
     <button id="backToHouseBtn" class="back-to-house" type="button" onclick="backToHouse()" aria-label="Zurück zum 3D-Hausmodell in den Gebäudedaten">
@@ -2041,23 +2040,38 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <p class="note" style="margin-top:8px;">Ecken nacheinander anklicken; auf den ersten (goldenen) Punkt klicken, um die Wände zu schließen. Punkte sind verschiebbar. <b>Maximal 8 Wände</b> – jede Wand erhält automatisch eine Bezeichnung nach ihrer Ausrichtung (z. B. „1 · NO"), die später u. a. bei den Wandrandbedingungen wieder auftaucht. Türen werden auf den längsten Wänden platziert. Das 3D-Modell unten aktualisiert sich automatisch. <b>Wandaufbau, U‑Wert und CO₂ werden im Tab „Gebäudehülle" festgelegt.</b>
                     </div>
                 </div>
-                <div id="house3d" class="house3d" role="img" aria-label="3D-Gebäudemodell. Flächen anklicken, um zur jeweiligen Berechnung zu springen.">
-                    <div id="house3d-hint" class="house3d-hint">Ziehen zum Drehen · Shift+Ziehen zum Verschieben · Scrollen zum Zoomen · Fläche anklicken</div>
-                    <div id="house3d-tooltip" class="house3d-tooltip"></div>
-                    <div id="house3d-legend" class="house3d-legend" aria-hidden="true"></div>
-                    <div class="house3d-controls">
-                        <span class="hc-badge">🖱️ Steuerung</span>
-                        <div class="hc-panel">
-                            <div><b>Ziehen</b> · Modell drehen</div>
-                            <div><b>Shift + Ziehen</b> · Bild verschieben (Pan)</div>
-                            <div><b>Scrollen</b> · Zoomen</div>
-                            <div class="hc-sec">Fenster / Tür / PV-Modul ziehen:</div>
-                            <div><b>Shift</b> · nur horizontal &nbsp;·&nbsp; <b>Strg</b> · nur vertikal</div>
-                            <div><b>Nahe Ausgangsposition</b> · rastet ein (weißer Rahmen)</div>
+                <div class="house-cat-tabs" id="modelSourceTabs" style="margin:4px 0 14px;justify-content:center;">
+                    <button type="button" class="hcat active" id="modelSourceDrawBtn" role="tab" aria-selected="true" onclick="window.setModelSource('draw')">✏️ Modell zeichnen</button>
+                    <button type="button" class="hcat" id="modelSourceIfcBtn" role="tab" aria-selected="false" onclick="window.setModelSource('ifc')">📥 IFC-Ansicht</button>
+                </div>
+                <div id="modelSourceDraw">
+                    <div id="house3d" class="house3d" role="img" aria-label="3D-Gebäudemodell. Flächen anklicken, um zur jeweiligen Berechnung zu springen.">
+                        <div id="house3d-hint" class="house3d-hint">Ziehen zum Drehen · Shift+Ziehen zum Verschieben · Scrollen zum Zoomen · Fläche anklicken</div>
+                        <div id="house3d-tooltip" class="house3d-tooltip"></div>
+                        <div id="house3d-legend" class="house3d-legend" aria-hidden="true"></div>
+                        <div class="house3d-controls">
+                            <span class="hc-badge">🖱️ Steuerung</span>
+                            <div class="hc-panel">
+                                <div><b>Ziehen</b> · Modell drehen</div>
+                                <div><b>Shift + Ziehen</b> · Bild verschieben (Pan)</div>
+                                <div><b>Scrollen</b> · Zoomen</div>
+                                <div class="hc-sec">Fenster / Tür / PV-Modul ziehen:</div>
+                                <div><b>Shift</b> · nur horizontal &nbsp;·&nbsp; <b>Strg</b> · nur vertikal</div>
+                                <div><b>Nahe Ausgangsposition</b> · rastet ein (weißer Rahmen)</div>
+                            </div>
                         </div>
                     </div>
+                    <p class="note" style="margin-top:14px;text-align:center;">Tipp: Eine Fläche im 3D-Modell anklicken, um sie zu bearbeiten – oder Fenster/Tür/PV-Modul ziehen, um sie zu verschieben.</p>
                 </div>
-                <p class="note" style="margin-top:14px;text-align:center;">Tipp: Eine Fläche im 3D-Modell anklicken, um sie zu bearbeiten – oder Fenster/Tür/PV-Modul ziehen, um sie zu verschieben.</p>
+                <div id="modelSourceIfc" style="display:none;">
+                    <p class="note">Reine 3D-Vorschau des zuletzt importierten IFC-Modells (Wände, Decken, Dach, Fenster,
+                        Türen, Stützen/Träger/Treppen) — zur Kontrolle, was aus der Datei ausgelesen wurde. <b>Keine
+                        Bearbeitung hier</b> — Wand-/Fenster-/Dach-/Bodenflächen für die Berechnung werden im Tab
+                        „Gebäudehülle" übernommen (Karte „Aus IFC übernommen").</p>
+                    <div id="bimViewerStatus" class="note" style="margin-bottom:8px;"></div>
+                    <div id="bimViewerCanvas" style="width:100%;height:480px;border-radius:10px;overflow:hidden;background:#0b1f3a;"></div>
+                    <div id="bimViewerInfo" class="small" style="color:#9bb4c8;margin-top:8px;"></div>
+                </div>
                 <div style="margin-top:10px;">
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;">
                         <input id="model_name_input" type="text" placeholder="Modellname (z. B. Variante Dachfenster)" style="flex:1;min-width:200px;max-width:340px;">
@@ -16718,22 +16732,6 @@ window.addEventListener('load', function () {
 })();
 </script>
 
-<!-- ===================== Tab: BIM-Viewer (importiertes IFC-Modell) ===================== -->
-<div id="bimviewer" class="tab">
-    <div class="panel">
-        <h2 class="section-title">🧊 BIM-Viewer</h2>
-        <p class="note">Reine 3D-Vorschau des zuletzt importierten IFC-Modells (Wände, Decken, Dach, Fenster, Türen,
-            Stützen/Träger/Treppen) — zur Kontrolle, was aus der Datei ausgelesen wurde. <b>Keine Bearbeitung, keine
-            Übernahme in die Berechnung</b> — der Grundriss für Energiebilanz/GEG wird weiterhin im Tab
-            „Gebäudedaten" unter „Komplexe Geometrie" gezeichnet.</p>
-        <div class="card">
-            <div id="bimViewerStatus" class="note" style="margin-bottom:8px;"></div>
-            <div id="bimViewerCanvas" style="width:100%;height:520px;border-radius:10px;overflow:hidden;background:#0b1f3a;"></div>
-            <div id="bimViewerInfo" class="small" style="color:#9bb4c8;margin-top:8px;"></div>
-        </div>
-    </div>
-</div>
-
 <!-- ===================== IFC-Import: Grunddaten übernehmen + BIM-Viewer laden ===================== -->
 <script>
 (function () {
@@ -16783,10 +16781,11 @@ window.addEventListener('load', function () {
                 banner.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
                 banner.innerHTML = '📥 <b>IFC-Grunddaten übernommen:</b> „' + (data.building_name || '') + '" · ' + data.storeys + ' Geschosse'
                     + (data.bgf != null ? ' · ' + data.bgf + ' m² Grundfläche' : '')
-                    + ' — Grundriss bitte im Tab „Gebäudedaten" unter „Komplexe Geometrie" nachzeichnen.'
-                    + (geo.rendered_count ? ' <b>' + geo.rendered_count + ' Bauteile</b> im Tab „🧊 BIM-Viewer" ansehbar.' : '') + warn
+                    + (geo.rendered_count ? ' · <b>' + geo.rendered_count + ' Bauteile</b> (3D-Ansicht unten: „📥 IFC-Ansicht")' : '')
+                    + ' · Flächen für die Berechnung im Tab „Gebäudehülle" übernehmen.' + warn
                     + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #2a4a73;color:#9bb4c8;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
                 document.body.appendChild(banner);
+                if (geo.rendered_count && typeof window.setModelSource === 'function') window.setModelSource('ifc');
         }, 400);
     });
 })();
@@ -16885,6 +16884,22 @@ window.addEventListener('load', function () {
             loadedFor = data;
             renderMeshes(data);
         });
+    };
+
+    // Umschalter "Modell zeichnen" / "IFC-Ansicht" in Gebäudedaten (ersetzt den früheren
+    // eigenständigen BIM-Viewer-Tab - EIN Ort für "das Gebäudemodell", nicht zwei getrennte).
+    window.setModelSource = function (mode) {
+        const drawBtn = document.getElementById('modelSourceDrawBtn');
+        const ifcBtn = document.getElementById('modelSourceIfcBtn');
+        const drawPanel = document.getElementById('modelSourceDraw');
+        const ifcPanel = document.getElementById('modelSourceIfc');
+        if (!drawBtn || !ifcBtn || !drawPanel || !ifcPanel) return;
+        const isIfc = mode === 'ifc';
+        drawBtn.classList.toggle('active', !isIfc); drawBtn.setAttribute('aria-selected', String(!isIfc));
+        ifcBtn.classList.toggle('active', isIfc); ifcBtn.setAttribute('aria-selected', String(isIfc));
+        drawPanel.style.display = isIfc ? 'none' : '';
+        ifcPanel.style.display = isIfc ? '' : 'none';
+        if (isIfc && window.loadBimViewer) window.loadBimViewer();
     };
 })();
 </script>
