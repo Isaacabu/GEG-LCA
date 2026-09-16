@@ -1,4 +1,4 @@
-# GEGenius – GEG- & LCA-Energieanalyse
+# DIN V 18599 – Energetisches Berechnungsverfahren
 
 > Ein deutschsprachiges Webtool zur **GEG**- (Gebäudeenergiegesetz) und **LCA**-Analyse
 > (Lebenszyklus-/Ökobilanz) von Gebäuden – normbasiert nach **DIN V 18599** und **GEG 2024**.
@@ -9,7 +9,7 @@
 
 ## Projektbeschreibung
 
-**GEGenius** berechnet aus den Eingaben zu einem Gebäude (Geometrie, Bauteile, Anlagentechnik,
+**DIN V 18599 – Energetisches Berechnungsverfahren** berechnet aus den Eingaben zu einem Gebäude (Geometrie, Bauteile, Anlagentechnik,
 Photovoltaik) den **Heizwärmebedarf**, die **End- und Primärenergie**, den **PV-Ertrag**, die
 **Energie- und CO₂-Bilanz** sowie eine vereinfachte **Ökobilanz (GWP)** – und ordnet das Ergebnis
 in **Effizienzklassen** ein.

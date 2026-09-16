@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GEGenius Smart Energy Analysis</title>
+<title>DIN V 18599 – Energetisches Berechnungsverfahren</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
@@ -1937,7 +1937,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
     <div class="topbar">
         <div class="title-block">
-            <h1>GEGenius Smart Energy Analysis</h1>
+            <h1>DIN V 18599 – Energetisches Berechnungsverfahren</h1>
             <p>Exakte energetische Bewertung nach GEG mit strukturierter Projektlogik aus Gebäudedaten, Gebäudehülle, Photovoltaik und Energiebilanz.</p>
         </div>
 
@@ -2122,7 +2122,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <h3>Grunddaten</h3>
                     <div class="field">
                         <label>Projektname</label>
-                        <input id="project_name" value="GEGenius Smart Energy Analysis Projekt">
+                        <input id="project_name" value="DIN V 18599 – Energetisches Berechnungsverfahren Projekt">
                     </div>
                     <div class="field">
                         <label>Standort</label>
@@ -8951,7 +8951,7 @@ function generateReport() {
         ['Energieeffizienzklasse (GEG)', klasse],
         ['Berechnungsgrundlage', env.calculation_basis || 'DIN V 18599, GEG 2024'],
         ['Bericht erstellt am', stamp],
-        ['Erstellt mit', 'GEGenius – Smart Energy Analysis']
+        ['Erstellt mit', 'DIN V 18599 – Energetisches Berechnungsverfahren']
     ]));
 
     // ───────── 1) Gebäudedaten (Geometrie & Nutzung) ─────────
@@ -9318,7 +9318,7 @@ function generateReport() {
         + 'Anlagentechnik nach Teil 5/6/8, Beleuchtung Teil 4, PV Teil 9. Primärenergie- und CO₂-Faktoren nach GEG 2024 (Anlage 8/9). '
         + 'U-/λ-Werte nach DIN 4108-4. LCA-Herstellungswerte (A1–A3) aus ÖKOBAUDAT 2024; Betrieb (B6) aus der Energiebilanz. '
         + 'DIN-4108-Nachweise (Mindest-/sommerlicher Wärmeschutz, Tauwasser, Luftdichtheit) siehe Tab „DIN 4108" der Anwendung.<br><br>'
-        + 'Erstellt mit GEGenius. Alle Werte sind normbasierte Näherungen ohne Gewähr; keine ersetzende Leistung nach GEG §88.'
+        + 'Erstellt mit DIN V 18599 – Energetisches Berechnungsverfahren. Alle Werte sind normbasierte Näherungen ohne Gewähr; keine ersetzende Leistung nach GEG §88.'
         + '</div>');
 
     const warn = computed ? '' : '<div class="warn"><b>Hinweis:</b> Die Anlagentechnik wurde noch nicht vollständig berechnet – einige Werte fehlen. Öffne die Tabs „Gebäudehülle" und „Anlagentechnik", damit die automatische Berechnung durchläuft, und erzeuge den Bericht erneut.</div>';
@@ -9326,7 +9326,7 @@ function generateReport() {
     // ---- Seitenaufbau im klassischen Nachweis-Stil: Deckblatt (S. 1), Inhaltsverzeichnis (S. 2),
     //      danach je Abschnitt eine Seite (ab S. 3) mit Kopfgrafik, grauem Band und Fußzeile ----
     const HOUSE = '<svg class="logo" viewBox="0 0 64 62" aria-hidden="true"><defs><linearGradient id="gegGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2c53d"/><stop offset="0.55" stop-color="#5aa63f"/><stop offset="1" stop-color="#d4402f"/></linearGradient></defs><path d="M32 3 L59 27 L51 27 L51 49 L13 49 L13 27 L5 27 Z" fill="url(#gegGrad)"/><rect x="8" y="52" width="48" height="7" fill="#4d4d4d"/></svg>';
-    const footRow = function (n) { return '<div class="pfoot"><span>' + esc2(proj) + ' · GEGenius – Smart Energy Analysis</span><span>Seite ' + n + '</span></div>'; };
+    const footRow = function (n) { return '<div class="pfoot"><span>' + esc2(proj) + ' · DIN V 18599 – Energetisches Berechnungsverfahren</span><span>Seite ' + n + '</span></div>'; };
     let tocRows = '', pages = '';
     sections.forEach(function (s, i) {
         const pn = i + 3;
@@ -9335,15 +9335,15 @@ function generateReport() {
         pages += '<div class="page"><div class="sechead">' + HOUSE + '<span class="sectitle">' + s.t + '</span></div><div class="band"></div>' + s.h + footRow(pn) + '</div>';
     });
     const cover = '<div class="page cover"><div class="cover-inner">' + HOUSE
-        + '<div class="cover-title">GEGenius</div>'
-        + '<div class="cover-sub">Smart Energy Analysis</div>'
+        + '<div class="cover-title">DIN V 18599</div>'
+        + '<div class="cover-sub">Energetisches Berechnungsverfahren</div>'
         + '<div class="cover-rule"></div>'
         + '<div class="cover-proj">' + esc2(proj) + '</div>'
         + '<div class="cover-meta">' + (loc && loc !== '—' ? esc2(loc) + ' · ' : '') + 'Erstellt am ' + stamp + '</div>'
         + '</div></div>';
     const tocPage = '<div class="page"><div class="band big"></div><h2 class="hl">Inhaltsverzeichnis</h2><div class="toc">' + tocRows + '</div>' + warn + footRow(2) + '</div>';
 
-    const html = '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>GEGenius – Smart Energy Analysis – ' + esc2(proj) + '</title>'
+    const html = '<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>DIN V 18599 – Energetisches Berechnungsverfahren – ' + esc2(proj) + '</title>'
         + '<style>'
         + '@page{size:A4;margin:15mm 14mm;}'
         + 'body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#000;font-size:12px;line-height:1.45;}'
