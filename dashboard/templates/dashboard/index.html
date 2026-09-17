@@ -9,29 +9,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 :root {
-    /* navy + emerald palette */
-    --bg: #0b1f3a;
-    --bg-2: #0f2342;
-    --bg-3: #13294b;
-    --surface: rgba(255, 255, 255, 0.055);
-    --surface-strong: rgba(255, 255, 255, 0.10);
-    --surface-hover: rgba(255, 255, 255, 0.085);
-    --line: rgba(255, 255, 255, 0.13);
-    --line-strong: rgba(255, 255, 255, 0.24);
+    /* helles Pastell-Farbschema (Referenz: Prozess-Diagramm, warmes Off-White + farbige Akzente) */
+    --bg: #f6f4ee;
+    --bg-2: #ffffff;
+    --bg-3: #efece2;
+    --surface: rgba(15, 23, 42, 0.035);
+    --surface-strong: rgba(15, 23, 42, 0.07);
+    --surface-hover: rgba(15, 23, 42, 0.055);
+    --line: rgba(15, 23, 42, 0.12);
+    --line-strong: rgba(15, 23, 42, 0.22);
 
-    /* higher-contrast text */
-    --text: #ffffff;
-    --muted: #c4cfdc;
-    --dim: #94a3b6;
+    /* dunkler Text auf hellem Grund */
+    --text: #1c2230;
+    --muted: #57626e;
+    --dim: #7c8794;
 
     --cyan: #10b981;
     --cyan-2: #34d399;
-    --cyan-dim: rgba(16, 185, 129, 0.20);
-    --cyan-glow: rgba(16, 185, 129, 0.35);
+    --cyan-dim: rgba(16, 185, 129, 0.14);
+    --cyan-glow: rgba(16, 185, 129, 0.30);
     --gold: #f6b94b;
 
     /* legacy aliases (kept so anywhere referencing these still works) */
-    --surface-2: rgba(255, 255, 255, 0.04);
+    --surface-2: rgba(15, 23, 42, 0.03);
     --green-dark: #10b981;
     --green-mid: #10b981;
     --green-light: rgba(16, 185, 129, 0.12);
@@ -39,9 +39,9 @@
     --yellow-dark: #f6b94b;
     --danger-bg: rgba(239, 68, 68, 0.08);
     --danger-border: rgba(239, 68, 68, 0.35);
-    --danger-text: #fca5a5;
+    --danger-text: #b91c1c;
 
-    --shadow: 0 24px 56px -16px rgba(0, 0, 0, 0.65);
+    --shadow: 0 24px 56px -16px rgba(28, 34, 48, 0.18);
     --shadow-glow: 0 0 36px -8px rgba(16, 185, 129, 0.40);
     --radius-xl: 22px;
     --radius-lg: 16px;
@@ -95,7 +95,7 @@ body {
     line-height: 1.08;
     font-weight: 800;
     letter-spacing: -0.025em;
-    background: linear-gradient(140deg, #ffffff 0%, #e8f1f7 60%, #b9d4e2 100%);
+    background: linear-gradient(140deg, #1c2230 0%, #1d4e6d 55%, #0e7a56 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -204,7 +204,7 @@ body {
 .btn-green,
 .btn-primary {
     background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan-2) 100%);
-    color: #04101c;
+    color: #f5f3ee;
     border: 0;
     box-shadow: 0 4px 20px -4px var(--cyan-glow);
     letter-spacing: 0.01em;
@@ -220,7 +220,7 @@ body {
     gap: 6px;
     flex-wrap: wrap;
     margin: 18px 0 18px;
-    background: rgba(11, 31, 58, 0.85);
+    background: rgba(255, 255, 255, 0.85);
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 6px;
@@ -255,7 +255,7 @@ body {
 
 .tabs button.active {
     background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan-2) 100%);
-    color: #05111e;
+    color: #f5f3ee;
     font-weight: 650;
     box-shadow: 0 2px 12px -2px var(--cyan-glow);
 }
@@ -303,7 +303,7 @@ body {
     cursor: grab;
     background:
         radial-gradient(900px 460px at 70% -20%, rgba(16, 185, 129, 0.10), transparent 60%),
-        linear-gradient(180deg, #0f2342 0%, #0a1a30 100%);
+        linear-gradient(180deg, #ffffff 0%, #f5f3ee 100%);
 }
 .house3d:active { cursor: grabbing; }
 .house3d canvas { display: block; }
@@ -341,7 +341,7 @@ body {
 .house-cat-tabs .hcat:hover { color: var(--text); background: var(--surface-hover); }
 .house-cat-tabs .hcat.active {
     background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan-2) 100%);
-    color: #05111e;
+    color: #f5f3ee;
     box-shadow: 0 2px 12px -2px var(--cyan-glow);
 }
 .house-picker-label { font-size: 12.5px; color: var(--dim); font-weight: 600; }
@@ -402,7 +402,7 @@ body {
 .geo-tab:hover { color: var(--text); background: var(--surface-hover); }
 .geo-tab.active {
     background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan-2) 100%);
-    color: #05111e;
+    color: #f5f3ee;
     box-shadow: 0 2px 12px -2px var(--cyan-glow);
 }
 
@@ -427,17 +427,17 @@ body {
     border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(180deg, #0f2342, #0a1a30);
+    background: linear-gradient(180deg, #ffffff, #f5f3ee);
     max-width: 560px;
 }
 .fp-controls { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 10px; }
 .fp-ctl { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .fp-ctl input[type="range"] { width: 130px; accent-color: var(--cyan); cursor: pointer; }
-.fp-ctl input[type="number"] { width: 64px; border: 1px solid rgba(16,185,129,0.28); background: rgba(4,11,24,0.95); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 13px; }
+.fp-ctl input[type="number"] { width: 64px; border: 1px solid rgba(16,185,129,0.28); background: rgba(255, 255, 255, 0.9); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 13px; }
 .fp-ctl #fpAzimuthVal { min-width: 34px; color: var(--cyan); font-variant-numeric: tabular-nums; }
 .fp-vertex-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 10px;
     padding: 10px 14px; border: 1px solid rgba(56,189,248,0.35); border-radius: 12px;
-    background: rgba(12,32,60,0.85); }
+    background: rgba(255, 255, 255, 0.9); }
 .fp-vertex-panel .fpv-title { font-size: 13px; font-weight: 800; color: var(--cyan); }
 .fp-vertex-panel .fpv-note { flex-basis: 100%; font-size: 11.5px; color: var(--muted); margin: 0; }
 #floorplanSvg { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
@@ -454,9 +454,9 @@ body {
 .fp-walllist-head small { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--dim); }
 .fp-wallrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .fp-wallrow > span:first-child { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
-.fp-sw { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.25); flex: 0 0 auto; }
+.fp-sw { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(15, 23, 42,0.25); flex: 0 0 auto; }
 .fp-wallu-grp { display: inline-flex; align-items: center; gap: 10px; }
-.fp-wallc { max-width: 240px; border: 1px solid rgba(16,185,129,0.28); background: rgba(4,11,24,0.95); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 12.5px; }
+.fp-wallc { max-width: 240px; border: 1px solid rgba(16,185,129,0.28); background: rgba(255, 255, 255, 0.9); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 12.5px; }
 .fp-uval { font-size: 12.5px; color: var(--cyan); font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
 .fp-co2 { font-size: 12px; color: var(--gold); font-variant-numeric: tabular-nums; min-width: 66px; text-align: right; }
 .fp-co2total { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
@@ -464,18 +464,18 @@ body {
 .fp-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--surface-strong); }
 
 /* Aufbau-Editor */
-.fp-con-editor { margin-top: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.03); max-width: 600px; }
+.fp-con-editor { margin-top: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(15, 23, 42,0.03); max-width: 600px; }
 .fp-con-head { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-.fp-con-head select { flex: 1 1 200px; min-width: 160px; border: 1px solid rgba(16,185,129,0.28); background: rgba(4,11,24,0.95); color: var(--text); border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: 13px; }
+.fp-con-head select { flex: 1 1 200px; min-width: 160px; border: 1px solid rgba(16,185,129,0.28); background: rgba(255, 255, 255, 0.9); color: var(--text); border-radius: 8px; padding: 6px 8px; font-family: inherit; font-size: 13px; }
 .fp-con-meta { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
 .fp-con-meta label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
-.fp-con-meta input[type="text"] { width: 180px; border: 1px solid rgba(16,185,129,0.28); background: rgba(4,11,24,0.95); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 13px; }
+.fp-con-meta input[type="text"] { width: 180px; border: 1px solid rgba(16,185,129,0.28); background: rgba(255, 255, 255, 0.9); color: var(--text); border-radius: 8px; padding: 5px 8px; font-family: inherit; font-size: 13px; }
 .fp-con-meta input[type="color"] { width: 34px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: transparent; cursor: pointer; }
 .fp-con-badge { font-size: 12px; font-weight: 700; color: var(--cyan); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-variant-numeric: tabular-nums; }
 .fp-con-badge.fp-con-co2 { color: var(--gold); }
 .fp-con-layers { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
 .fp-layer-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.fp-layer-row select, .fp-layer-row .fpl-th { border: 1px solid rgba(16,185,129,0.24); background: rgba(4,11,24,0.95); color: var(--text); border-radius: 7px; padding: 5px 7px; font-family: inherit; font-size: 12.5px; }
+.fp-layer-row select, .fp-layer-row .fpl-th { border: 1px solid rgba(16,185,129,0.24); background: rgba(255, 255, 255, 0.9); color: var(--text); border-radius: 7px; padding: 5px 7px; font-family: inherit; font-size: 12.5px; }
 .fp-layer-row .fpl-type { flex: 0 0 130px; }
 .fp-layer-row .fpl-mat { flex: 1 1 180px; min-width: 150px; }
 .fp-layer-row .fpl-th { width: 64px; text-align: right; }
@@ -492,24 +492,24 @@ body {
     border-radius: 10px;
     font-size: 11.5px;
     line-height: 1.55;
-    color: #cfe0f2;
-    background: rgba(8, 18, 34, 0.74);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #57626e;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     pointer-events: none;
     backdrop-filter: blur(3px);
     max-width: 62%;
 }
-.house3d-legend b { color: #fff; }
-.house3d-legend .l-k { color: #9bb4c8; }
+.house3d-legend b { color: #1c2230; }
+.house3d-legend .l-k { color: #57626e; }
 .house3d-legend .l-v { color: #f6b94b; font-family: 'JetBrains Mono', monospace; }
 /* Element-Listen (Fenster/Türen/PV) in den Tabs */
 .elem-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
 .elem-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
-    border: 1px solid #21456d; border-radius: 8px; padding: 6px 10px; background: #0f2138; font-size: 12.5px; }
-.elem-row .er-label { color: #cfe0f2; }
+    border: 1px solid #dfe3ea; border-radius: 8px; padding: 6px 10px; background: #ffffff; font-size: 12.5px; }
+.elem-row .er-label { color: #57626e; }
 .elem-row .er-actions { display: flex; gap: 6px; }
 .elem-row .er-actions .btn { padding: 3px 9px; font-size: 12px; }
-.elem-empty { color: #9bb4c8; font-size: 12px; padding: 4px 2px; }
+.elem-empty { color: #57626e; font-size: 12px; padding: 4px 2px; }
 /* Steuerungs-Hinweis rechts oben: kleines Badge, klappt bei Hover zur Übersicht auf */
 .house3d-controls {
     position: absolute;
@@ -524,9 +524,9 @@ body {
     border-radius: 999px;
     font-size: 11.5px;
     font-weight: 600;
-    color: #cfe0f2;
-    background: rgba(8, 18, 34, 0.74);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #57626e;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     backdrop-filter: blur(3px);
     cursor: help;
 }
@@ -538,15 +538,15 @@ body {
     font-size: 11.5px;
     line-height: 1.65;
     text-align: left;
-    color: #cfe0f2;
-    background: rgba(8, 18, 34, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #57626e;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(15, 23, 42, 0.14);
     backdrop-filter: blur(4px);
     white-space: nowrap;
 }
 .house3d-controls:hover .hc-panel { display: block; }
 .house3d-controls b { color: #fff; }
-.house3d-controls .hc-sec { margin-top: 5px; color: #9bb4c8; }
+.house3d-controls .hc-sec { margin-top: 5px; color: #57626e; }
 .house3d-hint {
     position: absolute;
     left: 14px;
@@ -558,7 +558,7 @@ body {
     font-weight: 600;
     letter-spacing: 0.01em;
     color: var(--muted);
-    background: rgba(11, 31, 58, 0.72);
+    background: rgba(255, 255, 255, 0.72);
     border: 1px solid var(--line);
     backdrop-filter: blur(8px);
     pointer-events: none;
@@ -600,7 +600,7 @@ body {
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    color: #04101c;
+    color: #f5f3ee;
     background: linear-gradient(135deg, var(--cyan) 0%, var(--cyan-2) 100%);
     box-shadow: 0 10px 30px -8px rgba(16, 185, 129, 0.6);
     transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -708,7 +708,7 @@ body {
 .field select {
     width: 100%;
     border: 1px solid rgba(16, 185, 129, 0.28);
-    background: rgba(4, 11, 24, 0.95);
+    background: rgba(255, 255, 255, 0.9);
     color: var(--text);
     border-radius: 9px;
     padding: 12px 14px;
@@ -725,7 +725,7 @@ body {
 
 .field input:hover,
 .field select:hover {
-    background: rgba(7, 17, 34, 0.98);
+    background: rgba(255, 255, 255, 0.98);
     border-color: rgba(16, 185, 129, 0.45);
     box-shadow: inset 3px 0 0 rgba(16, 185, 129, 0.60);
 }
@@ -733,7 +733,7 @@ body {
 .field input:focus,
 .field select:focus {
     border-color: rgba(16, 185, 129, 0.70);
-    background: rgba(7, 17, 34, 1);
+    background: rgba(255, 255, 255, 1);
     box-shadow: 0 0 0 3px var(--cyan-dim), inset 3px 0 0 rgba(16, 185, 129, 0.70);
 }
 
@@ -795,7 +795,7 @@ body {
 .value-display {
     width: 100%;
     border: 1px dashed rgba(80, 110, 150, 0.38);
-    background: rgba(3, 7, 16, 0.72);
+    background: rgba(255, 255, 255, 0.85);
     color: var(--muted);
     border-radius: 9px;
     padding: 12px 14px;
@@ -913,7 +913,7 @@ body {
     right: 0;
     top: 22px;
     width: 270px;
-    background: #0e1622;
+    background: #f5f3ee;
     color: #d7e1ec;
     border: 1px solid var(--cyan);
     border-radius: 8px;
@@ -938,17 +938,17 @@ body {
 /* Ergebnis-Panel Fenster-Einbauwärmebrücken (ψ · Länge je Anschluss) */
 .win-wb-panel { margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .win-wb-panel:empty { display: none; }
-.wwb-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+.wwb-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; border-top: 1px solid rgba(15, 23, 42,.06); }
 .wwb-row:first-child { border-top: 0; }
-.wwb-name { flex: 1; color: #c4cfdc; font-weight: 600; }
+.wwb-name { flex: 1; color: #57626e; font-weight: 600; }
 .wwb-name sub { font-weight: 600; }
 .wwb-calc { color: var(--muted); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; white-space: nowrap; }
 .wwb-val { width: 118px; text-align: right; font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; color: #e6edf5; white-space: nowrap; }
-.wwb-total { background: rgba(255,255,255,.045); }
+.wwb-total { background: rgba(15, 23, 42,.045); }
 .wwb-total .wwb-name, .wwb-total .wwb-val { color: #fff; }
-.wwb-sub { padding: 6px 12px; font-size: 12px; font-weight: 700; color: #7fb4d8; background: rgba(56,189,248,.07); border-top: 1px solid rgba(255,255,255,.08); }
+.wwb-sub { padding: 6px 12px; font-size: 12px; font-weight: 700; color: #57626e; background: rgba(56,189,248,.07); border-top: 1px solid rgba(15, 23, 42,.08); }
 .wwb-count { color: var(--muted); font-weight: 400; font-size: 11.5px; }
-.wwb-rating { padding: 7px 12px; font-size: 12.5px; font-weight: 700; border-top: 1px solid rgba(255,255,255,.08); }
+.wwb-rating { padding: 7px 12px; font-size: 12.5px; font-weight: 700; border-top: 1px solid rgba(15, 23, 42,.08); }
 .wwb-good { color: #86efac; background: rgba(16,185,129,.10); }
 .wwb-mid  { color: #fcd34d; background: rgba(246,185,75,.10); }
 .wwb-bad  { color: #fca5a5; background: rgba(239,68,68,.10); }
@@ -1161,20 +1161,20 @@ body {
 
 /* generic select styling outside .field */
 select, input[type="text"], input[type="number"] {
-    color-scheme: dark;
+    color-scheme: light;
 }
 
 /* Wandschicht-Dropdowns: Option-Popup lesbar machen */
 .wl-type-sel,
 .wl-mat-sel {
-    color-scheme: dark;
-    background: rgba(6, 14, 26, 0.85);
-    color: #f0f4f8;
+    color-scheme: light;
+    background: rgba(15, 23, 42, 0.04);
+    color: var(--text);
 }
 .wl-type-sel option,
 .wl-mat-sel option {
-    background: #0f1e30;
-    color: #f0f4f8;
+    background: #ffffff;
+    color: #1c2230;
 }
 
 /* checkboxes/radios accent */
@@ -1186,7 +1186,7 @@ input[type="checkbox"], input[type="radio"] {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.30); }
+::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42,0.30); }
 
 @media (max-width: 1100px) {
     .grid-2,
@@ -1322,9 +1322,9 @@ input[type="checkbox"], input[type="radio"] {
   gap: 6px;
   align-items: center;
   padding: 7px 10px;
-  border: 1px solid rgba(255,255,255,.07);
+  border: 1px solid rgba(15, 23, 42,.07);
   border-top: none;
-  background: rgba(255,255,255,.03);
+  background: rgba(15, 23, 42,.03);
   transition: background .2s;
 }
 .wall-layer-row:last-child { border-radius: 0 0 8px 8px; }
@@ -1339,8 +1339,8 @@ input[type="checkbox"], input[type="radio"] {
 }
 .wl-type-sel, .wl-mat-sel {
   width: 100%; padding: 5px 8px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(15, 23, 42,.07);
+  border: 1px solid rgba(15, 23, 42,.15);
   border-radius: 6px;
   color: var(--text);
   font-size: .82rem;
@@ -1350,8 +1350,8 @@ input[type="checkbox"], input[type="radio"] {
 }
 .wl-thick {
   width: 100%; padding: 5px 8px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(15, 23, 42,.07);
+  border: 1px solid rgba(15, 23, 42,.15);
   border-radius: 6px;
   color: var(--text);
   font-size: .82rem;
@@ -1367,7 +1367,7 @@ input[type="checkbox"], input[type="radio"] {
 /* λ ist überall editierbar (DIN-4108-4-Wert vorbelegt, überschreibbar) */
 input.wl-lambda {
   width: 100%; padding: 5px 6px;
-  background: rgba(255,255,255,.07);
+  background: rgba(15, 23, 42,.07);
   border: 1px solid rgba(246,185,75,.4);
   border-radius: 6px;
   color: var(--text);
@@ -1378,8 +1378,8 @@ input.wl-lambda:focus { outline: none; border-color: var(--cyan); }
    Dezenter als λ (gestrichelte Kante), damit der Auto-Charakter erkennbar bleibt. */
 input.wl-r, input.wl-gwp {
   width: 100%; padding: 5px 3px;
-  background: rgba(255,255,255,.04);
-  border: 1px dashed rgba(255,255,255,.18);
+  background: rgba(15, 23, 42,.04);
+  border: 1px dashed rgba(15, 23, 42,.18);
   border-radius: 6px;
   -moz-appearance: textfield;
   appearance: textfield;
@@ -1397,7 +1397,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .wl-r, .wl-gwp { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wl-custom-lambda {
   width: 100%; padding: 5px 6px;
-  background: rgba(255,255,255,.07);
+  background: rgba(15, 23, 42,.07);
   border: 1px solid rgba(246,185,75,.4);
   border-radius: 6px;
   color: var(--text);
@@ -1430,7 +1430,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
   align-items: center;
   justify-content: space-between;
   padding: 9px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(15, 23, 42,.05);
 }
 .wall-u-row:last-child { border-bottom: none; }
 .wall-u-label { font-size: .85rem; color: var(--muted); }
@@ -1452,7 +1452,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
     gap: 4px;
     padding: 10px;
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid rgba(15, 23, 42,.1);
     margin-bottom: 6px;
   }
   .wl-num-badge { display: none; }
@@ -1472,19 +1472,19 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .layer-bc-side small { display: block; font-weight: 600; font-size: 10.5px; opacity: .9; }
 .layer-bc-in { background: rgba(246,185,75,.16); border: 1px solid #b5882f; color: #f6b94b; }
 .layer-bc-out { background: rgba(56,189,248,.14); border: 1px solid #2a6f97; color: #7fd0f8; }
-.layer-bc-mid { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #9bb4c8; font-weight: 700; letter-spacing: .02em; border-bottom: 1px dashed #2a4a73; }
+.layer-bc-mid { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #57626e; font-weight: 700; letter-spacing: .02em; border-bottom: 1px dashed #dfe3ea; }
 .layer-saver { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 10px; }
 .layer-saver .btn { padding: 6px 12px; font-size: 13px; }
 .layer-saver .layer-save-btn { background: linear-gradient(135deg, #10b981, #0ea5b7); border: 0; color: #06231c; font-weight: 800; padding: 9px 18px; font-size: 14px; }
 .layer-saver .layer-save-btn:hover { filter: brightness(1.06); }
-.layer-saver select.layer-saver-sel { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15); color: var(--text, #e7edf5);
+.layer-saver select.layer-saver-sel { background: rgba(15, 23, 42,.07); border: 1px solid rgba(15, 23, 42,.15); color: var(--text, #1c2230);
     border-radius: 8px; padding: 6px 10px; font-size: 13px; font-family: inherit; cursor: pointer; width: 260px; max-width: 100%; flex: 0 0 auto; }
 .layer-saver select.layer-saver-sel:focus { outline: none; border-color: var(--cyan, #38bdf8); }
-.layer-saver-sel option { background: var(--bg-2, #0d1420); color: var(--text, #e7edf5); }
+.layer-saver-sel option { background: var(--bg-2, #f5f3ee); color: var(--text, #1c2230); }
 .wall-viz-col {
   position: static;
   max-width: 420px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(15, 23, 42,0.03);
   border: 1px solid rgba(16,185,129,0.25);
   border-radius: 12px;
   padding: 12px;
@@ -1493,7 +1493,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .wall-viz-row { display: flex; gap: 18px; align-items: stretch; flex-wrap: wrap; }
 .wall-viz-row .wall-viz-col { flex: 0 1 420px; }
 .wall-aufbau-col { position: relative; flex: 1 1 300px; min-width: 260px;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(15, 23, 42,0.03); border: 1px solid rgba(15, 23, 42,0.12);
   border-radius: 12px; padding: 12px; }
 .wall-aufbau-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
 .wall-viz-title {
@@ -1504,13 +1504,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
   letter-spacing: .3px;
 }
 .wall-viz-sub {
-  color: #c4cfdc;
+  color: #57626e;
   font-weight: 400;
   font-size: 11px;
 }
 .wall-viz-frame {
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(180deg, rgba(15, 23, 42,0.04), rgba(15, 23, 42,0.02));
+  border: 1px solid rgba(15, 23, 42,0.08);
   border-radius: 8px;
   padding: 6px;
 }
@@ -1526,7 +1526,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
   margin-top: 8px;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
-  color: #c4cfdc;
+  color: #57626e;
   text-align: center;
 }
 .wall-viz-legend {
@@ -1540,7 +1540,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  color: #c4cfdc;
+  color: #57626e;
   line-height: 1.2;
 }
 .wall-viz-legend-swatch {
@@ -1548,7 +1548,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
   height: 12px;
   border-radius: 2px;
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(15, 23, 42,0.15);
 }
 @media (max-width: 1100px) {
   .wall-layers-wrap {
@@ -1572,10 +1572,10 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
 /* === Wandaufbau-Viz: 2D/3D-Umschalter === */
 .wall-viz-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-.wall-viz-toggle { display: inline-flex; gap: 3px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.wall-viz-toggle { display: inline-flex; gap: 3px; background: rgba(15, 23, 42,.05); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
 .wall-viz-toggle .wvt { border: 0; background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 13px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s ease, color .15s ease; }
 .wall-viz-toggle .wvt:hover { color: var(--text); }
-.wall-viz-toggle .wvt.active { background: linear-gradient(135deg, var(--cyan), var(--cyan-2)); color: #05111e; }
+.wall-viz-toggle .wvt.active { background: linear-gradient(135deg, var(--cyan), var(--cyan-2)); color: #f5f3ee; }
 .wall-viz-3d { width: 100%; height: 286px; cursor: grab; border-radius: 6px; overflow: hidden; }
 .wall-viz-3d:active { cursor: grabbing; }
 .wall-viz-3d canvas { display: block; }
@@ -1586,7 +1586,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .wall-viz-legend-item { border-radius: 6px; padding: 1px 4px; transition: background .12s ease; }
 .wall-viz-legend-item[data-li] { cursor: pointer; }
 .wall-viz-legend-item.leg-hi { background: rgba(16,185,129,.20); }
-.layer-viz-block { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: rgba(255,255,255,.03); max-width: 420px; }
+.layer-viz-block { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: rgba(15, 23, 42,.03); max-width: 420px; }
 .layer-viz-block #roof_viz_svg, .layer-viz-block #floor_viz_svg { max-height: 240px; }
 .layer-viz-block .wall-viz-3d { height: 220px; }
 
@@ -1597,20 +1597,20 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .pv-hero .sys-hero-value { color: var(--gold); }
 .pv-hero-sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
 .pv-hero-kpis { display: grid; grid-template-columns: repeat(4, minmax(84px, 1fr)); gap: 10px; flex: 1 1 380px; }
-.pv-hero-kpi { background: rgba(0,0,0,.22); border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; text-align: center; }
+.pv-hero-kpi { background: rgba(255,255,255,.55); border: 1px solid var(--line); border-radius: 12px; padding: 10px 8px; text-align: center; }
 .pv-hero-kpi span { display: block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; color: var(--text); }
 .pv-hero-kpi small { display: block; margin-top: 3px; font-size: 10.5px; color: var(--muted); line-height: 1.25; }
 
 .pv-viz-frame { position: relative; width: 100%; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
-    background: radial-gradient(900px 420px at 72% -25%, rgba(246,185,75,.12), transparent 60%), linear-gradient(180deg, #0f2342 0%, #0a1a30 100%); }
+    background: radial-gradient(900px 420px at 72% -25%, rgba(246,185,75,.12), transparent 60%), linear-gradient(180deg, #ffffff 0%, #f5f3ee 100%); }
 #pv_viz_svg { display: block; width: 100%; height: auto; }
 .pv-viz-3d { width: 100%; height: 380px; cursor: grab; }
 .pv-viz-3d:active { cursor: grabbing; }
 .pv-viz-3d canvas { display: block; }
-.pv-viz-hint { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: var(--muted); background: rgba(4,12,24,.55); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; pointer-events: none; transition: opacity .4s ease; }
+.pv-viz-hint { position: absolute; left: 12px; bottom: 10px; font-size: 11px; color: var(--muted); background: rgba(255, 255, 255,.55); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; pointer-events: none; transition: opacity .4s ease; }
 .pv-viz-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-size: 12px; color: var(--muted); }
 .pv-viz-legend .pv-leg { display: inline-flex; align-items: center; gap: 7px; }
-.pv-viz-legend .pv-leg i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,.25); }
+.pv-viz-legend .pv-leg i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1px solid rgba(15, 23, 42,.25); }
 
 .pv-chart { display: block; width: 100%; height: auto; }
 /* CO₂-Bilanz: kompakter Donut links, Zusammenfassungstabelle rechts */
@@ -1641,7 +1641,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 }
 
 /* === Energiebilanz – Visualisierung === */
-.bilanz-eff-card { background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(255,255,255,.03)); }
+.bilanz-eff-card { background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(15, 23, 42,.03)); }
 .bilanz-eff-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
 .bilanz-eff-badge { flex: 0 0 auto; width: 76px; height: 76px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
     font-size: 38px; font-weight: 800; color: #06210f; font-family: 'JetBrains Mono', ui-monospace, monospace; box-shadow: 0 6px 20px -6px rgba(0,0,0,.6); }
@@ -1657,13 +1657,13 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .eff-seg:last-child { border-radius: 0 8px 8px 0; }
 .eff-seg.is-active { outline: 2px solid #fff; outline-offset: -2px; z-index: 2; }
 .eff-pointer { position: absolute; top: -26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 3; transition: left .4s ease; }
-.eff-pointer-bubble { background: #0e1622; border: 1px solid var(--cyan); color: #fff; font-weight: 800; font-size: 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; border-radius: 7px; padding: 2px 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
+.eff-pointer-bubble { background: #f5f3ee; border: 1px solid var(--cyan); color: #fff; font-weight: 800; font-size: 12px; font-family: 'JetBrains Mono', ui-monospace, monospace; border-radius: 7px; padding: 2px 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.5); }
 .eff-pointer-tip { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid var(--cyan); margin-top: -1px; }
 
 .bilanz-flow { margin-top: 14px; }
 
 /* Zusätzliche Dachflächen (Dach 2, 3 …) – abgesetzter Block innerhalb der Dach-Karte */
-.roof-extra { margin-top: 16px; padding: 14px; border: 1px dashed var(--line-strong, var(--line)); border-radius: 12px; background: rgba(255,255,255,.02); }
+.roof-extra { margin-top: 16px; padding: 14px; border: 1px dashed var(--line-strong, var(--line)); border-radius: 12px; background: rgba(15, 23, 42,.02); }
 .roof-extra-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
 .roof-extra-head b { font-size: 14px; color: var(--text); }
 
@@ -1689,10 +1689,10 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 #anlage .field select, #anlage .field input[type="number"] { transition: border-color .15s ease, box-shadow .15s ease; }
 #anlage .field select:focus, #anlage .field input[type="number"]:focus { box-shadow: 0 0 0 3px var(--cyan-dim); }
 
-.sys-hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(135deg, rgba(16,185,129,.10), rgba(255,255,255,.03)); margin-bottom: 14px; }
-.sys-hero.sys-good { background: linear-gradient(135deg, rgba(16,185,129,.16), rgba(255,255,255,.03)); border-color: rgba(16,185,129,.45); }
-.sys-hero.sys-mid  { background: linear-gradient(135deg, rgba(246,185,75,.16), rgba(255,255,255,.03)); border-color: rgba(246,185,75,.45); }
-.sys-hero.sys-bad  { background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(255,255,255,.03)); border-color: rgba(239,68,68,.45); }
+.sys-hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(135deg, rgba(16,185,129,.10), rgba(15, 23, 42,.03)); margin-bottom: 14px; }
+.sys-hero.sys-good { background: linear-gradient(135deg, rgba(16,185,129,.16), rgba(15, 23, 42,.03)); border-color: rgba(16,185,129,.45); }
+.sys-hero.sys-mid  { background: linear-gradient(135deg, rgba(246,185,75,.16), rgba(15, 23, 42,.03)); border-color: rgba(246,185,75,.45); }
+.sys-hero.sys-bad  { background: linear-gradient(135deg, rgba(239,68,68,.16), rgba(15, 23, 42,.03)); border-color: rgba(239,68,68,.45); }
 .sys-hero-main { flex: 1 1 160px; min-width: 150px; }
 .sys-hero-label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .sys-hero-value { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; font-size: 34px; line-height: 1.1; margin-top: 4px; color: var(--text); }
@@ -1727,7 +1727,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .ea-class-badge { font-weight: 800; font-size: 16px; color: #fff; background: #555; border-radius: 6px; padding: 2px 12px; min-width: 34px; text-align: center; }
 .ea-foot-note { font-size: 12px; color: var(--muted); margin-left: auto; }
 
-.sys-flow-card { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: rgba(255,255,255,.03); margin-bottom: 14px; }
+.sys-flow-card { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: rgba(15, 23, 42,.03); margin-bottom: 14px; }
 .sys-flow-title { font-size: 13px; font-weight: 700; color: var(--cyan); margin-bottom: 8px; }
 .sys-flow-empty { font-size: 12.5px; color: var(--dim); padding: 14px 4px; }
 #sys_flow svg { display: block; width: 100%; height: auto; }
@@ -1757,7 +1757,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .es-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--cyan); padding: 0 2px; white-space: nowrap; }
 .es-arrow small { font-size: 9px; color: var(--dim); font-weight: 600; }
 .es-comp-title { font-size: 12px; font-weight: 700; color: var(--muted); margin: 14px 0 6px; }
-.es-bar { display: flex; height: 24px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: rgba(255,255,255,.04); }
+.es-bar { display: flex; height: 24px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: rgba(15, 23, 42,.04); }
 .es-seg { display: flex; align-items: center; justify-content: center; min-width: 2px; transition: width .4s ease; }
 .es-seg span { font-size: 10px; font-weight: 800; color: rgba(4,16,28,.82); }
 .es-bar-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 11.5px; color: var(--muted); }
@@ -1765,7 +1765,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .es-src { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); }
 
 /* === Energiebilanz – Ergebnis-Hero + KPI-Raster (Redesign) === */
-.bz-hint { margin: 10px 0 4px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.02); }
+.bz-hint { margin: 10px 0 4px; border: 1px solid var(--line); border-radius: 10px; background: rgba(15, 23, 42,.02); }
 .bz-hint > summary { cursor: pointer; padding: 10px 14px; font-size: 12.5px; font-weight: 700; color: var(--muted); list-style: none; display: flex; align-items: center; gap: 8px; }
 .bz-hint > summary::-webkit-details-marker { display: none; }
 .bz-hint > summary::before { content: '▸'; color: var(--cyan); transition: transform .2s ease; }
@@ -1804,7 +1804,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .bz-steps { display: flex; flex-direction: column; gap: 8px; }
 .bz-steps-empty { color: var(--dim); font-size: 12.5px; padding: 8px 0; }
 .bz-step { display: grid; grid-template-columns: 26px 1fr auto auto; align-items: center; gap: 4px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.bz-step-no { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--muted); background: rgba(255,255,255,.05); }
+.bz-step-no { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--muted); background: rgba(15, 23, 42,.05); }
 .bz-step-txt { display: flex; flex-direction: column; min-width: 0; }
 .bz-step-txt b { font-size: 13px; color: var(--text); font-weight: 700; }
 .bz-step-txt span { font-size: 11.5px; color: var(--muted); }
@@ -1815,14 +1815,14 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 .bz-chip-green { color: #86efac; background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); }
 .bz-chip-yellow { color: #fcd34d; background: rgba(246,185,75,.12); border-color: rgba(246,185,75,.35); }
 .bz-chip-red { color: #fca5a5; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); }
-.bz-chip-neutral { color: var(--muted); background: rgba(255,255,255,.05); border-color: var(--line); }
-.bz-substep { background: rgba(255,255,255,.02); border-style: dashed; }
+.bz-chip-neutral { color: var(--muted); background: rgba(15, 23, 42,.05); border-color: var(--line); }
+.bz-substep { background: rgba(15, 23, 42,.02); border-style: dashed; }
 .bz-substep .bz-step-no { background: transparent; }
-.bz-step-total { border-color: var(--cyan); background: linear-gradient(135deg, rgba(34,211,238,.10), rgba(255,255,255,.02)); }
+.bz-step-total { border-color: var(--cyan); background: linear-gradient(135deg, rgba(34,211,238,.10), rgba(15, 23, 42,.02)); }
 .bz-step-total .bz-step-val { font-size: 16px; }
 
 /* „Jahres-Energiekosten" – Redesign: große Summe + Aufschlüsselung */
-.bz-cost-hero { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(135deg, rgba(246,185,75,.10), rgba(255,255,255,.02)); margin-bottom: 12px; }
+.bz-cost-hero { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(135deg, rgba(246,185,75,.10), rgba(15, 23, 42,.02)); margin-bottom: 12px; }
 .bz-cost-hero .lab { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .bz-cost-hero .val { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 30px; font-weight: 800; color: #fcd34d; }
 .bz-cost-hero .val u { font-size: 13px; color: var(--muted); font-weight: 600; text-decoration: none; margin-left: 4px; }
@@ -1997,10 +1997,10 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         </div>
                         <div class="fp-controls" id="fpInteriorControls" style="display:none;">
                             <label class="fp-ctl">Etage (Innenwände)
-                                <select id="fpInteriorFloor" style="background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:130px;"></select>
+                                <select id="fpInteriorFloor" style="background:#f5f3ee;border:1px solid #dfe3ea;color:#1c2230;border-radius:6px;padding:5px 8px;min-width:130px;"></select>
                             </label>
                             <label class="fp-ctl">Innenwand-Aufbau
-                                <select id="fpInteriorType" style="background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:220px;"></select>
+                                <select id="fpInteriorType" style="background:#f5f3ee;border:1px solid #dfe3ea;color:#1c2230;border-radius:6px;padding:5px 8px;min-width:220px;"></select>
                             </label>
                             <label class="fp-ctl">Dicke
                                 <input type="number" id="fpInteriorThickness" min="6" max="40" step="1" value="10"> cm
@@ -2010,12 +2010,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <svg id="floorplanSvg" viewBox="0 0 480 320" preserveAspectRatio="xMidYMid meet" aria-label="Grundriss-Zeichenfläche">
                                 <defs>
                                     <pattern id="fpGrid" width="24" height="24" patternUnits="userSpaceOnUse">
-                                        <path d="M24 0H0V24" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
+                                        <path d="M24 0H0V24" fill="none" stroke="rgba(15, 23, 42,0.09)" stroke-width="1"/>
                                     </pattern>
                                 </defs>
                                 <rect x="0" y="0" width="480" height="320" fill="url(#fpGrid)"/>
                                 <g id="fpNorth" transform="translate(446,30)">
-                                    <circle r="17" fill="rgba(11,31,58,0.72)" stroke="rgba(255,255,255,0.18)"/>
+                                    <circle r="17" fill="rgba(255, 255, 255,0.72)" stroke="rgba(15, 23, 42,0.18)"/>
                                     <g id="fpNorthArrow">
                                         <path d="M0,-12 L4.5,4 L0,1 L-4.5,4 Z" fill="#10b981"/>
                                         <text x="0" y="-13.5" text-anchor="middle" font-size="8" font-weight="700" fill="#34d399">N</text>
@@ -2069,8 +2069,8 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         Bearbeitung hier</b> — Wand-/Fenster-/Dach-/Bodenflächen für die Berechnung werden im Tab
                         „Gebäudehülle" übernommen (Karte „Aus IFC übernommen").</p>
                     <div id="bimViewerStatus" class="note" style="margin-bottom:8px;"></div>
-                    <div id="bimViewerCanvas" style="width:100%;height:480px;border-radius:10px;overflow:hidden;background:#0b1f3a;"></div>
-                    <div id="bimViewerInfo" class="small" style="color:#9bb4c8;margin-top:8px;"></div>
+                    <div id="bimViewerCanvas" style="width:100%;height:480px;border-radius:10px;overflow:hidden;background:#f5f3ee;"></div>
+                    <div id="bimViewerInfo" class="small" style="color:#57626e;margin-top:8px;"></div>
                     <div id="bimViewerSelection" class="card" style="display:none;margin-top:10px;"></div>
                 </div>
                 <div style="margin-top:10px;">
@@ -2079,7 +2079,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <button type="button" class="btn btn-primary" onclick="saveModelState()" style="padding:6px 14px;font-weight:700;">💾 Modell speichern</button>
                         <button type="button" class="btn" onclick="resetModelState()" style="padding:6px 14px;">↺ Zurücksetzen</button>
                     </div>
-                    <div id="model_save_status" class="small" style="color:#7fb4d8;text-align:center;margin-top:6px;"></div>
+                    <div id="model_save_status" class="small" style="color:#57626e;text-align:center;margin-top:6px;"></div>
                     <div id="saved_models_list" style="margin-top:8px;max-width:580px;margin-left:auto;margin-right:auto;"></div>
                 </div>
             </div>
@@ -2270,12 +2270,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 <svg viewBox="0 0 800 360" role="img" aria-label="Gebäudeschnitt">
                     <defs>
                         <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#0e1c33" />
-                            <stop offset="100%" stop-color="#07111f" />
+                            <stop offset="0%" stop-color="#f5f3ee" />
+                            <stop offset="100%" stop-color="#f5f3ee" />
                         </linearGradient>
                         <linearGradient id="wallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#1d3457" />
-                            <stop offset="100%" stop-color="#11203a" />
+                            <stop offset="0%" stop-color="#dfe3ea" />
+                            <stop offset="100%" stop-color="#ffffff" />
                         </linearGradient>
                         <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stop-color="#10b981" stop-opacity="0.7" />
@@ -2286,7 +2286,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                     <g class="hotspot" onclick="openHuelleFromHero('floor')">
                         <title>Boden – zur Eingabe</title>
-                        <rect x="60" y="300" width="680" height="14" fill="#0b1830" />
+                        <rect x="60" y="300" width="680" height="14" fill="#ffffff" />
                         <line x1="60" y1="307" x2="740" y2="307" stroke="#10b981" stroke-opacity="0.25" stroke-dasharray="4 6" />
                         <text x="80" y="335" fill="#9aa7b7" font-size="11" letter-spacing="2">BODEN</text>
                     </g>
@@ -2309,19 +2309,19 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <g class="hotspot" onclick="(function(){ const btn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.includes('Photovoltaik')); if(btn){ showTab('pv', btn); window.scrollTo({top: 0, behavior: 'instant'}); } })()">
                         <title>Photovoltaik – zum PV-Tab</title>
                         <!-- Panel 1 -->
-                        <rect x="175" y="76" width="52" height="32" rx="2" fill="#0a1628" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
+                        <rect x="175" y="76" width="52" height="32" rx="2" fill="#f5f3ee" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
                         <line x1="201" y1="76" x2="201" y2="108" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <line x1="175" y1="92" x2="227" y2="92" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <!-- Panel 2 -->
-                        <rect x="238" y="76" width="52" height="32" rx="2" fill="#0a1628" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
+                        <rect x="238" y="76" width="52" height="32" rx="2" fill="#f5f3ee" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
                         <line x1="264" y1="76" x2="264" y2="108" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <line x1="238" y1="92" x2="290" y2="92" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <!-- Panel 3 -->
-                        <rect x="420" y="76" width="52" height="32" rx="2" fill="#0a1628" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
+                        <rect x="420" y="76" width="52" height="32" rx="2" fill="#f5f3ee" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
                         <line x1="446" y1="76" x2="446" y2="108" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <line x1="420" y1="92" x2="472" y2="92" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <!-- Panel 4 -->
-                        <rect x="483" y="76" width="52" height="32" rx="2" fill="#0a1628" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
+                        <rect x="483" y="76" width="52" height="32" rx="2" fill="#f5f3ee" stroke="#facc15" stroke-width="1.5" transform="skewX(-10)" />
                         <line x1="509" y1="76" x2="509" y2="108" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <line x1="483" y1="92" x2="535" y2="92" stroke="#facc15" stroke-opacity="0.5" stroke-width="0.8" transform="skewX(-10)" />
                         <!-- Sonne-Symbol -->
@@ -2339,10 +2339,10 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                     <g class="hotspot" onclick="openHuelleFromHero('window')">
                         <title>Fenster – zur Eingabe</title>
-                        <rect x="200" y="170" width="80" height="80" fill="#0e1c33" stroke="#f6b94b" stroke-width="2" />
+                        <rect x="200" y="170" width="80" height="80" fill="#f5f3ee" stroke="#f6b94b" stroke-width="2" />
                         <line x1="240" y1="170" x2="240" y2="250" stroke="#f6b94b" stroke-opacity="0.7" />
                         <line x1="200" y1="210" x2="280" y2="210" stroke="#f6b94b" stroke-opacity="0.7" />
-                        <rect x="520" y="170" width="80" height="80" fill="#0e1c33" stroke="#f6b94b" stroke-width="2" />
+                        <rect x="520" y="170" width="80" height="80" fill="#f5f3ee" stroke="#f6b94b" stroke-width="2" />
                         <line x1="560" y1="170" x2="560" y2="250" stroke="#f6b94b" stroke-opacity="0.7" />
                         <line x1="520" y1="210" x2="600" y2="210" stroke="#f6b94b" stroke-opacity="0.7" />
                         <text x="200" y="265" fill="#f6b94b" font-size="11" letter-spacing="2">FENSTER</text>
@@ -2350,7 +2350,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
                     <g class="hotspot" onclick="openHuelleFromHero('door')">
                         <title>Tür – zur Eingabe</title>
-                        <rect x="370" y="200" width="60" height="100" fill="#0e1c33" stroke="#10b981" stroke-width="2" />
+                        <rect x="370" y="200" width="60" height="100" fill="#f5f3ee" stroke="#10b981" stroke-width="2" />
                         <circle cx="420" cy="252" r="2" fill="#10b981" />
                         <text x="370" y="320" fill="#10b981" font-size="11" letter-spacing="2">TUER</text>
                     </g>
@@ -2382,7 +2382,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 </h3>
                 <p class="note" id="ifcEnvelopeSummary"></p>
                 <button type="button" class="btn btn-primary" onclick="window.applyIfcEnvelopeToHuelle()">Werte übernehmen &amp; Heizwärmebedarf berechnen</button>
-                <div id="ifcEnvelopeApplyStatus" class="small" style="margin-top:8px;color:#9bb4c8;"></div>
+                <div id="ifcEnvelopeApplyStatus" class="small" style="margin-top:8px;color:#57626e;"></div>
             </div>
 
             <!-- ① Außenwände -->
@@ -2503,7 +2503,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 </div>
 
                 <!-- Wand-Randbedingungen pro Orientierung -->
-                <div style="margin-top:18px;padding:14px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+                <div style="margin-top:18px;padding:14px;border:1px solid rgba(15, 23, 42,0.08);border-radius:8px;">
                     <h4 style="margin:0 0 8px;">🌡️ Wandrandbedingungen (pro Orientierung)</h4>
                     <p class="note" style="margin-bottom:12px;">
                         Bestimmt, woran die jeweilige Wand grenzt. Wirkt sich über den
@@ -2607,17 +2607,17 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <button type="button" class="btn" onclick="addWindowTo('west')" style="padding:4px 10px;">＋ West</button>
                         </span>
                     </div>
-                    <p class="note" style="margin:10px 0 0;color:#7fb4d8;">💡 Klicke ein Fenster im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten.</p>
+                    <p class="note" style="margin:10px 0 0;color:#57626e;">💡 Klicke ein Fenster im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten.</p>
                     <div id="window_list" class="elem-list"></div>
                     <div class="grid-2" style="margin-top:10px;">
                         <div class="field"><label>g-Wert – Standard (0–1)</label><input id="g_value" type="number" step="0.01" value="0.55" onchange="applyGlobalWindowUG()" title="Standard-g-Wert für alle Fenster"></div>
                         <div class="field"><label>ψ Fenster gesamt [W/(m²·K)]</label><div class="value-display" id="win_psi_total_top">—</div></div>
                     </div>
                     <!-- Fenster-Einbauwärmebrücken: H_WB,Fenster = Σ ψ · Bezugslänge (Seiten/Sturz/Brüstung) -->
-                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);">
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(15, 23, 42,.08);">
                         <p class="note" style="margin:0 0 8px;">🔲 <strong>Fenster-Wärmebrücken (Einbau)</strong> – ψ · Bezugslänge je Anschluss. Bezugslängen automatisch aus der Fenstergeometrie (Seiten = 2 × Höhe, Sturz/Brüstung = Breite; über alle Fenster summiert).</p>
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;">
-                            <span class="note" id="win_psi_auto_note" style="margin:0;flex:1;min-width:200px;color:#7fb4d8;">🔗 ψ wird automatisch aus dem Wandaufbau vorgeschlagen.</span>
+                            <span class="note" id="win_psi_auto_note" style="margin:0;flex:1;min-width:200px;color:#57626e;">🔗 ψ wird automatisch aus dem Wandaufbau vorgeschlagen.</span>
                             <button type="button" class="btn" style="padding:3px 10px;font-size:12px;" onclick="applyAutoWindowPsi(true)" title="Alle drei ψ-Werte wieder aus dem aktuellen Wandaufbau ableiten">↻ Aus Wandaufbau</button>
                         </div>
                         <div class="grid-3" style="gap:8px;">
@@ -2676,7 +2676,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                             <button type="button" class="btn" onclick="addDoorTo('west')" style="padding:4px 10px;">＋ West</button>
                         </span>
                     </div>
-                    <p class="note" style="margin:10px 0 0;color:#7fb4d8;">💡 Klicke eine Tür im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten – oder ziehe sie zum Verschieben.</p>
+                    <p class="note" style="margin:10px 0 0;color:#57626e;">💡 Klicke eine Tür im 3D-Modell oben an (oder unten in der Liste) zum Bearbeiten – oder ziehe sie zum Verschieben.</p>
                     <div id="door_list" class="elem-list"></div>
                     <div class="field" style="margin-top:10px;">
                         <label>Rahmendicke (mm)</label>
@@ -2964,18 +2964,18 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
         <style>
             #innenSvg { display:block; width:100%; height:auto; touch-action:none; cursor:crosshair; }
             #innen .in-handle { cursor:grab; }
-            #innen .in-roomrow { display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid #21456d; border-radius:9px; margin-top:6px; background:#0f2138; cursor:pointer; }
+            #innen .in-roomrow { display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid #dfe3ea; border-radius:9px; margin-top:6px; background:#ffffff; cursor:pointer; }
             #innen .in-roomrow.sel { border-color:#38bdf8; box-shadow:0 0 0 2px rgba(56,189,248,.18); }
             #innen .in-roomdot { flex:0 0 12px; width:12px; height:12px; border-radius:3px; }
-            #innen .in-roomrow input[type="text"] { background:#040b18; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; width:170px; }
-            #innen .in-roomrow select.in-raumart { background:#040b18; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; max-width:190px; font-size:12.5px; }
-            #innen .in-roommeta { font-size:12.5px; color:#9bb4c8; }
+            #innen .in-roomrow input[type="text"] { background:#f5f3ee; border:1px solid #dfe3ea; color:#1c2230; border-radius:6px; padding:6px 8px; width:170px; }
+            #innen .in-roomrow select.in-raumart { background:#f5f3ee; border:1px solid #dfe3ea; color:#1c2230; border-radius:6px; padding:6px 8px; max-width:190px; font-size:12.5px; }
+            #innen .in-roommeta { font-size:12.5px; color:#57626e; }
             #innen .in-roomdel { margin-left:auto; background:#7f1d1d; border:1px solid #7f1d1d; color:#fff; border-radius:7px; padding:5px 10px; cursor:pointer; }
-            #innen .in-devrow { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; padding:10px 12px; border:1px solid #21456d; border-radius:10px; margin-top:8px; background:#0f2138; }
+            #innen .in-devrow { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; padding:10px 12px; border:1px solid #dfe3ea; border-radius:10px; margin-top:8px; background:#ffffff; }
             #innen .in-devrow .field { margin:0; }
-            #innen .in-devrow label { font-size:11px; color:#9bb4c8; display:block; margin-bottom:3px; }
-            #innen .in-devrow input, #innen .in-devrow select { background:#040b18; border:1px solid #2a4a73; color:#e7edf5; border-radius:6px; padding:6px 8px; }
-            #innen .in-devsum { font-size:12.5px; color:#cfe0f2; padding-bottom:7px; }
+            #innen .in-devrow label { font-size:11px; color:#57626e; display:block; margin-bottom:3px; }
+            #innen .in-devrow input, #innen .in-devrow select { background:#f5f3ee; border:1px solid #dfe3ea; color:#1c2230; border-radius:6px; padding:6px 8px; }
+            #innen .in-devsum { font-size:12.5px; color:#57626e; padding-bottom:7px; }
             /* ⓘ-Tooltips nicht von der Folgekarte (backdrop-filter) überlagern lassen:
                gehoverte Karte in den Vordergrund heben (wie .stat-box:hover) */
             #innen .card { position:relative; }
@@ -2990,7 +2990,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                automatisch als <strong>Modul B4 (Austausch der Ausstattung)</strong> in die <strong>🌍 Ökobilanz (LCA)</strong> ein.</p>
 
             <div class="card">
-                <h3>Grundriss &amp; Zimmer <span class="small" style="color:#9bb4c8;font-weight:400;">(je Etage – Anzahl Etagen aus den Gebäudedaten)</span></h3>
+                <h3>Grundriss &amp; Zimmer <span class="small" style="color:#57626e;font-weight:400;">(je Etage – Anzahl Etagen aus den Gebäudedaten)</span></h3>
                 <p class="note" style="margin:2px 0 10px;">Zeichnen wie in „Komplexe Geometrie": Ecken nacheinander anklicken, zum Schließen auf den ersten
                    (goldenen) Punkt klicken. Fertige Zimmer <b>verschieben</b>: Zimmer mit gedrückter Maustaste ziehen; einzelne <b>Eckpunkte</b> ziehen
                    (Zimmer vorher anklicken). Eckpunkt <b>anklicken</b> (ohne Ziehen) → Längen der beiden angrenzenden Wände und Innenwinkel
@@ -3001,7 +3001,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                    „Sommerlicher Wärmeschutz" für den <b>kritischen Raum</b> übernommen.</p>
                 <div class="fp-controls" style="margin-bottom:10px;">
                     <label class="fp-ctl">Etage
-                        <select id="innen_floor" style="background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:5px 8px;min-width:150px;"></select>
+                        <select id="innen_floor" style="background:#f5f3ee;border:1px solid #dfe3ea;color:#1c2230;border-radius:6px;padding:5px 8px;min-width:150px;"></select>
                     </label>
                     <span class="fp-ctl" id="innen_floor_hint" style="font-weight:400;"></span>
                 </div>
@@ -3024,7 +3024,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <g id="innenWindows"></g>
                         <g id="innenLayer"></g>
                         <g id="innenNorth" transform="translate(446,30)" style="pointer-events:none;">
-                            <circle r="17" fill="rgba(11,31,58,0.72)" stroke="rgba(255,255,255,0.18)"/>
+                            <circle r="17" fill="rgba(255, 255, 255,0.72)" stroke="rgba(15, 23, 42,0.18)"/>
                             <g id="innenNorthArrow">
                                 <path d="M0,-12 L4.5,4 L0,1 L-4.5,4 Z" fill="#10b981"/>
                                 <text x="0" y="-13.5" text-anchor="middle" font-size="8" font-weight="700" fill="#34d399">N</text>
@@ -3079,7 +3079,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             </div>
 
             <div class="card" style="margin-top:14px;">
-                <h3>🧱 Ausbau &amp; Speichermasse <span class="small" style="color:#9bb4c8;font-weight:400;">(je Zimmer → Bauart für den sommerlichen Wärmeschutz)</span></h3>
+                <h3>🧱 Ausbau &amp; Speichermasse <span class="small" style="color:#57626e;font-weight:400;">(je Zimmer → Bauart für den sommerlichen Wärmeschutz)</span></h3>
                 <p class="note" style="margin:2px 0 10px;">Der Innenausbau bestimmt, wie viel <b>Speichermasse</b> im Raum thermisch wirksam ist:
                    Teppich, abgehängte Decken oder Vorsatzschalen koppeln massive Bauteile ab → der Raum überhitzt im Sommer schneller.
                    Aus den Angaben wird die wirksame Wärmekapazität <b>C_wirk/A_G</b> geschätzt (10-cm-Regel, Richtwerte) und daraus die
@@ -3337,11 +3337,11 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     </div>
                     <div style="margin-top:8px;">
                         <button type="button" class="btn" onclick="pvSetOptimalAngle()" title="Setzt Neigung 32° und Ausrichtung Süd – das Jahres-Ertragsoptimum für Deutschland (DIN V 18599-9). Besonders fürs Flachdach (aufgeständerte Module)." style="padding:5px 12px;background:linear-gradient(135deg,#10b981,#0ea5b7);border:0;color:#06231c;font-weight:700;">↗ Optimaler Winkel (32° Süd)</button>
-                        <span class="small" style="color:#7fb4d8;margin-left:8px;">Ertragsoptimum für alle Module</span>
+                        <span class="small" style="color:#57626e;margin-left:8px;">Ertragsoptimum für alle Module</span>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px;">
                         <button type="button" class="btn" onclick="addPvPanel()" style="padding:4px 10px;">＋ PV-Modul</button>
-                        <span class="small" style="color:#7fb4d8;">💡 Modul im 3D-Modell oder in der Liste anklicken zum Bearbeiten; ziehen zum Verschieben.</span>
+                        <span class="small" style="color:#57626e;">💡 Modul im 3D-Modell oder in der Liste anklicken zum Bearbeiten; ziehen zum Verschieben.</span>
                     </div>
                     <div id="pv_module_list" class="elem-list"></div>
                     <div class="note" id="pv_geometry_hint" style="margin-top:2px;font-size:11px;"></div>
@@ -3632,23 +3632,23 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 
             <!-- Wärmebilanz Q_h,b: Verluste (Wärmesenken) vs. Gewinne (Wärmequellen), DIN V 18599-2 -->
             <style>
-                .hb-formula{font-family:'JetBrains Mono',monospace;font-size:13px;color:#c4cfdc;
-                    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+                .hb-formula{font-family:'JetBrains Mono',monospace;font-size:13px;color:#57626e;
+                    background:rgba(15, 23, 42,.04);border:1px solid rgba(15, 23, 42,.08);
                     border-radius:8px;padding:8px 12px;margin:4px 0 12px;text-align:center;}
-                .hb-col{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;}
+                .hb-col{border:1px solid rgba(15, 23, 42,.08);border-radius:12px;padding:14px;}
                 .hb-loss{background:rgba(239,68,68,.05);}
                 .hb-gain{background:rgba(16,185,129,.05);}
                 .hb-col-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
-                    font-weight:700;color:#c4cfdc;font-size:13px;}
+                    font-weight:700;color:#57626e;font-size:13px;}
                 .hb-col-head strong{font-family:'JetBrains Mono',monospace;font-size:15px;color:#fff;}
                 .hb-result{margin-top:16px;text-align:center;}
                 .hb-eq{font-size:14px;color:#cbd5e1;line-height:1.6;}
                 .hb-eq .hb-sink{color:#f6b94b;} .hb-eq .hb-gain-t{color:#34d399;}
                 .hb-eq .hb-qh strong,.hb-eq .hb-qh{color:#fff;font-weight:700;}
-                .hb-arrow{margin:8px 0 6px;color:#94a3b6;font-size:12px;}
+                .hb-arrow{margin:8px 0 6px;color:#57626e;font-size:12px;}
                 .hb-stufe2{font-size:13px;color:#cbd5e1;}
                 .hb-stufe2 strong{color:#fff;font-family:'JetBrains Mono',monospace;}
-                .hb-muted{color:#94a3b6;font-style:italic;}
+                .hb-muted{color:#57626e;font-style:italic;}
             </style>
             <div class="card" id="heatbalance_card" style="margin-top:6px;">
                 <h3>Wärmebilanz Q_h,b – Verluste &amp; Gewinne (DIN&nbsp;V&nbsp;18599-2)</h3>
@@ -3725,7 +3725,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         <div class="note" id="bilanz_strom_note" style="font-size:11px; margin-top:4px;">Die Stromverrechnung erscheint automatisch mit der Energiebilanz.</div>
                     </div>
                     <div>
-                        <div style="font-size:12px; font-weight:700; color:#c4cfdc; margin-bottom:6px;">Strombilanz – Netzbezug vs. PV-Eigenverbrauch</div>
+                        <div style="font-size:12px; font-weight:700; color:#57626e; margin-bottom:6px;">Strombilanz – Netzbezug vs. PV-Eigenverbrauch</div>
                         <div class="es-bar" id="bilanz_strom_minibar"></div>
                         <div class="es-bar-legend" id="bilanz_strom_minilegend"></div>
                     </div>
@@ -4039,53 +4039,53 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
     <!-- ===================== Ökobilanz (LCA) ===================== -->
     <div id="lca" class="tab">
         <style>
-            #lca .lca-i{background:#13243d;border:1px solid #2a4a73;color:#cfe0f2;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;margin:6px 0 4px}
+            #lca .lca-i{background:#ffffff;border:1px solid #dfe3ea;color:#57626e;border-radius:8px;padding:8px 13px;font-size:13px;cursor:pointer;margin:6px 0 4px}
             #lca .lca-i:hover{border-color:#38bdf8}
-            #lca .lca-infobox{display:none;margin:4px 0 8px;padding:14px 16px;border-radius:10px;background:rgba(56,189,248,.06);border:1px solid #21456d;color:#cfe0f2;font-size:13px;line-height:1.55}
+            #lca .lca-infobox{display:none;margin:4px 0 8px;padding:14px 16px;border-radius:10px;background:rgba(56,189,248,.06);border:1px solid #dfe3ea;color:#57626e;font-size:13px;line-height:1.55}
             #lca .lca-infobox.open{display:block}
             #lca .lca-infobox b{color:#fff}
             #lca .lca-infobox .src{display:block;margin-top:8px;color:#8aa7c4;font-size:11px}
             #lca .lca-cycle{margin:12px 0 2px}
             #lca .lca-cyc-row{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
-            #lca .lca-cyc-box{flex:1 1 0;min-width:120px;background:#0f2138;border:1px solid #2a4a73;border-radius:9px;padding:9px 11px;font-size:12.5px;font-weight:600;color:#e7edf5;text-align:center;display:flex;align-items:center;justify-content:center}
-            #lca .lca-cyc-arr{display:flex;align-items:center;color:#7fb4d8;font-size:16px;font-weight:700}
-            #lca .lca-cyc-down{text-align:center;color:#7fb4d8;font-size:12px;margin:7px 0}
+            #lca .lca-cyc-box{flex:1 1 0;min-width:120px;background:#ffffff;border:1px solid #dfe3ea;border-radius:9px;padding:9px 11px;font-size:12.5px;font-weight:600;color:#1c2230;text-align:center;display:flex;align-items:center;justify-content:center}
+            #lca .lca-cyc-arr{display:flex;align-items:center;color:#57626e;font-size:16px;font-weight:700}
+            #lca .lca-cyc-down{text-align:center;color:#57626e;font-size:12px;margin:7px 0}
             #lca .lca-cyc-wide{background:linear-gradient(135deg,rgba(16,185,129,.16),rgba(56,189,248,.10));border-color:#10b981}
             #lca .lca-phase{margin-top:18px}
             #lca .lca-phase-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
             #lca .lca-phase-no{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10b981,#0ea5b7);color:#06231c;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
-            #lca .lca-phase-t{font-size:16px;font-weight:800;color:#e7edf5}
+            #lca .lca-phase-t{font-size:16px;font-weight:800;color:#1c2230}
             #lca .lca-phase-src{font-size:11px;color:#8aa7c4;margin-top:1px}
             #lca .lca-scope{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
-            #lca .lca-scope th,#lca .lca-scope td{text-align:left;padding:6px 8px;border-bottom:1px solid #16314d}
-            #lca .lca-scope th{color:#9bb4c8;font-weight:600;border-bottom:2px solid #21456d}
+            #lca .lca-scope th,#lca .lca-scope td{text-align:left;padding:6px 8px;border-bottom:1px solid #ffffff}
+            #lca .lca-scope th{color:#57626e;font-weight:600;border-bottom:2px solid #dfe3ea}
             #lca .lca-scope .yes{color:#34d399;font-weight:700}
             #lca .lca-scope .no{color:#f08a8a}
             #lca .lca-scope .opt{color:#f6b94b}
             #lca .lca-def{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-            #lca .lca-def>div{flex:1 1 220px;background:#0f2138;border:1px solid #21456d;border-radius:9px;padding:10px 12px}
-            #lca .lca-def .k{font-size:11px;color:#9bb4c8;text-transform:uppercase;letter-spacing:.04em}
-            #lca .lca-def .v{font-size:13.5px;color:#e7edf5;margin-top:3px;line-height:1.5}
-            #lca .lca-interpret h4{margin:2px 0 4px;font-size:13px;color:#7fb4d8}
+            #lca .lca-def>div{flex:1 1 220px;background:#ffffff;border:1px solid #dfe3ea;border-radius:9px;padding:10px 12px}
+            #lca .lca-def .k{font-size:11px;color:#57626e;text-transform:uppercase;letter-spacing:.04em}
+            #lca .lca-def .v{font-size:13.5px;color:#1c2230;margin-top:3px;line-height:1.5}
+            #lca .lca-interpret h4{margin:2px 0 4px;font-size:13px;color:#57626e}
             #lca .lca-interpret ul{margin:0 0 10px 18px;padding:0;font-size:13.5px;color:#dbe6f2;line-height:1.55}
-            #lca .lca-int-part{background:#0f2138;border:1px solid #21456d;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+            #lca .lca-int-part{background:#ffffff;border:1px solid #dfe3ea;border-radius:10px;padding:12px 14px;margin-bottom:12px}
             #lca .lca-int-head{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
             #lca .lca-int-head .field{margin:0}
-            #lca .lca-int-head label{font-size:11px;color:#9bb4c8;display:block;margin-bottom:3px}
-            #lca .lca-int-head input{background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:6px;padding:6px 8px}
+            #lca .lca-int-head label{font-size:11px;color:#57626e;display:block;margin-bottom:3px}
+            #lca .lca-int-head input{background:#f5f3ee;border:1px solid #dfe3ea;color:#1c2230;border-radius:6px;padding:6px 8px}
             #lca .lca-int-name{width:200px} #lca .lca-int-area{width:120px}
             #lca .lca-int-del{margin-left:auto;background:#7f1d1d;border:1px solid #7f1d1d;color:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;height:34px}
-            #lca .lca-int-gwp{font-size:12.5px;color:#cfe0f2;margin-top:6px}
+            #lca .lca-int-gwp{font-size:12.5px;color:#57626e;margin-top:6px}
             #lca .lca-int-gwp b{color:#f6b94b}
             #lca .lca-final-hero{display:flex;gap:26px;flex-wrap:wrap;align-items:center}
             #lca .lca-final-num{font-size:38px;font-weight:800;color:#f6b94b;font-family:'JetBrains Mono',ui-monospace,monospace;line-height:1.1}
             #lca .lca-badge{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:700;font-size:13px}
             #lca .lca-src-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px}
-            #lca .lca-srccard{background:#0f2138;border:1px solid #21456d;border-radius:10px;padding:11px 13px;cursor:pointer;transition:border-color .15s}
+            #lca .lca-srccard{background:#ffffff;border:1px solid #dfe3ea;border-radius:10px;padding:11px 13px;cursor:pointer;transition:border-color .15s}
             #lca .lca-srccard:hover{border-color:#38bdf8}
-            #lca .lca-srccard .t{font-weight:700;color:#e7edf5;font-size:13.5px;margin-bottom:6px}
-            #lca .lca-srccard .r{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:#9bb4c8;padding:2px 0}
-            #lca .lca-srccard .r b{color:#e7edf5;font-weight:600;text-align:right}
+            #lca .lca-srccard .t{font-weight:700;color:#1c2230;font-size:13.5px;margin-bottom:6px}
+            #lca .lca-srccard .r{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:#57626e;padding:2px 0}
+            #lca .lca-srccard .r b{color:#1c2230;font-weight:600;text-align:right}
         </style>
         <div class="panel">
             <h2 class="section-title">🌍 Ökobilanz (LCA)</h2>
@@ -4113,7 +4113,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 Systemgrenze) fest, das Tool stellt die Sachbilanz aus Materialmengen und Energieflüssen
                 zusammen, rechnet die Wirkungskategorie <b>Treibhauspotenzial (GWP)</b> aus und liefert die
                 Auswertung mit den signifikanten Parametern.
-                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #21456d;">
+                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #dfe3ea;">
                     <b>Warum drei Normen?</b> Sie ergänzen sich: <b>DIN&nbsp;EN&nbsp;ISO&nbsp;14040/14044</b> liefert
                     den allgemeinen LCA-Rahmen (die vier Phasen oben). <b>DIN&nbsp;EN&nbsp;15978</b> wendet ihn auf
                     <b>Gebäude</b> an und legt die Lebenswegmodule (A1–A3, B6, C, D) der Systemgrenze fest.
@@ -4125,7 +4125,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="card" style="margin-top:14px;">
                 <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="calculateLCA(true)" style="padding:10px 18px;font-weight:700;">🌍 LCA auswerten</button>
-                    <div id="lca_status" class="small" style="color:#7fb4d8;"></div>
+                    <div id="lca_status" class="small" style="color:#57626e;"></div>
                 </div>
             </div>
 
@@ -4209,7 +4209,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 <div class="card" id="lca_hero" style="text-align:center;">
                     <div class="small" style="color:#9bb;">Lebenszyklus-CO₂ gesamt (über <span id="lca_hero_years">50</span> Jahre)</div>
                     <div style="font-size:34px;font-weight:800;color:#f6b94b;font-family:'JetBrains Mono',ui-monospace,monospace;margin:6px 0;" id="lca_hero_total">—</div>
-                    <div class="small" style="color:#cfe0f2;" id="lca_hero_spec">Auf „🌍 LCA auswerten" klicken.</div>
+                    <div class="small" style="color:#57626e;" id="lca_hero_spec">Auf „🌍 LCA auswerten" klicken.</div>
                 </div>
                 <div class="stats" id="lca_stats" style="margin-top:14px;">
                     <div class="stat-box"><div class="label">Herstellung A1–A3 (einmalig)</div><div class="value" id="lca_embodied">—</div></div>
@@ -4257,23 +4257,23 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
     .obd-modal { position: fixed; inset: 0; z-index: 9999; background: rgba(3,7,15,.62);
         display: none; align-items: flex-start; justify-content: center; padding: 8vh 16px 16px; }
     .obd-modal-box { width: min(640px, 100%); max-height: 80vh; display: flex; flex-direction: column;
-        background: #131c2b; border: 1px solid var(--line-strong, var(--line, #2a3344));
+        background: #ffffff; border: 1px solid var(--line-strong, var(--line, #dfe3ea));
         border-radius: 14px; box-shadow: 0 24px 60px -20px rgba(0,0,0,.7); overflow: hidden; }
     .obd-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px;
-        padding: 14px 16px; border-bottom: 1px solid var(--line, #2a3344); font-weight: 700; color: var(--text, #e7edf5); }
-    .obd-modal-head button { background: none; border: none; color: var(--muted, #94a3b6); font-size: 18px; cursor: pointer; line-height: 1; }
+        padding: 14px 16px; border-bottom: 1px solid var(--line, #dfe3ea); font-weight: 700; color: var(--text, #1c2230); }
+    .obd-modal-head button { background: none; border: none; color: var(--muted, #57626e); font-size: 18px; cursor: pointer; line-height: 1; }
     .obd-modal-head button:hover { color: var(--text, #fff); }
     .obd-modal-box input.obd-input { margin: 12px 16px 6px; padding: 10px 12px; border-radius: 9px;
-        border: 1px solid var(--line, #2a3344); background: var(--surface, #0d1420); color: var(--text, #e7edf5); font-size: 14px; }
+        border: 1px solid var(--line, #dfe3ea); background: var(--surface, #f5f3ee); color: var(--text, #1c2230); font-size: 14px; }
     .obd-modal-box input.obd-input:focus { outline: none; border-color: var(--cyan, #38bdf8); box-shadow: 0 0 0 3px var(--cyan-dim, rgba(56,189,248,.2)); }
-    .obd-modal-hint { font-size: 11.5px; color: var(--dim, #6b7785); padding: 0 16px 8px; }
+    .obd-modal-hint { font-size: 11.5px; color: var(--dim, #57626e); padding: 0 16px 8px; }
     .obd-modal-results { overflow-y: auto; padding: 4px 8px 12px; }
     .obd-row { padding: 9px 10px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; }
-    .obd-row:hover { background: var(--surface-hover, rgba(255,255,255,.05)); border-color: var(--line, #2a3344); }
-    .obd-row-name { font-size: 13px; font-weight: 600; color: var(--text, #e7edf5); }
-    .obd-row-meta { font-size: 11px; color: var(--muted, #94a3b6); margin-top: 2px; }
+    .obd-row:hover { background: var(--surface-hover, rgba(15, 23, 42,.05)); border-color: var(--line, #dfe3ea); }
+    .obd-row-name { font-size: 13px; font-weight: 600; color: var(--text, #1c2230); }
+    .obd-row-meta { font-size: 11px; color: var(--muted, #57626e); margin-top: 2px; }
     .obd-row-gwp { color: var(--gold, #f6b94b); font-weight: 700; }
-    .obd-empty { padding: 16px 12px; color: var(--dim, #6b7785); font-size: 12.5px; text-align: center; }
+    .obd-empty { padding: 16px 12px; color: var(--dim, #57626e); font-size: 12.5px; text-align: center; }
 </style>
 <div id="obd_modal" class="obd-modal" onclick="if(event.target===this)closeObdSearch(true)">
     <div class="obd-modal-box">
@@ -4288,18 +4288,18 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
 <style>
     .win-modal { display:none; position:fixed; inset:0; background:rgba(4,10,22,.66); z-index:1000; align-items:center; justify-content:center; padding:20px; }
     .win-modal.show { display:flex; }
-    .win-modal-box { background:#0f2138; border:1px solid #21456d; border-radius:14px; padding:22px; width:min(460px,94vw); box-shadow:0 18px 60px rgba(0,0,0,.5); }
-    .pos-edit-head { margin:16px 0 0; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); font-weight:700; font-size:13px; color:#c4cfdc; }
-    .pos-edit-sub { display:block; font-weight:400; font-size:11px; color:#8aa1b8; margin-top:2px; }
-    .pv-gate { background:linear-gradient(135deg, rgba(246,185,75,.10), rgba(16,185,129,.06)); border:1px solid #21456d; border-radius:14px; padding:20px 22px; margin-bottom:18px; }
-    .pv-gate-q { font-size:17px; font-weight:800; color:#e7edf5; }
+    .win-modal-box { background:#ffffff; border:1px solid #dfe3ea; border-radius:14px; padding:22px; width:min(460px,94vw); box-shadow:0 18px 60px rgba(0,0,0,.5); }
+    .pos-edit-head { margin:16px 0 0; padding-top:12px; border-top:1px solid rgba(15, 23, 42,.08); font-weight:700; font-size:13px; color:#57626e; }
+    .pos-edit-sub { display:block; font-weight:400; font-size:11px; color:#57626e; margin-top:2px; }
+    .pv-gate { background:linear-gradient(135deg, rgba(246,185,75,.10), rgba(16,185,129,.06)); border:1px solid #dfe3ea; border-radius:14px; padding:20px 22px; margin-bottom:18px; }
+    .pv-gate-q { font-size:17px; font-weight:800; color:#1c2230; }
     .pv-gate-opts { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-    .pv-gate-btn { border:1px solid #21456d; background:#0f2138; color:#e7edf5; border-radius:10px; padding:10px 18px; font-size:14px; font-weight:700; cursor:pointer; transition:border-color .15s, background .15s, transform .1s; }
+    .pv-gate-btn { border:1px solid #dfe3ea; background:#ffffff; color:#1c2230; border-radius:10px; padding:10px 18px; font-size:14px; font-weight:700; cursor:pointer; transition:border-color .15s, background .15s, transform .1s; }
     .pv-gate-btn:hover { border-color:#38bdf8; }
     .pv-gate-btn:active { transform:translateY(1px); }
     .pv-gate-btn#pv_gate_yes.active { background:linear-gradient(135deg,#10b981,#0ea5b7); border-color:transparent; color:#06231c; }
     .pv-gate-btn#pv_gate_no.active { background:#7f1d1d; border-color:#7f1d1d; color:#fff; }
-    .pv-gate-hint { color:#9bb4c8; font-size:12.5px; margin-top:12px; }
+    .pv-gate-hint { color:#57626e; font-size:12.5px; margin-top:12px; }
 </style>
 <div id="win_modal" class="win-modal" onclick="if(event.target===this)closeWindowEditor()">
     <div class="win-modal-box">
@@ -5159,8 +5159,8 @@ function setGeometryFieldsMode(complex, extNS, extEW) {
         len.title = wid.title = 'Aus dem gezeichneten Grundriss (größte Ausdehnung) – im 2D-Editor ändern';
         if (isFinite(extNS)) len.value = (Math.round(extNS * 10) / 10);
         if (isFinite(extEW)) wid.value = (Math.round(extEW * 10) / 10);
-        if (lenL) lenL.innerHTML = 'Ausdehnung Nord/Süd (m) <small style="color:#8aa1b8;">aus Grundriss</small>';
-        if (widL) widL.innerHTML = 'Ausdehnung Ost/West (m) <small style="color:#8aa1b8;">aus Grundriss</small>';
+        if (lenL) lenL.innerHTML = 'Ausdehnung Nord/Süd (m) <small style="color:#57626e;">aus Grundriss</small>';
+        if (widL) widL.innerHTML = 'Ausdehnung Ost/West (m) <small style="color:#57626e;">aus Grundriss</small>';
     } else {
         len.readOnly = false; wid.readOnly = false;
         len.title = wid.title = '';
@@ -6261,12 +6261,12 @@ async function fetchWallGwp() {
 // Farb-/Mustertabelle je Schichttyp – grobe Anlehnung an Bautechnik-Konventionen
 const WALL_VIZ_STYLES = {
     innenputz:     { fill: '#ece4d4', stroke: '#b9ad8a', pattern: 'dots'   },
-    tragende_wand: { fill: '#e7ecef', stroke: '#7d8a93', pattern: 'brick'  },
-    kleber:        { fill: '#cfd6dc', stroke: '#7d8a93', pattern: null     },
+    tragende_wand: { fill: '#e7ecef', stroke: '#57626e', pattern: 'brick'  },
+    kleber:        { fill: '#cfd6dc', stroke: '#57626e', pattern: null     },
     daemmung:      { fill: '#ffd54a', stroke: '#c79b1a', pattern: 'wave'   },
     armierung:     { fill: '#e0d6bf', stroke: '#9a8b66', pattern: 'mesh'   },
     aussenputz:    { fill: '#f0e6d2', stroke: '#b9ad8a', pattern: 'dots'   },
-    sonstiges:     { fill: '#c4cfdc', stroke: '#6b7785', pattern: null     },
+    sonstiges:     { fill: '#57626e', stroke: '#57626e', pattern: null     },
 };
 
 // ===== Schicht-Visualisierung (2D-Bauteilschnitt + 3D-Paket) — generisch Wand/Dach/Boden =====
@@ -6336,7 +6336,7 @@ function drawLayerSvg(svg, layers, opts) {
     const scaleEl = opts.scaleEl ? document.getElementById(opts.scaleEl) : null;
     const VB_W = 320, VB_H = 330, BX0 = 10, BX1 = 310, bandW = BX1 - BX0, BY0 = 80, BY1 = 214, TY0 = 18, TY1 = 66, DY = 226;
     if (!layers.length) {
-        svg.innerHTML = '<text x="' + (VB_W / 2) + '" y="' + (VB_H / 2) + '" text-anchor="middle" fill="#6b7785" font-size="12" font-family="Inter,sans-serif">Keine Schichten</text>';
+        svg.innerHTML = '<text x="' + (VB_W / 2) + '" y="' + (VB_H / 2) + '" text-anchor="middle" fill="#57626e" font-size="12" font-family="Inter,sans-serif">Keine Schichten</text>';
         if (scaleEl) scaleEl.textContent = '—';
         if (opts.legendEl) { const le = document.getElementById(opts.legendEl); if (le) le.innerHTML = ''; }
         return;
@@ -6360,10 +6360,10 @@ function drawLayerSvg(svg, layers, opts) {
         const tip = (l.label || '') + ' — ' + Math.round(l.mm) + ' mm' + (l.lambda != null ? (', λ=' + l.lambda) : '') + (l.R ? (', R=' + l.R.toFixed(2)) : '');
         const liAttr = (l.li != null && opts.hover) ? (' data-li="' + l.li + '"') : '';
         rects += '<rect class="wv-rect"' + liAttr + ' x="' + x.toFixed(2) + '" y="' + BY0 + '" width="' + w.toFixed(2) + '" height="' + (BY1 - BY0) + '" fill="' + fill + '" stroke="' + st.stroke + '" stroke-width="0.8"><title>' + tip + '</title></rect>';
-        dims += '<line x1="' + x.toFixed(2) + '" y1="' + DY + '" x2="' + (x + w).toFixed(2) + '" y2="' + DY + '" stroke="#7d8a93" stroke-width="0.8"/>'
-             +  '<line x1="' + x.toFixed(2) + '" y1="' + (DY - 3) + '" x2="' + x.toFixed(2) + '" y2="' + (DY + 3) + '" stroke="#7d8a93" stroke-width="0.8"/>'
-             +  '<line x1="' + (x + w).toFixed(2) + '" y1="' + (DY - 3) + '" x2="' + (x + w).toFixed(2) + '" y2="' + (DY + 3) + '" stroke="#7d8a93" stroke-width="0.8"/>';
-        if (w > 22) dims += '<text x="' + (x + w / 2).toFixed(2) + '" y="' + (DY + 13) + '" text-anchor="middle" fill="#c4cfdc" font-size="9" font-family="JetBrains Mono,monospace">' + Math.round(l.mm) + '</text>';
+        dims += '<line x1="' + x.toFixed(2) + '" y1="' + DY + '" x2="' + (x + w).toFixed(2) + '" y2="' + DY + '" stroke="#57626e" stroke-width="0.8"/>'
+             +  '<line x1="' + x.toFixed(2) + '" y1="' + (DY - 3) + '" x2="' + x.toFixed(2) + '" y2="' + (DY + 3) + '" stroke="#57626e" stroke-width="0.8"/>'
+             +  '<line x1="' + (x + w).toFixed(2) + '" y1="' + (DY - 3) + '" x2="' + (x + w).toFixed(2) + '" y2="' + (DY + 3) + '" stroke="#57626e" stroke-width="0.8"/>';
+        if (w > 22) dims += '<text x="' + (x + w / 2).toFixed(2) + '" y="' + (DY + 13) + '" text-anchor="middle" fill="#57626e" font-size="9" font-family="JetBrains Mono,monospace">' + Math.round(l.mm) + '</text>';
         x += w;
     });
 
@@ -6439,7 +6439,7 @@ function drawRoofFloorSvg(svg, layers, kind) {
     const legendEl = document.getElementById(kind + '_viz_legend');
     const VB_W = 320, VB_H = 330;
     if (!layers.length) {
-        svg.innerHTML = '<text x="160" y="165" text-anchor="middle" fill="#6b7785" font-size="12" font-family="Inter,sans-serif">Kein Aufbau</text>';
+        svg.innerHTML = '<text x="160" y="165" text-anchor="middle" fill="#57626e" font-size="12" font-family="Inter,sans-serif">Kein Aufbau</text>';
         if (scaleEl) scaleEl.textContent = '—';
         if (legendEl) legendEl.innerHTML = '';
         return;
@@ -6458,7 +6458,7 @@ function drawRoofFloorSvg(svg, layers, kind) {
     if (usedPatterns.has('wave')) defs.push('<pattern id="pat-wave" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#ffd54a"/><path d="M0 7 Q 3.5 1, 7 7 T 14 7" stroke="#c79b1a" stroke-width="1" fill="none"/><path d="M0 11 Q 3.5 5, 7 11 T 14 11" stroke="#c79b1a" stroke-width="0.8" fill="none" opacity="0.6"/></pattern>');
     if (usedPatterns.has('dots')) defs.push('<pattern id="pat-dots" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#ece4d4"/><circle cx="3" cy="3" r="0.7" fill="#a89a72"/></pattern>');
     if (usedPatterns.has('mesh')) defs.push('<pattern id="pat-mesh" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#e0d6bf"/><path d="M0 0L6 6M6 0L0 6" stroke="#9a8b66" stroke-width="0.5"/></pattern>');
-    defs.push('<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#21456e"/><stop offset="1" stop-color="#0b1f3a"/></linearGradient>');
+    defs.push('<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe3ea"/><stop offset="1" stop-color="#f5f3ee"/></linearGradient>');
     defs.push('<pattern id="earthPat" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#3a2c1f"/><path d="M2 11 L6 7 M9 14 L13 10 M10 4 L13 1" stroke="#5a4632" stroke-width="1.1"/></pattern>');
 
     let y = PY0, bands = '', dims = '';
@@ -6468,7 +6468,7 @@ function drawRoofFloorSvg(svg, layers, kind) {
         const fill = st.pattern ? ('url(#pat-' + st.pattern + ')') : st.fill;
         const tip = (l.label || '') + ' — ' + Math.round(l.mm) + ' mm' + (l.lambda != null ? (', λ=' + l.lambda) : '');
         bands += '<rect class="wv-rect" data-li="' + i + '" x="' + BX0 + '" y="' + y.toFixed(2) + '" width="' + bandW + '" height="' + hgt.toFixed(2) + '" fill="' + fill + '" stroke="' + st.stroke + '" stroke-width="0.8"><title>' + tip + '</title></rect>';
-        if (hgt > 12) dims += '<text x="' + (BX1 + 8) + '" y="' + (y + hgt / 2 + 3).toFixed(2) + '" fill="#c4cfdc" font-size="9" font-family="JetBrains Mono,monospace">' + Math.round(l.mm) + '</text>';
+        if (hgt > 12) dims += '<text x="' + (BX1 + 8) + '" y="' + (y + hgt / 2 + 3).toFixed(2) + '" fill="#57626e" font-size="9" font-family="JetBrains Mono,monospace">' + Math.round(l.mm) + '</text>';
         y += hgt;
     });
 
@@ -9718,7 +9718,7 @@ function pvDrawDiagram2D(A) {
     const roofRes = pvOrientResult('roof'), southRes = pvOrientResult('south'), ewRes = pvOrientResult('ew');
     const roofCol = roofRes ? pvYieldColor(roofRes.specific_kwh_kwp) : '#13335f';
     const southCol = southRes ? pvYieldColor(southRes.specific_kwh_kwp) : '#13335f';
-    const ewCol = ewRes ? pvYieldColor(ewRes.specific_kwh_kwp) : '#0f2747';
+    const ewCol = ewRes ? pvYieldColor(ewRes.specific_kwh_kwp) : '#ffffff';
 
     function shade(hex, k) { // einfache Abdunklung des Panel-Fills
         const m = /rgb\((\d+),(\d+),(\d+)\)/.exec(hex);
@@ -9767,21 +9767,21 @@ function pvDrawDiagram2D(A) {
     }
     sun += '<text x="' + sx.toFixed(0) + '" y="' + (sy + 4).toFixed(0) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#5a3a00" font-family="Inter">☀</text></g>';
 
-    const ground = '<line x1="120" y1="330" x2="600" y2="330" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>';
+    const ground = '<line x1="120" y1="330" x2="600" y2="330" stroke="rgba(15, 23, 42,0.18)" stroke-width="1.5"/>';
 
     // Flächen (Ost-Wand hinten, dann Süd-Fassade, Giebel, Dach) – Panels in Ertragsfarbe
-    const eastWall = face(EC, FC, EB, 4, 3, A.ew.pct, '#2f3e58', '#1f2b40', ewCol);
+    const eastWall = face(EC, FC, EB, 4, 3, A.ew.pct, '#dfe3ea', '#ffffff', ewCol);
     const southWall = face(FD, FC, FA, 6, 3, A.south.pct, '#46587a', '#2a3650', southCol);
     const gable = '<polygon points="' + [FA, FB, Fr].map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ') +
-        '" fill="#3a4a66" stroke="#27324a" stroke-width="1.4" stroke-linejoin="round"/>';
-    const roof = face(FB, EB, Fr, 6, 4, A.roof.pct, '#41506a', '#27324a', roofCol);
+        '" fill="#3a4a66" stroke="#dfe3ea" stroke-width="1.4" stroke-linejoin="round"/>';
+    const roof = face(FB, EB, Fr, 6, 4, A.roof.pct, '#41506a', '#dfe3ea', roofCol);
 
     // Flächen-Beschriftung: Name + Ertrag (kWh/a) + Anteil (%)
     function tag(p, name, res, col) {
         let s = '<text x="' + p[0].toFixed(0) + '" y="' + p[1].toFixed(0) + '" text-anchor="middle" font-size="11" font-weight="800" fill="' + col +
-            '" font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#0a1a30;stroke-width:3px;">' + name + '</text>';
+            '" font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#f5f3ee;stroke-width:3px;">' + name + '</text>';
         if (res) s += '<text x="' + p[0].toFixed(0) + '" y="' + (p[1] + 13).toFixed(0) + '" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0"' +
-            ' font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#0a1a30;stroke-width:3px;">' +
+            ' font-family="Inter,sans-serif" style="paint-order:stroke;stroke:#f5f3ee;stroke-width:3px;">' +
             pvNum(res.annual_kwh, 0) + ' kWh · ' + pvNum(res.share_pct, 0) + '%</text>';
         return s;
     }
@@ -9793,7 +9793,7 @@ function pvDrawDiagram2D(A) {
     // Kompass mit Nadel in Dach-Ausrichtung (Abweichung von Süd)
     const needleA = (180 + az) * Math.PI / 180;   // 0=N oben → S unten
     const nx = Math.sin(needleA) * 13, ny = -Math.cos(needleA) * 13;
-    const compass = '<g transform="translate(150,295)"><circle r="22" fill="rgba(4,12,24,0.6)" stroke="rgba(255,255,255,0.2)"/>' +
+    const compass = '<g transform="translate(150,295)"><circle r="22" fill="rgba(255, 255, 255,0.6)" stroke="rgba(15, 23, 42,0.2)"/>' +
         '<text y="-9" text-anchor="middle" font-size="9" font-weight="700" fill="#fca5a5" font-family="Inter">N</text>' +
         '<text y="17" text-anchor="middle" font-size="9" font-weight="700" fill="#34d399" font-family="Inter">S</text>' +
         '<line x1="0" y1="0" x2="' + nx.toFixed(1) + '" y2="' + ny.toFixed(1) + '" stroke="#f6b94b" stroke-width="2.4" stroke-linecap="round"/>' +
@@ -9802,18 +9802,18 @@ function pvDrawDiagram2D(A) {
     // Geometrie-Readout (oben links)
     const roofSpec = roofRes ? pvNum(roofRes.specific_kwh_kwp, 0) + ' kWh/(kWp·a)' : '— noch nicht berechnet';
     const readout = '<g font-family="Inter,sans-serif">' +
-        '<rect x="16" y="16" width="232" height="56" rx="8" fill="rgba(4,12,24,0.55)" stroke="rgba(255,255,255,0.12)"/>' +
+        '<rect x="16" y="16" width="232" height="56" rx="8" fill="rgba(255, 255, 255,0.55)" stroke="rgba(15, 23, 42,0.12)"/>' +
         '<text x="28" y="36" font-size="12" font-weight="800" fill="#ffd98a">Dachfläche · Solar-Geometrie</text>' +
         '<text x="28" y="52" font-size="11" fill="#cbd5e1">Neigung ' + tilt.toFixed(0) + '° · ' + pvAzimuthName(az) + ' (' + (az > 0 ? '+' : '') + az.toFixed(0) + '°)</text>' +
         '<text x="28" y="66" font-size="11" fill="#cbd5e1">spez. Ertrag Dach: ' + roofSpec + '</text></g>';
 
     // Farbskala (unten links): niedriger → hoher spez. Ertrag
-    let scale = '<g font-family="Inter,sans-serif"><text x="20" y="350" font-size="9" fill="#94a3b6">geringer Ertrag</text>';
+    let scale = '<g font-family="Inter,sans-serif"><text x="20" y="350" font-size="9" fill="#57626e">geringer Ertrag</text>';
     for (let i = 0; i < 24; i++) {
         const spec = 550 + i / 23 * 400;
         scale += '<rect x="' + (108 + i * 4).toFixed(1) + '" y="343" width="4" height="8" fill="' + pvYieldColor(spec) + '"/>';
     }
-    scale += '<text x="208" y="350" font-size="9" fill="#94a3b6">hoher Ertrag</text></g>';
+    scale += '<text x="208" y="350" font-size="9" fill="#57626e">hoher Ertrag</text></g>';
 
     svg.innerHTML = '<defs></defs>' + ground + eastWall + southWall + gable + roof + sun + tags + compass + readout + scale;
 }
@@ -9830,8 +9830,8 @@ function pvDrawMonthlyChart(monthly) {
     let grid = '', ticks = 4;
     for (let i = 0; i <= ticks; i++) {
         const val = max * i / ticks, y = T + ph - (i / ticks) * ph;
-        grid += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>';
-        grid += '<text x="' + (L - 6) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="#94a3b6" font-family="JetBrains Mono,monospace">' + pvNum(val, 0) + '</text>';
+        grid += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + y.toFixed(1) + '" stroke="rgba(15, 23, 42,0.08)" stroke-width="1"/>';
+        grid += '<text x="' + (L - 6) + '" y="' + (y + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="#57626e" font-family="JetBrains Mono,monospace">' + pvNum(val, 0) + '</text>';
     }
     const bw = pw / 12, bar = bw * 0.62;
     let bars = '';
@@ -9839,12 +9839,12 @@ function pvDrawMonthlyChart(monthly) {
         const h = (v / max) * ph, x = L + i * bw + (bw - bar) / 2, y = T + ph - h;
         bars += '<rect class="pv-bar" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bar.toFixed(1) + '" height="' + Math.max(0, h).toFixed(1) +
             '" rx="3" fill="url(#pvBarGrad)"><title>' + PV_MON[i] + ': ' + pvNum(v, 0) + ' kWh</title></rect>';
-        bars += '<text x="' + (L + i * bw + bw / 2).toFixed(1) + '" y="' + (H - B + 16) + '" text-anchor="middle" font-size="9.5" fill="#94a3b6" font-family="Inter">' + PV_MON[i] + '</text>';
-        if (bar > 16) bars += '<text x="' + (L + i * bw + bw / 2).toFixed(1) + '" y="' + (y - 4).toFixed(1) + '" text-anchor="middle" font-size="8.5" fill="#c4cfdc" font-family="JetBrains Mono,monospace">' + pvNum(v, 0) + '</text>';
+        bars += '<text x="' + (L + i * bw + bw / 2).toFixed(1) + '" y="' + (H - B + 16) + '" text-anchor="middle" font-size="9.5" fill="#57626e" font-family="Inter">' + PV_MON[i] + '</text>';
+        if (bar > 16) bars += '<text x="' + (L + i * bw + bw / 2).toFixed(1) + '" y="' + (y - 4).toFixed(1) + '" text-anchor="middle" font-size="8.5" fill="#57626e" font-family="JetBrains Mono,monospace">' + pvNum(v, 0) + '</text>';
     });
     const defs = '<defs><linearGradient id="pvBarGrad" x1="0" y1="0" x2="0" y2="1">' +
         '<stop offset="0%" stop-color="#fcd34d"/><stop offset="100%" stop-color="#10b981"/></linearGradient></defs>';
-    const axis = '<line x1="' + L + '" y1="' + (T + ph) + '" x2="' + (W - R) + '" y2="' + (T + ph) + '" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>';
+    const axis = '<line x1="' + L + '" y1="' + (T + ph) + '" x2="' + (W - R) + '" y2="' + (T + ph) + '" stroke="rgba(15, 23, 42,0.25)" stroke-width="1.2"/>';
     svg.innerHTML = defs + grid + axis + bars;
     const peak = monthly.indexOf(max);
     document.getElementById('pv_monthly_note').innerText =
@@ -9868,7 +9868,7 @@ function pvDrawSplitChart(self, feed, annual) {
     }
     let body;
     if (total <= 0) {
-        body = '<circle cx="' + cx + '" cy="' + cy + '" r="' + rO + '" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="' + (rO - rI) + '"/>';
+        body = '<circle cx="' + cx + '" cy="' + cy + '" r="' + rO + '" fill="none" stroke="rgba(15, 23, 42,0.12)" stroke-width="' + (rO - rI) + '"/>';
     } else {
         const fSelf = self / total, start = -Math.PI / 2;
         const aMid = start + fSelf * 2 * Math.PI;
@@ -9878,7 +9878,7 @@ function pvDrawSplitChart(self, feed, annual) {
     }
     const pctSelf = total > 0 ? Math.round(self / total * 100) : 0;
     const center = '<text x="' + cx + '" y="' + (cy - 4) + '" text-anchor="middle" font-size="30" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' + pctSelf + '%</text>' +
-        '<text x="' + cx + '" y="' + (cy + 18) + '" text-anchor="middle" font-size="11" fill="#94a3b6" font-family="Inter">Eigenverbrauch</text>';
+        '<text x="' + cx + '" y="' + (cy + 18) + '" text-anchor="middle" font-size="11" fill="#57626e" font-family="Inter">Eigenverbrauch</text>';
     svg.innerHTML = body + center;
     document.getElementById('pv_split_legend').innerHTML =
         '<span><i style="background:#10b981"></i>Eigenverbrauch ' + pvNum(self, 0) + ' kWh/a</span>' +
@@ -10367,7 +10367,7 @@ function bilanzRenderSankey(d) {
     ].filter(function (n) { return n.val > 0.5; });
 
     const totalLeft = srcDefs.reduce(function (s, n) { return s + n.val; }, 0);
-    if (totalLeft <= 0) { svg.innerHTML = '<text x="360" y="165" text-anchor="middle" fill="#94a3b6" font-size="13" font-family="Inter">Noch keine Energiebilanz berechnet</text>'; document.getElementById('bilanz_sankey_legend').innerHTML = ''; return; }
+    if (totalLeft <= 0) { svg.innerHTML = '<text x="360" y="165" text-anchor="middle" fill="#57626e" font-size="13" font-family="Inter">Noch keine Energiebilanz berechnet</text>'; document.getElementById('bilanz_sankey_legend').innerHTML = ''; return; }
 
     // Maßstab: höhere Gesamtsumme (links/rechts identisch = Endenergie) auf verfügbare Höhe
     const availH = H - top - botPad - gap * (Math.max(srcDefs.length, dstDefs.length) - 1);
@@ -10426,7 +10426,7 @@ function bilanzRenderSankey(d) {
             const h = n.y1 - n.y0, cy = (n.y0 + n.y1) / 2;
             return '<rect x="' + n.x + '" y="' + n.y0.toFixed(1) + '" width="' + nodeW + '" height="' + h.toFixed(1) + '" rx="3" fill="' + n.col + '"/>' +
                 '<text x="' + tx + '" y="' + (cy - 2).toFixed(1) + '" text-anchor="' + anchor + '" font-size="11" font-weight="700" fill="#e2e8f0" font-family="Inter">' + n.label + '</text>' +
-                '<text x="' + tx + '" y="' + (cy + 11).toFixed(1) + '" text-anchor="' + anchor + '" font-size="10" fill="#94a3b6" font-family="JetBrains Mono,monospace">' + pvNum(n.val, 0) + ' kWh/a</text>';
+                '<text x="' + tx + '" y="' + (cy + 11).toFixed(1) + '" text-anchor="' + anchor + '" font-size="10" fill="#57626e" font-family="JetBrains Mono,monospace">' + pvNum(n.val, 0) + ' kWh/a</text>';
         }).join('');
     }
     svg.innerHTML = bands + nodes(src, 'end', leftX - 8) + nodes(dst, 'start', rightX + nodeW + 8);
@@ -10480,7 +10480,7 @@ function bilanzStackBar(barId, legId, parts, total, unit) {
         return '<div class="es-seg" style="width:' + pct.toFixed(1) + '%;background:' + p.col + '" title="' + p.label + ': ' + pvNum(p.val, 0) + ' ' + unit + '">' +
             (pct >= 11 ? '<span>' + Math.round(pct) + '%</span>' : '') + '</div>';
     }).join('');
-    document.getElementById(barId).innerHTML = bar || '<div class="es-seg" style="width:100%;background:rgba(255,255,255,.06)"></div>';
+    document.getElementById(barId).innerHTML = bar || '<div class="es-seg" style="width:100%;background:rgba(15, 23, 42,.06)"></div>';
     document.getElementById(legId).innerHTML = parts.filter(function (p) { return p.val > 0; }).map(function (p) {
         return '<span><i style="background:' + p.col + '"></i>' + p.label + ' ' + pvNum(p.val, 0) + ' ' + unit +
             ' (' + Math.round(p.val / fmtTotal * 100) + '%)</span>';
@@ -10509,14 +10509,14 @@ function bilanzRenderCo2Donut(sysCo2, houseCo2, pvCredit, co2Total) {
     }
     let body = '';
     if (gross <= 0) {
-        body = '<circle cx="' + cx + '" cy="' + cy + '" r="' + rO + '" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="' + (rO - rI) + '"/>';
+        body = '<circle cx="' + cx + '" cy="' + cy + '" r="' + rO + '" fill="none" stroke="rgba(15, 23, 42,0.10)" stroke-width="' + (rO - rI) + '"/>';
     } else {
         let a = -Math.PI / 2;
         parts.forEach(function (p) { const a1 = a + p.val / gross * 2 * Math.PI; body += arc(a, a1, p.col); a = a1; });
     }
     const center = '<text x="' + cx + '" y="' + (cy - 3) + '" text-anchor="middle" font-size="26" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">' +
         pvNum(co2Total, 0) + '</text>' +
-        '<text x="' + cx + '" y="' + (cy + 17) + '" text-anchor="middle" font-size="11" fill="#94a3b6" font-family="Inter">kg CO₂e/a netto</text>';
+        '<text x="' + cx + '" y="' + (cy + 17) + '" text-anchor="middle" font-size="11" fill="#57626e" font-family="Inter">kg CO₂e/a netto</text>';
     svg.innerHTML = body + center;
     let leg = parts.map(function (p) { return '<span><i style="background:' + p.col + '"></i>' + p.label + ' ' + pvNum(p.val, 0) + ' kg</span>'; }).join('');
     if (pvCredit > 0) leg += '<span><i style="background:#10b981"></i>− PV-Gutschrift ' + pvNum(pvCredit, 0) + ' kg</span>';
@@ -11205,9 +11205,9 @@ async function updateDoorType() {
         gizmoScene.add(axis(new THREE.Vector3(1, 0, 0), 0.95, 0xf6b94b, 0.3, 0.15));
         label('O', '#f6b94b', new THREE.Vector3(1.3, 0, 0), 0.5, new THREE.Vector3(1, 0, 0));
         gizmoScene.add(axis(new THREE.Vector3(0, 0, 1), 0.95, 0x8aa1b8, 0.3, 0.15));
-        label('S', '#8aa1b8', new THREE.Vector3(0, 0, 1.3), 0.5, new THREE.Vector3(0, 0, 1));
+        label('S', '#57626e', new THREE.Vector3(0, 0, 1.3), 0.5, new THREE.Vector3(0, 0, 1));
         gizmoScene.add(axis(new THREE.Vector3(-1, 0, 0), 0.95, 0x8aa1b8, 0.3, 0.15));
-        label('W', '#8aa1b8', new THREE.Vector3(-1.3, 0, 0), 0.5, new THREE.Vector3(-1, 0, 0));
+        label('W', '#57626e', new THREE.Vector3(-1.3, 0, 0), 0.5, new THREE.Vector3(-1, 0, 0));
         // Vertikale (oben) für den 3D-Eindruck
         gizmoScene.add(axis(new THREE.Vector3(0, 1, 0), 0.85, 0x38bdf8, 0.26, 0.13));
     })();
@@ -11333,7 +11333,7 @@ async function updateDoorType() {
         else if (a.roof === 'hip') roof = '<polygon points="' + bx + ',' + by + ' ' + (bx + bodyW) + ',' + by + ' ' + (VW / 2 + 5) + ',' + (by - 10) + ' ' + (VW / 2 - 5) + ',' + (by - 10) + '" fill="#10b981"/>';
         else if (a.roof === 'mono') roof = '<polygon points="' + (bx - 2) + ',' + by + ' ' + (bx + bodyW + 2) + ',' + (by - 9) + ' ' + (bx + bodyW + 2) + ',' + (by - 3) + ' ' + (bx - 2) + ',' + (by + 1) + '" fill="#10b981"/>';
         else roof = '<rect x="' + (bx - 2) + '" y="' + (by - 4) + '" width="' + (bodyW + 4) + '" height="4" rx="1" fill="#10b981"/>';
-        const wallCol = a.cat === 'nichtwohn' ? '#2f5688' : '#2b4a78';
+        const wallCol = a.cat === 'nichtwohn' ? '#2f5688' : '#dfe3ea';
         let wins = '';
         const rows = Math.min(a.floors, 3);
         for (let r = 0; r < rows; r++) for (let c = 0; c < 2; c++) {
@@ -12067,7 +12067,7 @@ async function updateDoorType() {
             let s = '';
             eds.forEach(function (e, idx) {
                 const key = asg ? SECTOR_KEYS[asg[idx]] : orientationKey(e.azN);
-                s += '<text x="' + (e.mx + e.nx * 14).toFixed(1) + '" y="' + (e.my + e.ny * 14).toFixed(1) + '" fill="#7fb4d8" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">' + (e.i + 1) + '·' + ORI_ABBR[key] + '</text>';
+                s += '<text x="' + (e.mx + e.nx * 14).toFixed(1) + '" y="' + (e.my + e.ny * 14).toFixed(1) + '" fill="#57626e" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">' + (e.i + 1) + '·' + ORI_ABBR[key] + '</text>';
             });
             return s;
         }
@@ -12084,7 +12084,7 @@ async function updateDoorType() {
                 s += interiorWallsSvg();
                 pts.forEach(function (p, i) {
                     const sel = (typeof selVertex !== 'undefined' && i === selVertex && closed);
-                    s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (sel ? 8 : (i === 0 ? 7 : 5.5)) + '" fill="' + (sel ? '#0e7490' : (i === 0 ? '#f6b94b' : '#0b1f3a')) + '" stroke="' + (sel ? '#38bdf8' : '#10b981') + '" stroke-width="' + (sel ? 2.5 : 2) + '"/>';
+                    s += '<circle class="fp-handle" data-i="' + i + '" cx="' + p.x + '" cy="' + p.y + '" r="' + (sel ? 8 : (i === 0 ? 7 : 5.5)) + '" fill="' + (sel ? '#0e7490' : (i === 0 ? '#f6b94b' : '#f5f3ee')) + '" stroke="' + (sel ? '#38bdf8' : '#10b981') + '" stroke-width="' + (sel ? 2.5 : 2) + '"/>';
                 });
                 s += edgeLabels();
             }
@@ -14040,31 +14040,31 @@ async function updateDoorType() {
         if (dev.total > 0) segs.push(['Geräte & Ausstattung B4 (' + years + ' a)', dev.total, '#a78bfa']);
         const sum = segs.reduce((s, x) => s + (x[1] || 0), 0) || 1;
         $('lca_bar').innerHTML =
-            '<div style="display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid #21456d;">' +
+            '<div style="display:flex;height:34px;border-radius:8px;overflow:hidden;border:1px solid #dfe3ea;">' +
             segs.map(s => '<div title="' + s[0] + ': ' + fmtKg(s[1]) + '" style="width:' + Math.max(0, (s[1] || 0) / sum * 100) + '%;background:' + s[2] + ';"></div>').join('') + '</div>' +
-            '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:#cfe0f2;">' +
+            '<div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:#57626e;">' +
             segs.map(s => '<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' + s[2] + ';margin-right:6px;"></span>' + s[0] + ': <b style="color:#fff;">' + fmtKg(s[1]) + '</b> (' + Math.round((s[1] || 0) / sum * 100) + '%)</span>').join('') + '</div>';
 
         window.lcaPeriods = window.lcaPeriods || {};
         const per = function (k) { const v = window.lcaPeriods[k]; return (v > 0) ? v : years; };
         const rows = [['wall', 'Außenwand', emb.bd.wall], ['roof', 'Dach', emb.bd.roof], ['floor', 'Boden', emb.bd.floor], ['door', 'Tür', emb.bd.door]];
         (emb.internal || []).forEach(function (it) { rows.push([it.key, it.name + ' (intern)', it.gwp]); });
-        const tdL = 'padding:7px;border-bottom:1px solid #16314d;', tdR = tdL + 'text-align:right;';
+        const tdL = 'padding:7px;border-bottom:1px solid #ffffff;', tdR = tdL + 'text-align:right;';
         let perYearSum = 0;
         let h = '<table style="width:100%;border-collapse:collapse;font-size:13.5px;"><thead><tr>'
-            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;">Bauteil</th>'
-            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">A1–A3</th>'
-            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">Anteil</th>'
-            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;" title="Eigene Nutzungsdauer je Bauteil für die jährliche Einordnung – ändert die Gesamt-Herstellung nicht.">Nutzungsdauer (a)</th>'
-            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #21456d;">pro Jahr</th></tr></thead><tbody>';
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #dfe3ea;">Bauteil</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #dfe3ea;">A1–A3</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #dfe3ea;">Anteil</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #dfe3ea;" title="Eigene Nutzungsdauer je Bauteil für die jährliche Einordnung – ändert die Gesamt-Herstellung nicht.">Nutzungsdauer (a)</th>'
+            + '<th style="text-align:right;padding:7px;border-bottom:2px solid #dfe3ea;">pro Jahr</th></tr></thead><tbody>';
         rows.forEach(function (r) {
             const k = r[0], gwp = r[2] || 0, pct = emb.total > 0 ? Math.round(gwp / emb.total * 100) : 0;
             const p = per(k), py = gwp / p; perYearSum += py;
             h += '<tr><td style="' + tdL + '">' + r[1] + '</td>'
                 + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#f6b94b;">' + fmtKg(gwp) + '</td>'
                 + '<td style="' + tdR + 'color:#9bb;">' + pct + '%</td>'
-                + '<td style="' + tdR + '"><input class="lca-period" type="number" min="1" step="1" value="' + p + '" data-key="' + k + '" data-emb="' + gwp + '" oninput="onLcaPeriod(this)" style="width:62px;text-align:right;background:#040b18;border:1px solid #2a4a73;color:#e7edf5;border-radius:5px;padding:3px 5px;"></td>'
-                + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#cfe0f2;"><span class="lca-peryear">' + fmtKg(py) + '</span>/a</td></tr>';
+                + '<td style="' + tdR + '"><input class="lca-period" type="number" min="1" step="1" value="' + p + '" data-key="' + k + '" data-emb="' + gwp + '" oninput="onLcaPeriod(this)" style="width:62px;text-align:right;background:#f5f3ee;border:1px solid #dfe3ea;color:#1c2230;border-radius:5px;padding:3px 5px;"></td>'
+                + '<td style="' + tdR + 'font-family:JetBrains Mono,monospace;color:#57626e;"><span class="lca-peryear">' + fmtKg(py) + '</span>/a</td></tr>';
         });
         h += '<tr><td style="padding:7px;font-weight:700;">Summe</td>'
             + '<td style="padding:7px;text-align:right;font-weight:700;font-family:JetBrains Mono,monospace;color:#fff;">' + fmtKg(emb.total) + '</td>'
@@ -14110,16 +14110,16 @@ async function updateDoorType() {
         let h = '<div class="lca-final-hero">'
             + '<div><div class="small" style="color:#9bb;">Gesamt über ' + years + ' Jahre</div>'
             + '<div class="lca-final-num">' + fmtKg(total) + '</div>'
-            + '<div class="small" style="color:#cfe0f2;">CO₂-Äquivalente · Module A1–A3' + (dev.total > 0 ? ' · B4' : '') + ' · B6' + (eol > 0 ? ' · C' : '') + '</div></div>';
+            + '<div class="small" style="color:#57626e;">CO₂-Äquivalente · Module A1–A3' + (dev.total > 0 ? ' · B4' : '') + ' · B6' + (eol > 0 ? ' · C' : '') + '</div></div>';
         if (spec != null) {
             h += '<div><div class="small" style="color:#9bb;">bezogen auf BGF und Jahr</div>'
-                + '<div style="font-size:26px;font-weight:800;color:#e7edf5;font-family:JetBrains Mono,ui-monospace,monospace;">' + (Math.round(spec * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/(m²·a)</div>'
+                + '<div style="font-size:26px;font-weight:800;color:#1c2230;font-family:JetBrains Mono,ui-monospace,monospace;">' + (Math.round(spec * 10) / 10).toLocaleString('de-DE') + ' kg CO₂e/(m²·a)</div>'
                 + '<div style="margin-top:6px;"><span class="lca-badge" style="background:' + cls.col + '22;border:1px solid ' + cls.col + ';color:' + cls.col + ';">' + cls.label + '</span></div></div>';
         }
         h += '</div>';
-        h += '<div style="display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid #21456d;margin-top:14px;">'
+        h += '<div style="display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid #dfe3ea;margin-top:14px;">'
             + segs.map(function (s) { return '<div title="' + s[0] + ': ' + fmtKg(s[1]) + '" style="width:' + Math.max(0.5, s[1] / sum * 100) + '%;background:' + s[2] + ';"></div>'; }).join('') + '</div>'
-            + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:#cfe0f2;">'
+            + '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:#57626e;">'
             + segs.map(function (s) { return '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:' + s[2] + ';margin-right:5px;"></span>' + s[0] + ' <b style="color:#fff;">' + Math.round(s[1] / sum * 100) + '%</b> (' + fmtKg(s[1]) + ')</span>'; }).join('')
             + '</div>';
         if (spec != null) h += '<p class="note" style="margin-top:8px;">Einordnung in Anlehnung an die QNG-Klimaschutz-Anforderungswerte für Wohngebäude (Lebenszyklus 50 Jahre); vereinfachter Modulumfang – Orientierungswert, kein Nachweis.</p>';
@@ -14207,16 +14207,16 @@ async function updateDoorType() {
         // Gitter + Y-Achse (4 Stufen)
         for (let i = 0; i <= 4; i++) {
             const v = yMax * i / 4, yy = Y(v);
-            s += '<line x1="' + padL + '" y1="' + yy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + yy.toFixed(1) + '" stroke="rgba(255,255,255,0.08)"/>'
-                + '<text x="' + (padL - 8) + '" y="' + (yy + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#9bb4c8">' + fmtKg(v) + '</text>';
+            s += '<line x1="' + padL + '" y1="' + yy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + yy.toFixed(1) + '" stroke="rgba(15, 23, 42,0.08)"/>'
+                + '<text x="' + (padL - 8) + '" y="' + (yy + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="#57626e">' + fmtKg(v) + '</text>';
         }
         // X-Achse (Jahre)
         const stepX = years > 25 ? 10 : 5;
         for (let y = 0; y <= years; y += stepX) {
-            s += '<text x="' + X(y).toFixed(1) + '" y="' + (H - padB + 16) + '" text-anchor="middle" font-size="10" fill="#9bb4c8">' + y + '</text>'
-                + '<line x1="' + X(y).toFixed(1) + '" y1="' + (padT + ih) + '" x2="' + X(y).toFixed(1) + '" y2="' + (padT + ih + 4) + '" stroke="#9bb4c8"/>';
+            s += '<text x="' + X(y).toFixed(1) + '" y="' + (H - padB + 16) + '" text-anchor="middle" font-size="10" fill="#57626e">' + y + '</text>'
+                + '<line x1="' + X(y).toFixed(1) + '" y1="' + (padT + ih) + '" x2="' + X(y).toFixed(1) + '" y2="' + (padT + ih + 4) + '" stroke="#57626e"/>';
         }
-        s += '<text x="' + (padL + iw / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10.5" fill="#9bb4c8">Jahre ab Fertigstellung</text>';
+        s += '<text x="' + (padL + iw / 2) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10.5" fill="#57626e">Jahre ab Fertigstellung</text>';
         // Gestapelte Bänder: Herstellung (konstant) → Geräte (Stufen) → Betrieb (linear)
         s += band(function () { return 0; }, function () { return emb.total; }, '#f6b94b', 'Herstellung A1–A3: ' + fmtKg(emb.total));
         if (cumDev[years] > 0) s += band(function () { return emb.total; }, function (y) { return emb.total + cumDev[y]; }, '#a78bfa', 'Geräte B4 (inkl. Austausch): ' + fmtKg(cumDev[years]));
@@ -14230,14 +14230,14 @@ async function updateDoorType() {
         if (opYear > 0) {
             const be = emb.total / opYear;
             if (be <= years) {
-                s += '<line x1="' + X(be).toFixed(1) + '" y1="' + padT + '" x2="' + X(be).toFixed(1) + '" y2="' + (padT + ih) + '" stroke="#e7edf5" stroke-width="1.5" stroke-dasharray="5 4"/>'
-                    + '<text x="' + (X(be) + 5).toFixed(1) + '" y="' + (padT + 12) + '" font-size="10.5" font-weight="700" fill="#e7edf5">Amortisation ≈ ' + Math.round(be) + ' a</text>';
+                s += '<line x1="' + X(be).toFixed(1) + '" y1="' + padT + '" x2="' + X(be).toFixed(1) + '" y2="' + (padT + ih) + '" stroke="#1c2230" stroke-width="1.5" stroke-dasharray="5 4"/>'
+                    + '<text x="' + (X(be) + 5).toFixed(1) + '" y="' + (padT + 12) + '" font-size="10.5" font-weight="700" fill="#1c2230">Amortisation ≈ ' + Math.round(be) + ' a</text>';
             }
         }
         // Endwert annotieren
-        s += '<circle cx="' + X(years).toFixed(1) + '" cy="' + Y(yMax).toFixed(1) + '" r="4" fill="#fff" stroke="#0b1f3a" stroke-width="1.5"/>'
+        s += '<circle cx="' + X(years).toFixed(1) + '" cy="' + Y(yMax).toFixed(1) + '" r="4" fill="#fff" stroke="#f5f3ee" stroke-width="1.5"/>'
             + '<text x="' + (X(years) - 6).toFixed(1) + '" y="' + (Y(yMax) - 8).toFixed(1) + '" text-anchor="end" font-size="11.5" font-weight="800" fill="#fff">Σ ' + fmtKg(yMax) + '</text>';
-        const legend = '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:#cfe0f2;">'
+        const legend = '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:12px;color:#57626e;">'
             + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#f6b94b;margin-right:5px;"></span>Herstellung A1–A3</span>'
             + (cumDev[years] > 0 ? '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#a78bfa;margin-right:5px;"></span>Geräte B4 (Stufen = Ersatzbeschaffung)</span>' : '')
             + '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#38bdf8;margin-right:5px;"></span>Betrieb B6</span>'
@@ -14253,16 +14253,16 @@ async function updateDoorType() {
         }
         const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
         const max = dev.list.reduce((m, d) => Math.max(m, d.total), 0) || 1;
-        const thR = 'text-align:right;padding:7px;border-bottom:2px solid #21456d;';
-        const tdL = 'padding:7px;border-bottom:1px solid #16314d;', tdR = tdL + 'text-align:right;';
+        const thR = 'text-align:right;padding:7px;border-bottom:2px solid #dfe3ea;';
+        const tdL = 'padding:7px;border-bottom:1px solid #ffffff;', tdR = tdL + 'text-align:right;';
         let h = '<table style="width:100%;border-collapse:collapse;font-size:13.5px;"><thead><tr>'
-            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;">Gerät</th>'
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #dfe3ea;">Gerät</th>'
             + '<th style="' + thR + '">Anzahl</th>'
             + '<th style="' + thR + '">GWP/Stück</th>'
             + '<th style="' + thR + '">Nutzungsdauer</th>'
             + '<th style="' + thR + '" title="Anschaffungen im Betrachtungszeitraum inkl. Erstausstattung">Käufe in ' + years + ' a</th>'
             + '<th style="' + thR + '">GWP gesamt</th>'
-            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #21456d;width:24%;">Anteil</th></tr></thead><tbody>';
+            + '<th style="text-align:left;padding:7px;border-bottom:2px solid #dfe3ea;width:24%;">Anteil</th></tr></thead><tbody>';
         dev.list.forEach(function (d) {
             h += '<tr><td style="' + tdL + '">' + esc(d.name)
                 + (d.roomName ? ' <span style="color:#8aa7c4;">· ' + esc(d.roomName) + '</span>' : '') + '</td>'
@@ -14838,12 +14838,12 @@ async function updateDoorType() {
         for (let x = Math.ceil(view.minx / step) * step; ; x += step) {
             const X = mx({ x: x, y: 0 });
             if (X > CW) break;
-            if (X >= 0) s += '<line x1="' + X.toFixed(1) + '" y1="0" x2="' + X.toFixed(1) + '" y2="' + CH + '" stroke="rgba(255,255,255,0.07)"/>';
+            if (X >= 0) s += '<line x1="' + X.toFixed(1) + '" y1="0" x2="' + X.toFixed(1) + '" y2="' + CH + '" stroke="rgba(15, 23, 42,0.07)"/>';
         }
         for (let y = Math.ceil(view.miny / step) * step; ; y += step) {
             const Y = my({ x: 0, y: y });
             if (Y > CH) break;
-            if (Y >= 0) s += '<line x1="0" y1="' + Y.toFixed(1) + '" x2="' + CW + '" y2="' + Y.toFixed(1) + '" stroke="rgba(255,255,255,0.07)"/>';
+            if (Y >= 0) s += '<line x1="0" y1="' + Y.toFixed(1) + '" x2="' + CW + '" y2="' + Y.toFixed(1) + '" stroke="rgba(15, 23, 42,0.07)"/>';
         }
         return s;
     }
@@ -14871,7 +14871,7 @@ async function updateDoorType() {
             const abbr = ORI[Math.round(azN / 45) % 8];
             const X = mx({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }) + nx * 13;
             const Y = my({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }) + ny * 13;
-            s += '<text x="' + X.toFixed(1) + '" y="' + Y.toFixed(1) + '" fill="#7fb4d8" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">'
+            s += '<text x="' + X.toFixed(1) + '" y="' + Y.toFixed(1) + '" fill="#57626e" font-size="10.5" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="pointer-events:none;">'
                 + (window.isComplexGeometry ? (i + 1) + '·' : '') + abbr + '</text>';
         }
         return s;
@@ -14916,17 +14916,17 @@ async function updateDoorType() {
             s += '<path class="in-room" data-room="' + r.id + '" d="' + pathOf(r.pts, true) + '" fill="' + hexA(r.color, sel ? 0.38 : 0.22) + '" stroke="' + r.color + '" stroke-width="' + (sel ? 2.5 : 1.8) + '" style="cursor:' + (draft.length ? 'crosshair' : 'grab') + ';"/>';
             const c = centroid(r.pts);
             s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) - 4).toFixed(1) + '" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff" style="pointer-events:none;">' + escXml(r.name) + '</text>';
-            s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) + 9).toFixed(1) + '" text-anchor="middle" font-size="9.5" fill="#cfe0f2" style="pointer-events:none;">' + polyArea(r.pts).toFixed(1) + ' m²</text>';
+            s += '<text x="' + mx(c).toFixed(1) + '" y="' + (my(c) + 9).toFixed(1) + '" text-anchor="middle" font-size="9.5" fill="#57626e" style="pointer-events:none;">' + polyArea(r.pts).toFixed(1) + ' m²</text>';
             if (sel) r.pts.forEach(function (p, i) {
                 const vsel = (r.id === vRoomId && i === selVertex);
-                s += '<circle class="in-handle" data-room="' + r.id + '" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (vsel ? 7.5 : 5.5) + '" fill="' + (vsel ? '#0e7490' : '#0b1f3a') + '" stroke="' + (vsel ? '#38bdf8' : r.color) + '" stroke-width="' + (vsel ? 2.5 : 2) + '"/>';
+                s += '<circle class="in-handle" data-room="' + r.id + '" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (vsel ? 7.5 : 5.5) + '" fill="' + (vsel ? '#0e7490' : '#f5f3ee') + '" stroke="' + (vsel ? '#38bdf8' : r.color) + '" stroke-width="' + (vsel ? 2.5 : 2) + '"/>';
             });
         });
         if (draft.length) {
             s += '<path d="' + pathOf(draft, false) + '" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>';
             if (cursor) s += '<line x1="' + mx(draft[draft.length - 1]).toFixed(1) + '" y1="' + my(draft[draft.length - 1]).toFixed(1) + '" x2="' + mx(cursor).toFixed(1) + '" y2="' + my(cursor).toFixed(1) + '" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="5 5"/>';
             draft.forEach(function (p, i) {
-                s += '<circle class="in-draft" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (i === 0 ? 7 : 5) + '" fill="' + (i === 0 ? '#f6b94b' : '#0b1f3a') + '" stroke="#38bdf8" stroke-width="2"/>';
+                s += '<circle class="in-draft" data-i="' + i + '" cx="' + mx(p).toFixed(1) + '" cy="' + my(p).toFixed(1) + '" r="' + (i === 0 ? 7 : 5) + '" fill="' + (i === 0 ? '#f6b94b' : '#f5f3ee') + '" stroke="#38bdf8" stroke-width="2"/>';
             });
         }
         layer.innerHTML = s;
@@ -15265,8 +15265,8 @@ async function updateDoorType() {
                 const einzonWert = window.lastEnvelopeResult && window.lastEnvelopeResult.adjusted_heat_demand_kwh;
                 resultEl.innerHTML = '<b>Mehrzonen Q_h,b gesamt: ' + data.adjusted_heat_demand_kwh.toFixed(0) + ' kWh/a</b>'
                     + (einzonWert != null ? ' · Einzonen-Vergleichswert: ' + einzonWert.toFixed(0) + ' kWh/a' : '')
-                    + '<br><span style="color:#9bb4c8;font-size:12px;">Je Zone: ' + einzeln + '</span>'
-                    + '<br><span style="color:#9bb4c8;font-size:12px;">' + data.calculation_basis + '</span>';
+                    + '<br><span style="color:#57626e;font-size:12px;">Je Zone: ' + einzeln + '</span>'
+                    + '<br><span style="color:#57626e;font-size:12px;">' + data.calculation_basis + '</span>';
             })
             .catch(function (err) {
                 resultEl.innerHTML = '<span style="color:#f87171;">Fehler: ' + err.message + '</span>';
@@ -15306,7 +15306,7 @@ async function updateDoorType() {
                 + '<span class="in-roommeta">' + areaTxt + ' · ' + r.pts.length + ' Ecken · ' + devCount + ' Gerät(e)'
                 + (wins.length ? ' · <span style="color:' + WIN_COLOR + ';">🪟 ' + wins.length + ' Fenster (' + winArea.toFixed(1) + ' m²)</span>' : '')
                 + (cw != null ? ' · Bauart ' + bauartOfCwirk(cw) + ' (≈' + Math.round(cw) + ' Wh/(K·m²))' : '')
-                + (zonesTxt ? '<br><span style="color:#7fb4d8;">📐 ' + zonesTxt + '</span>' : '') + '</span>'
+                + (zonesTxt ? '<br><span style="color:#57626e;">📐 ' + zonesTxt + '</span>' : '') + '</span>'
                 + '<button type="button" class="in-roomdel" title="Zimmer löschen">🗑</button>';
             row.addEventListener('click', function (e) {
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') return;
@@ -15401,7 +15401,7 @@ async function updateDoorType() {
         if (!res) return;
         const cw = cwirkOfRoom(r);
         res.innerHTML = (cw == null)
-            ? '<span style="color:#9bb4c8;">Bauart-Schätzung: Boden, Decke und Wände angeben.</span>'
+            ? '<span style="color:#57626e;">Bauart-Schätzung: Boden, Decke und Wände angeben.</span>'
             : 'C_wirk/A_G ≈ <b>' + Math.round(cw) + ' Wh/(K·m²)</b> → Bauart <b>' + bauartOfCwirk(cw) + '</b>';
     }
     function renderAusbau() {
@@ -16772,7 +16772,7 @@ window.addEventListener('load', function () {
             t = document.createElement('div');
             t.id = 'undo_toast';
             t.style.cssText = 'position:fixed;left:50%;bottom:26px;transform:translateX(-50%);'
-                + 'background:#0f2138;color:#e7edf5;border:1px solid #2a4a73;border-radius:10px;'
+                + 'background:#ffffff;color:#1c2230;border:1px solid #dfe3ea;border-radius:10px;'
                 + 'padding:9px 16px;font-size:13px;z-index:99999;box-shadow:0 10px 30px rgba(0,0,0,.5);'
                 + 'pointer-events:none;opacity:0;transition:opacity .15s;max-width:70vw;'
                 + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
@@ -16870,12 +16870,12 @@ window.addEventListener('load', function () {
                 const warn = (data.warnings || []).length ? '<br><span style="color:#f6b94b;">⚠ ' + data.warnings.join(' · ') + '</span>' : '';
                 const geo = data.geometry || {};
                 const banner = document.createElement('div');
-                banner.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);z-index:9999;background:#0f2138;border:1px solid #2a4a73;border-radius:10px;padding:12px 18px;color:#e7edf5;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+                banner.style.cssText = 'position:fixed;top:100px;left:50%;transform:translateX(-50%);z-index:9999;background:#ffffff;border:1px solid #dfe3ea;border-radius:10px;padding:12px 18px;color:#1c2230;font-size:13px;max-width:640px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
                 banner.innerHTML = '📥 <b>IFC-Grunddaten übernommen:</b> „' + (data.building_name || '') + '" · ' + data.storeys + ' Geschosse'
                     + (data.bgf != null ? ' · ' + data.bgf + ' m² Grundfläche' : '')
                     + (geo.rendered_count ? ' · <b>' + geo.rendered_count + ' Bauteile</b> (3D-Ansicht unten: „📥 IFC-Ansicht")' : '')
                     + ' · Flächen für die Berechnung im Tab „Gebäudehülle" übernehmen.' + warn
-                    + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #2a4a73;color:#9bb4c8;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
+                    + '<div style="text-align:right;margin-top:6px;"><button type="button" style="background:none;border:1px solid #dfe3ea;color:#57626e;border-radius:6px;padding:4px 10px;cursor:pointer;" onclick="this.closest(\'div\').parentElement.remove()">Schließen</button></div>';
                 document.body.appendChild(banner);
                 if (geo.rendered_count && typeof window.setModelSource === 'function') window.setModelSource('ifc');
         }, 400);
@@ -17080,7 +17080,7 @@ window.addEventListener('load', function () {
             el.style.background = 'rgba(56,189,248,0.10)'; el.style.border = '1px solid #38bdf8'; el.style.color = '#7fd4f5';
             el.innerHTML = '✏️ Aktive Datenquelle: <b>Gezeichnetes Modell („Komplexe Geometrie")</b>.';
         } else {
-            el.style.background = 'rgba(255,255,255,0.06)'; el.style.border = '1px solid #2a4a73'; el.style.color = '#9bb4c8';
+            el.style.background = 'rgba(15, 23, 42,0.06)'; el.style.border = '1px solid #dfe3ea'; el.style.color = '#57626e';
             el.innerHTML = '📐 Aktive Datenquelle: <b>Einfache Geometrie</b> (Länge × Breite aus Gebäudedaten).';
         }
     };

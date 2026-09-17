@@ -149,7 +149,7 @@ const isKnown = (s) => KNOWN.some((k) => s.includes(k));
             page.click('button:has-text("Bericht (PDF)")'),
         ]);
         await pp.waitForLoadState("domcontentloaded").catch(() => {});
-        popupOk = (await pp.title()).includes("GEGenius");
+        popupOk = (await pp.title()).includes("DIN V 18599");
         await pp.close().catch(() => {});
     } catch (e) {}
     step(popupOk, "Bericht (PDF) öffnet Druckfenster");
