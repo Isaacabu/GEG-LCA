@@ -31,7 +31,11 @@ from dashboard.services.din4108 import (
     pruefe_mindestwaermeschutz,
     waermebruecken_zuschlag,
 )
-from dashboard.services.din18599 import calculate_heat_demand
+from dashboard.services.din18599 import (
+    calculate_heat_demand,
+    cooling_utilization_factor,
+    utilization_factor,
+)
 from dashboard.services.din18599_anlage import F_CO2, F_PRIMARY, calculate_system_din
 from dashboard.services.din18599_multizone import calculate_heat_demand_multizone
 from dashboard.services.ifc_import import (
@@ -224,7 +228,11 @@ class Din18599HeatDemandTests(SimpleTestCase):
         self.assertAlmostEqual(self.r["h_ventilation"], 66.30, delta=0.05)
 
     def test_heizwaermebedarf_regression(self):
-        self.assertAlmostEqual(self.r["adjusted_heat_demand_kwh"], 10188.0, delta=1.0)
+        # 10186,6 statt 10188,0 seit der Ausnutzungsgrad-Grenzwert-Klausel (Gl. 148,
+        # §6.7.4): mind. ein Sommermonat lag im Grenzbereich hoher solarer/interner
+        # Gewinne (1-η·γ < 0,01) und springt jetzt norm-korrekt auf η=1/γ (Q_h,b=0)
+        # statt einen kleinen Formel-Restwert zu behalten.
+        self.assertAlmostEqual(self.r["adjusted_heat_demand_kwh"], 10186.6, delta=1.0)
         self.assertAlmostEqual(self.r["specific_heat_demand"], 67.92, delta=0.05)
 
     def test_komponentensumme_stimmt_mit_waermesenke_ueberein(self):
@@ -234,6 +242,35 @@ class Din18599HeatDemandTests(SimpleTestCase):
 
     def test_plausibilitaet_efh_geg_nah(self):
         self.assertTrue(20 <= self.r["specific_heat_demand"] <= 100)
+
+
+class UtilizationFactorBoundaryTests(SimpleTestCase):
+    """DIN/TS 18599-2:2025-10 §6.7.4 'Begrenzung des Ausnutzungsgrades' (Gl. 148/149):
+    nahe der Grenze muss auf den exakten Wert gesprungen werden statt die direkte
+    Formel (Gl. 144/145) auszuwerten - sonst bleibt bei hohen solaren/internen
+    Gewinnen (z. B. Sommermonat, gut gedämmtes Gebäude) ein kleiner, norm-widriger
+    Rest-Heizwärmebedarf statt exakt 0."""
+
+    def test_normalfall_unveraendert(self):
+        # Winterfall (Senken >> Quellen): Formel greift direkt, keine Grenzwert-Klausel.
+        self.assertAlmostEqual(utilization_factor(0.3, 70.1), 0.99892, delta=0.001)
+
+    def test_gamma_eins_weiterhin_sonderfall(self):
+        a = 1.0 + 70.1 / 16.0
+        self.assertAlmostEqual(utilization_factor(1.0, 70.1), a / (a + 1.0), places=6)
+
+    def test_hohe_gewinne_springt_auf_grenzwert(self):
+        # gamma=3, tau=70 -> 1-eta*gamma < 0,01 (Gl. 148): eta muss exakt 1/gamma sein,
+        # nicht der direkt ausgewertete (norm-widrige) Formelwert (~0,3327).
+        gamma, tau = 3.0, 70.0
+        eta = utilization_factor(gamma, tau)
+        self.assertAlmostEqual(eta, 1.0 / gamma, places=9)
+        self.assertAlmostEqual(0.0, 1.0 - eta * gamma, delta=1e-9)
+
+    def test_kuehlfall_symmetrische_grenzwert_klausel(self):
+        gamma_c, tau = 3.0, 70.0
+        eta_c = cooling_utilization_factor(gamma_c, tau)
+        self.assertEqual(eta_c, 1.0)
 
 
 class Din18599AnlageTests(SimpleTestCase):

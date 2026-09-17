@@ -181,24 +181,43 @@ def resolve_profile(building_type: str, variant: str) -> str:
 
 
 def utilization_factor(gamma: float, tau: float) -> float:
-    """Monatlicher Ausnutzungsgrad η der Wärmequellen – DIN V 18599-2, Gl. (24)–(26)."""
+    """Monatlicher Ausnutzungsgrad η der Wärmequellen – DIN/TS 18599-2:2025-10, Gl. (144)–(146)
+    (= DIN V 18599-2:2018-09, Gl. 24–26 - unverändert zwischen den Ausgaben, gegengeprüft).
+
+    Grenzwert-Sicherheitsklausel (§6.7.4, Gl. 148): nahe γ=1 wird die direkte Formel
+    numerisch instabil (Auslöschung in Zähler/Nenner); die Norm schreibt vor, in diesem
+    Fall auf den exakten Grenzwert η=1/γ zu springen (⇒ Q_h,b exakt 0), statt die Formel
+    weiter auszuwerten. Gl. (150) (η=1 bei hohem mechanischem Grundluftwechsel, Kühlfall)
+    ist NICHT umgesetzt - erfordert Φ_C,max/V̇_mech-Infrastruktur, die dieses Tool für den
+    (kaum genutzten) Kühlfall nicht führt; dokumentierte Vereinfachung."""
     a = A_0 + tau / TAU_0
     if gamma <= 0:
         return 0.0
     if abs(gamma - 1.0) < 1e-9:
-        return a / (a + 1.0)
-    return (1.0 - gamma ** a) / (1.0 - gamma ** (a + 1.0))
+        eta = a / (a + 1.0)
+    else:
+        eta = (1.0 - gamma ** a) / (1.0 - gamma ** (a + 1.0))
+    if 1.0 - eta * gamma < 0.01:   # Gl. (148)
+        return 1.0 / gamma
+    return eta
 
 
 def cooling_utilization_factor(gamma_c: float, tau: float) -> float:
     """Ausnutzungsgrad der Wärmesenken für die Kühlung η_c – DIN V 18599-2 (Kühlfall,
-    analog ISO 13790, Gl. 27–29). γ_c = Q_quelle,c / Q_senke,c."""
+    analog ISO 13790, Gl. 27–29). γ_c = Q_quelle,c / Q_senke,c.
+
+    Grenzwert-Sicherheitsklausel analog Gl. (149): (1−η_c)·γ_c < 0,01 ⇒ η_c = 1
+    (Q_c,b exakt 0)."""
     a = A_0 + tau / TAU_0
     if gamma_c <= 0:
         return 1.0
     if abs(gamma_c - 1.0) < 1e-9:
-        return a / (a + 1.0)
-    return (1.0 - gamma_c ** (-a)) / (1.0 - gamma_c ** (-(a + 1.0)))
+        eta_c = a / (a + 1.0)
+    else:
+        eta_c = (1.0 - gamma_c ** (-a)) / (1.0 - gamma_c ** (-(a + 1.0)))
+    if (1.0 - eta_c) * gamma_c < 0.01:   # Gl. (149)
+        return 1.0
+    return eta_c
 
 
 def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:

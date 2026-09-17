@@ -537,3 +537,35 @@ BGF als Bezugsfläche statt NGF (Eingabefeld heißt BGF; alle flächenbezogenen 
 sind NGF-bezogen – bei BGF-Eingabe werden interne Gewinne/TWW/Kennwerte um ~10–20 %
 verschoben), PV-Eigenverbrauch als pauschale Jahresquote, Beleuchtung ohne k_WF/k_R und
 ohne Wärmequellen-Rückkopplung.
+
+## 15. Norm-Review September 2026: Gegenprüfung gegen DIN/TS 18599-2:2025-10 ✅
+
+**Wichtig:** Die gesamte bisherige Verifikation (§1–§14) wurde gegen **DIN V 18599-2:2018-09**
+durchgeführt (siehe `scripts/din_page.py`, das fest auf die 2018er-Dateien zeigt). Es liegt
+inzwischen eine neue Ausgabe **DIN/TS 18599-2:2025-10** vor, die die 2018er-Fassung offiziell
+ersetzt („Ersatz für DIN V 18599-2:2018-09“, siehe Deckblatt). Gegenprüfung der zentralen
+Gleichungen (Textextraktion aus der neuen PDF, `DIN und Unterlagen /DIN V 18599 1-11 /`):
+
+- **Unverändert zwischen den Ausgaben** (gleiche Gleichungsnummern innerhalb §5, andere
+  Nummern in §6.7 durch Kapitel-Verschiebung, aber inhaltlich identisch): Bilanzgleichung
+  Q_h,b (Gl. 1, S. 27 – identisch), Ausnutzungsgrad η=(1−γᵃ)/(1−γᵃ⁺¹), a=a₀+τ/τ₀ mit
+  a₀=1/τ₀=16h (jetzt Gl. 144–146 in §6.7.3, S. 92f. statt Gl. 24–26 in §5.5.3 – Werte
+  identisch, gegengeprüft).
+- **Fund: §6.7.4 „Begrenzung des Ausnutzungsgrades“ (Gl. 148–150, S. 93) war nicht
+  umgesetzt.** Normativ vorgeschrieben: nahe γ=1 (genauer: sobald `1−η·γ < 0,01` bzw. im
+  Kühlfall `(1−η)·γ < 0,01`) muss auf den exakten Grenzwert gesprungen werden
+  (η=1/γ bzw. η=1 ⇒ Q_h,b/Q_c,b exakt 0), statt die direkte Formel (Gl. 144/145) weiter
+  auszuwerten – die ist dort numerisch instabil (Auslöschung) und liefert sonst einen
+  kleinen, norm-widrigen Restwert. Betrifft in der Praxis Monate mit hohen solaren/
+  internen Gewinnen relativ zu den Verlusten (γ ≳ 2, z. B. Sommermonate bei gut
+  gedämmten Gebäuden), nicht nur γ nahe 1 selbst. **Gefixt** in `utilization_factor()` /
+  `cooling_utilization_factor()` (`dashboard/services/din18599.py`); Referenz-EFH-Jahreswert
+  10 188,0 → **10 186,6 kWh/a** (−1,4 kWh, ein Sommermonat lag im Grenzbereich).
+  Tests: `UtilizationFactorBoundaryTests`.
+- **Nicht umgesetzt (dokumentierte Vereinfachung):** Gl. (150) (η=1 bei hohem mechanischem
+  Grundluftwechsel im Kühlfall) – erfordert Φ_C,max/V̇_mech-Infrastruktur, die für den
+  kaum genutzten Kühlfall nicht geführt wird.
+- **Offen für spätere Reviews:** nur §5/§6.7 (Kernbilanz + Ausnutzungsgrad) wurde bisher
+  gegen die 2025er-Ausgabe gegengeprüft. Teil 5/6/8 (Anlagentechnik, §7–§10 oben) und
+  Teile 1/4/9/10 wurden noch NICHT gegen ihre jeweiligen DIN/TS-2025-Ausgaben
+  gegengeprüft (liegen als PDF vor, Teil 9 fehlt).
