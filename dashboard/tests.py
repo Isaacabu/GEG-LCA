@@ -668,6 +668,10 @@ class IfcEnvelopeExtractionTests(SimpleTestCase):
         self.assertAlmostEqual(self.r["windows"]["south"], 1.2 * 1.2, delta=0.05)
         self.assertNotIn("east", self.r["windows"])
 
+    def test_fenster_anzahl_je_orientierung(self):
+        self.assertEqual(self.r["window_counts"]["south"], 1)
+        self.assertNotIn("east", self.r["window_counts"])
+
     def test_tuer_der_ostwand_zugeordnet(self):
         self.assertIn("east", self.r["doors"])
         self.assertEqual(self.r["doors"]["east"]["count"], 1)

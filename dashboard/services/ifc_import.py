@@ -373,6 +373,7 @@ def _extract_envelope(model) -> Dict[str, Any]:
     # Fenster/Türen → Wirtswand-Orientierung (offizielle IFC-Beziehungen, s. _host_wall)
     wall_orientation_by_id = {w["product"].id(): w.get("orientation") for w in wall_infos}
     window_areas: Dict[str, float] = {}
+    window_counts: Dict[str, int] = {}
     door_areas: Dict[str, Dict[str, Any]] = {}
     for opening_type, qty_names in (
         ("IfcWindow", ("Area", "GrossArea")),
@@ -395,6 +396,7 @@ def _extract_envelope(model) -> Dict[str, Any]:
                 continue
             if opening_type == "IfcWindow":
                 window_areas[orientation] = window_areas.get(orientation, 0.0) + area
+                window_counts[orientation] = window_counts.get(orientation, 0) + 1
             else:
                 d = door_areas.setdefault(orientation, {"count": 0, "total_area": 0.0})
                 d["count"] += 1
@@ -434,6 +436,7 @@ def _extract_envelope(model) -> Dict[str, Any]:
     return {
         "walls": {o: round(a, 1) for o, a in wall_areas.items()},
         "windows": {o: round(a, 1) for o, a in window_areas.items()},
+        "window_counts": {o: c for o, c in window_counts.items()},
         "doors": doors_out,
         "roof_area": round(roof_area, 1) if roof_area else None,
         "floor_area": round(floor_area, 1) if floor_area else None,

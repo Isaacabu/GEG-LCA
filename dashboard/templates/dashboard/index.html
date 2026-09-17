@@ -17141,6 +17141,78 @@ window.addEventListener('load', function () {
             });
             window.complexDoorArea = doorAreas.length ? doorAreas.reduce(function (a, b) { return a + b; }, 0) / doorAreas.length : 2.0;
 
+            // Einzelfenster-/-türliste (Source of Truth fürs 3D-Modell, den Einzelfenster-
+            // Editor UND die Summenfelder/Badges über aggregateWindows()/aggregateDoors())
+            // aus den ECHTEN IFC-Zählungen neu aufbauen, statt sie bei der bisherigen
+            // Default-Beispielimmobilie zu belassen (Bug: "mehr Fenster im Fensterbereich
+            // als im IFC-Modell" - ensureWindowsList() erzeugt ihre synthetische Liste nur
+            // EINMALIG aus den Default-Flächen und wurde beim IFC-Import nie neu gebaut).
+            // Diagonale Orientierungen (NO/SO/SW/NW) gibt es in diesem 4-Fassaden-Editor
+            // nicht - werden je zur Hälfte den beiden angrenzenden Himmelsrichtungen
+            // zugeschlagen (Fläche bleibt dabei exakt erhalten).
+            function foldToCardinal(byOri) {
+                const g = function (k) { return (byOri && byOri[k]) || 0; };
+                return {
+                    north: g('north') + g('northeast') / 2 + g('northwest') / 2,
+                    east: g('east') + g('northeast') / 2 + g('southeast') / 2,
+                    south: g('south') + g('southeast') / 2 + g('southwest') / 2,
+                    west: g('west') + g('southwest') / 2 + g('northwest') / 2,
+                };
+            }
+            const winAreaCardinal = foldToCardinal(env.windows);
+            const winCountCardinal = foldToCardinal(env.window_counts);
+            const doorCountsRaw = {};
+            ORI8.forEach(function (o) { doorCountsRaw[o] = env.doors[o] ? env.doors[o].count : 0; });
+            const doorAreaPerUnitRaw = {};
+            ORI8.forEach(function (o) { doorAreaPerUnitRaw[o] = env.doors[o] ? env.doors[o].area_per_unit : 0; });
+            const doorCountCardinal = foldToCardinal(doorCountsRaw);
+
+            window._winSeq = window._winSeq || 0;
+            window._doorSeq = window._doorSeq || 0;
+            const newWindowsList = [];
+            const newDoorsList = [];
+            ['north', 'south', 'east', 'west'].forEach(function (o) {
+                // Fensteranzahl: aus IFC falls bekannt (window_counts), sonst Flächen-
+                // Heuristik (~2,4 m²/Fenster) als Fallback für ältere gecachte Importe
+                // ohne diese Kennzahl.
+                const winCount = env.window_counts ? Math.round(winCountCardinal[o]) : Math.max(0, Math.round(winAreaCardinal[o] / 2.4));
+                if (winCount > 0 && winAreaCardinal[o] > 0) {
+                    const h = 1.4, wEach = (winAreaCardinal[o] / winCount) / h;
+                    for (let i = 0; i < winCount; i++) {
+                        newWindowsList.push({ id: ++window._winSeq, orientation: o, width: +wEach.toFixed(3), height: h, u: 1.10, g: 0.55 });
+                    }
+                }
+                const doorCount = Math.round(doorCountCardinal[o]);
+                if (doorCount > 0) {
+                    const h = 2.1, per = doorAreaPerUnitRaw[o] || 2.0, w = Math.max(0.6, per / h);
+                    for (let i = 0; i < doorCount; i++) {
+                        newDoorsList.push({ id: ++window._doorSeq, orientation: o, width: +w.toFixed(3), height: h, u: 2.5 });
+                    }
+                }
+            });
+            window.windowsList = newWindowsList;
+            window.doorsList = newDoorsList;
+            if (typeof window.aggregateWindows === 'function') window.aggregateWindows();
+            if (typeof window.aggregateDoors === 'function') window.aggregateDoors();
+            // Badges zusätzlich als "IFC" kennzeichnen (aggregateWindows/aggregateDoors
+            // schreiben nur die reine Zahl) - Herkunft der Zahlen bleibt sichtbar.
+            ['north', 'south', 'east', 'west'].forEach(function (o) {
+                const wb = document.getElementById('win_count_' + o);
+                if (wb) wb.textContent = wb.textContent.replace(/\)$/, ' · IFC)');
+                const db = document.getElementById('door_count_' + o);
+                if (db) db.textContent = db.textContent.replace(/\)$/, ' · IFC)');
+            });
+
+            if (env.roof_area != null) {
+                const roofEl = document.getElementById('roof_area_display');
+                if (roofEl) roofEl.value = env.roof_area.toFixed(1);
+            }
+            if (env.floor_area != null) {
+                const floorEl = document.getElementById('floor_area_display');
+                if (floorEl) floorEl.innerText = env.floor_area.toFixed(1) + ' m²';
+            }
+            if (typeof window._rebuild3D === 'function') window._rebuild3D();
+
             window.isComplexGeometry = true;
             window._envelopeSource = 'ifc';
             window._envelopeSourceName = data.building_name || 'IFC-Import';
