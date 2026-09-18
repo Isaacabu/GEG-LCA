@@ -148,6 +148,18 @@ Tage/Monat: 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31.
 > DIN V 18599-1:2018 Tabelle A.1 nennt **2,4**. Im Tool als Konstante hinterlegt + dokumentiert.
 > Heizsystem-Faktoren der Website stimmen für Gas (1,1 / 240) und Pellet (0,2 / 40) bereits exakt.
 
+**Update 2026-09-18 – gegen DIN/TS 18599-1:2025-10 Tab. A.1 gegengeprüft:** Erdgas (1,1/1,1/240)
+und Heizöl (1,1/1,1/310) sind **wertgleich**. Zwei Abweichungen zur obigen (2018er) Tabelle,
+beide ohne Code-Auswirkung, da das Tool ohnehin GEG-Werte statt der DIN-Eigenwerte nutzt:
+- **Holz (biogen, fest): CO₂ jetzt 20 g/kWh** (fp 1,2/0,2 unverändert) statt 40 – die Zeile
+  oben ist der veraltete 2018-Stand. `CO2_FACTORS['pellet'] = 0,02` in `constants.py` war
+  bereits richtig (Kommentar dort: „vorher fälschlich 0,04") und deckt sich jetzt exakt mit
+  dem *aktuellen* Normwert; nur die Tabelle hier war stehen geblieben.
+- **Strom (allgemeiner Strommix): fp gesamt 2,2 / fp n. ern. 1,3 / CO₂ 380 g/kWh** (deutlich
+  niedriger als der 2018-Wert 2,8/2,4/560 – aktualisierter Kraftwerksmix). Weiterhin
+  legal maßgeblich bleibt **GEG 2024 Anlage 4/9** (f_P 1,8, CO₂ 0,56 kg/kWh = 560 g/kWh), das
+  Tool folgt korrekt dem Gesetz statt der (jetzt sogar noch stärker abweichenden) DIN-Eigenwerte.
+
 ## 5. Geplante Umsetzung (stufenweise)
 
 - **Stufe 1 – Heizwärmebedarf nach Monatsbilanz** (Teil 2 + 10 + 1): ersetzt den Gradstunden-Kern,
@@ -593,9 +605,21 @@ Gleichungen (Textextraktion aus der neuen PDF, `DIN und Unterlagen /DIN V 18599 
   - **Teil 6 (Lüftung): Fund + Fix**, siehe oben (§9) – SPI-Tabelle nach Baujahr gesplittet
     (Tab. 20 „ab 2016" vs. Tab. 21 „bis 2015"), Code nutzte bisher durchgehend die alten
     „bis 2015"-Werte; auf Tab. 20 umgestellt.
-  - **Weiterhin offen:** Teile 1/4/9/10 wurden noch NICHT gegen ihre DIN/TS-2025-Ausgaben
-    gegengeprüft (liegen als PDF vor, Teil 9 fehlt). Innerhalb Teil 5 wurde nur der für die
-    Referenz-EFH-Pfade (Gas-BW, Pellet, Fernwärme, WP) relevante Kern geprüft, nicht
-    erschöpfend jede Tabelle des 243-Seiten-Dokuments (z. B. Mehrkesselanlagen, KWK,
-    Anhang B/C BIN-Verfahren – bereits vorher als „nicht umgesetzt" dokumentiert, daher
-    hier nicht erneut gegengeprüft).
+  - Innerhalb Teil 5 wurde nur der für die Referenz-EFH-Pfade (Gas-BW, Pellet, Fernwärme, WP)
+    relevante Kern geprüft, nicht erschöpfend jede Tabelle des 243-Seiten-Dokuments (z. B.
+    Mehrkesselanlagen, KWK, Anhang B/C BIN-Verfahren – bereits vorher als „nicht umgesetzt"
+    dokumentiert, daher hier nicht erneut gegengeprüft).
+- **Update 2026-09-18 – Teil 1/4/10 gegen DIN/TS 2025 gegengeprüft:**
+  - **Teil 10 (Nutzungsrandbedingungen/Klima):** Referenzklima Potsdam (Tab. E.6: monatliche
+    θ_e und Solarstrahlung je Orientierung) ist **wertgleich** zur 2018-Ausgabe – exakt
+    1,0/1,9/4,7/9,2/14,1/16,7/19,0/18,6/14,3/9,5/4,1/0,9 °C. (Vorsicht bei PDF-Textextraktion:
+    Region-Tabellen E.1–E.15 liegen Seite an Seite; eine erste Auswertung hatte versehentlich
+    die Fortsetzungszeile von *Hamburg* als Potsdam gelesen – per Seiten-Rendering als Bild
+    korrigiert.) q_I-Werte Einzelbüro (40/73/132) gegengeprüft, unverändert.
+  - **Teil 1 (Primärenergie/CO₂):** siehe §4c oben – Erdgas/Heizöl wertgleich; Holz-CO₂ und
+    Strom-Faktoren im DIN-Eigenwert geändert, aber ohne Codeauswirkung (GEG-Werte bleiben
+    maßgeblich, bereits korrekt implementiert).
+  - **Teil 4 (Beleuchtung):** Lampenfaktoren (LED 0,49/0,53) stichprobenartig bestätigt,
+    unverändert.
+  - **Weiterhin offen:** Teil 9 (PV) fehlt als PDF lokal komplett (auch nicht in Ahmets
+    Ordner nach aktuellem Stand dieses Dokuments) – nicht gegengeprüft.
