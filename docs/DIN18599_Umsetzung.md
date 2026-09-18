@@ -476,9 +476,25 @@ Hülle) → Summe 0,5 h⁻¹ konsistent mit Teil 10. Abluftanlage ohne WRG: Senk
 
 **Ventilator-Hilfsenergie (9.3, Gl. 60/61):**
 `W_fan = 0,001·(1 + f_Zuschläge)·SPI·n_mech·V·t_rv,mech` [kWh/Monat], t = 24·d_mth.
-**Tab. 19 SPI [W/(m³/h)]** (AC / DC-EC): Abluft zentral 0,20/0,10 · Zu-/Abluft zentral mit WÜT
-0,55/0,35 · Zu-/Abluft dezentral 0,35/0,20 · Zu-/Abluft zentral mit Abluft-WP 0,65/0,45.
+**SPI [W/(m³/h)] – gegen DIN/TS 18599-6:2025-10 verifiziert, Baujahresklasse geändert:**
+Die 2025er-Ausgabe spaltet die SPI-Tabelle nach Baujahr der Anlage auf: **Tab. 21 „bis 2015
+errichtet"** enthält die alten, weiterhin AC/DC-getrennten Werte (Abluft zentral 0,20/0,10 ·
+Zu-/Abluft zentral mit WÜT 0,55/0,35 · Abluft dezentral 0,35/0,20 · Zu-/Abluft zentral mit
+Abluft-WP 0,65/0,45 · Zu-/Abluft dezentral mit WÜT 0,70/0,45) – das war die 2018-Ausgabe (Tab. 19)
+und bis heute der Code-Stand. **Tab. 20 „ab 2016 errichtet"** hat deutlich niedrigere Werte und
+**keinen AC/DC-Split mehr** (Ecodesign-Anforderungen ab 2016 setzen effiziente Motoren voraus):
+Abluft zentral 0,10 · Abluft zentral mit Abluft-WP 0,20 · Zu-/Abluft zentral mit WÜT 0,28 ·
+Zu-/Abluft zentral mit Abluft-WP (mit/ohne WÜT) 0,38 · Zu-/Abluft dezentral (Raumgerät
+alternierend) mit WÜT 0,16 (kontinuierlich: 0,25).
+**Umgesetzt:** `VENT_SYSTEMS` in `din18599_anlage.py` nutzt jetzt Tab. 20 (Neubau-Fall dieses
+Tools, konsistent mit den ebenfalls nur „nach 1994+" geführten `BOILERS`); `spi_ac`/`spi_dc`
+bleiben als Felder erhalten (Frontend-Auswahl AC/DC), liefern aber denselben Tab.-20-Wert.
+Wirkung Referenz-EFH (WP + Lüftung WRG 80 %, DC): Ventilator 478 → 383 kWh/a, PE 6.287 → 6.114 kWh/a.
 Frostschutz-/EWÜT-Zuschläge f = 0 im Standardfall (ohne E-WÜT/S-KOL).
+**Offen/unsicher:** Die Zuordnung „dezentrale Zu-/Abluft mit WRG" → Tab. 20 „Raumgerät
+alternierend" (0,16) statt „kontinuierlich" (0,25) ist eine Annahme (häufigster Gerätetyp am
+Markt, Push-Pull-Prinzip); nicht anhand der 2018-Quelle rückprüfbar, da das alte Teil-6-PDF
+lokal nicht vorliegt (nur auf Ahmets Rechner, s. o.).
 
 ## 10. Status Stufe 2 – umgesetzt & verifiziert ✅
 
@@ -502,7 +518,7 @@ Frostschutz-/EWÜT-Zuschläge f = 0 im Standardfall (ohne E-WÜT/S-KOL).
   - Q_w,b = max(16,5−7,5; 8,5)·150·0,98 = **1 323 kWh/a** ✓; Speicher 139 l → Q_s,P0 = 1,69 kWh/d ✓
   - Gas-Brennwert: Endenergie 105 kWh/(m²a) (norm-konservative Verteilverluste, s. u.)
   - Pellet: PE 27 kWh/(m²a) · Fernwärme: PE 76 · WP (COP 3,5, FBH): **JAZ 4,14**, PE 43
-  - Kessel-Hilfsenergie 313 kWh/a, Heizungspumpe 50, Ventilator (WRG, DC) 478 kWh/a ✓ (SPI 0,35)
+  - Kessel-Hilfsenergie 313 kWh/a, Heizungspumpe 50, Ventilator (WRG, DC) 383 kWh/a ✓ (SPI 0,28, Tab. 20 „ab 2016")
 - **Hinweis Verteilverluste:** Die Norm-Standardlängen (Tab. 26: L_V = 30 + 2,3·A^0,79) sind bewusst
   konservativ (BBSR-Endbericht delta-q bestätigt Überschätzung ggü. realen Netzen). Bei detaillierter
   Rohrnetzplanung Längen direkt eingeben (künftiges Feature) oder `heating_distribution_inside`
@@ -565,7 +581,21 @@ Gleichungen (Textextraktion aus der neuen PDF, `DIN und Unterlagen /DIN V 18599 
 - **Nicht umgesetzt (dokumentierte Vereinfachung):** Gl. (150) (η=1 bei hohem mechanischem
   Grundluftwechsel im Kühlfall) – erfordert Φ_C,max/V̇_mech-Infrastruktur, die für den
   kaum genutzten Kühlfall nicht geführt wird.
-- **Offen für spätere Reviews:** nur §5/§6.7 (Kernbilanz + Ausnutzungsgrad) wurde bisher
-  gegen die 2025er-Ausgabe gegengeprüft. Teil 5/6/8 (Anlagentechnik, §7–§10 oben) und
-  Teile 1/4/9/10 wurden noch NICHT gegen ihre jeweiligen DIN/TS-2025-Ausgaben
-  gegengeprüft (liegen als PDF vor, Teil 9 fehlt).
+- **Update 2026-09-18 – Teil 5/6/8 gegen DIN/TS 2025 gegengeprüft:**
+  - **Teil 5 (Heizung):** f_hydr (Tab. 6: 1,06/1,02/1,00), Kesselwirkungsgrad-Koeffizienten
+    (Brennwert/Pellet-Brennwert, nur umnummeriert Tab. 49→56), Pumpenformel (0,2778·Δp·V̇, f_e)
+    und Fernwärme (θ_prim 105 °C, D_DS 0,6, B_DS 4,0, nur Tab. 61/62→69) sind **wertgleich**
+    zur 2018-Ausgabe. Neu: Δθ_ce hat einen zusätzlichen Summanden `Δθ_roomaut`
+    (Raumautomation nach EN 15232) – unkritisch, da der Code ohnehin pauschale Tab.-10/11-
+    Summenwerte je Preset nutzt (Standardfall ohne Automation ≈ unverändert).
+  - **Teil 8 (TWW):** COP_w,t 3,06, Speicherformel (0,8+0,02·V^0,77), U-Werte (0,200/0,255),
+    f_Zapf (0,98/1,05) – alle **wertgleich**.
+  - **Teil 6 (Lüftung): Fund + Fix**, siehe oben (§9) – SPI-Tabelle nach Baujahr gesplittet
+    (Tab. 20 „ab 2016" vs. Tab. 21 „bis 2015"), Code nutzte bisher durchgehend die alten
+    „bis 2015"-Werte; auf Tab. 20 umgestellt.
+  - **Weiterhin offen:** Teile 1/4/9/10 wurden noch NICHT gegen ihre DIN/TS-2025-Ausgaben
+    gegengeprüft (liegen als PDF vor, Teil 9 fehlt). Innerhalb Teil 5 wurde nur der für die
+    Referenz-EFH-Pfade (Gas-BW, Pellet, Fernwärme, WP) relevante Kern geprüft, nicht
+    erschöpfend jede Tabelle des 243-Seiten-Dokuments (z. B. Mehrkesselanlagen, KWK,
+    Anhang B/C BIN-Verfahren – bereits vorher als „nicht umgesetzt" dokumentiert, daher
+    hier nicht erneut gegengeprüft).

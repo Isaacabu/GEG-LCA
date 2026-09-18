@@ -88,18 +88,23 @@ EMISSION = {
               "n_exp": 1.1, "label": "Fußbodenheizung 35/28"},
 }
 
-# Lüftungssysteme (Teil 6): effektiver Bilanz-Luftwechsel + SPI [W/(m³/h)] (Tab. 19)
+# Lüftungssysteme (Teil 6): effektiver Bilanz-Luftwechsel + SPI [W/(m³/h)].
+# SPI nach DIN/TS 18599-6:2025-10 Tab. 20 ("ab 2016 errichtete Anlagen") - Neubau-Fall dieses Tools,
+# konsistent mit den ebenfalls Neubau-typisierten BOILERS oben. Tab. 20 unterscheidet motorseitig
+# nicht mehr zwischen AC/DC (moderne Anlagen sind durchgehend hocheffizient); spi_ac/spi_dc bleiben
+# als Felder erhalten (Frontend-Auswahl "AC-/DC-Ventilator"), liefern ab 2016 aber denselben Wert.
+# Die alte Tab. 21 ("bis 2015 errichtet", mit AC/DC-Split) galt für die 2018er DIN-V-Ausgabe.
 N_INF = 0.1                 # h⁻¹ Infiltration bei vorhandener Anlage
 N_MECH = 0.4                # h⁻¹ Anlagenluftwechsel (nicht bedarfsgeführt)
 VENT_SYSTEMS = {
     "none":            {"label": "ohne Lüftungsanlage", "spi_ac": 0.0,  "spi_dc": 0.0,  "hr": False},
-    "exhaust":         {"label": "zentrale Abluftanlage", "spi_ac": 0.20, "spi_dc": 0.10, "hr": False},
-    "balanced":        {"label": "Zu-/Abluft ohne WRG", "spi_ac": 0.55, "spi_dc": 0.35, "hr": False},
-    "balanced_hr":     {"label": "Zu-/Abluft mit WRG", "spi_ac": 0.55, "spi_dc": 0.35, "hr": True},
-    "balanced_hr_dec": {"label": "dezentrale Zu-/Abluft mit WRG", "spi_ac": 0.35, "spi_dc": 0.20, "hr": True},
-    "exhaust_hp":      {"label": "Abluft/Zuluft-WP ohne WÜ", "spi_ac": 0.65, "spi_dc": 0.45, "hr": False,
+    "exhaust":         {"label": "zentrale Abluftanlage", "spi_ac": 0.10, "spi_dc": 0.10, "hr": False},
+    "balanced":        {"label": "Zu-/Abluft ohne WRG", "spi_ac": 0.28, "spi_dc": 0.28, "hr": False},
+    "balanced_hr":     {"label": "Zu-/Abluft mit WRG", "spi_ac": 0.28, "spi_dc": 0.28, "hr": True},
+    "balanced_hr_dec": {"label": "dezentrale Zu-/Abluft mit WRG", "spi_ac": 0.16, "spi_dc": 0.16, "hr": True},
+    "exhaust_hp":      {"label": "Abluft/Zuluft-WP ohne WÜ", "spi_ac": 0.38, "spi_dc": 0.38, "hr": False,
                         "n_eff_fixed": 0.7},
-    "exhaust_hp_he":   {"label": "Abluft/Zuluft-WP mit WÜ", "spi_ac": 0.65, "spi_dc": 0.45, "hr": False,
+    "exhaust_hp_he":   {"label": "Abluft/Zuluft-WP mit WÜ", "spi_ac": 0.38, "spi_dc": 0.38, "hr": False,
                         "n_eff_fixed": 0.6},
 }
 
