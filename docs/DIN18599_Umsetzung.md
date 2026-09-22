@@ -239,9 +239,20 @@ Brennstoff-Endenergie + Strom (Anlagentechnik inkl. WP + Haushaltsstrom-Eingabef
 PV-Eigenverbrauch; CO₂ gesamt = Anlagen-CO₂ + Haushalt·0,56 − PV·0,56. Frontend nutzt das
 gespeicherte Anlagentechnik-Ergebnis (`window.lastSystemResult`).
 
+**Ergänzung Energiebilanz September 2026:** `calculate_system_din` liefert zusätzlich eine
+explizite Aufteilung des Anlagenstroms in Heizung, Trinkwarmwasser, Hilfsenergie, Beleuchtung
+und Kühlung. Die sichtbare Endenergie-Zusammensetzung führt diese Verbraucher vollständig auf;
+Beleuchtung und Kühlung werden nicht mehr nur in der Jahressumme, sondern auch in der Darstellung
+berücksichtigt. Die Hülle liefert `specific_transmission_loss` als `H_T' = H_T / A_Hülle`.
+
 **Gebäudedaten:** veralteter Gradstunden-Hinweis durch DIN-Monatsbilanz-Beschreibung ersetzt;
 „Anzahl Personen"/„Betriebsstunden" als *informativ* gekennzeichnet (Profilwerte nach Teil 10
 sind maßgeblich).
+
+**Innenraum-Zeichenkomfort:** Im Tab „Inneneinrichtung" kann ein Rechteckraum jetzt mit frei
+wählbarer Länge und Breite erzeugt werden. Die Maße werden auf das 0,5-m-Raster gerundet und
+innerhalb des Gebäudeumrisses gehalten; anschließend bleiben Ecken und Wände wie bisher einzeln
+bearbeitbar.
 
 ## 12. Output-Benennung & Verständlichkeit (UX-Pass)
 
@@ -482,9 +493,11 @@ liefert realistische Jahresarbeitszahlen; exaktes BIN-Verfahren als späterer Au
 → Lüftungswärmesenke in Teil 2 aufgeteilt: `Q_v = 0,34·V·[n_inf·(θ_i − θ_e) + n_mech·(θ_i − θ_V,mech)]`,
 d. h. mechanischer Anteil wird mit Faktor (1 − η_WRG) gewichtet.
 
-**Anlagenluftwechsel (5.3 + Standardwerte S. 72):** n_mech = 0,4 h⁻¹ (nicht bedarfsgeführt) /
-0,35 h⁻¹ (bedarfsgeführt); Betrieb 24 h/d, alle Tage. Infiltration n_inf = 0,1 h⁻¹ (Anlage, dichte
-Hülle) → Summe 0,5 h⁻¹ konsistent mit Teil 10. Abluftanlage ohne WRG: Senke wie freie Lüftung.
+**Anlagenluftwechsel (5.3 + Standardwerte, Tabelle 9):** n_mech = 0,4 h⁻¹ (nicht bedarfsgeführt),
+0,35 h⁻¹ (zentral bedarfsgeführt) bzw. 0,30 h⁻¹ (raumweise bedarfsgeführt); Betrieb 24 h/d,
+alle Tage. Infiltration n_inf = 0,1 h⁻¹ (Anlage, dichte Hülle). Bei einer reinen Abluftanlage
+wird n_mech in der Zonenbilanz mit 0 angesetzt; die Abluftventilatoren werden separat über ihren
+Luftvolumenstrom bilanziert.
 
 **Ventilator-Hilfsenergie (9.3, Gl. 60/61):**
 `W_fan = 0,001·(1 + f_Zuschläge)·SPI·n_mech·V·t_rv,mech` [kWh/Monat], t = 24·d_mth.

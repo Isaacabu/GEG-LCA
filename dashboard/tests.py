@@ -224,6 +224,13 @@ class Din18599HeatDemandTests(SimpleTestCase):
         # 88*0,24 + 100*0,20 + 100*0,175 + 30*1,10 + 2*1,30 + 32,0 = 126,22 W/K
         self.assertAlmostEqual(self.r["h_transmission"], 126.22, places=2)
 
+    def test_spezifischer_transmissionsverlust_ist_h_t_prime(self):
+        self.assertAlmostEqual(
+            self.r["specific_transmission_loss"],
+            self.r["h_transmission"] / self.r["envelope_area_m2"],
+            places=4,
+        )
+
     def test_h_ventilation_regression(self):
         self.assertAlmostEqual(self.r["h_ventilation"], 66.30, delta=0.05)
 
@@ -333,6 +340,39 @@ class Din18599AnlageTests(SimpleTestCase):
     def test_gas_endenergie_spezifisch_plausibel(self):
         spez = self.gas["total_end_energy"] / 150
         self.assertTrue(60 <= spez <= 130, f"{spez} kWh/m²a außerhalb Plausibilitätsband")
+
+    def test_electricity_breakdown_is_explicit_and_consistent(self):
+        breakdown = self.wp["electricity_breakdown"]
+        self.assertEqual(set(breakdown), {"heating", "hotwater", "auxiliary", "lighting", "cooling"})
+        self.assertAlmostEqual(
+            sum(breakdown.values()),
+            self.wp["heating_end_energy"] + self.wp["hotwater_end_energy"]
+            + self.wp["auxiliary_electricity"] + self.wp["lighting_end_energy"]
+            + self.wp["cooling_end_energy"],
+            places=2,
+        )
+
+    def test_lueftungsregelung_verwendet_normative_luftwechsel(self):
+        base = {
+            "bgf": 150, "room_height": 2.6, "building_type": "wohngebaeude",
+            "building_type_variant": "EFH", "envelope": REFERENZ_EFH_ENVELOPE,
+            "heating_system": "heatpump", "cop": 3.5,
+            "ventilation_system_type": "balanced_hr",
+            "ventilation_heat_recovery_eff": 0.8,
+        }
+        zentral = calculate_system_din({**base, "ventilation_precontrol": "with"})
+        raumweise = calculate_system_din({**base, "ventilation_room_control": "with"})
+        self.assertAlmostEqual(zentral["din"]["n_eff_air_change"], 0.17, places=3)
+        self.assertAlmostEqual(raumweise["din"]["n_eff_air_change"], 0.16, places=3)
+
+    def test_abluftanlage_erzeugt_keine_rlt_zuluft(self):
+        result = calculate_system_din({
+            "bgf": 150, "room_height": 2.6, "building_type": "wohngebaeude",
+            "building_type_variant": "EFH", "envelope": REFERENZ_EFH_ENVELOPE,
+            "heating_system": "gas", "ventilation_system_type": "exhaust",
+        })
+        self.assertAlmostEqual(result["din"]["n_eff_air_change"], 0.1, places=3)
+        self.assertGreater(result["din"]["aux_fans"], 0)
 
 
 class Din18599MultizoneTests(SimpleTestCase):
@@ -708,6 +748,21 @@ class IfcEnvelopeExtractionTests(SimpleTestCase):
     def test_fenster_anzahl_je_orientierung(self):
         self.assertEqual(self.r["window_counts"]["south"], 1)
         self.assertNotIn("east", self.r["window_counts"])
+
+    def test_einzelelemente_enthalten_stabile_ids_und_masse(self):
+        self.assertEqual(len(self.r["wall_elements"]), 4)
+        south_window = self.r["window_elements"][0]
+        self.assertEqual(south_window["name"], "Fenster Süd")
+        self.assertEqual(south_window["orientation"], "south")
+        self.assertAlmostEqual(south_window["width"] * south_window["height"], 1.44, delta=0.05)
+        east_door = self.r["door_elements"][0]
+        self.assertEqual(east_door["name"], "Tür Ost")
+        self.assertEqual(east_door["orientation"], "east")
+        self.assertGreater(east_door["id"], 0)
+
+    def test_einzelelemente_enthalten_rohwinkel_fuer_nordausrichtung(self):
+        self.assertIn("angle_deg", self.r["wall_elements"][0])
+        self.assertIn("angle_deg", self.r["window_elements"][0])
 
     def test_tuer_der_ostwand_zugeordnet(self):
         self.assertIn("east", self.r["doors"])

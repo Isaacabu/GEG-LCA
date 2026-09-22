@@ -2042,7 +2042,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 </div>
                 <div class="house-cat-tabs" id="modelSourceTabs" style="margin:4px 0 14px;justify-content:center;">
                     <button type="button" class="hcat active" id="modelSourceDrawBtn" role="tab" aria-selected="true" onclick="window.setModelSource('draw')">✏️ Modell zeichnen</button>
-                    <button type="button" class="hcat" id="modelSourceIfcBtn" role="tab" aria-selected="false" onclick="window.setModelSource('ifc')">📥 IFC-Ansicht</button>
+                    <button type="button" class="hcat" id="modelSourceIfcBtn" role="tab" aria-selected="false" onclick="window.setModelSource('ifc')">📥 IFC-Modell ansehen</button>
                 </div>
                 <div id="modelSourceDraw">
                     <div id="house3d" class="house3d" role="img" aria-label="3D-Gebäudemodell. Flächen anklicken, um zur jeweiligen Berechnung zu springen.">
@@ -2064,7 +2064,14 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <p class="note" style="margin-top:14px;text-align:center;">Tipp: Eine Fläche im 3D-Modell anklicken, um sie zu bearbeiten – oder Fenster/Tür/PV-Modul ziehen, um sie zu verschieben.</p>
                 </div>
                 <div id="modelSourceIfc" style="display:none;">
-                    <p class="note">Reine 3D-Vorschau des zuletzt importierten IFC-Modells (Wände, Decken, Dach, Fenster,
+                    <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:10px;">
+                        <input type="file" id="ifcProjectFileInput" accept=".ifc" style="display:none;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('ifcProjectFileInput').click()">📥 Neues IFC-Modell laden</button>
+                        <button type="button" class="btn" onclick="window.selectEnvelopeSource('ifc')">⚡ IFC für Berechnung verwenden</button>
+                        <label class="small">Nordpfeil-Korrektur <input id="ifcNorthOffset" type="number" step="1" value="0" style="width:78px;" title="Drehung des IFC-Modells gegenüber Norden in Grad"></label>
+                        <button type="button" class="btn" onclick="window.applyIfcNorthDirection()">🧭 Nordrichtung anwenden</button>
+                    </div>
+                    <p class="note">3D-Vorschau des aktuell in dieser Sitzung geladenen IFC-Modells (Wände, Decken, Dach, Fenster,
                         Türen, Stützen/Träger/Treppen) — zur Kontrolle, was aus der Datei ausgelesen wurde. <b>Keine
                         Bearbeitung hier</b> — Wand-/Fenster-/Dach-/Bodenflächen für die Berechnung werden im Tab
                         „Gebäudehülle" übernommen (Karte „Aus IFC übernommen").</p>
@@ -2368,6 +2375,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div id="errorBox" class="alert-box"></div>
 
             <div id="envelopeSourceBadge" style="margin-bottom:14px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;text-align:center;"></div>
+            <div class="card" style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
+                <strong style="margin-right:4px;">Berechnungsquelle:</strong>
+                <button type="button" class="btn btn-primary" onclick="window.selectEnvelopeSource('draw')">✏️ Zeichnungsmodell verwenden</button>
+                <button type="button" class="btn" onclick="document.getElementById('ifcProjectFileInput').click()">📥 Neues IFC laden</button>
+                <button type="button" class="btn" onclick="window.selectEnvelopeSource('ifc')">⚡ IFC-Modell verwenden</button>
+            </div>
 
             <div class="card" id="bauteilkatalogCard">
                 <h3>📚 Bauteilkatalog
@@ -2377,12 +2390,16 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             </div>
 
             <div class="card" id="ifcEnvelopeCard" style="display:none;">
-                <h3>📥 Aus IFC übernommen
-                    <span class="info-i" data-tip="Wand-/Fenster-/Tür-/Dach-/Bodenflächen aus dem zuletzt importierten IFC-Modell (Startseite → IFC-Import). U-Werte kommen NICHT aus IFC (die meisten Modelle tragen keine) - unten im Wandaufbau wie gewohnt festlegen. Der 3D-Grundriss unten zeigt weiterhin die Standardgeometrie, nicht das importierte Modell - nur die Kennwerte werden übernommen.">i</span>
+                <h3>📥 IFC-Modell für die Gebäudehülle
+                    <span class="info-i" data-tip="IFC und Zeichnungsmodell bleiben getrennt. Erst mit „IFC für Berechnung verwenden“ wird die Gebäudehülle aus der aktuell geladenen IFC-Datei berechnet.">i</span>
                 </h3>
                 <p class="note" id="ifcEnvelopeSummary"></p>
-                <button type="button" class="btn btn-primary" onclick="window.applyIfcEnvelopeToHuelle()">Werte übernehmen &amp; Heizwärmebedarf berechnen</button>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-primary" onclick="window.selectEnvelopeSource('ifc')">⚡ IFC für Berechnung verwenden</button>
+                    <button type="button" class="btn" onclick="window.selectEnvelopeSource('draw')">✏️ Zeichnungsmodell berechnen</button>
+                </div>
                 <div id="ifcEnvelopeApplyStatus" class="small" style="margin-top:8px;color:#57626e;"></div>
+                <div id="ifcSurfaceElements" style="margin-top:10px;"></div>
             </div>
 
             <!-- ① Außenwände -->
@@ -3008,6 +3025,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                 <div class="fp-toolbar" id="innenToolbar">
                     <span class="fp-group">
                         <button type="button" class="fp-btn" data-in="rect">▭ Rechteck-Zimmer</button>
+                        <label class="fp-ctl" title="Abmessungen werden auf das Raster gerundet und innerhalb des Gebäudeumrisses platziert.">Länge
+                            <input type="number" id="innenRectWidth" min="0.5" step="0.5" value="4" style="width:64px;"> m
+                        </label>
+                        <label class="fp-ctl">Breite
+                            <input type="number" id="innenRectHeight" min="0.5" step="0.5" value="3" style="width:64px;"> m
+                        </label>
                     </span>
                     <span class="fp-group">
                         <button type="button" class="fp-btn" data-in="undo">↶ Punkt zurück</button>
@@ -3606,6 +3629,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
             <div class="card">
                 <div class="sys-flow-title">Energie auf einen Blick <span class="wall-viz-sub">Jahres-Gesamtwerte (kWh/a) – vom Verbrauch bis CO₂</span></div>
                 <div id="sys_flow"><div class="sys-flow-empty">Sobald die Anlagentechnik berechnet ist (läuft automatisch), erscheint hier die Energie-Übersicht.</div></div>
+                <div class="note" id="system_electricity_breakdown" style="margin-top:10px;"></div>
             </div>
 
             <!-- Unsichtbare Legacy-Ziele: die Berechnungskette (calculate/calculate-system,
@@ -6098,7 +6122,11 @@ function renderWallAufbauGrid() {
     const esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
     const saved = getSavedWallBuilds();
     let entries;   // [{key, label}]
-    if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
+    if (Array.isArray(window._ifcWallElements) && window._ifcWallElements.length) {
+        entries = window._ifcWallElements.map(function (w) {
+            return { key: w.key || ('ifc-wall-' + w.id), label: (w.name || ('IFC-Wand ' + w.id)) + ' · ' + (w.oriDe || w.orientation || '') + ' · ' + Number(w.flaeche || w.area || 0).toFixed(1) + ' m²', ifcId: w.id };
+        });
+    } else if (window.isComplexGeometry && Array.isArray(window.complexWallList) && window.complexWallList.length) {
         // je Wand ein Feld; bei >8 Wänden teilen sich Wände einen Sektor (wie Randbedingungen)
         const byOri = {}, order = [];
         window.complexWallList.forEach(function (w) {
@@ -6118,7 +6146,7 @@ function renderWallAufbauGrid() {
         const u = wallUFor(e.key, window._wallTableU);
         const opts = '<option value=""' + (cur === '' ? ' selected' : '') + '>Standard (Tabelle)</option>'
             + saved.map(function (it) { return '<option value="' + esc(it.id) + '"' + (cur === it.id ? ' selected' : '') + '>' + esc(it.name) + '</option>'; }).join('');
-        return '<div class="field" style="margin:0;">'
+        return '<div class="field" style="margin:0;"' + (e.ifcId != null ? ' data-ifc-id="' + esc(e.ifcId) + '"' : '') + '>'
             + '<label>' + e.label + '</label>'
             + '<select onchange="onWallAufbauSelect(\'' + e.key + '\', this.value)">' + opts + '</select>'
             + '<div class="small" style="margin-top:4px;color:#9bb;">U = ' + (u > 0 ? u.toFixed(3) + ' W/(m²·K)' : '—') + '</div>'
@@ -8476,7 +8504,7 @@ async function calculateEnvelope() {
                     ? group.reduce(function (s, w) { return s + w.flaeche * getWallFxFactor(w.ori); }, 0) / aSum
                     : getWallFxFactor(o);
                 const uSector = aSum > 0
-                    ? group.reduce(function (s, w) { return s + w.flaeche * uOf(w.ori); }, 0) / aSum
+                    ? group.reduce(function (s, w) { return s + w.flaeche * uOf(w.aufbauKey || w.ori); }, 0) / aSum
                     : uOf(o);
                 envelopePayload[o + '_area'] = wa[o] || 0;
                 envelopePayload[o + '_u'] = uSector * fx;
@@ -8677,6 +8705,13 @@ function calculateSystem() {
 
         // DIN-Detailwerte (Stufe 2) – weiter unten für JAZ/Beleuchtung benötigt
         const din = data.din || {};
+        const breakdown = data.electricity_breakdown || {};
+        const breakdownNote = document.getElementById('system_electricity_breakdown');
+        if (breakdownNote) breakdownNote.textContent = 'Stromaufteilung: Heizung ' + Math.round(breakdown.heating || 0)
+            + ' · Warmwasser ' + Math.round(breakdown.hotwater || 0)
+            + ' · Hilfsenergie ' + Math.round(breakdown.auxiliary || 0)
+            + ' · Beleuchtung ' + Math.round(breakdown.lighting || 0)
+            + ' · Kühlung ' + Math.round(breakdown.cooling || 0) + ' kWh/a';
         // JAZ nur bei Wärmepumpe anzeigen, sonst Kachel ausblenden
         const jazBox = document.getElementById('system_jaz_box');
         if (din.jaz) {
@@ -8812,13 +8847,14 @@ function renderSystemViz(data) {
     const flow = document.getElementById('sys_flow');
     if (!flow) return;
     const heat = +data.heating_end_energy || 0, ww = +data.hotwater_end_energy || 0, aux = +data.auxiliary_electricity || 0;
+    const lighting = +data.lighting_end_energy || 0, cooling = +data.cooling_end_energy || 0;
     const endT = (+data.total_end_energy) || (heat + ww + aux);
     const prim = +data.primary_energy || 0;
     const co2v = +data.co2_emissions || 0;
     const isHP = (data.din && data.din.heating_system === 'heatpump') ||
         ((document.getElementById('heating_system') || {}).value === 'heatpump');
     const carrierFuel = isHP ? 0 : (heat + ww);          // Brennstoff/Fernwärme
-    const carrierElec = aux + (isHP ? (heat + ww) : 0);  // Strom
+    const carrierElec = aux + lighting + cooling + (isHP ? (heat + ww) : 0);  // Strom
 
     if (endT <= 0) { flow.innerHTML = '<div class="sys-flow-empty">Noch keine Endenergie berechnet.</div>'; return; }
 
@@ -8847,7 +8883,9 @@ function renderSystemViz(data) {
         + step('☁️', 'CO₂-Emissionen', fmt1(co2Spec), 'kg CO₂e/(m²·a)', 'Treibhausgase je m² und Jahr', '');
 
     // Zusammensetzung der Endenergie (einfacher Balken mit %)
-    const segDefs = [['Heizung', heat, '#10b981'], ['Warmwasser', ww, '#f6b94b'], ['Hilfsstrom', aux, '#8b7cf6']].filter(function (s) { return s[1] > 0; });
+    const segDefs = [['Heizung', heat, '#10b981'], ['Warmwasser', ww, '#f6b94b'],
+        ['Hilfsstrom', aux, '#8b7cf6'], ['Beleuchtung', lighting, '#fb923c'],
+        ['Kühlung', cooling, '#22d3ee']].filter(function (s) { return s[1] > 0; });
     const bar = segDefs.map(function (s) { return '<div class="es-seg" style="width:' + (s[1] / endT * 100).toFixed(1) + '%;background:' + s[2] + '" title="' + s[0] + ' ' + fmt(s[1]) + ' kWh/a">' + (pct(s[1]) >= 12 ? '<span>' + pct(s[1]) + '%</span>' : '') + '</div>'; }).join('');
     const barLeg = segDefs.map(function (s) { return '<span><i style="background:' + s[2] + '"></i>' + s[0] + ' ' + fmt(s[1]) + ' (' + pct(s[1]) + '%)</span>'; }).join('');
 
@@ -13407,8 +13445,8 @@ async function updateDoorType() {
         return (item.wallNr != null) ? ('Wand ' + item.wallNr + ' (' + base + ')') : base;
     }
 
-    function row(kind, id, label) {
-        return '<div class="elem-row"><span class="er-label">' + esc(label) + '</span>'
+    function row(kind, id, label, ifcId) {
+        return '<div class="elem-row"' + (ifcId != null ? ' data-ifc-id="' + esc(ifcId) + '"' : '') + '><span class="er-label">' + esc(label) + '</span>'
             + '<span class="er-actions">'
             + '<button type="button" class="btn" onclick="elemEdit(\'' + kind + '\',' + id + ')">Bearbeiten</button>'
             + '<button type="button" class="btn" onclick="elemDelete(\'' + kind + '\',' + id + ')">Löschen</button>'
@@ -13420,9 +13458,9 @@ async function updateDoorType() {
         const wl = $('window_list');
         // Typ-Kürzel für die Zeile: führendes „Fenster - " weglassen (Platz sparen)
         const winType = (w) => w.typeName ? ' · ' + String(w.typeName).replace(/^Fenster\s*-\s*/, '') : '';
-        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, oriLabel(w) + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g) + winType(w))).join('') : empty('Noch keine Fenster.'); }
+        if (wl) { const l = window.windowsList || []; wl.innerHTML = l.length ? l.map(w => row('win', w.id, (w.ifcName ? w.ifcName + ' · ' : '') + oriLabel(w) + ' · ' + fmt(w.width) + '×' + fmt(w.height) + ' m · U ' + fmt(w.u) + ' · g ' + fmt(w.g) + winType(w), w.ifcId)).join('') : empty('Noch keine Fenster.'); }
         const dl = $('door_list');
-        if (dl) { const l = window.doorsList || []; dl.innerHTML = l.length ? l.map(d => row('door', d.id, oriLabel(d) + ' · ' + fmt(d.width) + '×' + fmt(d.height) + ' m · U ' + fmt(d.u))).join('') : empty('Noch keine Türen.'); }
+        if (dl) { const l = window.doorsList || []; dl.innerHTML = l.length ? l.map(d => row('door', d.id, (d.ifcName ? d.ifcName + ' · ' : '') + oriLabel(d) + ' · ' + fmt(d.width) + '×' + fmt(d.height) + ' m · U ' + fmt(d.u), d.ifcId)).join('') : empty('Noch keine Türen.'); }
         const pl = $('pv_module_list');
         if (pl) { const l = window.pvList || []; pl.innerHTML = l.length ? l.map((p, i) => row('pv', p.id, 'Modul ' + (i + 1) + ' · ' + fmt(p.width) + '×' + fmt(p.height) + ' m · ' + fmt(p.tilt) + '° · ' + fmt(p.azimuth) + '°')).join('') : empty('Noch keine PV-Module.'); }
     };
@@ -13547,6 +13585,9 @@ async function updateDoorType() {
         return {
             fields: fields,
             wall_layers: layerDump('wall_layers_container'), roof_layers: layerDump('roof_layers_container'), floor_layers: layerDump('floor_layers_container'),
+            draw_envelope_state: window._envelopeSource === 'ifc'
+                ? JSON.parse(JSON.stringify(window._drawEnvelopeState || null))
+                : (typeof window._captureEnvelopeState === 'function' ? window._captureEnvelopeState() : null),
             windowsList: window.windowsList || [], doorsList: window.doorsList || [], pvList: window.pvList || [],
             winSeq: window._winSeq || 0, doorSeq: window._doorSeq || 0, pvSeq: window._pvSeq || 0,
             pvEnabled: window.pvEnabled === true,
@@ -13599,6 +13640,10 @@ async function updateDoorType() {
         if (window._pruneFloatingOpenings) window._pruneFloatingOpenings();   // geladene Schweber entfernen
         if (window._rebuild3D) window._rebuild3D();
         if (window.renderElementLists) window.renderElementLists();
+        if (s.draw_envelope_state && typeof window._restoreEnvelopeState === 'function') {
+            window._drawEnvelopeState = JSON.parse(JSON.stringify(s.draw_envelope_state));
+            window._restoreEnvelopeState(window._drawEnvelopeState);
+        }
     }
     function runChain() {
         setTimeout(function () { try { if (typeof calculateEnvelope === 'function') calculateEnvelope(); } catch (e) {}
@@ -15157,8 +15202,38 @@ async function updateDoorType() {
             }
             else if (act === 'rect') {   // 4×3-m-Zimmer in der Umriss-Mitte, danach Punkte ziehen
                 const c = centroid(getFootprint());
-                draft = [{ x: snap(c.x - 2), y: snap(c.y - 1.5) }, { x: snap(c.x + 2), y: snap(c.y - 1.5) },
-                         { x: snap(c.x + 2), y: snap(c.y + 1.5) }, { x: snap(c.x - 2), y: snap(c.y + 1.5) }];
+                const width = Math.max(0.5, parseFloat($('innenRectWidth')?.value) || 4);
+                const height = Math.max(0.5, parseFloat($('innenRectHeight')?.value) || 3);
+                const halfW = width / 2, halfH = height / 2;
+                const raw = [{ x: c.x - halfW, y: c.y - halfH }, { x: c.x + halfW, y: c.y - halfH },
+                             { x: c.x + halfW, y: c.y + halfH }, { x: c.x - halfW, y: c.y + halfH }];
+                // Move the requested rectangle toward the footprint centroid until every
+                // corner is inside; this preserves the requested dimensions whenever possible.
+                let dx = 0, dy = 0;
+                for (let n = 0; n < 20 && !raw.every(function (p) { return insideFootprint({ x: p.x + dx, y: p.y + dy }); }); n++) {
+                    const outside = raw.filter(function (p) { return !insideFootprint({ x: p.x + dx, y: p.y + dy }); });
+                    if (!outside.length) break;
+                    const target = centroid(getFootprint());
+                    const current = centroid(outside.map(function (p) { return { x: p.x + dx, y: p.y + dy }; }));
+                    dx += (target.x - current.x) * 0.5;
+                    dy += (target.y - current.y) * 0.5;
+                }
+                draft = raw.map(function (p) { return snapPt({ x: p.x + dx, y: p.y + dy }); });
+                // snapPt can collapse a corner on a very small footprint; fall back to
+                // the largest centered rectangle in that case rather than creating invalid geometry.
+                if (polyArea(draft) < 0.25) {
+                    const fp = getFootprint();
+                    const minX = Math.min.apply(null, fp.map(function (p) { return p.x; }));
+                    const maxX = Math.max.apply(null, fp.map(function (p) { return p.x; }));
+                    const minY = Math.min.apply(null, fp.map(function (p) { return p.y; }));
+                    const maxY = Math.max.apply(null, fp.map(function (p) { return p.y; }));
+                    const w = Math.min(width, Math.max(0.5, maxX - minX - 1));
+                    const h = Math.min(height, Math.max(0.5, maxY - minY - 1));
+                    draft = [{ x: snap((minX + maxX - w) / 2), y: snap((minY + maxY - h) / 2) },
+                             { x: snap((minX + maxX + w) / 2), y: snap((minY + maxY - h) / 2) },
+                             { x: snap((minX + maxX + w) / 2), y: snap((minY + maxY + h) / 2) },
+                             { x: snap((minX + maxX - w) / 2), y: snap((minY + maxY + h) / 2) }];
+                }
                 closeDraft();
             }
         });
@@ -16843,7 +16918,49 @@ window.addEventListener('load', function () {
             req.onerror = function () { resolve(null); };
         });
     }
+    function idbPut(key, value) {
+        return new Promise(function (resolve, reject) {
+            const req = indexedDB.open('geglca_ifc_db', 1);
+            req.onupgradeneeded = function () { req.result.createObjectStore('kv'); };
+            req.onsuccess = function () {
+                const tx = req.result.transaction('kv', 'readwrite');
+                tx.objectStore('kv').put(value, key);
+                tx.oncomplete = function () { resolve(); };
+                tx.onerror = function () { reject(tx.error); };
+            };
+            req.onerror = function () { reject(req.error); };
+        });
+    }
     window._loadIfcImportData = function () { return idbGet('last_import'); };
+
+    async function uploadProjectIfc(file) {
+        const statusEl = document.getElementById('bimViewerStatus');
+        if (!file) return;
+        if (statusEl) statusEl.textContent = 'Lese IFC-Datei …';
+        const formData = new FormData();
+        formData.append('ifc_file', file);
+        try {
+            const response = await fetch('/import-ifc/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': (document.cookie.match(/(?:^|; )csrftoken=([^;]+)/) || [])[1] || '' },
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error((data.errors || ['Import fehlgeschlagen'])[0]);
+            await idbPut('last_import', data);
+            window._ifcEnvelopeData = data;
+            if (typeof window.renderIfcEnvelopeCard === 'function') window.renderIfcEnvelopeCard(data);
+            if (window.loadBimViewer) window.loadBimViewer();
+            if (statusEl) statusEl.textContent = '✓ „' + (data.building_name || file.name) + '" geladen. Jetzt die Berechnungsquelle auswählen.';
+        } catch (err) {
+            if (statusEl) statusEl.textContent = '✗ ' + (err.message || err);
+        }
+    }
+    const projectIfcInput = document.getElementById('ifcProjectFileInput');
+    if (projectIfcInput) projectIfcInput.addEventListener('change', function () {
+        uploadProjectIfc(projectIfcInput.files && projectIfcInput.files[0]);
+        projectIfcInput.value = '';
+    });
 
     const params = new URLSearchParams(location.search);
     if (params.get('ifc_import') !== '1') return;
@@ -16856,6 +16973,7 @@ window.addEventListener('load', function () {
     // diesem Zeitpunkt bereits (Script steht nach dem gesamten Tab-HTML).
     idbGet('last_import').then(function (data) {
         if (!data || !data.ok) return;
+        window._ifcEnvelopeData = data;
         setTimeout(function () {
                 const nameEl = document.getElementById('project_name');
                 if (nameEl && data.building_name) nameEl.value = data.building_name;
@@ -16968,8 +17086,14 @@ window.addEventListener('load', function () {
         panel.innerHTML = '<h3 style="margin-top:0;">' + label + ': ' + (mesh.userData.name || '–') + '</h3>'
             + '<p class="note">Geschätzte Maße (Bounding-Box, kein exakter Wandverlauf): '
             + dims[0].toFixed(2) + ' × ' + dims[1].toFixed(2) + ' × ' + dims[2].toFixed(2) + ' m (L × H × T).</p>'
-            + '<p class="note">Bearbeiten (Wandaufbau/U-Wert zuweisen) geschieht im Bauteilkatalog, nicht direkt am importierten 3D-Modell (das ist unveränderliche Import-Geometrie).</p>'
-            + '<button type="button" class="btn btn-primary" onclick="window.jumpToBauteilkatalog()">📚 Zum Bauteilkatalog (Gebäudehülle)</button>';
+            + '<p class="note">Energetische Eigenschaften werden in der Gebäudehülle zugewiesen; die IFC-Geometrie bleibt unverändert.</p>'
+            + (mesh.userData.type === 'IfcWall' || mesh.userData.type === 'IfcWallStandardCase' || mesh.userData.type === 'IfcCurtainWall'
+                ? '<button type="button" class="btn btn-primary" onclick="window.selectIfcElement(' + Number(mesh.userData.id) + ')">🧱 Aufbau dieser Wand zuweisen</button>'
+                : (mesh.userData.type === 'IfcWindow' || mesh.userData.type === 'IfcDoor'
+                    ? '<button type="button" class="btn btn-primary" onclick="window.selectIfcElement(' + Number(mesh.userData.id) + ')">🪟 Dieses Bauteil in der Gebäudehülle bearbeiten</button>'
+                    : (mesh.userData.type === 'IfcRoof'
+                        ? '<button type="button" class="btn btn-primary" onclick="window.selectIfcSurface(' + Number(mesh.userData.id) + ', \'roof\')">🏠 Dachaufbau bearbeiten</button><button type="button" class="btn btn-primary" onclick="window.addPvForIfcRoof(' + Number(mesh.userData.id) + ')">＋ PV auf diesem Dach</button>'
+                        : '<button type="button" class="btn btn-primary" onclick="window.jumpToBauteilkatalog()">📚 Zur Gebäudehülle</button>')));
     }
     window.jumpToBauteilkatalog = function () {
         const btn = document.querySelector('[aria-controls="huelle"]');
@@ -17016,6 +17140,7 @@ window.addEventListener('load', function () {
         clearSelection();
         Array.from(scene.children).forEach(function (c) { if (c.userData && c.userData.type) scene.remove(c); });
         const group = new THREE.Group();
+        group.rotation.y = -(Number(window._ifcNorthOffset || 0) * Math.PI / 180);
         (data.geometry.meshes || []).forEach(function (m) { group.add(meshFromIfc(m)); });
         scene.add(group);
         fitCameraToScene(group);
@@ -17029,9 +17154,9 @@ window.addEventListener('load', function () {
 
     window.loadBimViewer = function () {
         status('Lade …');
-        (window._loadIfcImportData ? window._loadIfcImportData() : Promise.resolve(null)).then(function (data) {
+        Promise.resolve(window._ifcEnvelopeData || null).then(function (data) {
             if (!data || !data.ok || !data.geometry || !(data.geometry.meshes || []).length) {
-                status('Noch kein IFC-Modell importiert (oder keine darstellbare Geometrie enthalten). Import über die Startseite („📥 IFC-Modell importieren").');
+                status('Noch kein IFC-Modell in dieser Sitzung geladen. Bitte „Neues IFC-Modell laden“ verwenden.');
                 return;
             }
             status('');
@@ -17065,6 +17190,86 @@ window.addEventListener('load', function () {
     const ORI8 = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
     const ORI_DE = { north: 'N', northeast: 'NO', east: 'O', southeast: 'SO', south: 'S', southwest: 'SW', west: 'W', northwest: 'NW' };
 
+    function clone(value) { return JSON.parse(JSON.stringify(value)); }
+    function captureEnvelopeState() {
+        return {
+            wallAreas: clone(window.wallAreas || {}),
+            complexWallList: clone(window.complexWallList || []),
+            complexWindows: clone(window.complexWindows || {}),
+            complexDoors: clone(window.complexDoors || {}),
+            complexDoorArea: window.complexDoorArea,
+            windowsList: clone(window.windowsList || []),
+            doorsList: clone(window.doorsList || []),
+            isComplexGeometry: window.isComplexGeometry === true,
+            envelopeSource: window._envelopeSource || 'draw',
+            envelopeSourceName: window._envelopeSourceName || ''
+        };
+    }
+    function restoreEnvelopeState(state) {
+        if (!state) return;
+        window.wallAreas = clone(state.wallAreas || {});
+        window.complexWallList = clone(state.complexWallList || []);
+        window.complexWindows = clone(state.complexWindows || {});
+        window.complexDoors = clone(state.complexDoors || {});
+        window.complexDoorArea = state.complexDoorArea;
+        window.windowsList = clone(state.windowsList || []);
+        window.doorsList = clone(state.doorsList || []);
+        window.isComplexGeometry = state.isComplexGeometry === true;
+        window._ifcWallElements = null;
+        window._ifcWindowElements = null;
+        window._ifcDoorElements = null;
+        window._envelopeSource = 'draw';
+        window._envelopeSourceName = '';
+        if (typeof window.aggregateWindows === 'function') window.aggregateWindows();
+        if (typeof window.aggregateDoors === 'function') window.aggregateDoors();
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();
+        if (typeof renderWallAreaGrid === 'function') renderWallAreaGrid();
+        if (typeof renderWallAufbauGrid === 'function') renderWallAufbauGrid();
+        if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
+        if (typeof calculateEnvelope === 'function') calculateEnvelope();
+    }
+    window._captureEnvelopeState = captureEnvelopeState;
+    window._restoreEnvelopeState = restoreEnvelopeState;
+
+    function orientedIfcData(data) {
+        const out = clone(data);
+        const env = out.envelope || {};
+        const offset = Number(window._ifcNorthOffset || 0);
+        const orient = function (angle) {
+            const keys = ORI8;
+            return keys[Math.round((((Number(angle) - offset) % 360) + 360) % 360 / 45) % 8];
+        };
+        const reorient = function (items) {
+            return (Array.isArray(items) ? items : []).map(function (item) {
+                if (item.angle_deg != null) item.orientation = orient(item.angle_deg);
+                return item;
+            });
+        };
+        env.wall_elements = reorient(env.wall_elements);
+        env.window_elements = reorient(env.window_elements);
+        env.door_elements = reorient(env.door_elements);
+        env.walls = {}; (env.wall_elements || []).forEach(function (w) { env.walls[w.orientation] = (env.walls[w.orientation] || 0) + (w.area || 0); });
+        env.windows = {}; env.window_counts = {}; (env.window_elements || []).forEach(function (w) {
+            env.windows[w.orientation] = (env.windows[w.orientation] || 0) + (w.area || 0);
+            env.window_counts[w.orientation] = (env.window_counts[w.orientation] || 0) + 1;
+        });
+        env.doors = {}; (env.door_elements || []).forEach(function (d) {
+            const item = env.doors[d.orientation] || { count: 0, total_area: 0 };
+            item.count += 1; item.total_area += d.area || 0; env.doors[d.orientation] = item;
+        });
+        Object.keys(env.doors).forEach(function (o) { env.doors[o].area_per_unit = +(env.doors[o].total_area / env.doors[o].count).toFixed(2); delete env.doors[o].total_area; });
+        out.envelope = env;
+        return out;
+    }
+    window.applyIfcNorthDirection = function () {
+        const input = document.getElementById('ifcNorthOffset');
+        window._ifcNorthOffset = input ? (Number(input.value) || 0) : 0;
+        if (window._ifcEnvelopeData) {
+            window.selectEnvelopeSource('ifc');
+            if (typeof window.loadBimViewer === 'function') window.loadBimViewer();
+        }
+    };
+
     // Permanent sichtbare Kennzeichnung, welche Datenquelle GERADE aktiv in die
     // Berechnung geht - behebt die Verwirrung "rechnet er mit dem gezeichneten oder
     // dem importierten Modell?" (Zeichnen und IFC-Import schreiben in denselben
@@ -17085,26 +17290,150 @@ window.addEventListener('load', function () {
         }
     };
 
-    window.checkIfcEnvelopeCard = function () {
+    window.selectIfcElement = function (id) {
+        const tab = document.querySelector('[aria-controls="huelle"]');
+        if (tab) tab.click();
+        setTimeout(function () {
+            const target = Array.from(document.querySelectorAll('[data-ifc-id]')).find(function (el) {
+                return String(el.getAttribute('data-ifc-id')) === String(id);
+            });
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.style.outline = '2px solid #10b981';
+            const select = target.querySelector('select');
+            if (select) select.focus();
+            else {
+                const linked = Array.from(document.querySelectorAll('[data-ifc-id]')).find(function (el) {
+                    return el !== target && String(el.getAttribute('data-ifc-id')) === String(id)
+                        && !el.closest('#ifcSurfaceElements') && el.querySelector('button');
+                });
+                const edit = linked ? linked.querySelector('button') : null;
+                if (edit) edit.click();
+            }
+            setTimeout(function () { target.style.outline = ''; }, 2400);
+        }, 250);
+    };
+
+    window.renderIfcEnvelopeCard = function (data) {
         const card = document.getElementById('ifcEnvelopeCard');
-        if (!card || !window._loadIfcImportData) return;
-        window._loadIfcImportData().then(function (data) {
-            const env = data && data.ok ? data.envelope : null;
-            if (!env || !Object.keys(env.walls || {}).length) { card.style.display = 'none'; return; }
-            card.style.display = '';
-            const wallTxt = ORI8.filter(function (o) { return env.walls[o]; })
-                .map(function (o) { return ORI_DE[o] + ' ' + env.walls[o] + ' m²'; }).join(' · ');
-            const winTxt = ORI8.filter(function (o) { return env.windows[o]; })
-                .map(function (o) { return ORI_DE[o] + ' ' + env.windows[o] + ' m²'; }).join(' · ');
-            const doorTxt = ORI8.filter(function (o) { return env.doors[o]; })
-                .map(function (o) { return ORI_DE[o] + ' ' + env.doors[o].count + '× (' + env.doors[o].area_per_unit + ' m²)'; }).join(' · ');
-            document.getElementById('ifcEnvelopeSummary').innerHTML =
-                '<b>Wände:</b> ' + (wallTxt || '—') + '<br>'
-                + '<b>Fenster:</b> ' + (winTxt || '—') + '<br>'
-                + '<b>Türen:</b> ' + (doorTxt || '—') + '<br>'
-                + '<b>Dach:</b> ' + (env.roof_area != null ? env.roof_area + ' m²' : '— (bitte manuell)') + ' · '
-                + '<b>Bodenplatte:</b> ' + (env.floor_area != null ? env.floor_area + ' m²' : '— (bitte manuell)');
-        });
+        const env = data && data.ok ? data.envelope : null;
+        if (!card || !env || !Object.keys(env.walls || {}).length) { if (card) card.style.display = 'none'; return; }
+        card.style.display = '';
+        const escHtml = function (value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+        const wallTxt = ORI8.filter(function (o) { return env.walls[o]; })
+            .map(function (o) { return ORI_DE[o] + ' ' + env.walls[o] + ' m²'; }).join(' · ');
+        const winTxt = ORI8.filter(function (o) { return env.windows[o]; })
+            .map(function (o) { return ORI_DE[o] + ' ' + env.windows[o] + ' m²'; }).join(' · ');
+        const doorTxt = ORI8.filter(function (o) { return env.doors[o]; })
+            .map(function (o) { return ORI_DE[o] + ' ' + env.doors[o].count + '× (' + env.doors[o].area_per_unit + ' m²)'; }).join(' · ');
+        document.getElementById('ifcEnvelopeSummary').innerHTML =
+            '<b>Aktuell geladen:</b> „' + (data.building_name || 'IFC-Modell') + '"<br>'
+            + '<b>Wände:</b> ' + (wallTxt || '—') + '<br>'
+            + '<b>Fenster:</b> ' + (winTxt || '—') + '<br>'
+            + '<b>Türen:</b> ' + (doorTxt || '—') + '<br>'
+            + '<b>Dach:</b> ' + (env.roof_area != null ? env.roof_area + ' m²' : '— (bitte manuell)') + ' · '
+            + '<b>Bodenplatte:</b> ' + (env.floor_area != null ? env.floor_area + ' m²' : '— (bitte manuell)');
+        const surfaceBox = document.getElementById('ifcSurfaceElements');
+        if (surfaceBox) {
+            const rows = [];
+            const wallElements = Array.isArray(env.wall_elements) ? env.wall_elements : [];
+            const windowElements = Array.isArray(env.window_elements) ? env.window_elements : [];
+            const doorElements = Array.isArray(env.door_elements) ? env.door_elements : [];
+            const ori = function (value) { return ORI_DE[value] || value || '—'; };
+            rows.push('<div class="small" style="margin:10px 0 5px;font-weight:700;">🧱 Außenwände (' + wallElements.length + ')</div>');
+            if (wallElements.length) {
+                wallElements.forEach(function (e) {
+                    rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🧱 <b>' + escHtml(e.name) + '</b> · ' + ori(e.orientation) + ' · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn btn-primary" onclick="window.selectIfcElement(' + Number(e.id) + ')">Aufbau zuweisen</button></span></div>');
+                });
+            } else {
+                rows.push('<div class="small">Keine einzelnen Außenwände im IFC erkannt.</div>');
+            }
+            rows.push('<div class="small" style="margin:10px 0 5px;font-weight:700;">🪟 Fenster (' + windowElements.length + ')</div>');
+            if (windowElements.length) {
+                windowElements.forEach(function (e) {
+                    rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🪟 <b>' + escHtml(e.name) + '</b> · ' + ori(e.orientation) + ' · ' + Number(e.area || 0).toFixed(2) + ' m² · ' + (e.width ? Number(e.width).toFixed(2) + ' × ' + Number(e.height || 0).toFixed(2) + ' m' : 'Maße aus IFC') + ' · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn btn-primary" onclick="window.selectIfcElement(' + Number(e.id) + ')">Fenster bearbeiten</button></span></div>');
+                });
+            } else {
+                rows.push('<div class="small">Keine Fenster im IFC erkannt.</div>');
+            }
+            rows.push('<div class="small" style="margin:10px 0 5px;font-weight:700;">🚪 Türen (' + doorElements.length + ')</div>');
+            if (doorElements.length) {
+                doorElements.forEach(function (e) {
+                    rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🚪 <b>' + escHtml(e.name) + '</b> · ' + ori(e.orientation) + ' · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn btn-primary" onclick="window.selectIfcElement(' + Number(e.id) + ')">Tür bearbeiten</button></span></div>');
+                });
+            } else {
+                rows.push('<div class="small">Keine Türen im IFC erkannt.</div>');
+            }
+            (env.roof_elements || []).forEach(function (e) {
+                rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🏠 <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'roof\')">Dachaufbau bearbeiten</button><button type="button" class="btn btn-primary" onclick="window.addPvForIfcRoof(' + e.id + ')">＋ PV auf diesem Dach</button></span></div>');
+            });
+            (env.floor_elements || []).forEach(function (e) {
+                rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">▰ <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'floor\')">Bodenaufbau bearbeiten</button></span></div>');
+            });
+            const missing = [];
+            if (!wallElements.length) missing.push('Außenwände');
+            if (!windowElements.length) missing.push('Fenster');
+            if (env.roof_area == null || !(env.roof_elements || []).length) missing.push('Dach');
+            if (env.floor_area == null || !(env.floor_elements || []).length) missing.push('Bodenplatte');
+            const check = missing.length
+                ? '<div style="margin:8px 0;padding:8px 10px;border:1px solid #f59e0b;border-radius:8px;color:#92400e;background:#fffbeb;">⚠ Wärmehülle prüfen: Im IFC fehlen oder fehlen Mengen für ' + missing.join(', ') + '.</div>'
+                : '<div style="margin:8px 0;padding:8px 10px;border:1px solid #10b981;border-radius:8px;color:#047857;background:#ecfdf5;">✓ Wärmehülle vollständig erkannt: Außenwände, Öffnungen, Dach und Bodenplatte sind einzeln verfügbar.</div>';
+            surfaceBox.innerHTML = '<div class="small" style="margin-bottom:5px;font-weight:700;">Einzelne IFC-Bauteile der Wärmehülle:</div>' + check + rows.join('');
+        }
+    };
+    window.selectIfcSurface = function (id, kind) {
+        const tab = document.querySelector('[aria-controls="huelle"]');
+        if (tab) tab.click();
+        setTimeout(function () {
+            const card = document.getElementById(kind === 'roof' ? 'card-dach' : 'card-boden');
+            const target = Array.from(document.querySelectorAll('[data-ifc-id]')).find(function (el) { return String(el.getAttribute('data-ifc-id')) === String(id); });
+            if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); target.style.outline = '2px solid #10b981'; setTimeout(function () { target.style.outline = ''; }, 2400); }
+            else if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 250);
+    };
+    window.addPvForIfcRoof = function (id) {
+        if (typeof window.setPvEnabled === 'function') window.setPvEnabled(true);
+        if (typeof window.addPvPanel === 'function') window.addPvPanel();
+        const list = window.pvList || [];
+        if (list.length) list[list.length - 1].ifcRoofId = id;
+        const tab = document.querySelector('[aria-controls="pv"]');
+        if (tab) tab.click();
+        setTimeout(function () {
+            const el = document.getElementById('pv_module_list');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 250);
+    };
+    window.checkIfcEnvelopeCard = function () {
+        if (window._ifcEnvelopeData) window.renderIfcEnvelopeCard(window._ifcEnvelopeData);
+        else {
+            const card = document.getElementById('ifcEnvelopeCard');
+            if (card) card.style.display = 'none';
+        }
+    };
+
+    window.selectEnvelopeSource = function (source) {
+        if (source === 'draw') {
+            if (window._drawEnvelopeState) restoreEnvelopeState(window._drawEnvelopeState);
+            else {
+                window._envelopeSource = 'draw';
+                window._envelopeSourceName = '';
+                if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
+                if (typeof calculateEnvelope === 'function') calculateEnvelope();
+            }
+            return;
+        }
+        const activate = function (data) {
+            if (!data || !data.ok || !data.envelope) {
+                const statusEl = document.getElementById('ifcEnvelopeApplyStatus');
+                if (statusEl) statusEl.textContent = 'Bitte zuerst ein neues IFC-Modell laden.';
+                return;
+            }
+            window._ifcEnvelopeData = data;
+            if (window._envelopeSource !== 'ifc') window._drawEnvelopeState = captureEnvelopeState();
+            window.applyIfcEnvelopeToHuelle();
+        };
+        if (window._ifcEnvelopeData) activate(window._ifcEnvelopeData);
+        else if (window._loadIfcImportData) window._loadIfcImportData().then(activate);
     };
 
     // Baut aus den extrahierten IFC-Flächen den minimalen synthetischen Zustand, den
@@ -17116,18 +17445,59 @@ window.addEventListener('load', function () {
     // Ansicht (zeigt weiterhin die Standardgeometrie, nicht das importierte Modell).
     window.applyIfcEnvelopeToHuelle = function () {
         if (!window._loadIfcImportData) return;
-        window._loadIfcImportData().then(function (data) {
+        const sourceData = window._ifcEnvelopeData ? orientedIfcData(window._ifcEnvelopeData) : null;
+        (sourceData ? Promise.resolve(sourceData) : window._loadIfcImportData()).then(function (data) {
             const env = data && data.ok ? data.envelope : null;
             const statusEl = document.getElementById('ifcEnvelopeApplyStatus');
             if (!env) { if (statusEl) statusEl.textContent = 'Kein IFC-Modell gefunden.'; return; }
+
+            if (!window._drawEnvelopeState) window._drawEnvelopeState = captureEnvelopeState();
+
+            // BUGFIX: _rebuild3D() muss VOR den IFC-Zustandszuweisungen laufen, nicht danach.
+            // _rebuild3D() prüft window.isComplexGeometry, das an dieser Stelle noch false ist
+            // (wird erst weiter unten gesetzt) - und lastPolygon ist beim IFC-Import ohnehin
+            // leer (3D-Vorschau zeigt bewusst weiterhin die Standardgeometrie, s. o.), sodass
+            // _rebuild3D() in jedem Fall buildSimple() aufruft. buildSimple() setzt aber
+            // window.complexWallList = null und ruft updateGeometryStats() auf, was
+            // window.wallAreas komplett auf die Rechteck-Schätzung zurücksetzt. Rief man
+            // _rebuild3D() (wie zuvor) NACH den IFC-Zuweisungen auf, wurden Wandflächen und
+            // Einzelwandliste dadurch sofort wieder überschrieben - sichtbar als scheinbar
+            // "zwei verschiedene Modelle" (IFC-Box oben korrekt, Wandaufbau-Editor darunter
+            // stur auf Rechteck-Werten). Jetzt läuft der 3D-Reset zuerst, die IFC-Werte werden
+            // danach unverändert übernommen.
+            if (typeof window._rebuild3D === 'function') window._rebuild3D();
 
             window.wallAreas = window.wallAreas || {};
             ORI8.forEach(function (o) { window.wallAreas[o] = env.walls[o] || 0; });
             if (env.roof_area != null) window.wallAreas.roof = env.roof_area;
             if (env.floor_area != null) window.wallAreas.floor = env.floor_area;
 
-            window.complexWallList = ORI8.filter(function (o) { return env.walls[o] > 0; })
-                .map(function (o, i) { return { nr: i + 1, ori: o, oriEnergy: o, oriDe: ORI_DE[o], laenge: 0, flaeche: env.walls[o] }; });
+            // BUGFIX: calculateEnvelope() sendet ans Backend NUR north_area/south_area/
+            // east_area/west_area (4 Himmelsrichtungen) - keine Diagonal-Felder. Bei
+            // diagonal ausgerichteten IFC-Gebäuden (z. B. FZK-Haus: Wände liegen auf
+            // NO/SO/SW/NW) blieben window.wallAreas.north/south/east/west bislang 0,
+            // wodurch die kompletten Außenwandflächen unbemerkt aus der Heizwärme-
+            // bedarfsrechnung herausfielen. Fix: dieselbe Diagonal→Kardinal-Umlegung wie
+            // bei Fenstern/Türen (foldToCardinal, s. u.) auch auf die Wandflächen
+            // anwenden, BEVOR calculateEnvelope() sie liest.
+            const wallAreaCardinal = foldToCardinal(env.walls);
+            ['north', 'south', 'east', 'west'].forEach(function (o) { window.wallAreas[o] = wallAreaCardinal[o]; });
+            ['north', 'south', 'east', 'west'].forEach(function (o) {
+                const el = document.getElementById(o + '_area_display');
+                if (el) el.innerText = wallAreaCardinal[o].toFixed(1) + ' m²';
+            });
+
+            window._ifcWallElements = Array.isArray(env.wall_elements) ? env.wall_elements.map(function (w, i) {
+                return {
+                    nr: i + 1, id: w.id, name: w.name, ori: w.orientation, oriEnergy: w.orientation,
+                    oriDe: ORI_DE[w.orientation] || w.orientation, laenge: w.length || 0,
+                    flaeche: w.area || 0, aufbauKey: 'ifc-wall-' + w.id, ifcId: w.id
+                };
+            }) : [];
+            window.complexWallList = window._ifcWallElements.length
+                ? window._ifcWallElements
+                : ORI8.filter(function (o) { return env.walls[o] > 0; })
+                    .map(function (o, i) { return { nr: i + 1, ori: o, oriEnergy: o, oriDe: ORI_DE[o], laenge: 0, flaeche: env.walls[o], aufbauKey: o }; });
 
             window.complexWindows = {};
             ORI8.forEach(function (o) { window.complexWindows[o] = env.windows[o] || 0; });
@@ -17171,19 +17541,40 @@ window.addEventListener('load', function () {
             window._doorSeq = window._doorSeq || 0;
             const newWindowsList = [];
             const newDoorsList = [];
+            window._ifcWindowElements = Array.isArray(env.window_elements) ? env.window_elements : [];
+            window._ifcDoorElements = Array.isArray(env.door_elements) ? env.door_elements : [];
+            if (window._ifcWindowElements.length) {
+                window._ifcWindowElements.forEach(function (w) {
+                    const o = ['north', 'east', 'south', 'west'].indexOf(w.orientation) >= 0 ? w.orientation : 'north';
+                    newWindowsList.push({
+                        id: ++window._winSeq, ifcId: w.id, ifcName: w.name, orientation: o,
+                        width: w.width || Math.sqrt(w.area || 0), height: w.height || 1.4,
+                        u: 1.10, g: 0.55
+                    });
+                });
+            }
+            if (window._ifcDoorElements.length) {
+                window._ifcDoorElements.forEach(function (d) {
+                    const o = ['north', 'east', 'south', 'west'].indexOf(d.orientation) >= 0 ? d.orientation : 'north';
+                    newDoorsList.push({
+                        id: ++window._doorSeq, ifcId: d.id, ifcName: d.name, orientation: o,
+                        width: d.width || Math.sqrt(d.area || 0), height: d.height || 2.1, u: 2.5
+                    });
+                });
+            }
             ['north', 'south', 'east', 'west'].forEach(function (o) {
                 // Fensteranzahl: aus IFC falls bekannt (window_counts), sonst Flächen-
                 // Heuristik (~2,4 m²/Fenster) als Fallback für ältere gecachte Importe
                 // ohne diese Kennzahl.
                 const winCount = env.window_counts ? Math.round(winCountCardinal[o]) : Math.max(0, Math.round(winAreaCardinal[o] / 2.4));
-                if (winCount > 0 && winAreaCardinal[o] > 0) {
+                if (!window._ifcWindowElements.length && winCount > 0 && winAreaCardinal[o] > 0) {
                     const h = 1.4, wEach = (winAreaCardinal[o] / winCount) / h;
                     for (let i = 0; i < winCount; i++) {
                         newWindowsList.push({ id: ++window._winSeq, orientation: o, width: +wEach.toFixed(3), height: h, u: 1.10, g: 0.55 });
                     }
                 }
                 const doorCount = Math.round(doorCountCardinal[o]);
-                if (doorCount > 0) {
+                if (!window._ifcDoorElements.length && doorCount > 0) {
                     const h = 2.1, per = doorAreaPerUnitRaw[o] || 2.0, w = Math.max(0.6, per / h);
                     for (let i = 0; i < doorCount; i++) {
                         newDoorsList.push({ id: ++window._doorSeq, orientation: o, width: +w.toFixed(3), height: h, u: 2.5 });
@@ -17211,13 +17602,12 @@ window.addEventListener('load', function () {
                 const floorEl = document.getElementById('floor_area_display');
                 if (floorEl) floorEl.innerText = env.floor_area.toFixed(1) + ' m²';
             }
-            if (typeof window._rebuild3D === 'function') window._rebuild3D();
-
             window.isComplexGeometry = true;
             window._envelopeSource = 'ifc';
             window._envelopeSourceName = data.building_name || 'IFC-Import';
             if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
             if (typeof renderWallAreaGrid === 'function') renderWallAreaGrid();
+            if (typeof renderWallAufbauGrid === 'function') renderWallAufbauGrid();
 
             if (statusEl) statusEl.textContent = '⏳ Berechne Heizwärmebedarf mit den übernommenen Flächen …';
             Promise.resolve(typeof calculateEnvelope === 'function' ? calculateEnvelope() : null).then(function () {

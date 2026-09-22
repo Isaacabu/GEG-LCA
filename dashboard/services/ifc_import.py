@@ -254,8 +254,13 @@ _ORIENTATION_KEYS = ("north", "northeast", "east", "southeast", "south", "southw
 
 
 def _orientation_from_vector(dx: float, dy: float, north_offset_deg: float) -> str:
-    angle = (math.degrees(math.atan2(dx, dy)) - north_offset_deg + 360) % 360
+    angle = (_angle_from_vector(dx, dy) - north_offset_deg + 360) % 360
     return _ORIENTATION_KEYS[round(angle / 45) % 8]
+
+
+def _angle_from_vector(dx: float, dy: float) -> float:
+    """Rohwinkel einer Außen-Normale zur Modell-Y-Achse, 0 = Modell-Y."""
+    return (math.degrees(math.atan2(dx, dy)) + 360) % 360
 
 
 def _wall_length_height_dir(verts: List[float]) -> Tuple[float, float, Tuple[float, float], Tuple[float, float]]:
@@ -314,7 +319,8 @@ def _extract_envelope(model) -> Dict[str, Any]:
         if area <= 0:
             area = length * height
         wall_infos.append({
-            "product": wall, "area": area, "direction": direction, "midpoint": midpoint,
+            "product": wall, "area": area, "length": length, "height": height,
+            "direction": direction, "midpoint": midpoint,
             "is_external": _is_external(wall),
         })
 
@@ -322,6 +328,8 @@ def _extract_envelope(model) -> Dict[str, Any]:
         warnings.append("Keine auswertbaren Wände (IfcWall) im Modell gefunden.")
         return {
             "walls": {}, "windows": {}, "doors": {},
+            "wall_elements": [], "window_elements": [], "door_elements": [],
+            "roof_elements": [], "floor_elements": [],
             "roof_area": None, "floor_area": None, "warnings": warnings,
         }
 
@@ -355,6 +363,7 @@ def _extract_envelope(model) -> Dict[str, Any]:
         return hull.boundary.distance(SPoint(w["midpoint"])) < 0.3
 
     wall_areas: Dict[str, float] = {}
+    wall_elements: List[Dict[str, Any]] = []
     for w in wall_infos:
         if not _is_ext(w):
             continue
@@ -365,15 +374,30 @@ def _extract_envelope(model) -> Dict[str, Any]:
         if nx * vx + ny * vy < 0:
             nx, ny = -nx, -ny
         orientation = _orientation_from_vector(nx, ny, north_offset)
+        angle_deg = _angle_from_vector(nx, ny)
         wall_areas[orientation] = wall_areas.get(orientation, 0.0) + w["area"]
         w["orientation"] = orientation
+        wall_elements.append({
+            "id": w["product"].id(),
+            "global_id": w["product"].GlobalId,
+            "name": w["product"].Name or f"Wand {w['product'].id()}",
+            "type": w["product"].is_a(),
+            "orientation": orientation,
+            "angle_deg": round(angle_deg, 3),
+            "area": round(w["area"], 3),
+            "length": round(w["length"], 3),
+            "height": round(w["height"], 3),
+        })
     if not wall_areas:
         warnings.append("Keine Außenwände erkannt — alle Wände wurden als innenliegend eingestuft.")
 
     # Fenster/Türen → Wirtswand-Orientierung (offizielle IFC-Beziehungen, s. _host_wall)
     wall_orientation_by_id = {w["product"].id(): w.get("orientation") for w in wall_infos}
+    wall_angle_by_id = {w["id"]: w.get("angle_deg") for w in wall_elements}
     window_areas: Dict[str, float] = {}
     window_counts: Dict[str, int] = {}
+    window_elements: List[Dict[str, Any]] = []
+    door_elements: List[Dict[str, Any]] = []
     door_areas: Dict[str, Dict[str, Any]] = {}
     for opening_type, qty_names in (
         ("IfcWindow", ("Area", "GrossArea")),
@@ -385,22 +409,53 @@ def _extract_envelope(model) -> Dict[str, Any]:
             if not orientation:
                 continue
             area = _quantity_area(product, qty_names)
+            width = height = 0.0
             if area <= 0:
                 try:
                     shape = ifcopenshell.geom.create_shape(settings, product)
-                    length, height, _, _ = _wall_length_height_dir(list(shape.geometry.verts))
-                    area = length * height
+                    width, height, _, _ = _wall_length_height_dir(list(shape.geometry.verts))
+                    area = width * height
                 except Exception:
                     area = 0.0
+            elif area > 0:
+                try:
+                    shape = ifcopenshell.geom.create_shape(settings, product)
+                    width, height, _, _ = _wall_length_height_dir(list(shape.geometry.verts))
+                except Exception:
+                    pass
             if area <= 0:
                 continue
             if opening_type == "IfcWindow":
                 window_areas[orientation] = window_areas.get(orientation, 0.0) + area
                 window_counts[orientation] = window_counts.get(orientation, 0) + 1
+                window_elements.append({
+                    "id": product.id(),
+                    "global_id": product.GlobalId,
+                    "name": product.Name or f"Fenster {product.id()}",
+                    "type": product.is_a(),
+                    "host_id": host.id() if host else None,
+                    "orientation": orientation,
+                    "angle_deg": wall_angle_by_id.get(host.id()) if host else None,
+                    "area": round(area, 3),
+                    "width": round(width, 3) if width > 0 else None,
+                    "height": round(height, 3) if height > 0 else None,
+                })
             else:
                 d = door_areas.setdefault(orientation, {"count": 0, "total_area": 0.0})
                 d["count"] += 1
                 d["total_area"] += area
+                door_elements.append({
+                    "id": product.id(),
+                    "global_id": product.GlobalId,
+                    "name": product.Name or f"Tür {product.id()}",
+                    "type": product.is_a(),
+                    "host_id": host.id() if host else None,
+                    "orientation": orientation,
+                    "angle_deg": wall_angle_by_id.get(host.id()) if host else None,
+                    "area": round(area, 3),
+                    "width": round(width, 3) if width > 0 else None,
+                    "height": round(height, 3) if height > 0 else None,
+                })
 
     doors_out = {
         o: {"count": d["count"], "area_per_unit": round(d["total_area"] / d["count"], 2)}
@@ -414,30 +469,47 @@ def _extract_envelope(model) -> Dict[str, Any]:
     # FLOOR sind Zwischendecken zwischen Geschossen, thermisch innenliegend und
     # dürfen NICHT mitgezählt werden (sonst Boden-U-Wert-Verlust systematisch zu groß).
     roof_area = None
+    roof_elements: List[Dict[str, Any]] = []
     roof_products = list(model.by_type("IfcRoof"))
     roof_products += [s for s in model.by_type("IfcSlab") if getattr(s, "PredefinedType", None) == "ROOF"]
     for product in roof_products:
         a = _quantity_area(product, ("GrossArea", "NetArea"))
         if a > 0:
             roof_area = (roof_area or 0.0) + a
+            roof_elements.append({
+                "id": product.id(), "global_id": product.GlobalId,
+                "name": product.Name or f"Dach {product.id()}",
+                "type": product.is_a(), "orientation": "horizontal", "area": round(a, 3),
+            })
     if roof_area is None:
         warnings.append("Kein Dach (IfcRoof/IfcSlab ROOF) mit Flächenangabe im Modell gefunden — bitte manuell eintragen.")
 
     floor_area = None
+    floor_elements: List[Dict[str, Any]] = []
     for product in model.by_type("IfcSlab"):
         if getattr(product, "PredefinedType", None) != "BASESLAB":
             continue
         a = _quantity_area(product, ("GrossArea", "NetArea"))
         if a > 0:
             floor_area = (floor_area or 0.0) + a
+            floor_elements.append({
+                "id": product.id(), "global_id": product.GlobalId,
+                "name": product.Name or f"Bodenplatte {product.id()}",
+                "type": product.is_a(), "orientation": "horizontal", "area": round(a, 3),
+            })
     if floor_area is None:
         warnings.append("Keine Bodenplatte (IfcSlab, BASESLAB) mit Flächenangabe gefunden — bitte manuell eintragen.")
 
     return {
         "walls": {o: round(a, 1) for o, a in wall_areas.items()},
+        "wall_elements": wall_elements,
         "windows": {o: round(a, 1) for o, a in window_areas.items()},
         "window_counts": {o: c for o, c in window_counts.items()},
+        "window_elements": window_elements,
         "doors": doors_out,
+        "door_elements": door_elements,
+        "roof_elements": roof_elements,
+        "floor_elements": floor_elements,
         "roof_area": round(roof_area, 1) if roof_area else None,
         "floor_area": round(floor_area, 1) if floor_area else None,
         "warnings": warnings,

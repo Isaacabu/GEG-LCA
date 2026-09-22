@@ -581,6 +581,7 @@ def calculate_heat_demand(data: Dict[str, Any]) -> Dict[str, Any]:
         "window_bridge_loss": round(h_window_bridges, 2),  # Σ ψ·L Fenster (Seiten/Sturz/Brüstung) [W/K]
         "delta_u_wb": delta_u_wb,                        # angesetzter Wärmebrückenzuschlag [W/m²K]
         "envelope_area_m2": round(envelope_area, 1),
+        "specific_transmission_loss": round(h_t / envelope_area, 4) if envelope_area > 0 else 0.0,
         "h_transmission": round(h_t, 2),
         "h_ventilation": round(h_v, 2),
         "h_total": round(h_total, 2),

@@ -226,22 +226,26 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
     fan_dc = str(data.get("ventilation_fan_type", "ac")).strip().lower() == "dc"
     mechanical_vent = vent_key != "none"
 
-    # Bedarfsregelung & Verteilung/Übergabe (Teil 6): Einzelraumregelung und zentrale
-    # Vorregelung senken den geförderten Luftvolumenstrom (weniger Überlüftung) →
-    # weniger RLT-Heizung und Ventilatorstrom. Verteilleitungen außerhalb der beheizten
-    # Hülle und überwiegend an der Außenwand liegende Auslässe erhöhen die Verluste.
+    # Bedarfsregelung & Verteilung/Übergabe (Teil 6).
     room_control = str(data.get("ventilation_room_control", "without")).strip().lower()
     precontrol = str(data.get("ventilation_precontrol", "without")).strip().lower()
     duct_outside = str(data.get("ventilation_distribution", "innerhalb")).strip().lower() \
         in ("außerhalb", "ausserhalb", "outside")
     outlet_outer = str(data.get("ventilation_outlet_arrangement", "outer")).strip().lower() \
         in ("outer", "außen", "aussen")
-    f_vent_ctrl = 1.0
-    if mechanical_vent and room_control == "with":
-        f_vent_ctrl *= 0.85      # Einzelraumregelung (bedarfsgeführt)
-    if mechanical_vent and precontrol == "with":
-        f_vent_ctrl *= 0.92      # zentrale Vorregelung
-    n_mech = N_MECH * f_vent_ctrl                      # geregelter Anlagenluftwechsel
+    if vent_key == "exhaust":
+        n_mech = 0.0
+        n_mech_fan = N_MECH
+    elif mechanical_vent and room_control == "with":
+        n_mech = 0.30
+        n_mech_fan = n_mech
+    elif mechanical_vent and precontrol == "with":
+        n_mech = 0.35
+        n_mech_fan = n_mech
+    else:
+        n_mech = N_MECH
+        n_mech_fan = n_mech
+    f_vent_ctrl = n_mech / N_MECH if N_MECH else 1.0
     f_duct = 1.10 if (mechanical_vent and duct_outside) else 1.0      # Kanalverluste
     f_outlet = 1.03 if (mechanical_vent and outlet_outer) else 1.0    # Übergabe Außenwand
 
@@ -254,6 +258,8 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         usage_share = (profile["usage_days"] / 365.0) * (profile["usage_hours"] / 24.0)
         n_eff = (profile["air_change"] * usage_share
                  + N_INFILTRATION * (1.0 - usage_share))
+    elif vent_key == "exhaust":
+        n_eff = N_INF
     else:
         n_eff = N_INF + n_mech                        # Abluft/Zu-Abluft ohne WRG
 
@@ -397,7 +403,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Lüftung: Ventilator-Hilfsenergie (Teil 6, Gl. 60)
     spi = (vent["spi_dc"] if fan_dc else vent["spi_ac"])
-    w_fan_year = 0.001 * spi * n_mech * volume * 24.0 * 365.0 if vent_key != "none" else 0.0
+    w_fan_year = 0.001 * spi * n_mech_fan * volume * 24.0 * 365.0 if vent_key != "none" else 0.0
 
     # ------------------------------------------------------------------
     # Monatsschleife
@@ -615,10 +621,18 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         electricity_end = aux_electricity + lighting_end
         jaz = None
 
+    electricity_breakdown = {
+        "heating": round(sums["el_hp_h"], 2) if heating_system == "heatpump" else 0.0,
+        "hotwater": round(sums["el_hp_w"], 2) if heating_system == "heatpump" else 0.0,
+        "auxiliary": round(aux_electricity, 2),
+        "lighting": round(lighting_end, 2),
+    }
+
     # --- Kühlung (Teil 7): Nutzkälte über elektrische Kältemaschine (EER) ---
     cooling_eer = safe_float(data.get("cooling_eer"), 3.0) or 3.0
     cooling_end = cooling_demand_year / cooling_eer if cooling_demand_year > 0 else 0.0
     electricity_end += cooling_end          # Kälteerzeugung ist immer Strom
+    electricity_breakdown["cooling"] = round(cooling_end, 2)
 
     # Heizungs-Endenergie in Raum- und RLT-Anteil aufteilen (nur Darstellung)
     rlt_share = sums["q_rlt"] / sums["q_h_outg"] if sums["q_h_outg"] > 0 else 0.0
@@ -656,6 +670,7 @@ def calculate_system_din(data: Dict[str, Any]) -> Dict[str, Any]:
         "hotwater_end_energy": round(hotwater_end, 2),
         "lighting_end_energy": round(lighting_end, 2),
         "auxiliary_electricity": round(aux_electricity, 2),
+        "electricity_breakdown": electricity_breakdown,
         "cooling_demand_kwh": round(cooling_demand_year, 1),       # Nutzkälte Q_c,b (Teil 2)
         "cooling_end_energy": round(cooling_end, 2),               # „Kühlen Raum" Endenergie
         "cooling_eer": cooling_eer,
