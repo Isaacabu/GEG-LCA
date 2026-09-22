@@ -17364,12 +17364,24 @@ window.addEventListener('load', function () {
             } else {
                 rows.push('<div class="small">Keine Türen im IFC erkannt.</div>');
             }
-            (env.roof_elements || []).forEach(function (e) {
-                rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🏠 <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'roof\')">Dachaufbau bearbeiten</button><button type="button" class="btn btn-primary" onclick="window.addPvForIfcRoof(' + e.id + ')">＋ PV auf diesem Dach</button></span></div>');
-            });
-            (env.floor_elements || []).forEach(function (e) {
-                rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">▰ <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'floor\')">Bodenaufbau bearbeiten</button></span></div>');
-            });
+            const roofElements = env.roof_elements || [];
+            rows.push('<div class="small" style="margin:10px 0 5px;font-weight:700;">🏠 Dach (' + roofElements.length + ')</div>');
+            if (roofElements.length) {
+                roofElements.forEach(function (e) {
+                    rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">🏠 <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'roof\')">Dachaufbau bearbeiten</button><button type="button" class="btn btn-primary" onclick="window.addPvForIfcRoof(' + e.id + ')">＋ PV auf diesem Dach</button></span></div>');
+                });
+            } else {
+                rows.push('<div class="small">Kein Dach im IFC erkannt.</div>');
+            }
+            const floorElements = env.floor_elements || [];
+            rows.push('<div class="small" style="margin:10px 0 5px;font-weight:700;">▰ Bodenplatte (' + floorElements.length + ')</div>');
+            if (floorElements.length) {
+                floorElements.forEach(function (e) {
+                    rows.push('<div class="elem-row" data-ifc-id="' + e.id + '"><span class="er-label">▰ <b>' + escHtml(e.name) + '</b> · ' + Number(e.area || 0).toFixed(2) + ' m² · IFC-ID ' + e.id + '</span><span class="er-actions"><button type="button" class="btn" onclick="window.selectIfcSurface(' + e.id + ', \'floor\')">Bodenaufbau bearbeiten</button></span></div>');
+                });
+            } else {
+                rows.push('<div class="small">Keine Bodenplatte im IFC erkannt.</div>');
+            }
             const missing = [];
             if (!wallElements.length) missing.push('Außenwände');
             if (!windowElements.length) missing.push('Fenster');
