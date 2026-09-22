@@ -17135,14 +17135,58 @@ window.addEventListener('load', function () {
         controls.update();
     }
 
+    // Nordpfeil als Text-Sprite (immer zur Kamera gerichtet), analog zum Kompass-Gizmo
+    // der Komplexe-Geometrie-Ansicht (Weltachsen dort: Nord = -z, Ost = +x).
+    function makeBimLabel(text, hexColor, px) {
+        const c = document.createElement('canvas'); c.width = 128; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.font = 'bold ' + (px || 92) + 'px Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = hexColor; ctx.fillText(text, 64, 70);
+        const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+        const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+        return spr;
+    }
+
+    // Zeigt, wohin "Norden" nach der Nordpfeil-Korrektur tatsächlich zeigt - fest in
+    // Weltkoordinaten (Richtung -Z), dreht NICHT mit der Gebäude-Group mit. So lässt
+    // sich direkt prüfen, ob die als "Nord" markierte Wand wirklich zum Pfeil zeigt.
+    function addNorthArrow(group) {
+        if (window._bimNorthArrow) { scene.remove(window._bimNorthArrow); window._bimNorthArrow = null; }
+        const box = new THREE.Box3().setFromObject(group);
+        if (box.isEmpty()) return;
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const armLen = Math.max(size.x, size.z, 4) * 0.5;
+        const holder = new THREE.Group();
+        holder.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 0), armLen, 0xef4444, armLen * 0.3, armLen * 0.18));
+        const label = makeBimLabel('N', '#ef4444', 100);
+        label.scale.set(armLen * 0.35, armLen * 0.35, armLen * 0.35);
+        label.position.set(0, armLen * 0.15, -armLen - armLen * 0.25);
+        holder.add(label);
+        holder.position.set(center.x, box.min.y + 0.05, box.max.z + armLen * 0.4);
+        scene.add(holder);
+        window._bimNorthArrow = holder;
+    }
+
     function renderMeshes(data) {
         initScene();
         clearSelection();
+        // BUGFIX: Die IFC-Bauteile hängen als Kinder in einer THREE.Group (s. u.), nicht
+        // direkt in der Szene - "c.userData.type" ist aber nur auf den einzelnen Meshes
+        // gesetzt, nie auf der Group selbst. Diese Prüfung traf daher nie zu, und jeder
+        // erneute Render (z. B. nach "Nordrichtung anwenden") fügte eine weitere komplette
+        // Gebäude-Gruppe hinzu, statt die vorherige zu ersetzen - sichtbar als mehrere,
+        // unterschiedlich gedrehte Gebäude übereinander. Jetzt wird die zuletzt erzeugte
+        // Gruppe gezielt per Referenz entfernt.
+        if (window._bimMeshGroup) { scene.remove(window._bimMeshGroup); window._bimMeshGroup = null; }
         Array.from(scene.children).forEach(function (c) { if (c.userData && c.userData.type) scene.remove(c); });
         const group = new THREE.Group();
         group.rotation.y = -(Number(window._ifcNorthOffset || 0) * Math.PI / 180);
         (data.geometry.meshes || []).forEach(function (m) { group.add(meshFromIfc(m)); });
         scene.add(group);
+        window._bimMeshGroup = group;
+        addNorthArrow(group);
         fitCameraToScene(group);
         const info = document.getElementById('bimViewerInfo');
         if (info) {
