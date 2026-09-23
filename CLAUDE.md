@@ -51,6 +51,15 @@ docker build -t geglca . && docker run -p 8000:8000 geglca
   `docs/DIN4108_Umsetzung.md`; verification `scripts/verify_din4108.py`; PDFs in `DIN_4108/` (gitignore,
   copyrighted) extracted via `scripts/din4108_extract.py`. The Bbl-2 ΔU_WB selector writes into the Hülle-tab
   `delta_u_wb` field, feeding the 18599 heating balance.
+- **Norm-compliance check ("Normprüfung") is a rule-based aggregation layer, not an AI/LLM component.**
+  `dashboard/services/normpruefung.py` (`pruefe_norm_konformitaet`) takes the already-computed
+  rating/Ampel fields (`rating_label`/`rating_color`/`rating_message` from din18599.py and din4108.py,
+  `system_label`/`system_color`/`system_message` from din18599_anlage.py) and consolidates them into one
+  overall traffic-light verdict (green/yellow/red = worst of the individual results). It performs no
+  calculation of its own and calls no language model — purely deterministic aggregation, consistent with
+  every other Ampel result in the app. Thin view `/calculate-normpruefung/`; frontend tab „🧭 Normprüfung"
+  in `index.html` reads `window.lastEnvelopeResult`/`window.lastSystemResult`/the four DIN-4108
+  `window.last*Result` globals and posts them there. Verification `scripts/verify_normpruefung.py`.
 - **Heating demand uses a real DIN V 18599-2 monthly-balance engine.** `dashboard/services/din18599.py`
   (`calculate_heat_demand`) implements the monthly method (Q_h,b = Q_sink − η·Q_source per month, utilization
   factor η(γ,τ), Potsdam reference climate, Teil-10 usage profiles, Teil-1 factors). `dashboard/views.calculate`

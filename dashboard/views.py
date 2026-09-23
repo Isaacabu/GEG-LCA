@@ -22,6 +22,7 @@ from .services.din4108 import (
     pruefe_luftdichtheit,
     material_db,
 )
+from .services.normpruefung import pruefe_norm_konformitaet
 
 
 def json_calculate_view(func):
@@ -147,6 +148,19 @@ def calculate_luftdichtheit(data):
 def din4108_materialien(request):
     """Material-Bemessungswerte (λ/μ, DIN 4108-4) für den Glaser-Schichteditor."""
     return JsonResponse({"ok": True, "materialien": material_db()}, status=200)
+
+
+@csrf_exempt
+@json_calculate_view
+def calculate_normpruefung(data):
+    """Konsolidierte Normprüfung: aggregiert die Ampel-Bewertungen der bereits berechneten
+    Nachweise (Heizwärmebedarf, Anlagentechnik, DIN-4108-Nachweise) zu einer Gesamtübersicht.
+
+    Rein regelbasiert (keine Neuberechnung, kein Sprachmodell) – siehe
+    dashboard/services/normpruefung.py. Erwartet ein Dict, dessen Schlüssel die bereits vom
+    Frontend abgerufenen Einzel-Ergebnisse enthalten (z.B. {"heizwaerme": <Ergebnis von
+    /calculate/>, "anlage": <Ergebnis von /calculate-system/>, ...}), jeweils optional."""
+    return pruefe_norm_konformitaet(data)
 
 
 # --- Photovoltaik nach DIN V 18599-9 (Gl. 64–67, Anhang B) ---

@@ -205,7 +205,8 @@ npm run smoke                        # klickt alle Tabs durch, prüft auf Konsol
 
 ## Teammitglieder
 
-- **Ken Truong**
-- **Berke Bozdoğan**
-- **Ahmet Yetişir**
-- **Yunus Cevik**
+- **M.Abuisaac** (Teamleiter)
+- Ken Truong
+- Berke Bozdoğan
+- Ahmet Yetişir
+- Yunus Cevik
