@@ -2046,6 +2046,12 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <button type="button" class="hcat" id="modelSourceIfcBtn" role="tab" aria-selected="false" onclick="window.setModelSource('ifc')">📥 IFC-Modell ansehen</button>
                 </div>
                 <div id="modelSourceDraw">
+                    <div id="house3dIfcSwitch" class="small" style="display:none;text-align:center;margin-bottom:8px;">
+                        <label style="cursor:pointer;">
+                            <input type="checkbox" id="house3dIfcCheckbox" onchange="window.toggleHouseIfcGeometry(this.checked)">
+                            📥 Echte IFC-Geometrie statt Box-/Grundriss-Modell anzeigen
+                        </label>
+                    </div>
                     <div id="house3d" class="house3d" role="img" aria-label="3D-Gebäudemodell. Flächen anklicken, um zur jeweiligen Berechnung zu springen.">
                         <div id="house3d-hint" class="house3d-hint">Ziehen zum Drehen · Shift+Ziehen zum Verschieben · Scrollen zum Zoomen · Fläche anklicken</div>
                         <div id="house3d-tooltip" class="house3d-tooltip"></div>
@@ -11958,6 +11964,58 @@ async function updateDoorType() {
         fitView(Math.max(maxx - minx, maxz - minz, H + roofRidgeH), (floorTop + H) * 0.5);
     }
 
+    // ===== Echte IFC-Geometrie im Hausmodell-Tab (additiver Zweig neben Box-/Grundriss-Modell) =====
+    // Zeigt die aus einem IFC-Import triangulierten Bauteile (window._ifcGeometryData.meshes)
+    // direkt in DIESER Szene/houseGroup an, statt der Box-Näherung aus buildHouse()/buildComplex().
+    // Mesh-Erzeugung (Achstausch Z-up→Y-up, Material) ist mit dem BIM-Viewer-Tab geteilt über
+    // window.ifcMeshFromData (siehe dortige IIFE, meshFromIfc) - keine Duplizierung der Logik.
+    // Nur Anzeige: die Meshes werden bewusst NICHT in `clickable` aufgenommen (andere userData-
+    // Struktur als die Box-/Grundriss-Meshes, „part“ fehlt) - Bearbeiten bleibt im Tab „Gebäudehülle“
+    // (genau wie beim BIM-Viewer-Panel selbst, das ebenfalls rein informativ ist).
+    function buildFromIfcMeshes(geometryData) {
+        clearHouse();
+        const meshes = (geometryData && geometryData.meshes) || [];
+        if (typeof window.ifcMeshFromData !== 'function' || !meshes.length) {
+            buildSimple();   // keine (nutzbare) IFC-Geometrie vorhanden → Fallback auf Box-Modell
+            return;
+        }
+        meshes.forEach(function (m) { houseGroup.add(window.ifcMeshFromData(m)); });
+        const box = new THREE.Box3().setFromObject(houseGroup);
+        if (box.isEmpty()) { fitView(10, 1.5); return; }
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        // IFC-Weltkoordinaten sind anders als beim Box-/Grundriss-Modell i. d. R. NICHT um den
+        // Ursprung zentriert - Group verschieben, damit fitView()/die Pan-Grenzen (gehen von
+        // einem bei X=0/Z=0 zentrierten, auf dem Boden (Y=0) stehenden Modell aus) weiter passen.
+        houseGroup.position.set(-center.x, -box.min.y, -center.z);
+        fitView(Math.max(size.x, size.z, size.y), size.y * 0.45);
+    }
+
+    // Umschalter „Box-/Grundriss-Modell" ↔ „echte IFC-Geometrie" innerhalb des Hausmodell-Tabs
+    // (Checkbox in #house3dIfcSwitch, nur sichtbar wenn IFC-Rohgeometrie vorliegt - siehe
+    // window._setIfcGeometryData im Skript „IFC-Import"). Bewusst ein eigener, zusätzlicher
+    // Schalter statt Wiederverwendung von window.setModelSource('ifc'): jenes schaltet auf das
+    // separate BIM-Viewer-Panel (eigene Szene/Kamera) um, hier soll dieselbe houseGroup/Szene
+    // dieses Tabs die echte Geometrie zeigen (u. a. damit Kamera-/Beleuchtungs-Konventionen und
+    // spätere Erweiterungen wie PV-Platzierung an einem Ort bleiben).
+    window.toggleHouseIfcGeometry = function (checked) {
+        window._houseShowIfcMeshes = !!checked;
+        if (typeof window._rebuild3D === 'function') window._rebuild3D();
+    };
+
+    // Zeigt/versteckt den Schalter je nachdem, ob überhaupt IFC-Rohgeometrie vorliegt.
+    window._updateHouseIfcToggle = function () {
+        const wrap = document.getElementById('house3dIfcSwitch');
+        if (!wrap) return;
+        const has = !!(window._ifcGeometryData && (window._ifcGeometryData.meshes || []).length);
+        wrap.style.display = has ? '' : 'none';
+        if (!has && window._houseShowIfcMeshes) {
+            window._houseShowIfcMeshes = false;
+            const cb = document.getElementById('house3dIfcCheckbox');
+            if (cb) cb.checked = false;
+        }
+    };
+
     // ----- 2D-Grundriss-Editor (SVG) -----
     function initFloorplan() {
         const svg = document.getElementById('floorplanSvg');
@@ -12789,7 +12847,9 @@ async function updateDoorType() {
 
     // Hook für den Einzelfenster-Editor: 3D-Modell neu aufbauen (Geometrie beibehalten)
     window._rebuild3D = function () {
-        if (window.isComplexGeometry && lastPolygon) buildComplex(lastPolygon);
+        if (window._houseShowIfcMeshes && window._ifcGeometryData && (window._ifcGeometryData.meshes || []).length) {
+            buildFromIfcMeshes(window._ifcGeometryData);
+        } else if (window.isComplexGeometry && lastPolygon) buildComplex(lastPolygon);
         else buildSimple();
     };
 
@@ -17029,6 +17089,15 @@ window.addEventListener('load', function () {
     }
     window._loadIfcImportData = function () { return idbGet('last_import'); };
 
+    // Zentrale Ablage der IFC-Importdaten (envelope + rohe Mesh-Geometrie): EIN Ort, den
+    // sowohl der BIM-Viewer-Tab als auch das Hausmodell (buildFromIfcMeshes, Umschalter
+    // #house3dIfcSwitch) lesen, statt die rohen Meshes nur lokal in einer Funktion zu halten.
+    window._setIfcGeometryData = function (data) {
+        window._ifcEnvelopeData = data;
+        window._ifcGeometryData = (data && data.geometry) || null;
+        if (typeof window._updateHouseIfcToggle === 'function') window._updateHouseIfcToggle();
+    };
+
     async function uploadProjectIfc(file) {
         const statusEl = document.getElementById('bimViewerStatus');
         if (!file) return;
@@ -17044,7 +17113,7 @@ window.addEventListener('load', function () {
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error((data.errors || ['Import fehlgeschlagen'])[0]);
             await idbPut('last_import', data);
-            window._ifcEnvelopeData = data;
+            window._setIfcGeometryData(data);
             if (typeof window.renderIfcEnvelopeCard === 'function') window.renderIfcEnvelopeCard(data);
             if (window.loadBimViewer) window.loadBimViewer();
             if (statusEl) statusEl.textContent = '✓ „' + (data.building_name || file.name) + '" geladen. Jetzt die Berechnungsquelle auswählen.';
@@ -17069,7 +17138,7 @@ window.addEventListener('load', function () {
     // diesem Zeitpunkt bereits (Script steht nach dem gesamten Tab-HTML).
     idbGet('last_import').then(function (data) {
         if (!data || !data.ok) return;
-        window._ifcEnvelopeData = data;
+        window._setIfcGeometryData(data);
         setTimeout(function () {
                 const nameEl = document.getElementById('project_name');
                 if (nameEl && data.building_name) nameEl.value = data.building_name;
@@ -17219,6 +17288,9 @@ window.addEventListener('load', function () {
         mesh.userData = { type: m.type, name: m.name, id: m.id };
         return mesh;
     }
+    // Für den Hausmodell-Tab (buildFromIfcMeshes) freigeben - eine Mesh-Erzeugung für beide
+    // Ansichten, statt die Achstausch-/Material-Logik ein zweites Mal zu schreiben.
+    window.ifcMeshFromData = meshFromIfc;
 
     function fitCameraToScene(group) {
         const box = new THREE.Box3().setFromObject(group);
@@ -17580,7 +17652,7 @@ window.addEventListener('load', function () {
                 if (statusEl) statusEl.textContent = 'Bitte zuerst ein neues IFC-Modell laden.';
                 return;
             }
-            window._ifcEnvelopeData = data;
+            window._setIfcGeometryData(data);
             if (window._envelopeSource !== 'ifc') window._drawEnvelopeState = captureEnvelopeState();
             window.applyIfcEnvelopeToHuelle();
         };
