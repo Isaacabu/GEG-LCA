@@ -12432,7 +12432,7 @@ async function updateDoorType() {
 
     function rebuildCurrent() {
         if (geomMode === 'simple') buildSimple();
-        else if (lastPolygon) buildComplex(lastPolygon);
+        else if (lastPolygon) window._rebuild3D();
         else if (floorplanApi) floorplanApi.applyCurrent();
     }
 
@@ -12487,12 +12487,12 @@ async function updateDoorType() {
             window.buildingAzimuth = parseFloat(azEl.value) || 0;
             if (azVal) azVal.textContent = Math.round(window.buildingAzimuth) + '°';
             updateNorthArrow();
-            if (geomMode === 'complex' && lastPolygon) buildComplex(lastPolygon);
+            if (geomMode === 'complex' && lastPolygon) window._rebuild3D();
             if (floorplanApi && floorplanApi.refresh) floorplanApi.refresh();   // Wand-Labels im 2D-Editor
         });
         if (wwrEl) wwrEl.addEventListener('input', function () {
             window.complexWWR = Math.max(0, Math.min(90, parseFloat(wwrEl.value) || 0)) / 100;
-            if (geomMode === 'complex' && lastPolygon) buildComplex(lastPolygon);
+            if (geomMode === 'complex' && lastPolygon) window._rebuild3D();
         });
 
         // Mehrere Türen (reine Geometrie). Wandaufbau/U/CO₂ → Tab „Gebäudehülle".
@@ -12500,7 +12500,7 @@ async function updateDoorType() {
         const doorsEl = document.getElementById('fpDoors');
         if (doorsEl) doorsEl.addEventListener('input', function () {
             window.complexDoorCount = Math.max(0, Math.round(parseFloat(doorsEl.value) || 0));
-            if (geomMode === 'complex' && lastPolygon) buildComplex(lastPolygon);
+            if (geomMode === 'complex' && lastPolygon) window._rebuild3D();
         });
 
         updateNorthArrow();
