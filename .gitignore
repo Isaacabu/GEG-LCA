@@ -26,6 +26,9 @@ docs/din_pdfs/*
 # --- Test-Artefakte (lokal) ---
 scripts/_smoke/
 
+# --- Abschlussarbeit-Material (persönlich, nicht Teil der Codebase) ---
+thesis_export/
+
 # --- Altlasten / große Duplikate ---
 GEG-LCA-mainNeu.zip
 OBD_2024_I_2026-05-17T20_51_57.csv
