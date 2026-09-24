@@ -288,6 +288,124 @@ def _wall_length_height_dir(verts: List[float]) -> Tuple[float, float, Tuple[flo
     return length, height, direction, midpoint
 
 
+def _triangle_normal_area(
+    p0: Tuple[float, float, float], p1: Tuple[float, float, float], p2: Tuple[float, float, float]
+) -> Tuple[Tuple[float, float, float], float]:
+    """Kreuzprodukt zweier Kantenvektoren eines Dreiecks -> (Einheits-)Normale + Fläche."""
+    e1 = (p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2])
+    e2 = (p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2])
+    cx = e1[1] * e2[2] - e1[2] * e2[1]
+    cy = e1[2] * e2[0] - e1[0] * e2[2]
+    cz = e1[0] * e2[1] - e1[1] * e2[0]
+    norm = math.sqrt(cx * cx + cy * cy + cz * cz)
+    if norm < 1e-9:
+        return (0.0, 0.0, 0.0), 0.0
+    return (cx / norm, cy / norm, cz / norm), norm / 2.0
+
+
+def _roof_top_plane(verts: List[float], faces: List[int]) -> Optional[Dict[str, Any]]:
+    """Ebene der Dach-OBERSEITE eines triangulierten Slab-/Roof-Meshes.
+
+    IFC-Exporte liefern Dachflächen i.d.R. als Prisma (Oberseite + Unterseite + dünne
+    Rand-/Giebelstreifen für die Plattendicke, siehe Modell AC20-FZK-Haus.ifc: je Dach-
+    Slab 8 Punkte/12 Dreiecke). Eine Best-Fit-Ebene durch ALLE Punkte würde durch die
+    (leicht höhenversetzte) Unterseite verzerrt. Trennung daher über die Dreiecks-
+    Normalen: nur Dreiecke mit nach oben zeigender Normale (normal.z > 0 - schließt die
+    Unterseite [normal.z < 0] und die näherungsweise senkrechten Rand-/Giebeldreiecke
+    [normal.z ≈ 0] aus) zählen als Oberseite; ihre Normalen werden flächengewichtet
+    gemittelt (deckt minimale Triangulierungs-Abweichungen der Oberseiten-Dreiecke ab).
+
+    Vereinfachung (dokumentierte Grenze, kein Bug): geht von EINER Dachebene je Element
+    aus. Passt zum üblichen Satteldach-Export als 2 Einzel-Slabs (je eine Dachseite ein
+    eigenes Element - siehe AC20-FZK-Haus.ifc). Ein komplexeres Walm-/Krüppelwalmdach,
+    das als EIN IfcRoof-Element mit mehreren echten Dachflächen exportiert wird, würde
+    hier fälschlich zu einer gemittelten Ebene über alle Flächen führen.
+    """
+    pts = [(verts[i], verts[i + 1], verts[i + 2]) for i in range(0, len(verts), 3)]
+    area_sum = 0.0
+    nx_sum = ny_sum = nz_sum = 0.0
+    top_pts: List[Tuple[float, float, float]] = []
+    for i in range(0, len(faces), 3):
+        p0, p1, p2 = pts[faces[i]], pts[faces[i + 1]], pts[faces[i + 2]]
+        normal, area = _triangle_normal_area(p0, p1, p2)
+        if area <= 1e-9 or normal[2] <= 1e-6:
+            continue
+        area_sum += area
+        nx_sum += normal[0] * area
+        ny_sum += normal[1] * area
+        nz_sum += normal[2] * area
+        top_pts.extend((p0, p1, p2))
+    if area_sum <= 1e-9:
+        return None
+    nlen = math.sqrt(nx_sum ** 2 + ny_sum ** 2 + nz_sum ** 2)
+    if nlen < 1e-9:
+        return None
+    normal = (nx_sum / nlen, ny_sum / nlen, nz_sum / nlen)
+    return {"normal": normal, "area": area_sum, "points": top_pts}
+
+
+def _roof_pitch_azimuth(
+    normal: Tuple[float, float, float], north_offset_deg: float
+) -> Tuple[float, Optional[float], Optional[str]]:
+    """Neigung + Ausrichtung einer Dachebene aus ihrer (nach oben zeigenden) Normale.
+
+    Neigung (pitch_deg): Winkel zur Vertikalen, 0° = Flachdach, 90° = wandsenkrecht -
+    acos(normal.z).
+    Ausrichtung: Kompassrichtung der horizontalen Normalen-Komponente (= die Richtung,
+    in die auf dieser Dachfläche flach aufliegende PV-Module zeigen würden), über
+    dieselben Helfer wie bei Wänden (_orientation_from_vector/_angle_from_vector,
+    inkl. TrueNorth-Offset) in Kompass-Grad umgerechnet und dann in die App-Konvention
+    von #pv_roof_azimuth (0° = Süd, negativ = Ost, positiv = West, ±180° = Nord)
+    übersetzt. Bei (nahezu) Flachdach ist die horizontale Komponente numerisch
+    instabil/bedeutungslos -> azimuth_deg/orientation bleiben None (die Ausrichtung
+    entscheidet dort ohnehin die Aufständerung, nicht die Dachebene selbst).
+    """
+    nz = max(-1.0, min(1.0, normal[2]))
+    pitch_deg = math.degrees(math.acos(nz))
+    nx, ny = normal[0], normal[1]
+    if math.hypot(nx, ny) < 1e-3:
+        return pitch_deg, None, None
+    orientation = _orientation_from_vector(nx, ny, north_offset_deg)
+    compass_deg = (_angle_from_vector(nx, ny) - north_offset_deg + 360) % 360
+    azimuth_deg = compass_deg - 180.0   # 0=Süd, negativ=Ost, positiv=West (s. Docstring)
+    return pitch_deg, azimuth_deg, orientation
+
+
+def _plane_hull_area(points: List[Tuple[float, float, float]], normal: Tuple[float, float, float]) -> Optional[float]:
+    """2D-Fläche der konvexen Hülle der auf die Dachebene projizierten Oberseiten-
+    Punkte - dieselbe Projektions-/Convex-Hull-Methodik wie beim Fußabdruck/den Räumen
+    weiter unten (footprint/rooms), hier als geometrischer Fallback/Cross-Check zur
+    Qto-Fläche (bleibt primäre Quelle, s. Modul-Docstring), NICHT als deren Ersatz."""
+    if len(points) < 3:
+        return None
+    origin = points[0]
+    ref = (0.0, 0.0, 1.0) if abs(normal[2]) < 0.9 else (1.0, 0.0, 0.0)
+    ux = ref[1] * normal[2] - ref[2] * normal[1]
+    uy = ref[2] * normal[0] - ref[0] * normal[2]
+    uz = ref[0] * normal[1] - ref[1] * normal[0]
+    ulen = math.sqrt(ux * ux + uy * uy + uz * uz)
+    if ulen < 1e-9:
+        return None
+    u = (ux / ulen, uy / ulen, uz / ulen)
+    v = (
+        normal[1] * u[2] - normal[2] * u[1],
+        normal[2] * u[0] - normal[0] * u[2],
+        normal[0] * u[1] - normal[1] * u[0],
+    )
+    coords2d = []
+    for p in points:
+        dx, dy, dz = p[0] - origin[0], p[1] - origin[1], p[2] - origin[2]
+        coords2d.append((dx * u[0] + dy * u[1] + dz * u[2], dx * v[0] + dy * v[1] + dz * v[2]))
+    try:
+        from shapely.geometry import MultiPoint
+        hull = MultiPoint(coords2d).convex_hull
+        if hull.geom_type == "Polygon":
+            return hull.area
+    except Exception:
+        pass
+    return None
+
+
 def _extract_envelope(model) -> Dict[str, Any]:
     warnings: List[str] = []
     settings = ifcopenshell.geom.settings()
@@ -469,18 +587,41 @@ def _extract_envelope(model) -> Dict[str, Any]:
     # Bodenplatte zählt NUR BASESLAB (erdberührt, wärmeverlustrelevant) - IfcSlab
     # FLOOR sind Zwischendecken zwischen Geschossen, thermisch innenliegend und
     # dürfen NICHT mitgezählt werden (sonst Boden-U-Wert-Verlust systematisch zu groß).
+    # Pitch/Azimut je Dachelement (für die PV-Ertragsrechnung, s. _roof_top_plane/
+    # _roof_pitch_azimuth oben): aus der Oberseiten-Normale des triangulierten Meshes,
+    # NICHT aus allen 8 Prisma-Punkten (die Unterseite würde die Ebene verzerren).
     roof_area = None
     roof_elements: List[Dict[str, Any]] = []
     roof_products = list(model.by_type("IfcRoof"))
     roof_products += [s for s in model.by_type("IfcSlab") if getattr(s, "PredefinedType", None) == "ROOF"]
     for product in roof_products:
         a = _quantity_area(product, ("GrossArea", "NetArea"))
+        pitch_deg = azimuth_deg = area_m2 = None
+        pitch_orientation = None
+        try:
+            shape = ifcopenshell.geom.create_shape(settings, product)
+            plane = _roof_top_plane(list(shape.geometry.verts), list(shape.geometry.faces))
+            if plane:
+                pitch_deg, azimuth_deg, pitch_orientation = _roof_pitch_azimuth(plane["normal"], north_offset)
+                area_m2 = _plane_hull_area(plane["points"], plane["normal"])
+        except Exception:
+            pass
+        if a <= 0 and area_m2:
+            a = area_m2   # geometrischer Fallback ohne Qto-Menge (s. Modul-Docstring)
         if a > 0:
             roof_area = (roof_area or 0.0) + a
             roof_elements.append({
                 "id": product.id(), "global_id": product.GlobalId,
                 "name": product.Name or f"Dach {product.id()}",
                 "type": product.is_a(), "orientation": "horizontal", "area": round(a, 3),
+                # Neu (PV-Übernahme aus IFC-Dachgeometrie): Neigung/Ausrichtung der
+                # Dachebene + Kompassrichtung + geometrische Flächen-Kontrolle. None,
+                # wenn die Oberseiten-Ebene nicht bestimmbar war (z.B. entartetes Mesh)
+                # bzw. bei (nahezu) Flachdach für azimuth_deg/azimuth_orientation.
+                "pitch_deg": round(pitch_deg, 1) if pitch_deg is not None else None,
+                "azimuth_deg": round(azimuth_deg, 1) if azimuth_deg is not None else None,
+                "azimuth_orientation": pitch_orientation,
+                "area_m2": round(area_m2, 3) if area_m2 is not None else None,
             })
     if roof_area is None:
         warnings.append("Kein Dach (IfcRoof/IfcSlab ROOF) mit Flächenangabe im Modell gefunden — bitte manuell eintragen.")

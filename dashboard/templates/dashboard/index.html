@@ -3368,6 +3368,10 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                         </div>
                     </div>
                     <div style="margin-top:8px;">
+                        <button type="button" class="btn" onclick="applyEnvelopeRoofPitchToPV()" style="margin-top:0;font-size:12px;padding:5px 10px;" title="Übernimmt Neigung und Ausrichtung aus der echten, per IFC importierten Dachfläche (Hülle-Tab) – bei mehreren Dachflächen (z.B. Satteldach) wird die größte vorgeschlagen, unabhängig platzierbar über „+ PV auf diesem Dach“ je Einzeldach.">🔗 Neigung/Ausrichtung aus IFC-Dach übernehmen</button>
+                        <span class="small" id="pv_ifc_pitch_hint" style="display:block;margin-top:4px;color:#9bb;"></span>
+                    </div>
+                    <div style="margin-top:8px;">
                         <button type="button" class="btn" onclick="pvSetOptimalAngle()" title="Setzt Neigung 32° und Ausrichtung Süd – das Jahres-Ertragsoptimum für Deutschland (DIN V 18599-9). Besonders fürs Flachdach (aufgeständerte Module)." style="padding:5px 12px;background:linear-gradient(135deg,#10b981,#0ea5b7);border:0;color:#06231c;font-weight:700;">↗ Optimaler Winkel (32° Süd)</button>
                         <span class="small" style="color:#57626e;margin-left:8px;">Ertragsoptimum für alle Module</span>
                     </div>
@@ -13366,6 +13370,37 @@ async function updateDoorType() {
         if (typeof calculatePV === 'function') { try { calculatePV(); } catch (e) {} }
     };
     function setValG(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+
+    // Neigung/Ausrichtung aus der echten IFC-Dachgeometrie übernehmen (siehe
+    // _roof_top_plane/_roof_pitch_azimuth in dashboard/services/ifc_import.py -
+    // Oberseiten-Normale je Dach-Bauteil statt der bisher nur manuell eingegebenen
+    // Standardwerte). Bei mehreren Dachflächen (z.B. Satteldach = 2 IFC-Elemente,
+    // gegenläufige Ausrichtung) wird bewusst NUR die mit der größten Fläche
+    // vorgeschlagen - kein Mehrflächen-Auswahl-UI in diesem Schritt (für eine gezielte
+    // Zuordnung einzelner Module je Dachfläche gibt es bereits "+ PV auf diesem Dach"
+    // im Hülle-Tab, s. addPvForIfcRoof).
+    window.applyEnvelopeRoofPitchToPV = function () {
+        const env = window._ifcEnvelopeData && window._ifcEnvelopeData.ok ? window._ifcEnvelopeData.envelope : null;
+        const hint = $('pv_ifc_pitch_hint');
+        const setHint = function (msg) { if (hint) hint.textContent = msg; else alert(msg); };
+        const roofs = (env && Array.isArray(env.roof_elements) ? env.roof_elements : [])
+            .filter(function (r) { return r && r.pitch_deg != null; });
+        if (!roofs.length) {
+            setHint('Kein IFC-Dach mit auswertbarer Neigung geladen (Hülle-Tab / IFC-Import prüfen).');
+            return;
+        }
+        const best = roofs.reduce(function (a, b) { return (num(b.area, 0) > num(a.area, 0)) ? b : a; });
+        setValG('pv_roof_tilt', Math.round(best.pitch_deg));
+        if (best.azimuth_deg != null) setValG('pv_roof_azimuth', Math.round(best.azimuth_deg));
+        window.applyGlobalPvTiltAz();
+        if (typeof pvUpdateGeometryHint === 'function') { try { pvUpdateGeometryHint(); } catch (e) {} }
+        setHint(
+            'Übernommen von „' + (best.name || 'Dach') + '“ (' + Number(best.area || 0).toFixed(1) + ' m²): '
+            + Math.round(best.pitch_deg) + '° Neigung'
+            + (best.azimuth_deg != null ? ', ' + Math.round(best.azimuth_deg) + '° Ausrichtung' : ' (Ausrichtung nicht bestimmbar – nahezu Flachdach)')
+            + (roofs.length > 1 ? ' · größte von ' + roofs.length + ' Dachflächen im IFC-Modell' : '') + '.'
+        );
+    };
 
     window.aggregatePV = function (opts) {
         opts = opts || {};
