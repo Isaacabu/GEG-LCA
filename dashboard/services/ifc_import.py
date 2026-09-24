@@ -303,8 +303,10 @@ def _triangle_normal_area(
     return (cx / norm, cy / norm, cz / norm), norm / 2.0
 
 
-def _roof_top_plane(verts: List[float], faces: List[int]) -> Optional[Dict[str, Any]]:
-    """Ebene der Dach-OBERSEITE eines triangulierten Slab-/Roof-Meshes.
+def _roof_top_planes(
+    verts: List[float], faces: List[int], angle_threshold_deg: float = 12.0
+) -> List[Dict[str, Any]]:
+    """Ebene(n) der Dach-OBERSEITE eines triangulierten Slab-/Roof-Meshes.
 
     IFC-Exporte liefern Dachflächen i.d.R. als Prisma (Oberseite + Unterseite + dünne
     Rand-/Giebelstreifen für die Plattendicke, siehe Modell AC20-FZK-Haus.ifc: je Dach-
@@ -312,36 +314,90 @@ def _roof_top_plane(verts: List[float], faces: List[int]) -> Optional[Dict[str, 
     (leicht höhenversetzte) Unterseite verzerrt. Trennung daher über die Dreiecks-
     Normalen: nur Dreiecke mit nach oben zeigender Normale (normal.z > 0 - schließt die
     Unterseite [normal.z < 0] und die näherungsweise senkrechten Rand-/Giebeldreiecke
-    [normal.z ≈ 0] aus) zählen als Oberseite; ihre Normalen werden flächengewichtet
-    gemittelt (deckt minimale Triangulierungs-Abweichungen der Oberseiten-Dreiecke ab).
+    [normal.z ≈ 0] aus) zählen als Oberseite.
 
-    Vereinfachung (dokumentierte Grenze, kein Bug): geht von EINER Dachebene je Element
-    aus. Passt zum üblichen Satteldach-Export als 2 Einzel-Slabs (je eine Dachseite ein
-    eigenes Element - siehe AC20-FZK-Haus.ifc). Ein komplexeres Walm-/Krüppelwalmdach,
-    das als EIN IfcRoof-Element mit mehreren echten Dachflächen exportiert wird, würde
-    hier fälschlich zu einer gemittelten Ebene über alle Flächen führen.
+    Mehrflächen-Segmentierung (behebt die früher hier dokumentierte Grenze): ein
+    IFC-Element kann MEHRERE echte, unterschiedlich geneigte/ausgerichtete Dachflächen
+    enthalten (z.B. ein Walm-/Krüppelwalmdach als EIN IfcRoof-Element statt als
+    Einzel-Slabs wie beim Satteldach in AC20-FZK-Haus.ifc). Eine einzelne flächen-
+    gewichtete Mittelung über alle Oberseiten-Dreiecke würde dann fälschlich zu einer
+    diagonalen "Kompromiss-Ebene" führen, die keiner echten Dachfläche entspricht.
+    Daher werden die Oberseiten-Dreiecke zunächst nach Normalenrichtung in Gruppen
+    zerlegt (einfacher, robuster Greedy-Ansatz statt vollem Clustering, da reale
+    Dachflächen i.d.R. klar getrennte Normalen haben): das größte noch nicht
+    zugeordnete Dreieck wird Seed einer neuen Gruppe; alle weiteren unzugeordneten
+    Dreiecke, deren Normale einen Winkel < angle_threshold_deg zur SEED-Normale hat
+    (Winkel zur ursprünglichen Seed-Normale, nicht zur laufend aktualisierten
+    Gruppen-Normale - hält Gruppen stabil), werden ihr zugeschlagen; das wiederholt
+    sich mit den verbleibenden Dreiecken, bis alle einer Gruppe zugeordnet sind. Für
+    jede Gruppe wird - wie zuvor für alle Oberseiten-Dreiecke zusammen - die
+    flächengewichtete mittlere Normale gebildet (deckt minimale Triangulierungs-
+    Abweichungen innerhalb einer realen Fläche ab).
+
+    Schwellwert 12°: deutlich über dem typischen Triangulierungs-/Rundungsrauschen
+    einer einzelnen ebenen IFC-Fläche (in der Praxis < 5°, s. AC20-FZK-Haus.ifc, wo
+    alle Oberseiten-Dreiecke einer Dachseite exakt dieselbe Normale haben), deutlich
+    unter dem Winkel zwischen zwei echten, unterschiedlich geneigten/ausgerichteten
+    Dachflächen (bei einem Walmdach i.d.R. > 30°; selbst zwei gleich geneigte Flächen
+    mit z.B. 90° Azimut-Unterschied liegen weit darüber) - Sicherheitsabstand in beide
+    Richtungen.
+
+    Rückgabe: Liste von {"normal", "area" (Summe Dreiecksflächen der Gruppe, roh -
+    KEINE Hüllflächen-Fläche), "points"} - absteigend nach "area" sortiert. Leere
+    Liste, wenn keine Oberseiten-Dreiecke gefunden wurden. Der Normalfall (ein
+    IFC-Element = eine reale Dachfläche, z.B. je Satteldach-Slab) liefert weiterhin
+    genau EIN Element in der Liste, identisch zum bisherigen Einzelebenen-Ergebnis.
     """
     pts = [(verts[i], verts[i + 1], verts[i + 2]) for i in range(0, len(verts), 3)]
-    area_sum = 0.0
-    nx_sum = ny_sum = nz_sum = 0.0
-    top_pts: List[Tuple[float, float, float]] = []
+    tris: List[Tuple[Tuple[float, float, float], float, Tuple[Tuple[float, float, float], ...]]] = []
     for i in range(0, len(faces), 3):
         p0, p1, p2 = pts[faces[i]], pts[faces[i + 1]], pts[faces[i + 2]]
         normal, area = _triangle_normal_area(p0, p1, p2)
         if area <= 1e-9 or normal[2] <= 1e-6:
             continue
-        area_sum += area
-        nx_sum += normal[0] * area
-        ny_sum += normal[1] * area
-        nz_sum += normal[2] * area
-        top_pts.extend((p0, p1, p2))
-    if area_sum <= 1e-9:
-        return None
-    nlen = math.sqrt(nx_sum ** 2 + ny_sum ** 2 + nz_sum ** 2)
-    if nlen < 1e-9:
-        return None
-    normal = (nx_sum / nlen, ny_sum / nlen, nz_sum / nlen)
-    return {"normal": normal, "area": area_sum, "points": top_pts}
+        tris.append((normal, area, (p0, p1, p2)))
+    if not tris:
+        return []
+
+    cos_threshold = math.cos(math.radians(angle_threshold_deg))
+    remaining = list(range(len(tris)))
+    groups: List[Dict[str, Any]] = []
+    while remaining:
+        seed_idx = max(remaining, key=lambda k: tris[k][1])
+        seed_normal = tris[seed_idx][0]
+        member_idx: List[int] = []
+        still_remaining: List[int] = []
+        for k in remaining:
+            n = tris[k][0]
+            dot = n[0] * seed_normal[0] + n[1] * seed_normal[1] + n[2] * seed_normal[2]
+            (member_idx if dot >= cos_threshold else still_remaining).append(k)
+        area_sum = 0.0
+        nx_sum = ny_sum = nz_sum = 0.0
+        top_pts: List[Tuple[float, float, float]] = []
+        for k in member_idx:
+            n, a, (p0, p1, p2) = tris[k]
+            area_sum += a
+            nx_sum += n[0] * a
+            ny_sum += n[1] * a
+            nz_sum += n[2] * a
+            top_pts.extend((p0, p1, p2))
+        nlen = math.sqrt(nx_sum ** 2 + ny_sum ** 2 + nz_sum ** 2)
+        if area_sum > 1e-9 and nlen >= 1e-9:
+            normal = (nx_sum / nlen, ny_sum / nlen, nz_sum / nlen)
+            groups.append({"normal": normal, "area": area_sum, "points": top_pts})
+        remaining = still_remaining
+
+    groups.sort(key=lambda g: g["area"], reverse=True)
+    return groups
+
+
+def _roof_top_plane(verts: List[float], faces: List[int]) -> Optional[Dict[str, Any]]:
+    """Rückwärtskompatibler Einzelebenen-Wrapper um _roof_top_planes: liefert nur die
+    größte erkannte Oberseiten-Ebene (für Aufrufer, die von genau einer Dachebene je
+    Element ausgehen). Neue Aufrufer, die Mehrflächen-Elemente (Walmdach etc.) korrekt
+    behandeln wollen, sollten direkt _roof_top_planes() verwenden."""
+    planes = _roof_top_planes(verts, faces)
+    return planes[0] if planes else None
 
 
 def _roof_pitch_azimuth(
@@ -587,29 +643,47 @@ def _extract_envelope(model) -> Dict[str, Any]:
     # Bodenplatte zählt NUR BASESLAB (erdberührt, wärmeverlustrelevant) - IfcSlab
     # FLOOR sind Zwischendecken zwischen Geschossen, thermisch innenliegend und
     # dürfen NICHT mitgezählt werden (sonst Boden-U-Wert-Verlust systematisch zu groß).
-    # Pitch/Azimut je Dachelement (für die PV-Ertragsrechnung, s. _roof_top_plane/
-    # _roof_pitch_azimuth oben): aus der Oberseiten-Normale des triangulierten Meshes,
-    # NICHT aus allen 8 Prisma-Punkten (die Unterseite würde die Ebene verzerren).
+    # Pitch/Azimut je Dachelement (für die PV-Ertragsrechnung, s. _roof_top_planes/
+    # _roof_pitch_azimuth oben): aus der/den Oberseiten-Normale(n) des triangulierten
+    # Meshes, NICHT aus allen 8 Prisma-Punkten (die Unterseite würde die Ebene
+    # verzerren). Ein IFC-Element kann mehrere echte Dachflächen enthalten (Walmdach
+    # als ein IfcRoof) - _roof_top_planes segmentiert das in einzelne Ebenen; im
+    # Normalfall (ein Element = eine Fläche, z.B. je Satteldach-Slab) liefert sie genau
+    # eine Ebene, und das Ergebnis ist identisch zum bisherigen Einzelebenen-Pfad.
     roof_area = None
     roof_elements: List[Dict[str, Any]] = []
     roof_products = list(model.by_type("IfcRoof"))
     roof_products += [s for s in model.by_type("IfcSlab") if getattr(s, "PredefinedType", None) == "ROOF"]
     for product in roof_products:
         a = _quantity_area(product, ("GrossArea", "NetArea"))
-        pitch_deg = azimuth_deg = area_m2 = None
-        pitch_orientation = None
+        plane_infos: List[Dict[str, Any]] = []
         try:
             shape = ifcopenshell.geom.create_shape(settings, product)
-            plane = _roof_top_plane(list(shape.geometry.verts), list(shape.geometry.faces))
-            if plane:
+            planes = _roof_top_planes(list(shape.geometry.verts), list(shape.geometry.faces))
+            for plane in planes:
                 pitch_deg, azimuth_deg, pitch_orientation = _roof_pitch_azimuth(plane["normal"], north_offset)
-                area_m2 = _plane_hull_area(plane["points"], plane["normal"])
+                plane_infos.append({
+                    "pitch_deg": pitch_deg,
+                    "azimuth_deg": azimuth_deg,
+                    "orientation": pitch_orientation,
+                    "area_m2": _plane_hull_area(plane["points"], plane["normal"]),
+                    "tri_area": plane["area"],
+                })
         except Exception:
-            pass
-        if a <= 0 and area_m2:
-            a = area_m2   # geometrischer Fallback ohne Qto-Menge (s. Modul-Docstring)
-        if a > 0:
-            roof_area = (roof_area or 0.0) + a
+            plane_infos = []
+        # geometrischer Fallback für die Gesamtfläche ohne Qto-Menge: Summe der
+        # Hüllflächen aller erkannten Ebenen (bei genau einer Ebene identisch zum
+        # bisherigen area_m2-Fallback, s. Modul-Docstring).
+        geom_area_total = sum(pi["area_m2"] for pi in plane_infos if pi["area_m2"]) or None
+        if a <= 0 and geom_area_total:
+            a = geom_area_total
+        if a <= 0:
+            continue
+        roof_area = (roof_area or 0.0) + a
+        if len(plane_infos) <= 1:
+            pi = plane_infos[0] if plane_infos else {
+                "pitch_deg": None, "azimuth_deg": None, "orientation": None, "area_m2": None,
+            }
             roof_elements.append({
                 "id": product.id(), "global_id": product.GlobalId,
                 "name": product.Name or f"Dach {product.id()}",
@@ -618,11 +692,44 @@ def _extract_envelope(model) -> Dict[str, Any]:
                 # Dachebene + Kompassrichtung + geometrische Flächen-Kontrolle. None,
                 # wenn die Oberseiten-Ebene nicht bestimmbar war (z.B. entartetes Mesh)
                 # bzw. bei (nahezu) Flachdach für azimuth_deg/azimuth_orientation.
-                "pitch_deg": round(pitch_deg, 1) if pitch_deg is not None else None,
-                "azimuth_deg": round(azimuth_deg, 1) if azimuth_deg is not None else None,
-                "azimuth_orientation": pitch_orientation,
-                "area_m2": round(area_m2, 3) if area_m2 is not None else None,
+                "pitch_deg": round(pi["pitch_deg"], 1) if pi["pitch_deg"] is not None else None,
+                "azimuth_deg": round(pi["azimuth_deg"], 1) if pi["azimuth_deg"] is not None else None,
+                "azimuth_orientation": pi["orientation"],
+                "area_m2": round(pi["area_m2"], 3) if pi["area_m2"] is not None else None,
             })
+        else:
+            # Mehrere echte Dachflächen in einem IFC-Element (z.B. Walmdach als ein
+            # IfcRoof) - je erkannter Ebene ein eigener virtueller roof_elements-
+            # Eintrag, damit die PV-Übernahme (applyEnvelopeRoofPitchToPV/
+            # addPvForIfcRoof im Frontend) jede Dachfläche einzeln zur Auswahl
+            # anbietet, statt einer gemittelten Kompromiss-Ebene. Die Qto-/Fallback-
+            # Gesamtfläche "a" wird proportional zur (rohen) Dreiecksfläche jeder
+            # Ebene verteilt, damit die Summe der Teilflächen exakt "a" ergibt - keine
+            # Doppelzählung/verlorene Fläche. roof_area (Energiebilanz) zählt "a"
+            # weiter nur EINMAL oben, unabhängig von der Anzahl Teilflächen-Einträge
+            # hier.
+            weight_total = sum(pi["tri_area"] for pi in plane_infos) or 1.0
+            n_planes = len(plane_infos)
+            base_name = product.Name or f"Dach {product.id()}"
+            for idx, pi in enumerate(plane_infos):
+                share = a * (pi["tri_area"] / weight_total)
+                # id: die größte Teilfläche behält die echte IFC-Element-ID (damit z.B.
+                # die 3D-Ansicht, die mit der echten ID auf "PV auf diesem Dach"
+                # verlinkt, weiterhin die Fläche trifft); weitere Teilflächen bekommen
+                # eine garantiert kollisionsfreie negative synthetische ID (echte
+                # IFC-IDs sind stets positiv), da das Frontend "id" nur als
+                # Auswahl-/Scroll-Schlüssel verwendet, nicht als echtes IFC-Entity
+                # nachschlägt.
+                sub_id = product.id() if idx == 0 else -(product.id() * 100 + idx)
+                roof_elements.append({
+                    "id": sub_id, "global_id": product.GlobalId,
+                    "name": f"{base_name} (Fläche {idx + 1}/{n_planes})",
+                    "type": product.is_a(), "orientation": "horizontal", "area": round(share, 3),
+                    "pitch_deg": round(pi["pitch_deg"], 1) if pi["pitch_deg"] is not None else None,
+                    "azimuth_deg": round(pi["azimuth_deg"], 1) if pi["azimuth_deg"] is not None else None,
+                    "azimuth_orientation": pi["orientation"],
+                    "area_m2": round(pi["area_m2"], 3) if pi["area_m2"] is not None else None,
+                })
     if roof_area is None:
         warnings.append("Kein Dach (IfcRoof/IfcSlab ROOF) mit Flächenangabe im Modell gefunden — bitte manuell eintragen.")
 
