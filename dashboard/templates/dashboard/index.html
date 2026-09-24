@@ -1925,7 +1925,7 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
         <button role="tab" aria-selected="false" aria-controls="huelle" tabindex="-1" onclick="showTab('huelle', this); if (window.checkIfcEnvelopeCard) window.checkIfcEnvelopeCard(); if (window.renderBauteilkatalog) window.renderBauteilkatalog(); if (window.updateEnvelopeSourceBadge) window.updateEnvelopeSourceBadge();">🏠 Gebäudehülle</button>
         <button role="tab" aria-selected="false" aria-controls="innen" tabindex="-1" onclick="showTab('innen', this); if (window.initInnen) initInnen()">🛋️ Inneneinrichtung</button>
         <button role="tab" aria-selected="false" aria-controls="anlage" tabindex="-1" onclick="showTab('anlage', this); updateAnlageVisibility()">⚙️ Anlagentechnik</button>
-        <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this)">☀️ Photovoltaik</button>
+        <button role="tab" aria-selected="false" aria-controls="pv" tabindex="-1" onclick="showTab('pv', this); if (window.updatePvEnvelopeHint) updatePvEnvelopeHint();">☀️ Photovoltaik</button>
         <button role="tab" aria-selected="false" aria-controls="bilanz" tabindex="-1" onclick="showTab('bilanz', this)">🟢 Energiebilanz</button>
         <button role="tab" aria-selected="false" aria-controls="din4108" tabindex="-1" onclick="showTab('din4108', this); initDin4108(); if(typeof d48Prefill==='function') d48Prefill();">📋 Wärme- &amp; Feuchteschutz</button>
         <button role="tab" aria-selected="false" aria-controls="normpruefung" tabindex="-1" onclick="showTab('normpruefung', this); if(typeof runNormpruefung==='function') runNormpruefung();">🧭 Normprüfung</button>
@@ -3342,7 +3342,9 @@ input.wl-r:focus, input.wl-gwp:focus { outline: none; border-style: solid; borde
                     <h4 style="margin-top: 14px; font-size: 13px; font-weight: 700; color: #666;">Dach</h4>
                     <div class="field">
                         <label>Modul-Fläche gesamt (m²) <span class="small" id="pv_panel_count" style="color:#9bb;"></span></label>
-                        <input id="pv_roof_available_area" type="number" step="0.1" value="50" readonly title="Automatisch aus den PV-Modulen im 3D-Modell">
+                        <input id="pv_roof_available_area" type="number" step="0.1" value="50" title="Automatisch aus den PV-Modulen im 3D-Modell (Platzierung dort ändert diesen Wert) – oder unten per Knopf aus der Hülle übernehmen, dann manuell weiter anpassbar.">
+                        <button type="button" class="btn" style="margin-top:6px;font-size:12px;padding:5px 10px;" onclick="applyEnvelopeRoofToPV()" title="Übernimmt die aktuelle Dachfläche aus dem Hülle-Tab (dort ggf. aus IFC/komplexer Geometrie) 1:1 als PV-Berechnungsgrundlage. Unabhängig von platzierten 3D-Modulen – für eine schnelle Ertragsschätzung ohne Modul-für-Modul-Platzierung.">🔗 Dachfläche aus Hülle übernehmen</button>
+                        <span class="small" id="pv_envelope_roof_hint" style="display:block;margin-top:4px;color:#9bb;"></span>
                     </div>
                     <input id="pv_roof_percentage" type="hidden" value="100">
                     <div class="grid-2">
@@ -13275,6 +13277,36 @@ async function updateDoorType() {
     function num(v, d) { const x = parseFloat(v); return isFinite(x) ? x : d; }
     function findPv(id) { return (window.pvList || []).find(function (p) { return p.id === id; }); }
 
+    // Kopplung an die Hülle: das 3D-Hausmodell (und damit die Modul-Platzierung) rendert immer
+    // die einfache Rechteck-Geometrie, nie die tatsächliche IFC-/komplexe Dachform (siehe
+    // applyIfcEnvelopeToHuelle-Kommentar). Diese Funktionen koppeln stattdessen die FLÄCHE
+    // (nicht die 3D-Form) an die aktuell aktive Hüllen-Datenquelle - dieselbe Fläche, die auch
+    // Anlagentechnik und Ökobilanz über roof_area_display bereits verwenden.
+    window.updatePvEnvelopeHint = function () {
+        const hint = $('pv_envelope_roof_hint');
+        if (!hint) return;
+        const envRoof = num(($('roof_area_display') || {}).value, 0);
+        hint.textContent = envRoof > 0
+            ? ('Dachfläche laut Hülle-Tab (aktuelle Quelle): ' + envRoof.toFixed(1) + ' m²')
+            : 'Keine Dachfläche im Hülle-Tab hinterlegt.';
+    };
+    window.applyEnvelopeRoofToPV = function () {
+        const envRoof = num(($('roof_area_display') || {}).value, 0);
+        if (envRoof <= 0) {
+            alert('Im Hülle-Tab ist noch keine Dachfläche hinterlegt (Gebäudedaten/IFC-Import prüfen).');
+            return;
+        }
+        setValG('pv_roof_available_area', Math.round(envRoof * 10) / 10);
+        setValG('pv_roof_percentage', 100);
+        window.updatePvEnvelopeHint();
+        const c = $('pv_panel_count');
+        if (c) c.textContent = '(aus Hülle übernommen, keine Einzelmodule)';
+        if (typeof updatePVAreaCalculations === 'function') { try { updatePVAreaCalculations(); } catch (e) {} }
+        if (typeof markStale === 'function') markStale('pv'); else if (window.markStale) window.markStale('pv');
+        if (typeof calculatePV === 'function') { try { calculatePV(); } catch (e) {} }
+    };
+    function setValG(id, v) { const el = document.getElementById(id); if (el) el.value = v; }
+
     window.aggregatePV = function (opts) {
         opts = opts || {};
         const list = window.pvList || [];
@@ -17725,6 +17757,34 @@ window.addEventListener('load', function () {
             window.isComplexGeometry = true;
             window._envelopeSource = 'ifc';
             window._envelopeSourceName = data.building_name || 'IFC-Import';
+
+            // Fußabdruck + Räume (Phase I4) für den Inneneinrichtung-Tab übernehmen. Ohne
+            // buildingFootprint fällt getFootprint() dort weiterhin auf das Rechteck aus den
+            // Gebäudemaßen zurück (sieht dann so aus, als hätte der IFC-Import nur die
+            // Geschosszahl, aber keine echten Grundrisse geliefert). Räume werden nur nach
+            // Rückfrage überschrieben, falls schon manuell etwas gezeichnet wurde.
+            if (Array.isArray(env.footprint) && env.footprint.length >= 3) {
+                window.buildingFootprint = env.footprint.map(function (p) { return { x: p.x, y: p.y }; });
+            }
+            if (Array.isArray(env.rooms) && env.rooms.length) {
+                const applyIfcRooms = function () {
+                    window._roomSeq = window._roomSeq || 0;
+                    const IFC_ROOM_COLORS = ['#38bdf8', '#f6b94b', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#60a5fa', '#f472b6'];
+                    window.innenRooms = env.rooms.map(function (r, i) {
+                        return {
+                            id: 'ifc-room-' + (++window._roomSeq), name: r.name || ('Raum ' + (i + 1)),
+                            color: IFC_ROOM_COLORS[i % IFC_ROOM_COLORS.length], floor: r.floor || 0,
+                            raumart: 'wohnen', nutzungsprofil: '',
+                            pts: r.pts.map(function (p) { return { x: p.x, y: p.y }; }),
+                        };
+                    });
+                };
+                if (!Array.isArray(window.innenRooms) || window.innenRooms.length === 0
+                    || confirm('IFC-Import enthält ' + env.rooms.length + ' Räume. Vorhandene, manuell '
+                        + 'gezeichnete Räume im Inneneinrichtung-Tab durch die IFC-Räume ersetzen?')) {
+                    applyIfcRooms();
+                }
+            }
             if (typeof window.updateEnvelopeSourceBadge === 'function') window.updateEnvelopeSourceBadge();
             if (typeof renderWallAreaGrid === 'function') renderWallAreaGrid();
             if (typeof renderWallAufbauGrid === 'function') renderWallAufbauGrid();

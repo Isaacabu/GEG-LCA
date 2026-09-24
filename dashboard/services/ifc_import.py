@@ -330,7 +330,8 @@ def _extract_envelope(model) -> Dict[str, Any]:
             "walls": {}, "windows": {}, "doors": {},
             "wall_elements": [], "window_elements": [], "door_elements": [],
             "roof_elements": [], "floor_elements": [],
-            "roof_area": None, "floor_area": None, "warnings": warnings,
+            "roof_area": None, "floor_area": None, "footprint": [], "rooms": [],
+            "warnings": warnings,
         }
 
     # Gebäude-Schwerpunkt (Mittel aller Wand-Mittelpunkte) - disambiguiert, welche der
@@ -500,6 +501,88 @@ def _extract_envelope(model) -> Dict[str, Any]:
     if floor_area is None:
         warnings.append("Keine Bodenplatte (IfcSlab, BASESLAB) mit Flächenangabe gefunden — bitte manuell eintragen.")
 
+    # --- Gebäude-Fußabdruck + Räume je Geschoss (Phase I4, für den Inneneinrichtung-Tab) ---
+    # Fußabdruck: konvexe Hülle der Außenwand-Mittelpunkte (dieselbe Näherung wie oben für die
+    # Außen/Innen-Klassifikation, hier aber immer berechnet - wir brauchen eine durchgängige
+    # Fläche für den Grundriss-Editor, nicht nur eine Ja/Nein-Einstufung je Wand).
+    footprint_pts: List[Dict[str, float]] = []
+    try:
+        from shapely.geometry import MultiPoint as _FpMultiPoint
+        ext_pts = [w["midpoint"] for w in wall_infos if _is_ext(w)]
+        pts_for_hull = ext_pts if len(ext_pts) >= 3 else [w["midpoint"] for w in wall_infos]
+        if len(pts_for_hull) >= 3:
+            fp_hull = _FpMultiPoint(pts_for_hull).convex_hull
+            if fp_hull.geom_type == "Polygon":
+                footprint_pts = [{"x": c[0], "y": c[1]} for c in list(fp_hull.exterior.coords)[:-1]]
+    except Exception:
+        footprint_pts = []
+
+    # Geschosse: IfcBuildingStorey nach Elevation sortiert -> Index 0 = unterstes Geschoss (EG),
+    # damit es zur Zählweise im Inneneinrichtung-Tab passt (dort Etage 0 = EG).
+    storeys = sorted(model.by_type("IfcBuildingStorey"),
+                      key=lambda s: (s.Elevation if s.Elevation is not None else 0.0))
+    storey_index = {s.id(): i for i, s in enumerate(storeys)}
+    element_to_storey: Dict[int, int] = {}
+    for rel in model.by_type("IfcRelContainedInSpatialStructure"):
+        struct = rel.RelatingStructure
+        if struct is None or not struct.is_a("IfcBuildingStorey"):
+            continue
+        idx = storey_index.get(struct.id())
+        if idx is None:
+            continue
+        for el in rel.RelatedElements or []:
+            element_to_storey[el.id()] = idx
+
+    # Räume: IfcSpace-Grundriss als konvexe Hülle seiner Geometrie-Punkte (echte Raumkontur
+    # kann konkav/L-förmig sein - die Hülle ist eine bewusste, sichere Vereinfachung, kein
+    # exakter Raumumriss). Ohne IfcSpace im Modell bleibt rooms leer; der Grundriss muss dann
+    # weiterhin manuell im Inneneinrichtung-Tab gezeichnet werden (kein Rückschritt ggü. vorher).
+    rooms: List[Dict[str, Any]] = []
+    for space in model.by_type("IfcSpace"):
+        try:
+            shape = ifcopenshell.geom.create_shape(settings, space)
+        except Exception:
+            continue
+        verts = list(shape.geometry.verts)
+        pts2d = [(verts[i], verts[i + 1]) for i in range(0, len(verts), 3)]
+        if len(pts2d) < 3:
+            continue
+        try:
+            from shapely.geometry import MultiPoint as _RoomMultiPoint
+            hull = _RoomMultiPoint(pts2d).convex_hull
+            if hull.geom_type != "Polygon":
+                continue
+            room_pts = [{"x": c[0], "y": c[1]} for c in list(hull.exterior.coords)[:-1]]
+        except Exception:
+            continue
+        rooms.append({
+            "floor": element_to_storey.get(space.id(), 0),
+            "name": space.LongName or space.Name or f"Raum {space.id()}",
+            "pts": room_pts,
+        })
+    if not rooms:
+        warnings.append(
+            "Keine Räume (IfcSpace) im Modell gefunden — Grundriss muss im "
+            "Inneneinrichtung-Tab weiterhin manuell gezeichnet werden."
+        )
+
+    # Koordinaten normalisieren: kleinste x/y aus Fußabdruck+Räumen -> (0,0), passend zur
+    # Konvention des Inneneinrichtung-Tabs (Gebäudeecke = Ursprung, Meter positiv, siehe
+    # getFootprint() in index.html).
+    all_pts = list(footprint_pts)
+    for r in rooms:
+        all_pts.extend(r["pts"])
+    if all_pts:
+        min_x = min(p["x"] for p in all_pts)
+        min_y = min(p["y"] for p in all_pts)
+        for p in footprint_pts:
+            p["x"] = round(p["x"] - min_x, 2)
+            p["y"] = round(p["y"] - min_y, 2)
+        for r in rooms:
+            for p in r["pts"]:
+                p["x"] = round(p["x"] - min_x, 2)
+                p["y"] = round(p["y"] - min_y, 2)
+
     return {
         "walls": {o: round(a, 1) for o, a in wall_areas.items()},
         "wall_elements": wall_elements,
@@ -512,5 +595,7 @@ def _extract_envelope(model) -> Dict[str, Any]:
         "floor_elements": floor_elements,
         "roof_area": round(roof_area, 1) if roof_area else None,
         "floor_area": round(floor_area, 1) if floor_area else None,
+        "footprint": footprint_pts,
+        "rooms": rooms,
         "warnings": warnings,
     }
