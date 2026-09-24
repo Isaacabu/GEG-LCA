@@ -11973,9 +11973,10 @@ async function updateDoorType() {
     // direkt in DIESER Szene/houseGroup an, statt der Box-Näherung aus buildHouse()/buildComplex().
     // Mesh-Erzeugung (Achstausch Z-up→Y-up, Material) ist mit dem BIM-Viewer-Tab geteilt über
     // window.ifcMeshFromData (siehe dortige IIFE, meshFromIfc) - keine Duplizierung der Logik.
-    // Nur Anzeige: die Meshes werden bewusst NICHT in `clickable` aufgenommen (andere userData-
-    // Struktur als die Box-/Grundriss-Meshes, „part“ fehlt) - Bearbeiten bleibt im Tab „Gebäudehülle“
-    // (genau wie beim BIM-Viewer-Panel selbst, das ebenfalls rein informativ ist).
+    // Die Meshes werden zusätzlich in `clickable` aufgenommen (dasselbe Array wie beim Box-/
+    // Grundriss-Modell, von clearHouse() oben bereits geleert) - Hover/Klick-Code weiter unten
+    // unterscheidet über `userData.part` (Box-Modell) vs. `userData.type` (IFC: {type, name, id}
+    // aus dem IFC-Klassennamen, siehe meshFromIfc/_VIEWER_TYPES in ifc_import.py) welcher Ast greift.
     function buildFromIfcMeshes(geometryData) {
         clearHouse();
         const meshes = (geometryData && geometryData.meshes) || [];
@@ -11983,7 +11984,15 @@ async function updateDoorType() {
             buildSimple();   // keine (nutzbare) IFC-Geometrie vorhanden → Fallback auf Box-Modell
             return;
         }
-        meshes.forEach(function (m) { houseGroup.add(window.ifcMeshFromData(m)); });
+        meshes.forEach(function (m) {
+            const mesh = window.ifcMeshFromData(m);
+            // baseEmissiveHex/baseEmInt: vom Hover-Code (setHover) erwartet, um die
+            // Emissive-Farbe beim Entfernen des Hovers zurückzusetzen (wie bei addMesh()).
+            mesh.userData.baseEmissiveHex = 0x000000;
+            mesh.userData.baseEmInt = 0;
+            houseGroup.add(mesh);
+            clickable.push(mesh);
+        });
         const box = new THREE.Box3().setFromObject(houseGroup);
         if (box.isEmpty()) { fitView(10, 1.5); return; }
         const size = box.getSize(new THREE.Vector3());
@@ -12770,9 +12779,17 @@ async function updateDoorType() {
             tooltip.style.left = (e.clientX - r.left) + 'px';
             tooltip.style.top = (e.clientY - r.top) + 'px';
             let lbl = '';
-            if (typeof window.partThermalLabel === 'function') lbl = window.partThermalLabel(obj.userData.part, obj.userData.orientation);
-            if (!lbl) lbl = LABELS[obj.userData.part] || '';
-            if (_draggable(obj)) lbl += ' · ziehen zum Verschieben (Shift: nur ↔, Strg: nur ↕)';
+            if (obj.userData.part) {
+                if (typeof window.partThermalLabel === 'function') lbl = window.partThermalLabel(obj.userData.part, obj.userData.orientation);
+                if (!lbl) lbl = LABELS[obj.userData.part] || '';
+                if (_draggable(obj)) lbl += ' · ziehen zum Verschieben (Shift: nur ↔, Strg: nur ↕)';
+            } else if (obj.userData.type) {
+                // IFC-Mesh (buildFromIfcMeshes): kein „part“, dafür {type, name, id} aus dem
+                // IFC-Klassennamen. Lesbare Typ-Bezeichnung aus dem BIM-Viewer-Tab wiederverwenden
+                // (window._ifcTypeLabel, dort als TYPE_LABEL gespiegelt) statt zu duplizieren.
+                const typeLabel = (window._ifcTypeLabel && window._ifcTypeLabel[obj.userData.type]) || obj.userData.type;
+                lbl = typeLabel + (obj.userData.name ? ': ' + obj.userData.name : '');
+            }
             tooltip.textContent = lbl;
             tooltip.classList.add('show');
         } else if (tooltip) {
@@ -12810,8 +12827,10 @@ async function updateDoorType() {
             window.openDoorEditor(obj.userData.doorId);
         } else if (obj.userData.part === 'pv' && obj.userData.pvId != null && typeof window.openPvEditor === 'function') {
             window.openPvEditor(obj.userData.pvId);
-        } else {
+        } else if (obj.userData.part) {
             navigateToPart(obj.userData.part);
+        } else if (obj.userData.type) {
+            navigateToIfcElement(obj.userData.type, obj.userData.id);
         }
     });
 
@@ -12823,6 +12842,41 @@ async function updateDoorType() {
         } else if (typeof openHuelleFromHero === 'function') {
             openHuelleFromHero(part);
         }
+    }
+
+    // IFC-Mesh angeklickt (buildFromIfcMeshes, kein „part" in userData): zur passenden Stelle
+    // im Bauteilkatalog springen - dieselbe Sprunglogik wie im BIM-Viewer-Tab wiederverwendet
+    // (window.selectIfcElement/selectIfcSurface/jumpToBauteilkatalog, siehe dortige IIFE), NICHT
+    // neu implementiert. Diese Funktionen suchen [data-ifc-id]-Elemente im Bauteilkatalog-Tab
+    // „Gebäudehülle" - die werden bereits direkt beim IFC-Import gerendert
+    // (window.renderIfcEnvelopeCard, siehe Import-Erfolgs-Handler weiter unten), unabhängig
+    // davon, ob der BIM-Viewer-Tab je geöffnet wurde - der Sprung funktioniert also auch, wenn
+    // man direkt in diesem Hausmodell-Tab klickt.
+    function navigateToIfcElement(type, id) {
+        if (id == null) { if (typeof window.jumpToBauteilkatalog === 'function') window.jumpToBauteilkatalog(); return; }
+        if (type === 'IfcWall' || type === 'IfcWallStandardCase' || type === 'IfcCurtainWall'
+            || type === 'IfcWindow' || type === 'IfcDoor') {
+            if (typeof window.selectIfcElement === 'function') { window.selectIfcElement(id); return; }
+        } else if (type === 'IfcRoof') {
+            if (typeof window.selectIfcSurface === 'function') { window.selectIfcSurface(id, 'roof'); return; }
+        } else if (type === 'IfcSlab') {
+            // IfcSlab ist für sich genommen mehrdeutig (Dach-Slab mit PredefinedType=ROOF,
+            // Bodenplatte=BASESLAB, Zwischendecke=FLOOR/sonst) - die Geometrie-Meshes tragen nur
+            // den rohen IFC-Klassennamen ohne PredefinedType (siehe _extract_geometry in
+            // ifc_import.py). Gegen die bereits geladene Gebäudehüllen-Auswertung
+            // (window._ifcEnvelopeData) nachschlagen, in der roof_elements/floor_elements schon
+            // korrekt nach PredefinedType getrennt sind, statt hier zu raten.
+            const kind = _ifcSlabKind(id);
+            if (kind && typeof window.selectIfcSurface === 'function') { window.selectIfcSurface(id, kind); return; }
+        }
+        if (typeof window.jumpToBauteilkatalog === 'function') window.jumpToBauteilkatalog();
+    }
+    function _ifcSlabKind(id) {
+        const env = window._ifcEnvelopeData && window._ifcEnvelopeData.ok ? window._ifcEnvelopeData.envelope : null;
+        if (!env) return null;
+        if ((env.roof_elements || []).some(function (e) { return String(e.id) === String(id); })) return 'roof';
+        if ((env.floor_elements || []).some(function (e) { return String(e.id) === String(id); })) return 'floor';
+        return null;
     }
 
     function resize() {
@@ -17269,6 +17323,9 @@ window.addEventListener('load', function () {
         IfcSlab: 'Decke/Platte', IfcRoof: 'Dach', IfcCovering: 'Bekleidung',
         IfcWindow: 'Fenster', IfcDoor: 'Tür', IfcColumn: 'Stütze', IfcBeam: 'Träger', IfcStair: 'Treppe', IfcRailing: 'Geländer'
     };
+    // Für den Hausmodell-Tab (buildFromIfcMeshes-Hover) freigeben - eine Label-Tabelle für beide
+    // Ansichten, statt sie ein zweites Mal zu pflegen.
+    window._ifcTypeLabel = TYPE_LABEL;
     function selectMesh(mesh) {
         if (selectedMesh) selectedMesh.material.emissive && selectedMesh.material.emissive.setHex(0x000000);
         selectedMesh = mesh;
